@@ -69,6 +69,10 @@ The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widge
 - Optional blurred wallpaper background via Plasma
 - Manual sync via toolbar button
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for the path to 1.0 (packaging, CalDAV recurrence/reminders, keyboard, and a power-user settings dialog).
+
 ## Configuration
 
 Right-click the widget → **Configure Kurrent**:
