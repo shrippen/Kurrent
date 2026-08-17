@@ -71,7 +71,7 @@ The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widge
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for the path to 1.0 (packaging, CalDAV recurrence/reminders, keyboard, and a power-user settings dialog).
+See [ROADMAP.md](ROADMAP.md) for the path to 1.0 (packaging, CalDAV recurrence/reminders, catch-up and reschedule, keyboard, and a power-user settings dialog).
 
 ## Configuration
 
