@@ -1,0 +1,29 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "shrippen"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Task manager powered by Akonadi and Nextcloud CalDAV",
+        "Description[de]": "Aufgabenverwaltung auf Basis von Akonadi und Nextcloud CalDAV",
+        "Description[es]": "Gestor de tareas con Akonadi y Nextcloud CalDAV",
+        "Description[fr]": "Gestionnaire de tâches basé sur Akonadi et Nextcloud CalDAV",
+        "Description[ja]": "Akonadi と Nextcloud CalDAV によるタスク管理",
+        "Description[zh_CN]": "基于 Akonadi 和 Nextcloud CalDAV 的任务管理器",
+        "Icon": "kurrent",
+        "Id": "com.github.shrippen.kurrent",
+        "License": "GPL-3.0+",
+        "Name": "Kurrent",
+        "Name[de]": "Kurrent",
+        "Name[es]": "Kurrent",
+        "Name[fr]": "Kurrent",
+        "Name[ja]": "Kurrent",
+        "Name[zh_CN]": "Kurrent",
+        "Version": "0.1.0",
+        "Website": "https://github.com/shrippen/Kurrent"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

@@ -1,0 +1,482 @@
+# Translation of plasma_applet_com.github.shrippen.kurrent to Chinese (Simplified).
+# Copyright (C) 2026 Kurrent Contributors
+# This file is distributed under the same license as the kurrent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kurrent 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: Kurrent Contributors\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+
+msgid "Kurrent"
+msgstr "Kurrent"
+
+msgid "Task manager powered by Akonadi and Nextcloud CalDAV"
+msgstr "基于 Akonadi 和 Nextcloud CalDAV 的任务管理器"
+
+msgid "Inbox"
+msgstr "收件箱"
+
+msgid "Today"
+msgstr "今天"
+
+msgid "Tomorrow"
+msgstr "明天"
+
+msgid "Scheduled"
+msgstr "已安排"
+
+msgid "Anytime"
+msgstr "随时"
+
+msgid "Recurring"
+msgstr "重复"
+
+msgid "Unlabeled"
+msgstr "无标签"
+
+msgid "Completed"
+msgstr "已完成"
+
+msgid "No open tasks"
+msgstr "没有未完成任务"
+
+msgid "Due date"
+msgstr "截止日期"
+
+msgid "Priority"
+msgstr "优先级"
+
+msgid "Title A–Z"
+msgstr "标题 A–Z"
+
+msgid "Title Z–A"
+msgstr "标题 Z–A"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Sort: %1"
+msgstr "排序：%1"
+
+msgid "Sort tasks"
+msgstr "排序任务"
+
+msgid "Build"
+msgstr "构建"
+
+msgid "Akonadi offline"
+msgstr "Akonadi 离线"
+
+msgid "(Untitled)"
+msgstr "（无标题）"
+
+msgid "Projects"
+msgstr "项目"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Already in project “%1”"
+msgstr "已在项目“%1”中"
+
+msgid "Move to project “%1”"
+msgstr "移动到项目“%1”"
+
+msgid "Labels"
+msgstr "标签"
+
+msgid "Add label “%1”"
+msgstr "添加标签“%1”"
+
+msgid "Search tasks…"
+msgstr "搜索任务…"
+
+msgid "Clear search"
+msgstr "清除搜索"
+
+msgid "Exit delete mode"
+msgstr "退出删除模式"
+
+msgid "Delete mode"
+msgstr "删除模式"
+
+msgid "Sync now"
+msgstr "立即同步"
+
+msgid "No tasks in this view."
+msgstr "此视图中没有任务。"
+
+msgid "Make top-level task"
+msgstr "设为顶级任务"
+
+msgid "Drop here to make a top-level task"
+msgstr "拖到此处设为顶级任务"
+
+msgid "Add a task…"
+msgstr "添加任务…"
+
+msgid "Add task"
+msgstr "添加任务"
+
+msgid "Make subtask of “%1”"
+msgstr "设为“%1”的子任务"
+
+msgid "High priority (%1)"
+msgstr "高优先级 (%1)"
+
+msgid "Medium priority (%1)"
+msgstr "中优先级 (%1)"
+
+msgid "Low priority (%1)"
+msgstr "低优先级 (%1)"
+
+msgid "Priority %1"
+msgstr "优先级 %1"
+
+msgid "Edit task"
+msgstr "编辑任务"
+
+msgid "Delete task"
+msgstr "删除任务"
+
+msgid "Waiting for Akonadi…"
+msgstr "正在等待 Akonadi…"
+
+msgid "Basics"
+msgstr "基本信息"
+
+msgid "Title:"
+msgstr "标题："
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Description:"
+msgstr "描述："
+
+msgid "Description"
+msgstr "描述"
+
+msgid "Schedule"
+msgstr "日程"
+
+msgid "All day:"
+msgstr "全天："
+
+msgid "All-day task"
+msgstr "全天任务"
+
+msgid "Start:"
+msgstr "开始："
+
+msgid "Clear start"
+msgstr "清除开始时间"
+
+msgid "Due:"
+msgstr "截止："
+
+msgid "Clear due date"
+msgstr "清除截止日期"
+
+msgid "Repeat:"
+msgstr "重复："
+
+msgid "None"
+msgstr "无"
+
+msgid "Daily"
+msgstr "每天"
+
+msgid "Weekly"
+msgstr "每周"
+
+msgid "Monthly"
+msgstr "每月"
+
+msgid "Yearly"
+msgstr "每年"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Completed:"
+msgstr "已完成："
+
+msgid "Mark as done"
+msgstr "标记为完成"
+
+msgid "Progress:"
+msgstr "进度："
+
+msgid "Status:"
+msgstr "状态："
+
+msgid "Needs action"
+msgstr "需要处理"
+
+msgid "In process"
+msgstr "进行中"
+
+msgid "Canceled"
+msgstr "已取消"
+
+msgid "Classification"
+msgstr "分类"
+
+msgid "Priority:"
+msgstr "优先级："
+
+msgid "Labels:"
+msgstr "标签："
+
+msgid "Secrecy:"
+msgstr "保密："
+
+msgid "Public"
+msgstr "公开"
+
+msgid "Private"
+msgstr "私密"
+
+msgid "Confidential"
+msgstr "机密"
+
+msgid "Location:"
+msgstr "地点："
+
+msgid "Location"
+msgstr "地点"
+
+msgid "Project:"
+msgstr "项目："
+
+msgid "No projects available"
+msgstr "没有可用项目"
+
+msgid "Pick date"
+msgstr "选择日期"
+
+msgid "Due"
+msgstr "截止"
+
+msgid "All day"
+msgstr "全天"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "More…"
+msgstr "更多…"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "High"
+msgstr "高"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Search or create label…"
+msgstr "搜索或创建标签…"
+
+msgid "Remove label"
+msgstr "移除标签"
+
+msgid "Create label “%1”"
+msgstr "创建标签“%1”"
+
+msgid "No matching labels"
+msgstr "没有匹配的标签"
+
+msgid "Select a label to filter tasks."
+msgstr "选择标签以筛选任务。"
+
+msgid "Clear label filter"
+msgstr "清除标签筛选"
+
+msgid "Projects (Akonadi Calendars)"
+msgstr "项目（Akonadi 日历）"
+
+msgid "Manage which Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "管理哪些 Akonadi 日历用作项目。禁用的日历完全不获取任务。隐藏的日历仍会获取，但不在侧栏显示。"
+
+msgid "No Akonadi calendars found. Make sure Akonadi is running."
+msgstr "未找到 Akonadi 日历。请确认 Akonadi 正在运行。"
+
+msgid "Collection ID: %1"
+msgstr "集合 ID：%1"
+
+msgid "Enabled"
+msgstr "已启用"
+
+msgid "Include this calendar when fetching tasks"
+msgstr "获取任务时包含此日历"
+
+msgid "Visible"
+msgstr "可见"
+
+msgid "Show this project in the sidebar"
+msgstr "在侧栏显示此项目"
+
+msgid "Enable All"
+msgstr "全部启用"
+
+msgid "Show All"
+msgstr "全部显示"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Akonadi"
+msgstr "Akonadi"
+
+msgid "Tasks are loaded from your existing Akonadi setup."
+msgstr "任务来自您现有的 Akonadi 配置。"
+
+msgid "Setup"
+msgstr "设置"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Kalendar (DAV groupware resource)."
+msgstr "在 KOrganizer 或 Kalendar 中配置 CalDAV/Nextcloud（DAV 群件资源）。"
+
+msgid "Default view"
+msgstr "默认视图"
+
+msgid "Completed tasks"
+msgstr "已完成任务"
+
+msgid "Show completed tasks"
+msgstr "显示已完成任务"
+
+msgid "Appearance"
+msgstr "外观"
+
+msgid "Blurred background"
+msgstr "模糊背景"
+
+msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
+msgstr "使用 Plasma 半透明背景，让 KWin 模糊壁纸。同样作用于面板弹出窗口。"
+
+msgid "Sidebar row size"
+msgstr "侧栏行高"
+
+msgid "Auto (compact, larger with touch)"
+msgstr "自动（紧凑，触摸时更大）"
+
+msgid "Compact"
+msgstr "紧凑"
+
+msgid "Comfortable (touch-friendly)"
+msgstr "舒适（适合触摸）"
+
+msgid "Auto uses compact rows on mouse/desktop and comfortable rows when Plasma detects tablet or touch input."
+msgstr "自动：鼠标/桌面用紧凑行，检测到平板或触摸时用舒适行。"
+
+msgid "New tasks"
+msgstr "新任务"
+
+msgid "Ask which project to use"
+msgstr "询问使用哪个项目"
+
+msgid "Use the top project in the sidebar"
+msgstr "使用侧栏中的第一个项目"
+
+msgid "Use a specific project"
+msgstr "使用指定项目"
+
+msgid "When no project is selected in the sidebar, new tasks follow this setting."
+msgstr "未在侧栏选择项目时，新任务按此设置处理。"
+
+msgid "Default project"
+msgstr "默认项目"
+
+msgid "Choose a project"
+msgstr "选择项目"
+
+msgid "Choose a project for “%1”"
+msgstr "为“%1”选择项目"
+
+msgid "Labels (Categories)"
+msgstr "标签（类别）"
+
+msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
+msgstr "标签来自 Akonadi 任务类别。隐藏的标签不出现在侧栏筛选中，但仍保留在任务上。"
+
+msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
+msgstr "未找到标签。标签会从 Akonadi 任务类别自动发现。"
+
+msgid "Auto-generated color for '%1'"
+msgstr "“%1”的自动颜色"
+
+msgid "Show this label in the sidebar filter"
+msgstr "在侧栏筛选中显示此标签"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Select a project to filter tasks."
+msgstr "选择项目以筛选任务。"
+
+msgid "Clear project filter"
+msgstr "清除项目筛选"
+
+msgid "Priorities"
+msgstr "优先级"
+
+msgid "Set priority “%1”"
+msgstr "将优先级设为“%1”"
+
+msgid "Already priority “%1”"
+msgstr "已是优先级“%1”"
+
+msgid "Clear priority"
+msgstr "清除优先级"
+
+msgid "Already has no priority"
+msgstr "已无优先级"
+
+msgid "Due date, then priority"
+msgstr "先截止日期，再优先级"
+
+msgid "Due date, then title"
+msgstr "先截止日期，再标题"
+
+msgid "Priority, then due date"
+msgstr "先优先级，再截止日期"
+
+msgid "Priority, then title"
+msgstr "先优先级，再标题"
+
+msgid "Open first, then due date"
+msgstr "先未完成，再截止日期"
+
+msgid "Open first, then priority"
+msgstr "先未完成，再优先级"
+
+msgid "New label"
+msgstr "新标签"
+
+msgid "Delete label"
+msgstr "删除标签"
+
+msgid "%1 open task"
+msgid_plural "%1 open tasks"
+msgstr[0] "%1 个未完成任务"
+
+msgid "%1 task"
+msgid_plural "%1 tasks"
+msgstr[0] "%1 个任务"

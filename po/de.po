@@ -1,0 +1,484 @@
+# Translation of plasma_applet_com.github.shrippen.kurrent to German.
+# Copyright (C) 2026 Kurrent Contributors
+# This file is distributed under the same license as the kurrent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kurrent 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: Kurrent Contributors\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+msgid "Kurrent"
+msgstr "Kurrent"
+
+msgid "Task manager powered by Akonadi and Nextcloud CalDAV"
+msgstr "Aufgabenverwaltung auf Basis von Akonadi und Nextcloud CalDAV"
+
+msgid "Inbox"
+msgstr "Eingang"
+
+msgid "Today"
+msgstr "Heute"
+
+msgid "Tomorrow"
+msgstr "Morgen"
+
+msgid "Scheduled"
+msgstr "Geplant"
+
+msgid "Anytime"
+msgstr "Jederzeit"
+
+msgid "Recurring"
+msgstr "Wiederkehrend"
+
+msgid "Unlabeled"
+msgstr "Ohne Label"
+
+msgid "Completed"
+msgstr "Erledigt"
+
+msgid "No open tasks"
+msgstr "Keine offenen Aufgaben"
+
+msgid "Due date"
+msgstr "Fälligkeitsdatum"
+
+msgid "Priority"
+msgstr "Priorität"
+
+msgid "Title A–Z"
+msgstr "Titel A–Z"
+
+msgid "Title Z–A"
+msgstr "Titel Z–A"
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Sort: %1"
+msgstr "Sortierung: %1"
+
+msgid "Sort tasks"
+msgstr "Aufgaben sortieren"
+
+msgid "Build"
+msgstr "Build"
+
+msgid "Akonadi offline"
+msgstr "Akonadi offline"
+
+msgid "(Untitled)"
+msgstr "(Ohne Titel)"
+
+msgid "Projects"
+msgstr "Projekte"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "Already in project “%1”"
+msgstr "Bereits im Projekt „%1“"
+
+msgid "Move to project “%1”"
+msgstr "In Projekt „%1“ verschieben"
+
+msgid "Labels"
+msgstr "Labels"
+
+msgid "Add label “%1”"
+msgstr "Label „%1“ hinzufügen"
+
+msgid "Search tasks…"
+msgstr "Aufgaben suchen …"
+
+msgid "Clear search"
+msgstr "Suche löschen"
+
+msgid "Exit delete mode"
+msgstr "Löschmodus beenden"
+
+msgid "Delete mode"
+msgstr "Löschmodus"
+
+msgid "Sync now"
+msgstr "Jetzt synchronisieren"
+
+msgid "No tasks in this view."
+msgstr "Keine Aufgaben in dieser Ansicht."
+
+msgid "Make top-level task"
+msgstr "Zur Hauptaufgabe machen"
+
+msgid "Drop here to make a top-level task"
+msgstr "Hier ablegen, um eine Hauptaufgabe zu erstellen"
+
+msgid "Add a task…"
+msgstr "Aufgabe hinzufügen …"
+
+msgid "Add task"
+msgstr "Aufgabe hinzufügen"
+
+msgid "Make subtask of “%1”"
+msgstr "Unteraufgabe von „%1“ machen"
+
+msgid "High priority (%1)"
+msgstr "Hohe Priorität (%1)"
+
+msgid "Medium priority (%1)"
+msgstr "Mittlere Priorität (%1)"
+
+msgid "Low priority (%1)"
+msgstr "Niedrige Priorität (%1)"
+
+msgid "Priority %1"
+msgstr "Priorität %1"
+
+msgid "Edit task"
+msgstr "Aufgabe bearbeiten"
+
+msgid "Delete task"
+msgstr "Aufgabe löschen"
+
+msgid "Waiting for Akonadi…"
+msgstr "Warte auf Akonadi …"
+
+msgid "Basics"
+msgstr "Allgemein"
+
+msgid "Title:"
+msgstr "Titel:"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Description:"
+msgstr "Beschreibung:"
+
+msgid "Description"
+msgstr "Beschreibung"
+
+msgid "Schedule"
+msgstr "Zeitplan"
+
+msgid "All day:"
+msgstr "Ganztägig:"
+
+msgid "All-day task"
+msgstr "Ganztägige Aufgabe"
+
+msgid "Start:"
+msgstr "Beginn:"
+
+msgid "Clear start"
+msgstr "Beginn löschen"
+
+msgid "Due:"
+msgstr "Fällig:"
+
+msgid "Clear due date"
+msgstr "Fälligkeitsdatum löschen"
+
+msgid "Repeat:"
+msgstr "Wiederholen:"
+
+msgid "None"
+msgstr "Keine"
+
+msgid "Daily"
+msgstr "Täglich"
+
+msgid "Weekly"
+msgstr "Wöchentlich"
+
+msgid "Monthly"
+msgstr "Monatlich"
+
+msgid "Yearly"
+msgstr "Jährlich"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Completed:"
+msgstr "Erledigt:"
+
+msgid "Mark as done"
+msgstr "Als erledigt markieren"
+
+msgid "Progress:"
+msgstr "Fortschritt:"
+
+msgid "Status:"
+msgstr "Status:"
+
+msgid "Needs action"
+msgstr "Handlungsbedarf"
+
+msgid "In process"
+msgstr "In Bearbeitung"
+
+msgid "Canceled"
+msgstr "Abgebrochen"
+
+msgid "Classification"
+msgstr "Einordnung"
+
+msgid "Priority:"
+msgstr "Priorität:"
+
+msgid "Labels:"
+msgstr "Labels:"
+
+msgid "Secrecy:"
+msgstr "Vertraulichkeit:"
+
+msgid "Public"
+msgstr "Öffentlich"
+
+msgid "Private"
+msgstr "Privat"
+
+msgid "Confidential"
+msgstr "Vertraulich"
+
+msgid "Location:"
+msgstr "Ort:"
+
+msgid "Location"
+msgstr "Ort"
+
+msgid "Project:"
+msgstr "Projekt:"
+
+msgid "No projects available"
+msgstr "Keine Projekte verfügbar"
+
+msgid "Pick date"
+msgstr "Datum wählen"
+
+msgid "Due"
+msgstr "Fällig"
+
+msgid "All day"
+msgstr "Ganztägig"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "More…"
+msgstr "Mehr …"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "High"
+msgstr "Hoch"
+
+msgid "Medium"
+msgstr "Mittel"
+
+msgid "Low"
+msgstr "Niedrig"
+
+msgid "Search or create label…"
+msgstr "Label suchen oder erstellen …"
+
+msgid "Remove label"
+msgstr "Label entfernen"
+
+msgid "Create label “%1”"
+msgstr "Label „%1“ erstellen"
+
+msgid "No matching labels"
+msgstr "Keine passenden Labels"
+
+msgid "Select a label to filter tasks."
+msgstr "Wähle ein Label, um Aufgaben zu filtern."
+
+msgid "Clear label filter"
+msgstr "Labelfilter aufheben"
+
+msgid "Projects (Akonadi Calendars)"
+msgstr "Projekte (Akonadi-Kalender)"
+
+msgid "Manage which Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "Lege fest, welche Akonadi-Kalender als Projekte dienen. Deaktivierte Kalender werden beim Laden von Aufgaben vollständig übersprungen. Ausgeblendete Kalender werden geladen, erscheinen aber nicht in der Seitenleiste."
+
+msgid "No Akonadi calendars found. Make sure Akonadi is running."
+msgstr "Keine Akonadi-Kalender gefunden. Stelle sicher, dass Akonadi läuft."
+
+msgid "Collection ID: %1"
+msgstr "Sammlungs-ID: %1"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "Include this calendar when fetching tasks"
+msgstr "Diesen Kalender beim Laden von Aufgaben einbeziehen"
+
+msgid "Visible"
+msgstr "Sichtbar"
+
+msgid "Show this project in the sidebar"
+msgstr "Dieses Projekt in der Seitenleiste anzeigen"
+
+msgid "Enable All"
+msgstr "Alle aktivieren"
+
+msgid "Show All"
+msgstr "Alle anzeigen"
+
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+msgid "Akonadi"
+msgstr "Akonadi"
+
+msgid "Tasks are loaded from your existing Akonadi setup."
+msgstr "Aufgaben werden aus deiner bestehenden Akonadi-Einrichtung geladen."
+
+msgid "Setup"
+msgstr "Einrichtung"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Kalendar (DAV groupware resource)."
+msgstr "Richte CalDAV/Nextcloud in KOrganizer oder Kalendar ein (DAV-Groupware-Ressource)."
+
+msgid "Default view"
+msgstr "Standardansicht"
+
+msgid "Completed tasks"
+msgstr "Erledigte Aufgaben"
+
+msgid "Show completed tasks"
+msgstr "Erledigte Aufgaben anzeigen"
+
+msgid "Appearance"
+msgstr "Erscheinungsbild"
+
+msgid "Blurred background"
+msgstr "Unscharfer Hintergrund"
+
+msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
+msgstr "Durchscheinender Plasma-Hintergrund, damit KWin das Hintergrundbild unscharf zeichnet. Gilt auch für das Panel-Flyout."
+
+msgid "Sidebar row size"
+msgstr "Zeilenhöhe der Seitenleiste"
+
+msgid "Auto (compact, larger with touch)"
+msgstr "Automatisch (kompakt, größer bei Berührung)"
+
+msgid "Compact"
+msgstr "Kompakt"
+
+msgid "Comfortable (touch-friendly)"
+msgstr "Komfortabel (touchfreundlich)"
+
+msgid "Auto uses compact rows on mouse/desktop and comfortable rows when Plasma detects tablet or touch input."
+msgstr "Automatisch verwendet kompakte Zeilen mit Maus/Desktop und komfortable Zeilen, wenn Plasma ein Tablet oder Toucheingabe erkennt."
+
+msgid "New tasks"
+msgstr "Neue Aufgaben"
+
+msgid "Ask which project to use"
+msgstr "Nach dem Projekt fragen"
+
+msgid "Use the top project in the sidebar"
+msgstr "Oberstes Projekt in der Seitenleiste"
+
+msgid "Use a specific project"
+msgstr "Bestimmtes Projekt"
+
+msgid "When no project is selected in the sidebar, new tasks follow this setting."
+msgstr "Wenn in der Seitenleiste kein Projekt gewählt ist, gilt dieses Verhalten für neue Aufgaben."
+
+msgid "Default project"
+msgstr "Standardprojekt"
+
+msgid "Choose a project"
+msgstr "Projekt wählen"
+
+msgid "Choose a project for “%1”"
+msgstr "Projekt für „%1“ wählen"
+
+msgid "Labels (Categories)"
+msgstr "Labels (Kategorien)"
+
+msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
+msgstr "Labels stammen aus Akonadi-Aufgabenkategorien. Ausgeblendete Labels erscheinen nicht im Seitenleistenfilter, bleiben aber an den Aufgaben."
+
+msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
+msgstr "Keine Labels gefunden. Labels werden automatisch aus Aufgabenkategorien in Akonadi erkannt."
+
+msgid "Auto-generated color for '%1'"
+msgstr "Automatische Farbe für „%1“"
+
+msgid "Show this label in the sidebar filter"
+msgstr "Dieses Label im Seitenleistenfilter anzeigen"
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "Select a project to filter tasks."
+msgstr "Wähle ein Projekt, um Aufgaben zu filtern."
+
+msgid "Clear project filter"
+msgstr "Projektfilter aufheben"
+
+msgid "Priorities"
+msgstr "Wichtigkeiten"
+
+msgid "Set priority “%1”"
+msgstr "Priorität „%1“ setzen"
+
+msgid "Already priority “%1”"
+msgstr "Bereits Priorität „%1“"
+
+msgid "Clear priority"
+msgstr "Priorität entfernen"
+
+msgid "Already has no priority"
+msgstr "Bereits ohne Priorität"
+
+msgid "Due date, then priority"
+msgstr "Zuerst Fälligkeit, dann Priorität"
+
+msgid "Due date, then title"
+msgstr "Zuerst Fälligkeit, dann Titel"
+
+msgid "Priority, then due date"
+msgstr "Zuerst Priorität, dann Fälligkeit"
+
+msgid "Priority, then title"
+msgstr "Zuerst Priorität, dann Titel"
+
+msgid "Open first, then due date"
+msgstr "Offene zuerst, dann Fälligkeit"
+
+msgid "Open first, then priority"
+msgstr "Offene zuerst, dann Priorität"
+
+msgid "New label"
+msgstr "Neues Label"
+
+msgid "Delete label"
+msgstr "Label löschen"
+
+msgid "%1 open task"
+msgid_plural "%1 open tasks"
+msgstr[0] "%1 offene Aufgabe"
+msgstr[1] "%1 offene Aufgaben"
+
+msgid "%1 task"
+msgid_plural "%1 tasks"
+msgstr[0] "%1 Aufgabe"
+msgstr[1] "%1 Aufgaben"

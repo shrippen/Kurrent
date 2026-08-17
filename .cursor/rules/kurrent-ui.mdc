@@ -1,0 +1,17 @@
+---
+description: Keep Design.md and Design.qml in sync with every UI change
+alwaysApply: true
+---
+
+# Kurrent design docs
+
+Prose: `Design.md` (repo root). Tokens: `plasmoid/com.github.shrippen.kurrent/contents/ui/Design.qml`. Accents: `contents/ui/colors.js`.
+
+Whenever you add or change a visual/UX decision (spacing, overlay, scrollbars, sizing, icons, editors, writable calendars, pending/sync UI, DnD, panel/desktop chrome), **in the same change**:
+
+1. Update `Design.md` (why + rule).
+2. If it is a measurable token, add or adjust it in `Design.qml` and use that token in QML — do not invent a one-off `Kirigami.Units.*Spacing`.
+
+Do not ship a UI change that leaves `Design.md` stale. There is no watcher; this rule is the update mechanism.
+
+Use `Design.spaceTiny|Small|Medium|Large`, `padInner`, `padEditor`, `overlayInset`. Full editor: overlay card inside the plasmoid, dim over the **entire visual widget** including sidebar and Plasma chrome. Multiline fields: `ScrollableTextArea`, not `ScrollView`. Fill-height lists: `implicitHeight: 0`.

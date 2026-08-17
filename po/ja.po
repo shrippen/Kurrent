@@ -1,0 +1,482 @@
+# Translation of plasma_applet_com.github.shrippen.kurrent to Japanese.
+# Copyright (C) 2026 Kurrent Contributors
+# This file is distributed under the same license as the kurrent package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kurrent 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"PO-Revision-Date: 2026-01-01 00:00+0000\n"
+"Last-Translator: Kurrent Contributors\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+
+msgid "Kurrent"
+msgstr "Kurrent"
+
+msgid "Task manager powered by Akonadi and Nextcloud CalDAV"
+msgstr "Akonadi と Nextcloud CalDAV によるタスク管理"
+
+msgid "Inbox"
+msgstr "受信箱"
+
+msgid "Today"
+msgstr "今日"
+
+msgid "Tomorrow"
+msgstr "明日"
+
+msgid "Scheduled"
+msgstr "予定あり"
+
+msgid "Anytime"
+msgstr "いつでも"
+
+msgid "Recurring"
+msgstr "繰り返し"
+
+msgid "Unlabeled"
+msgstr "ラベルなし"
+
+msgid "Completed"
+msgstr "完了"
+
+msgid "No open tasks"
+msgstr "未完了のタスクはありません"
+
+msgid "Due date"
+msgstr "期限"
+
+msgid "Priority"
+msgstr "優先度"
+
+msgid "Title A–Z"
+msgstr "タイトル A–Z"
+
+msgid "Title Z–A"
+msgstr "タイトル Z–A"
+
+msgid "Default"
+msgstr "デフォルト"
+
+msgid "Sort: %1"
+msgstr "並べ替え: %1"
+
+msgid "Sort tasks"
+msgstr "タスクを並べ替え"
+
+msgid "Build"
+msgstr "ビルド"
+
+msgid "Akonadi offline"
+msgstr "Akonadi オフライン"
+
+msgid "(Untitled)"
+msgstr "(無題)"
+
+msgid "Projects"
+msgstr "プロジェクト"
+
+msgid "All"
+msgstr "すべて"
+
+msgid "Already in project “%1”"
+msgstr "すでにプロジェクト「%1」にあります"
+
+msgid "Move to project “%1”"
+msgstr "プロジェクト「%1」へ移動"
+
+msgid "Labels"
+msgstr "ラベル"
+
+msgid "Add label “%1”"
+msgstr "ラベル「%1」を追加"
+
+msgid "Search tasks…"
+msgstr "タスクを検索…"
+
+msgid "Clear search"
+msgstr "検索をクリア"
+
+msgid "Exit delete mode"
+msgstr "削除モードを終了"
+
+msgid "Delete mode"
+msgstr "削除モード"
+
+msgid "Sync now"
+msgstr "今すぐ同期"
+
+msgid "No tasks in this view."
+msgstr "このビューにタスクはありません。"
+
+msgid "Make top-level task"
+msgstr "最上位タスクにする"
+
+msgid "Drop here to make a top-level task"
+msgstr "ここにドロップして最上位タスクにします"
+
+msgid "Add a task…"
+msgstr "タスクを追加…"
+
+msgid "Add task"
+msgstr "タスクを追加"
+
+msgid "Make subtask of “%1”"
+msgstr "「%1」のサブタスクにする"
+
+msgid "High priority (%1)"
+msgstr "優先度高 (%1)"
+
+msgid "Medium priority (%1)"
+msgstr "優先度中 (%1)"
+
+msgid "Low priority (%1)"
+msgstr "優先度低 (%1)"
+
+msgid "Priority %1"
+msgstr "優先度 %1"
+
+msgid "Edit task"
+msgstr "タスクを編集"
+
+msgid "Delete task"
+msgstr "タスクを削除"
+
+msgid "Waiting for Akonadi…"
+msgstr "Akonadi を待っています…"
+
+msgid "Basics"
+msgstr "基本"
+
+msgid "Title:"
+msgstr "タイトル:"
+
+msgid "Title"
+msgstr "タイトル"
+
+msgid "Description:"
+msgstr "説明:"
+
+msgid "Description"
+msgstr "説明"
+
+msgid "Schedule"
+msgstr "スケジュール"
+
+msgid "All day:"
+msgstr "終日:"
+
+msgid "All-day task"
+msgstr "終日のタスク"
+
+msgid "Start:"
+msgstr "開始:"
+
+msgid "Clear start"
+msgstr "開始日時を消去"
+
+msgid "Due:"
+msgstr "期限:"
+
+msgid "Clear due date"
+msgstr "期限を消去"
+
+msgid "Repeat:"
+msgstr "繰り返し:"
+
+msgid "None"
+msgstr "なし"
+
+msgid "Daily"
+msgstr "毎日"
+
+msgid "Weekly"
+msgstr "毎週"
+
+msgid "Monthly"
+msgstr "毎月"
+
+msgid "Yearly"
+msgstr "毎年"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Completed:"
+msgstr "完了:"
+
+msgid "Mark as done"
+msgstr "完了にする"
+
+msgid "Progress:"
+msgstr "進捗:"
+
+msgid "Status:"
+msgstr "状態:"
+
+msgid "Needs action"
+msgstr "要対応"
+
+msgid "In process"
+msgstr "進行中"
+
+msgid "Canceled"
+msgstr "キャンセル済み"
+
+msgid "Classification"
+msgstr "分類"
+
+msgid "Priority:"
+msgstr "優先度:"
+
+msgid "Labels:"
+msgstr "ラベル:"
+
+msgid "Secrecy:"
+msgstr "機密:"
+
+msgid "Public"
+msgstr "公開"
+
+msgid "Private"
+msgstr "非公開"
+
+msgid "Confidential"
+msgstr "機密"
+
+msgid "Location:"
+msgstr "場所:"
+
+msgid "Location"
+msgstr "場所"
+
+msgid "Project:"
+msgstr "プロジェクト:"
+
+msgid "No projects available"
+msgstr "利用できるプロジェクトがありません"
+
+msgid "Pick date"
+msgstr "日付を選択"
+
+msgid "Due"
+msgstr "期限"
+
+msgid "All day"
+msgstr "終日"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "More…"
+msgstr "詳細…"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "High"
+msgstr "高"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Search or create label…"
+msgstr "ラベルを検索または作成…"
+
+msgid "Remove label"
+msgstr "ラベルを削除"
+
+msgid "Create label “%1”"
+msgstr "ラベル「%1」を作成"
+
+msgid "No matching labels"
+msgstr "一致するラベルがありません"
+
+msgid "Select a label to filter tasks."
+msgstr "ラベルを選んでタスクを絞り込みます。"
+
+msgid "Clear label filter"
+msgstr "ラベルフィルターを解除"
+
+msgid "Projects (Akonadi Calendars)"
+msgstr "プロジェクト (Akonadi カレンダー)"
+
+msgid "Manage which Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "プロジェクトとして使う Akonadi カレンダーを管理します。無効なカレンダーはタスク取得から除外されます。非表示のカレンダーは取得されますが、サイドバーには表示されません。"
+
+msgid "No Akonadi calendars found. Make sure Akonadi is running."
+msgstr "Akonadi カレンダーが見つかりません。Akonadi が起動しているか確認してください。"
+
+msgid "Collection ID: %1"
+msgstr "コレクション ID: %1"
+
+msgid "Enabled"
+msgstr "有効"
+
+msgid "Include this calendar when fetching tasks"
+msgstr "タスク取得時にこのカレンダーを含める"
+
+msgid "Visible"
+msgstr "表示"
+
+msgid "Show this project in the sidebar"
+msgstr "このプロジェクトをサイドバーに表示"
+
+msgid "Enable All"
+msgstr "すべて有効"
+
+msgid "Show All"
+msgstr "すべて表示"
+
+msgid "Refresh"
+msgstr "更新"
+
+msgid "Akonadi"
+msgstr "Akonadi"
+
+msgid "Tasks are loaded from your existing Akonadi setup."
+msgstr "タスクは既存の Akonadi 設定から読み込まれます。"
+
+msgid "Setup"
+msgstr "セットアップ"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Kalendar (DAV groupware resource)."
+msgstr "KOrganizer または Kalendar で CalDAV/Nextcloud を設定してください（DAV グループウェアリソース）。"
+
+msgid "Default view"
+msgstr "デフォルトのビュー"
+
+msgid "Completed tasks"
+msgstr "完了したタスク"
+
+msgid "Show completed tasks"
+msgstr "完了したタスクを表示"
+
+msgid "Appearance"
+msgstr "外観"
+
+msgid "Blurred background"
+msgstr "背景のぼかし"
+
+msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
+msgstr "Plasma の半透明背景を使い、KWin が壁紙をぼかします。パネルのフライアウトにも適用されます。"
+
+msgid "Sidebar row size"
+msgstr "サイドバーの行の高さ"
+
+msgid "Auto (compact, larger with touch)"
+msgstr "自動（コンパクト、タッチ時は大きく）"
+
+msgid "Compact"
+msgstr "コンパクト"
+
+msgid "Comfortable (touch-friendly)"
+msgstr "ゆったり（タッチ向け）"
+
+msgid "Auto uses compact rows on mouse/desktop and comfortable rows when Plasma detects tablet or touch input."
+msgstr "自動はマウス/デスクトップではコンパクトな行、Plasma がタブレットやタッチ入力を検出したときはゆったりした行を使います。"
+
+msgid "New tasks"
+msgstr "新しいタスク"
+
+msgid "Ask which project to use"
+msgstr "どのプロジェクトか尋ねる"
+
+msgid "Use the top project in the sidebar"
+msgstr "サイドバーの一番上のプロジェクト"
+
+msgid "Use a specific project"
+msgstr "特定のプロジェクト"
+
+msgid "When no project is selected in the sidebar, new tasks follow this setting."
+msgstr "サイドバーでプロジェクトが選ばれていないとき、新しいタスクはこの設定に従います。"
+
+msgid "Default project"
+msgstr "デフォルトのプロジェクト"
+
+msgid "Choose a project"
+msgstr "プロジェクトを選ぶ"
+
+msgid "Choose a project for “%1”"
+msgstr "「%1」のプロジェクトを選ぶ"
+
+msgid "Labels (Categories)"
+msgstr "ラベル（カテゴリ）"
+
+msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
+msgstr "ラベルは Akonadi のタスクカテゴリから取得されます。非表示のラベルはサイドバーのフィルターに出ませんが、タスクには残ります。"
+
+msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
+msgstr "ラベルが見つかりません。ラベルは Akonadi のタスクカテゴリから自動検出されます。"
+
+msgid "Auto-generated color for '%1'"
+msgstr "「%1」の自動生成色"
+
+msgid "Show this label in the sidebar filter"
+msgstr "このラベルをサイドバーのフィルターに表示"
+
+msgid "General"
+msgstr "一般"
+
+msgid "Select a project to filter tasks."
+msgstr "プロジェクトを選んでタスクを絞り込みます。"
+
+msgid "Clear project filter"
+msgstr "プロジェクトフィルターを解除"
+
+msgid "Priorities"
+msgstr "優先度"
+
+msgid "Set priority “%1”"
+msgstr "優先度を「%1」に設定"
+
+msgid "Already priority “%1”"
+msgstr "すでに優先度「%1」"
+
+msgid "Clear priority"
+msgstr "優先度を解除"
+
+msgid "Already has no priority"
+msgstr "すでに優先度なし"
+
+msgid "Due date, then priority"
+msgstr "期限、次に優先度"
+
+msgid "Due date, then title"
+msgstr "期限、次にタイトル"
+
+msgid "Priority, then due date"
+msgstr "優先度、次に期限"
+
+msgid "Priority, then title"
+msgstr "優先度、次にタイトル"
+
+msgid "Open first, then due date"
+msgstr "未完了優先、次に期限"
+
+msgid "Open first, then priority"
+msgstr "未完了優先、次に優先度"
+
+msgid "New label"
+msgstr "新しいラベル"
+
+msgid "Delete label"
+msgstr "ラベルを削除"
+
+msgid "%1 open task"
+msgid_plural "%1 open tasks"
+msgstr[0] "%1 件の未完了タスク"
+
+msgid "%1 task"
+msgid_plural "%1 tasks"
+msgstr[0] "%1 件のタスク"

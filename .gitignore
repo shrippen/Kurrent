@@ -1,0 +1,12 @@
+build/
+*.user
+*.autosave
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+__pycache__/
+*.pyc
+test_import.qml
+*.mo
+*~
+.DS_Store
