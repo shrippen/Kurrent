@@ -61,6 +61,13 @@ private Q_SLOTS:
     void viewIconsStatusRecurrencePriority();
     void cursorAndDragLimits();
     void dateTimeTokensAndIsoParse();
+
+    void todayExcludesOverdue_catchUpAndOverdueView();
+    void catchUpLookbackAndDisabled();
+    void dayPartsAndListBuckets();
+    void reschedulePresets();
+    void joinUrlExtraction();
+    void parseQuickAddTokens();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -136,7 +143,8 @@ void TaskLogicTest::matchesViewTodayIncludesOverdueIncomplete()
     TaskEntry overdue = makeTask(QStringLiteral("Overdue"));
     overdue.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
     overdue.completed = false;
-    QVERIFY(TaskLogic::matchesView(overdue, QStringLiteral("today"), today));
+    QVERIFY(!TaskLogic::matchesView(overdue, QStringLiteral("today"), today));
+    QVERIFY(TaskLogic::matchesView(overdue, QStringLiteral("overdue"), today));
     QVERIFY(TaskLogic::matchesView(overdue, QStringLiteral("scheduled"), today));
 }
 
@@ -493,6 +501,7 @@ void TaskLogicTest::sidebarVisibilityAndLayout()
 void TaskLogicTest::viewIconsStatusRecurrencePriority()
 {
     QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("today")), QStringLiteral("view-calendar-day"));
+    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("overdue")), QStringLiteral("appointment-missed"));
     QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("inbox")), QStringLiteral("mail-folder-inbox"));
     QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("completed")), QStringLiteral("checkmark"));
     QCOMPARE(TaskLogic::indexForValue({1, 5, 9, 0}, 9), 2);
@@ -550,6 +559,130 @@ void TaskLogicTest::dateTimeTokensAndIsoParse()
     QVERIFY(TaskLogic::parseHmsTime(QString(), &hours, &minutes));
     QCOMPARE(hours, 0);
     QVERIFY(!TaskLogic::parseHmsTime(QStringLiteral("25:00"), &hours, &minutes));
+}
+
+void TaskLogicTest::todayExcludesOverdue_catchUpAndOverdueView()
+{
+    const QDate today(2026, 8, 13);
+    TaskEntry dueToday = makeTask(QStringLiteral("Today"));
+    dueToday.dueDate = QDateTime(today, QTime(9, 0));
+    TaskEntry overdue = makeTask(QStringLiteral("Late"));
+    overdue.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
+    TaskEntry ancient = makeTask(QStringLiteral("Ancient"));
+    ancient.dueDate = QDateTime(QDate(2026, 1, 1), QTime(9, 0));
+
+    QVERIFY(TaskLogic::matchesView(dueToday, QStringLiteral("today"), today));
+    QVERIFY(!TaskLogic::matchesView(overdue, QStringLiteral("today"), today));
+    QVERIFY(TaskLogic::matchesView(overdue, QStringLiteral("overdue"), today));
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("today");
+    filters.catchUpEnabled = true;
+    filters.catchUpDays = 14;
+
+    const TaskLogic::VisibleFilterResult visible = TaskLogic::filterVisibleTasks({dueToday, overdue, ancient}, filters, today);
+    QCOMPARE(visible.tasks.size(), 2);
+    QCOMPARE(visible.tasks.at(0).bucket, QStringLiteral("morning"));
+    QCOMPARE(visible.tasks.at(1).bucket, QStringLiteral("catchup"));
+}
+
+void TaskLogicTest::catchUpLookbackAndDisabled()
+{
+    const QDate today(2026, 8, 13);
+    TaskEntry recent = makeTask(QStringLiteral("Recent"));
+    recent.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
+    TaskEntry old = makeTask(QStringLiteral("Old"));
+    old.dueDate = QDateTime(QDate(2026, 7, 1), QTime(9, 0));
+    TaskEntry done = makeTask(QStringLiteral("Done"));
+    done.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
+    done.completed = true;
+
+    QVERIFY(TaskLogic::isCatchUp(recent, today, 14));
+    QVERIFY(!TaskLogic::isCatchUp(old, today, 14));
+    QVERIFY(TaskLogic::isCatchUp(old, today, -1));
+    QVERIFY(!TaskLogic::isCatchUp(done, today, 14));
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("today");
+    filters.catchUpEnabled = false;
+    QCOMPARE(TaskLogic::filterVisibleTasks({recent}, filters, today).tasks.size(), 0);
+}
+
+void TaskLogicTest::dayPartsAndListBuckets()
+{
+    const QDate today(2026, 8, 13);
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("today");
+    filters.morningHour = 6;
+    filters.afternoonHour = 12;
+    filters.eveningHour = 18;
+
+    QCOMPARE(TaskLogic::dayPart(QDateTime(today, QTime(7, 0)), filters), QStringLiteral("morning"));
+    QCOMPARE(TaskLogic::dayPart(QDateTime(today, QTime(12, 0)), filters), QStringLiteral("afternoon"));
+    QCOMPARE(TaskLogic::dayPart(QDateTime(today, QTime(19, 0)), filters), QStringLiteral("evening"));
+    QCOMPARE(TaskLogic::dayPart({}, filters), QStringLiteral("unspecified"));
+
+    TaskEntry allDay = makeTask(QStringLiteral("All day"));
+    allDay.dueDate = QDateTime(today, QTime(0, 0));
+    allDay.allDay = true;
+    QCOMPARE(TaskLogic::listBucket(allDay, filters, today), QStringLiteral("unspecified"));
+
+    TaskEntry listed = makeTask(QStringLiteral("Heading"));
+    listed.section = QStringLiteral("Later");
+    filters.currentView = QStringLiteral("inbox");
+    QCOMPARE(TaskLogic::listBucket(listed, filters, today), QStringLiteral("Later"));
+}
+
+void TaskLogicTest::reschedulePresets()
+{
+    const QDateTime now(QDate(2026, 8, 13), QTime(10, 0));
+    const QDateTime due(QDate(2026, 8, 13), QTime(15, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("15m")).time(), QTime(10, 15));
+    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("1h")).time(), QTime(11, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("4h")).time(), QTime(14, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
+    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("tomorrow")).time(), QTime(15, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, true, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
+    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("next-week")).date(), QDate(2026, 8, 20));
+}
+
+void TaskLogicTest::joinUrlExtraction()
+{
+    QCOMPARE(TaskLogic::joinUrl(QStringLiteral("See https://meet.example/abc."), QString()),
+             QStringLiteral("https://meet.example/abc"));
+    QCOMPARE(TaskLogic::joinUrl(QStringLiteral("notes"), QStringLiteral("https://zoom.us/j/1")),
+             QStringLiteral("https://zoom.us/j/1"));
+    QVERIFY(TaskLogic::joinUrl(QStringLiteral("no link"), QString()).isEmpty());
+    QCOMPARE(TaskLogic::joinUrl(QStringLiteral("http://example.com/x"), QString()),
+             QStringLiteral("http://example.com/x"));
+}
+
+void TaskLogicTest::parseQuickAddTokens()
+{
+    const QDate today(2026, 8, 13);
+    const QTime now(9, 0);
+    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(
+        QStringLiteral("Milk tomorrow 18:00 !high #einkauf"), today, now);
+    QCOMPARE(parsed.summary, QStringLiteral("Milk"));
+    QVERIFY(parsed.hasDue);
+    QCOMPARE(parsed.due.date(), QDate(2026, 8, 14));
+    QCOMPARE(parsed.due.time(), QTime(18, 0));
+    QVERIFY(!parsed.allDay);
+    QCOMPARE(parsed.priority, 1);
+    QCOMPARE(parsed.labels, QStringList{QStringLiteral("einkauf")});
+
+    const TaskLogic::QuickAdd heute = TaskLogic::parseQuickAdd(QStringLiteral("Call heute"), today, now);
+    QVERIFY(heute.hasDue);
+    QVERIFY(heute.allDay);
+    QCOMPARE(heute.due.date(), today);
+
+    const TaskLogic::QuickAdd tonight = TaskLogic::parseQuickAdd(QStringLiteral("Gym 21:00"), today, now);
+    QVERIFY(tonight.hasDue);
+    QCOMPARE(tonight.due.date(), today);
+    QCOMPARE(tonight.due.time(), QTime(21, 0));
+
+    const TaskLogic::QuickAdd late = TaskLogic::parseQuickAdd(QStringLiteral("Gym 08:00"), today, QTime(9, 0));
+    QCOMPARE(late.due.date(), QDate(2026, 8, 14));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

@@ -54,6 +54,8 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.secrecy;
     case RecurrencePresetRole:
         return task.recurrencePreset;
+    case JoinUrlRole:
+        return task.joinUrl;
     case CategoriesRole:
         return task.categories;
     case CollectionIdRole:
@@ -66,6 +68,8 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.hasChildren;
     case SectionRole:
         return task.section;
+    case BucketRole:
+        return task.bucket;
     case SyncingRole:
         return task.syncing;
     case PendingDeleteRole:
@@ -94,12 +98,14 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
         {StatusRole, "status"},
         {SecrecyRole, "secrecy"},
         {RecurrencePresetRole, "recurrencePreset"},
+        {JoinUrlRole, "joinUrl"},
         {CategoriesRole, "categories"},
         {CollectionIdRole, "collectionId"},
         {CollectionNameRole, "collectionName"},
         {IndentLevelRole, "indentLevel"},
         {HasChildrenRole, "hasChildren"},
         {SectionRole, "section"},
+        {BucketRole, "bucket"},
         {SyncingRole, "syncing"},
         {PendingDeleteRole, "pendingDelete"},
     };

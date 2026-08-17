@@ -57,6 +57,7 @@ FocusScope {
         summaryField.text = task.summary || ""
         descriptionField.text = task.description || ""
         locationField.text = task.location || ""
+        sectionField.text = task.section || ""
         allDayCheck.checked = task.allDay === true
         dueDateField.text = DateTime.formatDate(task.dueDate)
         dueTimeField.text = DateTime.formatTime(task.dueDate)
@@ -138,6 +139,7 @@ FocusScope {
             "summary": summaryField.text,
             "description": descriptionField.text,
             "location": locationField.text,
+            "section": sectionField.text,
             "allDay": allDayCheck.checked,
             "priority": Colors.normalizePriority(priorityPicker.priority),
             "categories": labelPicker.selectedLabels.slice(),
@@ -536,6 +538,13 @@ FocusScope {
                 id: locationField
                 Layout.fillWidth: true
                 placeholderText: i18n("Location")
+            }
+
+            FieldLabel { text: i18n("Section:") }
+            QQC2.TextField {
+                id: sectionField
+                Layout.fillWidth: true
+                placeholderText: i18n("Heading on the list")
             }
 
             FieldLabel {

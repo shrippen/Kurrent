@@ -1,0 +1,36 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, "1.0"]
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Skip full KDE build on Ubuntu
+        run: |
+          echo "Arch-native unit tests run locally via ctest (Akonadi/KF6)."
+          echo "This job checks that test sources and the plasmoid packager stay valid."
+          test -f tests/tasklogic_test.cpp
+          test -f tests/calendar_test.cpp
+          test -f tests/sharedsettings_test.cpp
+          test -f tests/models_test.cpp
+          chmod +x scripts/package-plasmoid.sh
+          sudo apt-get update
+          sudo apt-get install -y gettext zip python3
+          scripts/package-plasmoid.sh
+          python3 - <<'PY'
+          import zipfile, glob
+          zips = glob.glob("dist/*.plasmoid")
+          assert zips, "no plasmoid artifact"
+          z = zipfile.ZipFile(zips[0])
+          names = z.namelist()
+          assert "metadata.json" in names
+          assert any(n.startswith("contents/") for n in names)
+          print("packaged", zips[0], "entries", len(names))
+          PY

@@ -175,6 +175,32 @@ ColumnLayout {
         spacing: Design.spaceSmall
         model: controller.taskModel
         reuseItems: true
+        section.property: "bucket"
+        section.criteria: ViewSection.FullString
+        section.delegate: Item {
+            required property string section
+            width: taskList.width - taskList.leftMargin - taskList.rightMargin
+            height: sectionLabel.implicitHeight + Design.spaceSmall
+            QQC2.Label {
+                id: sectionLabel
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                text: {
+                    switch (parent.section) {
+                    case "catchup": return i18n("Still open")
+                    case "morning": return i18n("Morning")
+                    case "afternoon": return i18n("Afternoon")
+                    case "evening": return i18n("Evening")
+                    case "unspecified": return i18n("Anytime")
+                    default: return parent.section
+                    }
+                }
+                font.bold: true
+                opacity: 0.7
+                visible: text.length > 0
+            }
+        }
         // Small cache: fewer off-screen delegates to move/update while scrolling.
         cacheBuffer: Math.round(Kirigami.Units.gridUnit * 6)
         // Pixel-aligned scrolling reduces subpixel text relayout churn.
@@ -444,7 +470,7 @@ ColumnLayout {
         QQC2.TextField {
             id: newTaskField
             Layout.fillWidth: true
-            placeholderText: i18n("Add a task…")
+            placeholderText: i18n("Add a task…  tomorrow 18:00 !high #tag")
             Keys.onReturnPressed: addTask()
             Keys.onEnterPressed: addTask()
         }

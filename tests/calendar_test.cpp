@@ -16,6 +16,10 @@ private Q_SLOTS:
     void applyAndReadPresets();
     void clearPresetRemovesRecurrence();
     void sectionPrefersKurrentThenVCalendar();
+    void setSectionWritesKurrentList();
+    void completeNonRecurringMarksDone();
+    void completeDailyAdvancesDatesAndKeepsRrule();
+    void otherPresetDoesNotClearCustomRrule();
     void nullTodoIsSafe();
 };
 
@@ -68,11 +72,65 @@ void CalendarTest::sectionPrefersKurrentThenVCalendar()
     QCOMPARE(TaskCalendar::sectionFromTodo(todo), QStringLiteral("kurrent"));
 }
 
+void CalendarTest::setSectionWritesKurrentList()
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    TaskCalendar::setSection(todo, QStringLiteral(" Morning "));
+    QCOMPARE(TaskCalendar::sectionFromTodo(todo), QStringLiteral("Morning"));
+    TaskCalendar::setSection(todo, QString());
+    QCOMPARE(TaskCalendar::sectionFromTodo(todo), QString());
+}
+
+void CalendarTest::completeNonRecurringMarksDone()
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setSummary(QStringLiteral("Once"));
+    QVERIFY(TaskCalendar::completeTodo(todo, true, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
+    QVERIFY(todo->isCompleted());
+    QCOMPARE(todo->percentComplete(), 100);
+    QVERIFY(TaskCalendar::completeTodo(todo, false, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
+    QVERIFY(!todo->isCompleted());
+}
+
+void CalendarTest::completeDailyAdvancesDatesAndKeepsRrule()
+{
+    const QDate today(2026, 8, 13);
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setDtStart(QDateTime(today, QTime(9, 0)));
+    todo->setDtDue(QDateTime(today, QTime(10, 0)));
+    TaskCalendar::applyRecurrencePreset(todo, QStringLiteral("daily"), today);
+    QVERIFY(todo->recurs());
+
+    QVERIFY(TaskCalendar::completeTodo(todo, true, QDateTime(today, QTime(11, 0))));
+    QVERIFY(!todo->isCompleted());
+    QCOMPARE(todo->percentComplete(), 0);
+    QVERIFY(todo->recurs());
+    QCOMPARE(TaskCalendar::recurrencePresetFromTodo(todo), QStringLiteral("daily"));
+    QCOMPARE(todo->dtStart().date(), QDate(2026, 8, 14));
+    QCOMPARE(todo->dtDue().date(), QDate(2026, 8, 14));
+    QCOMPARE(todo->dtStart().time(), QTime(9, 0));
+    QCOMPARE(todo->dtDue().time(), QTime(10, 0));
+}
+
+void CalendarTest::otherPresetDoesNotClearCustomRrule()
+{
+    const QDate today(2026, 8, 13);
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setDtStart(QDateTime(today, QTime(9, 0)));
+    TaskCalendar::applyRecurrencePreset(todo, QStringLiteral("weekly"), today);
+    QVERIFY(todo->recurs());
+    TaskCalendar::applyRecurrencePreset(todo, QStringLiteral("other"), today);
+    QVERIFY(todo->recurs());
+    QCOMPARE(TaskCalendar::recurrencePresetFromTodo(todo), QStringLiteral("weekly"));
+}
+
 void CalendarTest::nullTodoIsSafe()
 {
     QCOMPARE(TaskCalendar::recurrencePresetFromTodo({}), QStringLiteral("none"));
     QCOMPARE(TaskCalendar::sectionFromTodo({}), QString());
     TaskCalendar::applyRecurrencePreset({}, QStringLiteral("daily"), QDate(2026, 8, 13));
+    TaskCalendar::setSection({}, QStringLiteral("x"));
+    QVERIFY(!TaskCalendar::completeTodo({}, true, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)

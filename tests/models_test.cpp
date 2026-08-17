@@ -66,12 +66,14 @@ void ModelsTest::taskListExposesAllRoles()
     task.status = 4;
     task.secrecy = 1;
     task.recurrencePreset = QStringLiteral("weekly");
+    task.joinUrl = QStringLiteral("https://meet.example/x");
     task.categories = QStringList{QStringLiteral("home")};
     task.collectionId = 7;
     task.collectionName = QStringLiteral("Work");
     task.indentLevel = 2;
     task.hasChildren = true;
     task.section = QStringLiteral("Later");
+    task.bucket = QStringLiteral("morning");
     task.syncing = true;
     task.pendingDelete = true;
     model.setTasks({task});
@@ -93,10 +95,12 @@ void ModelsTest::taskListExposesAllRoles()
     QCOMPARE(model.data(idx, TaskListModel::StatusRole).toInt(), 4);
     QCOMPARE(model.data(idx, TaskListModel::SecrecyRole).toInt(), 1);
     QCOMPARE(model.data(idx, TaskListModel::RecurrencePresetRole).toString(), QStringLiteral("weekly"));
+    QCOMPARE(model.data(idx, TaskListModel::JoinUrlRole).toString(), QStringLiteral("https://meet.example/x"));
     QCOMPARE(model.data(idx, TaskListModel::CollectionNameRole).toString(), QStringLiteral("Work"));
     QCOMPARE(model.data(idx, TaskListModel::IndentLevelRole).toInt(), 2);
     QCOMPARE(model.data(idx, TaskListModel::HasChildrenRole).toBool(), true);
     QCOMPARE(model.data(idx, TaskListModel::SectionRole).toString(), QStringLiteral("Later"));
+    QCOMPARE(model.data(idx, TaskListModel::BucketRole).toString(), QStringLiteral("morning"));
     QCOMPARE(model.data(idx, TaskListModel::SyncingRole).toBool(), true);
     QCOMPARE(model.data(idx, TaskListModel::PendingDeleteRole).toBool(), true);
 
@@ -104,6 +108,8 @@ void ModelsTest::taskListExposesAllRoles()
     QCOMPARE(model.roleNames().value(TaskListModel::SummaryRole), QByteArray("summary"));
     QCOMPARE(model.roleNames().value(TaskListModel::SyncingRole), QByteArray("syncing"));
     QCOMPARE(model.roleNames().value(TaskListModel::PendingDeleteRole), QByteArray("pendingDelete"));
+    QCOMPARE(model.roleNames().value(TaskListModel::JoinUrlRole), QByteArray("joinUrl"));
+    QCOMPARE(model.roleNames().value(TaskListModel::BucketRole), QByteArray("bucket"));
 }
 
 void ModelsTest::taskListIgnoresInvalidIndexes()

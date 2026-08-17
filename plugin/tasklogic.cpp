@@ -1,5 +1,9 @@
 #include "tasklogic.h"
 
+#include <QRegularExpression>
+#include <QTime>
+#include <QUrl>
+#include <QtGlobal>
 #include <QtMath>
 
 #include <algorithm>
@@ -44,13 +48,10 @@ bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &toda
         return true;
     }
     if (viewId == QLatin1String("today")) {
-        if (!hasDue) {
-            return false;
-        }
-        if (due == today) {
-            return true;
-        }
-        return due < today && !task.completed;
+        return hasDue && due == today;
+    }
+    if (viewId == QLatin1String("overdue")) {
+        return hasDue && due < today && !task.completed;
     }
     if (viewId == QLatin1String("tomorrow")) {
         return hasDue && due == tomorrow;
@@ -71,6 +72,202 @@ bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &toda
         return task.completed;
     }
     return true;
+}
+
+bool isCatchUp(const TaskEntry &task, const QDate &today, int lookbackDays)
+{
+    if (task.completed || !task.dueDate.isValid()) {
+        return false;
+    }
+    const QDate due = task.dueDate.date();
+    if (due >= today) {
+        return false;
+    }
+    if (lookbackDays < 0) {
+        return true;
+    }
+    return due >= today.addDays(-lookbackDays);
+}
+
+bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const QDate &today)
+{
+    if (matchesView(task, QStringLiteral("today"), today)) {
+        return true;
+    }
+    return filters.catchUpEnabled && isCatchUp(task, today, filters.catchUpDays);
+}
+
+QString dayPart(const QDateTime &when, const FilterState &filters)
+{
+    if (!when.isValid()) {
+        return QStringLiteral("unspecified");
+    }
+    const int hour = when.time().hour();
+    const int morning = qBound(0, filters.morningHour, 23);
+    const int afternoon = qBound(morning, filters.afternoonHour, 23);
+    const int evening = qBound(afternoon, filters.eveningHour, 23);
+    if (hour < morning) {
+        return QStringLiteral("evening");
+    }
+    if (hour < afternoon) {
+        return QStringLiteral("morning");
+    }
+    if (hour < evening) {
+        return QStringLiteral("afternoon");
+    }
+    return QStringLiteral("evening");
+}
+
+QString listBucket(const TaskEntry &task, const FilterState &filters, const QDate &today)
+{
+    if (filters.currentView == QLatin1String("today")) {
+        if (isCatchUp(task, today, filters.catchUpDays)) {
+            return QStringLiteral("catchup");
+        }
+        if (task.allDay || !task.dueDate.isValid()) {
+            return QStringLiteral("unspecified");
+        }
+        return dayPart(task.dueDate, filters);
+    }
+    if (!task.section.isEmpty()) {
+        return task.section;
+    }
+    if (filters.currentView == QLatin1String("scheduled") && task.dueDate.isValid() && !task.allDay) {
+        return dayPart(task.dueDate, filters);
+    }
+    return {};
+}
+
+QDateTime rescheduleDue(const QDateTime &currentDue, bool allDay, const QDateTime &now, const QString &preset)
+{
+    const QDateTime base = now.isValid() ? now : QDateTime::currentDateTime();
+    if (preset == QLatin1String("15m")) {
+        return base.addSecs(15 * 60);
+    }
+    if (preset == QLatin1String("1h")) {
+        return base.addSecs(60 * 60);
+    }
+    if (preset == QLatin1String("4h")) {
+        return base.addSecs(4 * 60 * 60);
+    }
+
+    QDateTime seed = currentDue.isValid() ? currentDue : base;
+    if (preset == QLatin1String("tomorrow")) {
+        if (allDay || !seed.time().isValid() || (seed.time() == QTime(0, 0) && allDay)) {
+            return QDateTime(base.date().addDays(1), QTime(0, 0));
+        }
+        return QDateTime(base.date().addDays(1), seed.time());
+    }
+    if (preset == QLatin1String("next-week")) {
+        if (allDay) {
+            return QDateTime(seed.date().addDays(7), QTime(0, 0));
+        }
+        const QDate origin = seed.isValid() ? seed.date() : base.date();
+        return QDateTime(origin.addDays(7), seed.isValid() ? seed.time() : base.time());
+    }
+    return seed;
+}
+
+QString joinUrl(const QString &description, const QString &location)
+{
+    static const QRegularExpression re(QStringLiteral(R"((https?://[^\s<>"'\)\]]+))"),
+                                       QRegularExpression::CaseInsensitiveOption);
+    const QString haystack = location + QLatin1Char('\n') + description;
+    const QRegularExpressionMatch match = re.match(haystack);
+    if (!match.hasMatch()) {
+        return {};
+    }
+    QString url = match.captured(1);
+    while (url.endsWith(QLatin1Char('.')) || url.endsWith(QLatin1Char(',')) || url.endsWith(QLatin1Char(';'))) {
+        url.chop(1);
+    }
+    const QUrl parsed = QUrl(url);
+    if (!parsed.isValid() || parsed.scheme().isEmpty()) {
+        return {};
+    }
+    return parsed.toString();
+}
+
+QuickAdd parseQuickAdd(const QString &raw, const QDate &today, const QTime &now)
+{
+    QuickAdd out;
+    QString text = raw.trimmed();
+    if (text.isEmpty()) {
+        return out;
+    }
+
+    static const QRegularExpression labelRe(QStringLiteral(R"(#([^\s#]+))"));
+    QRegularExpressionMatchIterator labels = labelRe.globalMatch(text);
+    while (labels.hasNext()) {
+        const QRegularExpressionMatch m = labels.next();
+        out.labels.append(m.captured(1));
+    }
+    text.replace(labelRe, QString());
+
+    static const QRegularExpression prioRe(QStringLiteral(R"(!(high|medium|low|none|[1-9])\b)"),
+                                           QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpressionMatch prio = prioRe.match(text);
+    if (prio.hasMatch()) {
+        const QString token = prio.captured(1).toLower();
+        if (token == QLatin1String("high") || token == QLatin1String("1") || token == QLatin1String("2")
+            || token == QLatin1String("3")) {
+            out.priority = token.size() == 1 ? token.toInt() : 1;
+        } else if (token == QLatin1String("medium") || token == QLatin1String("4") || token == QLatin1String("5")
+                   || token == QLatin1String("6")) {
+            out.priority = token.size() == 1 ? token.toInt() : 5;
+        } else if (token == QLatin1String("low") || token == QLatin1String("7") || token == QLatin1String("8")
+                   || token == QLatin1String("9")) {
+            out.priority = token.size() == 1 ? token.toInt() : 9;
+        } else {
+            out.priority = 0;
+        }
+        text.replace(prioRe, QString());
+    }
+
+    QDate dueDate;
+    QTime dueTime;
+    bool sawDate = false;
+    bool sawTime = false;
+
+    static const QRegularExpression dateWordRe(QStringLiteral(R"(\b(today|tomorrow|heute|morgen)\b)"),
+                                               QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpressionMatch dateWord = dateWordRe.match(text);
+    if (dateWord.hasMatch()) {
+        const QString word = dateWord.captured(1).toLower();
+        if (word == QLatin1String("today") || word == QLatin1String("heute")) {
+            dueDate = today;
+        } else {
+            dueDate = today.addDays(1);
+        }
+        sawDate = true;
+        text.replace(dateWordRe, QString());
+    }
+
+    static const QRegularExpression timeRe(QStringLiteral(R"(\b(\d{1,2}):(\d{2})\b)"));
+    const QRegularExpressionMatch timeMatch = timeRe.match(text);
+    if (timeMatch.hasMatch()) {
+        const int hour = timeMatch.captured(1).toInt();
+        const int minute = timeMatch.captured(2).toInt();
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+            dueTime = QTime(hour, minute);
+            sawTime = true;
+        }
+        text.replace(timeRe, QString());
+    }
+
+    out.summary = text.simplified();
+    if (sawDate || sawTime) {
+        out.hasDue = true;
+        if (!sawDate) {
+            dueDate = today;
+            if (sawTime && dueTime < now) {
+                dueDate = today.addDays(1);
+            }
+        }
+        out.allDay = !sawTime;
+        out.due = QDateTime(dueDate, sawTime ? dueTime : QTime(0, 0));
+    }
+    return out;
 }
 
 bool matchesFilters(const TaskEntry &task, qint64 selectedCollectionId, const QString &selectedLabel, int selectedPriority)
@@ -180,6 +377,7 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
     static const QStringList viewIds = {
         QStringLiteral("inbox"),
         QStringLiteral("today"),
+        QStringLiteral("overdue"),
         QStringLiteral("tomorrow"),
         QStringLiteral("scheduled"),
         QStringLiteral("anytime"),
@@ -392,8 +590,14 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
             continue;
         }
 
-        if (!matchesView(task, filters.currentView, today)
-            || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
+        if (filters.currentView == QLatin1String("today")) {
+            if (!matchesTodayList(task, filters, today)
+                || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
+                ++out.filteredOutView;
+                continue;
+            }
+        } else if (!matchesView(task, filters.currentView, today)
+                   || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
             ++out.filteredOutView;
             continue;
         }
@@ -401,7 +605,9 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
             ++out.filteredOutSearch;
             continue;
         }
-        out.tasks.append(task);
+        TaskEntry visible = task;
+        visible.bucket = listBucket(task, filters, today);
+        out.tasks.append(visible);
     }
     return out;
 }
@@ -639,6 +845,9 @@ QString viewIconSource(const QString &viewId)
 {
     if (viewId == QLatin1String("today")) {
         return QStringLiteral("view-calendar-day");
+    }
+    if (viewId == QLatin1String("overdue")) {
+        return QStringLiteral("appointment-missed");
     }
     if (viewId == QLatin1String("tomorrow")) {
         return QStringLiteral("go-next");

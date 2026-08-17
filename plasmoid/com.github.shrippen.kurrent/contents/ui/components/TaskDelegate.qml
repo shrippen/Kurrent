@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
+import org.kde.plasma.plasmoid 2.0
 import "../colors.js" as Colors
 import ".."
 
@@ -63,6 +64,7 @@ Item {
             "status": task.status,
             "secrecy": task.secrecy,
             "recurrencePreset": task.recurrencePreset,
+            "joinUrl": task.joinUrl || "",
             "categories": task.categories,
             "collectionId": task.collectionId,
             "collectionName": task.collectionName,
@@ -271,6 +273,11 @@ Item {
                     }
                 }
 
+                TapHandler {
+                    acceptedButtons: Qt.RightButton
+                    onTapped: rescheduleMenu.popup()
+                }
+
                 QQC2.Label {
                     id: titleLabel
                     Layout.fillWidth: true
@@ -287,6 +294,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: 2
                     visible: dateChip.visible || root.visibleCategories.length > 0 || task.priority > 0
+                             || (Plasmoid.configuration.showJoinButton !== false && task.joinUrl && task.joinUrl.length)
 
                     Rectangle {
                         id: dateChip
@@ -387,6 +395,18 @@ Item {
                     }
 
                     Item { Layout.fillWidth: true }
+
+                    QQC2.ToolButton {
+                        visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
+                        icon.name: "internet-services"
+                        display: QQC2.AbstractButton.IconOnly
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        onClicked: Qt.openUrlExternally(task.joinUrl)
+                        QQC2.ToolTip.text: i18n("Join")
+                        QQC2.ToolTip.visible: joinHover.hovered && !root.listMoving
+                        HoverHandler { id: joinHover }
+                    }
                 }
 
                 QQC2.Label {
@@ -418,6 +438,33 @@ Item {
                 QQC2.ToolTip.text: i18n("Delete task")
                 QQC2.ToolTip.visible: hovered && !root.listMoving
             }
+        }
+    }
+
+    QQC2.Menu {
+        id: rescheduleMenu
+        popupType: Item
+        enabled: !root.awaitingAkonadi
+        QQC2.MenuItem {
+            text: i18n("In 15 minutes")
+            onTriggered: controller.rescheduleTask(task.itemId, "15m")
+        }
+        QQC2.MenuItem {
+            text: i18n("In 1 hour")
+            onTriggered: controller.rescheduleTask(task.itemId, "1h")
+        }
+        QQC2.MenuItem {
+            text: i18n("In 4 hours")
+            onTriggered: controller.rescheduleTask(task.itemId, "4h")
+        }
+        QQC2.MenuSeparator {}
+        QQC2.MenuItem {
+            text: i18n("Tomorrow")
+            onTriggered: controller.rescheduleTask(task.itemId, "tomorrow")
+        }
+        QQC2.MenuItem {
+            text: i18n("Next week")
+            onTriggered: controller.rescheduleTask(task.itemId, "next-week")
         }
     }
 

@@ -36,6 +36,9 @@ void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &
     if (!todo) {
         return;
     }
+    if (preset == QLatin1String("other")) {
+        return;
+    }
 
     KCalendarCore::Recurrence *recurrence = todo->recurrence();
     recurrence->clear();
@@ -85,6 +88,84 @@ QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo)
     }
 
     return {};
+}
+
+void setSection(const KCalendarCore::Todo::Ptr &todo, const QString &section)
+{
+    if (!todo) {
+        return;
+    }
+    const QString trimmed = section.trimmed();
+    if (trimmed.isEmpty()) {
+        todo->removeCustomProperty(QByteArray("KURRENT"), QByteArray("LIST"));
+        return;
+    }
+    todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("LIST"), trimmed);
+}
+
+bool completeTodo(const KCalendarCore::Todo::Ptr &todo, bool completed, const QDateTime &now)
+{
+    if (!todo) {
+        return false;
+    }
+
+    if (!completed) {
+        todo->setCompleted(false);
+        todo->setPercentComplete(0);
+        return true;
+    }
+
+    if (!todo->recurs()) {
+        todo->setCompleted(true);
+        todo->setPercentComplete(100);
+        return true;
+    }
+
+    QDateTime anchor = todo->hasDueDate() && todo->dtDue().isValid() ? todo->dtDue() : todo->dtStart();
+    if (!anchor.isValid()) {
+        anchor = now;
+    }
+    QDateTime seriesStart = (todo->hasStartDate() && todo->dtStart().isValid()) ? todo->dtStart() : anchor;
+    QDateTime next = todo->recurrence()->getNextDateTime(seriesStart.addSecs(1));
+    if (!next.isValid() || next.date() <= seriesStart.date()) {
+        const int freq = qMax(1, todo->recurrence()->frequency());
+        switch (todo->recurrence()->recurrenceType()) {
+        case KCalendarCore::Recurrence::rDaily:
+            next = seriesStart.addDays(freq);
+            break;
+        case KCalendarCore::Recurrence::rWeekly:
+            next = seriesStart.addDays(7 * freq);
+            break;
+        case KCalendarCore::Recurrence::rMonthlyDay:
+        case KCalendarCore::Recurrence::rMonthlyPos:
+            next = seriesStart.addMonths(freq);
+            break;
+        case KCalendarCore::Recurrence::rYearlyMonth:
+        case KCalendarCore::Recurrence::rYearlyDay:
+        case KCalendarCore::Recurrence::rYearlyPos:
+            next = seriesStart.addYears(freq);
+            break;
+        default:
+            break;
+        }
+    }
+
+    const qint64 shiftMsecs = seriesStart.msecsTo(next);
+    if (shiftMsecs <= 0) {
+        todo->setCompleted(true);
+        todo->setPercentComplete(100);
+        return true;
+    }
+    const QDateTime originalDue = todo->dtDue(true);
+    todo->setDtStart(next);
+    if (originalDue.isValid()) {
+        todo->setDtDue(originalDue.addMSecs(shiftMsecs), true);
+    } else {
+        todo->setDtDue(next, true);
+    }
+    todo->setCompleted(false);
+    todo->setPercentComplete(0);
+    return true;
 }
 
 } // namespace TaskCalendar

@@ -16,7 +16,7 @@ Item {
 
     property int step: 0
     readonly property var views: [
-        "inbox", "today", "tomorrow", "scheduled",
+        "inbox", "today", "overdue", "tomorrow", "scheduled",
         "anytime", "recurring", "unlabeled", "completed"
     ]
 

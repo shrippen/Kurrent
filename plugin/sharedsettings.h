@@ -35,6 +35,7 @@ private:
     enum class ValueType {
         Bool,
         String,
+        Int,
     };
 
     struct KeySpec {

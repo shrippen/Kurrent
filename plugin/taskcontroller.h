@@ -38,6 +38,11 @@ class TaskController : public QObject
     Q_PROPERTY(QString selectedLabel READ selectedLabel WRITE setSelectedLabel NOTIFY selectedLabelChanged)
     Q_PROPERTY(int selectedPriority READ selectedPriority WRITE setSelectedPriority NOTIFY selectedPriorityChanged)
     Q_PROPERTY(QString sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
+    Q_PROPERTY(bool catchUpEnabled READ catchUpEnabled WRITE setCatchUpEnabled NOTIFY catchUpSettingsChanged)
+    Q_PROPERTY(int catchUpDays READ catchUpDays WRITE setCatchUpDays NOTIFY catchUpSettingsChanged)
+    Q_PROPERTY(int morningHour READ morningHour WRITE setMorningHour NOTIFY catchUpSettingsChanged)
+    Q_PROPERTY(int afternoonHour READ afternoonHour WRITE setAfternoonHour NOTIFY catchUpSettingsChanged)
+    Q_PROPERTY(int eveningHour READ eveningHour WRITE setEveningHour NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int pendingCount READ pendingCount NOTIFY pendingCountChanged)
     Q_PROPERTY(QStringList availableLabels READ availableLabels NOTIFY availableLabelsChanged)
     Q_PROPERTY(QVariantMap labelTaskCounts READ labelTaskCounts NOTIFY labelTaskCountsChanged)
@@ -68,6 +73,11 @@ public:
     QString selectedLabel() const { return m_selectedLabel; }
     int selectedPriority() const { return m_selectedPriority; }
     QString sortMode() const { return m_sortMode; }
+    bool catchUpEnabled() const { return m_catchUpEnabled; }
+    int catchUpDays() const { return m_catchUpDays; }
+    int morningHour() const { return m_morningHour; }
+    int afternoonHour() const { return m_afternoonHour; }
+    int eveningHour() const { return m_eveningHour; }
     int pendingCount() const { return m_pendingCount; }
     QStringList availableLabels() const { return m_availableLabels; }
     QVariantMap labelTaskCounts() const { return m_labelTaskCounts; }
@@ -101,10 +111,18 @@ public:
     void setSelectedLabel(const QString &label);
     void setSelectedPriority(int priority);
     void setSortMode(const QString &mode);
+    void setCatchUpEnabled(bool enabled);
+    void setCatchUpDays(int days);
+    void setMorningHour(int hour);
+    void setAfternoonHour(int hour);
+    void setEveningHour(int hour);
     Q_INVOKABLE void setEnabledCollectionIds(const QVariantList &ids);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void syncNow();
     Q_INVOKABLE void createTask(const QString &summary, qint64 collectionId);
+    Q_INVOKABLE QVariantMap parseQuickAdd(const QString &text) const;
+    Q_INVOKABLE void rescheduleTask(qint64 itemId, const QString &preset);
+    Q_INVOKABLE QString joinUrlFor(const QString &description, const QString &location) const;
     Q_INVOKABLE void updateTask(qint64 itemId,
                                 const QString &summary,
                                 const QString &description,
@@ -135,6 +153,7 @@ signals:
     void selectedLabelChanged();
     void selectedPriorityChanged();
     void sortModeChanged();
+    void catchUpSettingsChanged();
     void pendingCountChanged();
     void availableLabelsChanged();
     void labelTaskCountsChanged();
@@ -203,6 +222,11 @@ private:
     QString m_selectedLabel;
     int m_selectedPriority = -1;
     QString m_sortMode = QStringLiteral("default");
+    bool m_catchUpEnabled = true;
+    int m_catchUpDays = 14;
+    int m_morningHour = 6;
+    int m_afternoonHour = 12;
+    int m_eveningHour = 18;
     int m_pendingCount = 0;
     QStringList m_availableLabels;
     QVariantMap m_labelTaskCounts;

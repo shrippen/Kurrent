@@ -83,6 +83,7 @@ PlasmoidItem {
     function activeViewIconSource() {
         switch (backend.currentView) {
         case "today": return "view-calendar-day"
+        case "overdue": return "appointment-missed"
         case "tomorrow": return "go-next"
         case "scheduled": return "view-calendar"
         case "anytime": return "view-calendar-tasks"
@@ -96,6 +97,7 @@ PlasmoidItem {
     function activeViewTitle() {
         switch (backend.currentView) {
         case "today": return i18n("Today")
+        case "overdue": return i18n("Overdue")
         case "tomorrow": return i18n("Tomorrow")
         case "scheduled": return i18n("Scheduled")
         case "anytime": return i18n("Anytime")
@@ -132,9 +134,15 @@ PlasmoidItem {
     TaskController {
         id: taskController
         showCompleted: Plasmoid.configuration.showCompleted
+        catchUpEnabled: Plasmoid.configuration.catchUpEnabled !== false
+        catchUpDays: Plasmoid.configuration.catchUpDays || 14
+        morningHour: Plasmoid.configuration.morningHour !== undefined ? Plasmoid.configuration.morningHour : 6
+        afternoonHour: Plasmoid.configuration.afternoonHour !== undefined ? Plasmoid.configuration.afternoonHour : 12
+        eveningHour: Plasmoid.configuration.eveningHour !== undefined ? Plasmoid.configuration.eveningHour : 18
         Component.onCompleted: {
             var view = Plasmoid.configuration.defaultView || "inbox"
             currentView = view
+            sortMode = Plasmoid.configuration.sortMode || "default"
 
             // For Inbox: start with Projects/Labels = "All" to ensure tasks show immediately.
             if (view === "inbox") {
@@ -206,6 +214,32 @@ PlasmoidItem {
             root.persistSharedSettings()
         }
         function onNewTaskDefaultCollectionIdChanged() {
+            root.persistSharedSettings()
+        }
+        function onSortModeChanged() {
+            root.persistSharedSettings()
+        }
+        function onCatchUpEnabledChanged() {
+            root.persistSharedSettings()
+            taskController.catchUpEnabled = Plasmoid.configuration.catchUpEnabled !== false
+        }
+        function onCatchUpDaysChanged() {
+            root.persistSharedSettings()
+            taskController.catchUpDays = Plasmoid.configuration.catchUpDays || 14
+        }
+        function onMorningHourChanged() {
+            root.persistSharedSettings()
+            taskController.morningHour = Plasmoid.configuration.morningHour
+        }
+        function onAfternoonHourChanged() {
+            root.persistSharedSettings()
+            taskController.afternoonHour = Plasmoid.configuration.afternoonHour
+        }
+        function onEveningHourChanged() {
+            root.persistSharedSettings()
+            taskController.eveningHour = Plasmoid.configuration.eveningHour
+        }
+        function onShowJoinButtonChanged() {
             root.persistSharedSettings()
         }
     }
@@ -749,6 +783,8 @@ PlasmoidItem {
                     icon.name: root.backend.sortMode === modelData.id ? "checkmark" : ""
                     onClicked: {
                         root.backend.sortMode = modelData.id
+                        Plasmoid.configuration.sortMode = modelData.id
+                        root.persistSharedSettings()
                         sortMenu.close()
                     }
                 }

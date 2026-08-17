@@ -89,7 +89,12 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 
 ## Aufgaben-Zustand
 
-- Mutationen (anlegen, erledigen, speichern, verschieben, löschen) sofort in der Liste; bis Akonadi bestätigt: `syncing` / `pendingDelete`.
+- Mutationen (anlegen, erledigen, speichern, verschieben, löschen, **reschedule**) sofort in der Liste; bis Akonadi bestätigt: `syncing` / `pendingDelete`.
+- Wiederkehrende Aufgaben: Abhaken schiebt DTSTART/DUE auf die nächste Instanz und lässt die RRULE stehen.
+- Today: fällig heute, gruppiert nach Morning/Afternoon/Evening (`Design` + Stunden im KCM). Unerledigtes der letzten N Tage als Abschnitt **Still open** (Catch-up), kein Auto-Rollover. Overdue ist eine eigene Sidebar-View.
+- Meeting-URL in Beschreibung/Ort: kompakter Join-Knopf in der Zeile (`internet-services`).
+- Rechtsklick: Reschedule (15 min / 1 h / 4 h / morgen / nächste Woche).
+- Quick Add im Anlegefeld: `tomorrow 18:00`, `heute`, `!high`, `#label`.
 - Visuell: blasser, `BusyIndicator`, Zeile nicht erneut klickbar. Bei Fehler: Snapshot zurück.
 - Neue Aufgaben: temporäre negative Item-ID, nach Create durch die echte ersetzen.
 

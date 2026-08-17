@@ -33,5 +33,26 @@
         <entry name="newTaskDefaultCollectionId" type="String">
             <default></default>
         </entry>
+        <entry name="sortMode" type="String">
+            <default>default</default>
+        </entry>
+        <entry name="catchUpEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="catchUpDays" type="Int">
+            <default>14</default>
+        </entry>
+        <entry name="morningHour" type="Int">
+            <default>6</default>
+        </entry>
+        <entry name="afternoonHour" type="Int">
+            <default>12</default>
+        </entry>
+        <entry name="eveningHour" type="Int">
+            <default>18</default>
+        </entry>
+        <entry name="showJoinButton" type="Bool">
+            <default>true</default>
+        </entry>
     </group>
 </kcfg>

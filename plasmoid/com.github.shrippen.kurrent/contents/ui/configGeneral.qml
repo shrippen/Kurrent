@@ -11,6 +11,12 @@ KCM.SimpleKCM {
 
     property alias cfg_showCompleted: showCompletedCheck.checked
     property alias cfg_blurBackground: blurBackgroundCheck.checked
+    property alias cfg_catchUpEnabled: catchUpCheck.checked
+    property alias cfg_showJoinButton: showJoinCheck.checked
+    property int cfg_catchUpDays
+    property int cfg_morningHour
+    property int cfg_afternoonHour
+    property int cfg_eveningHour
     property string cfg_defaultView
     property string cfg_sidebarRowSize
     property string cfg_newTaskProjectMode
@@ -39,6 +45,7 @@ KCM.SimpleKCM {
             model: [
                 { text: i18n("Inbox"), value: "inbox" },
                 { text: i18n("Today"), value: "today" },
+                { text: i18n("Overdue"), value: "overdue" },
                 { text: i18n("Tomorrow"), value: "tomorrow" },
                 { text: i18n("Scheduled"), value: "scheduled" },
                 { text: i18n("Anytime"), value: "anytime" },
@@ -155,6 +162,60 @@ KCM.SimpleKCM {
                     root.cfg_newTaskDefaultCollectionId = String(collectionId)
                 }
             }
+        }
+
+        QQC2.CheckBox {
+            id: catchUpCheck
+            Kirigami.FormData.label: i18n("Catch-up")
+            text: i18n("Show unfinished recent tasks at the top of Today")
+            Component.onCompleted: checked = plasmoid.configuration.catchUpEnabled !== false
+        }
+
+        QQC2.SpinBox {
+            id: catchUpDaysBox
+            Kirigami.FormData.label: i18n("Catch-up window")
+            from: 1
+            to: 365
+            value: plasmoid.configuration.catchUpDays || 14
+            onValueChanged: root.cfg_catchUpDays = value
+            Component.onCompleted: root.cfg_catchUpDays = value
+        }
+
+        QQC2.SpinBox {
+            id: morningHourBox
+            Kirigami.FormData.label: i18n("Morning starts")
+            from: 0
+            to: 23
+            value: plasmoid.configuration.morningHour !== undefined ? plasmoid.configuration.morningHour : 6
+            onValueChanged: root.cfg_morningHour = value
+            Component.onCompleted: root.cfg_morningHour = value
+        }
+
+        QQC2.SpinBox {
+            id: afternoonHourBox
+            Kirigami.FormData.label: i18n("Afternoon starts")
+            from: 0
+            to: 23
+            value: plasmoid.configuration.afternoonHour !== undefined ? plasmoid.configuration.afternoonHour : 12
+            onValueChanged: root.cfg_afternoonHour = value
+            Component.onCompleted: root.cfg_afternoonHour = value
+        }
+
+        QQC2.SpinBox {
+            id: eveningHourBox
+            Kirigami.FormData.label: i18n("Evening starts")
+            from: 0
+            to: 23
+            value: plasmoid.configuration.eveningHour !== undefined ? plasmoid.configuration.eveningHour : 18
+            onValueChanged: root.cfg_eveningHour = value
+            Component.onCompleted: root.cfg_eveningHour = value
+        }
+
+        QQC2.CheckBox {
+            id: showJoinCheck
+            Kirigami.FormData.label: i18n("Meetings")
+            text: i18n("Show a Join button for http(s) links")
+            Component.onCompleted: checked = plasmoid.configuration.showJoinButton !== false
         }
     }
 

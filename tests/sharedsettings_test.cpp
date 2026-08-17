@@ -17,6 +17,7 @@ private Q_SLOTS:
     void seedOnlyWhenEmpty();
     void copyFromIgnoredWhileApplying();
     void migratesLegacyConfigFile();
+    void persistsNewPlannerKeys();
 
 private:
     QTemporaryDir m_dir;
@@ -116,6 +117,36 @@ void SharedSettingsTest::migratesLegacyConfigFile()
     QCOMPARE(store.values().value(QStringLiteral("newTaskProjectMode")).toString(), QStringLiteral("first"));
     QVERIFY(QFile::exists(newPath));
     QVERIFY(!QFile::exists(legacyPath));
+}
+
+void SharedSettingsTest::persistsNewPlannerKeys()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-d"));
+    SharedSettings store(fileName);
+
+    QQmlPropertyMap source;
+    source.insert(QStringLiteral("sortMode"), QStringLiteral("due,priority"));
+    source.insert(QStringLiteral("catchUpEnabled"), false);
+    source.insert(QStringLiteral("catchUpDays"), 7);
+    source.insert(QStringLiteral("morningHour"), 8);
+    source.insert(QStringLiteral("afternoonHour"), 13);
+    source.insert(QStringLiteral("eveningHour"), 19);
+    source.insert(QStringLiteral("showJoinButton"), false);
+    store.copyFrom(&source);
+
+    SharedSettings other(fileName);
+    QQmlPropertyMap target;
+    other.applyTo(&target);
+
+    QCOMPARE(target.value(QStringLiteral("sortMode")).toString(), QStringLiteral("due,priority"));
+    QCOMPARE(target.value(QStringLiteral("catchUpEnabled")).toBool(), false);
+    QCOMPARE(target.value(QStringLiteral("catchUpDays")).toInt(), 7);
+    QCOMPARE(target.value(QStringLiteral("morningHour")).toInt(), 8);
+    QCOMPARE(target.value(QStringLiteral("afternoonHour")).toInt(), 13);
+    QCOMPARE(target.value(QStringLiteral("eveningHour")).toInt(), 19);
+    QCOMPARE(target.value(QStringLiteral("showJoinButton")).toBool(), false);
+    QVERIFY(store.keys().contains(QStringLiteral("sortMode")));
+    QVERIFY(store.keys().contains(QStringLiteral("catchUpDays")));
 }
 
 QTEST_MAIN(SharedSettingsTest)

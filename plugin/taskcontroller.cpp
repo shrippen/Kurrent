@@ -21,6 +21,8 @@
 #include <QByteArray>
 #include <QCursor>
 #include <QDate>
+#include <QDateTime>
+#include <QTime>
 #include <QDebug>
 #include <QFile>
 #include <QGuiApplication>
@@ -297,6 +299,60 @@ void TaskController::setSortMode(const QString &mode)
     Q_EMIT sortModeChanged();
 }
 
+void TaskController::setCatchUpEnabled(bool enabled)
+{
+    if (m_catchUpEnabled == enabled) {
+        return;
+    }
+    m_catchUpEnabled = enabled;
+    scheduleRebuild();
+    Q_EMIT catchUpSettingsChanged();
+}
+
+void TaskController::setCatchUpDays(int days)
+{
+    const int bounded = qBound(0, days, 365);
+    if (m_catchUpDays == bounded) {
+        return;
+    }
+    m_catchUpDays = bounded;
+    scheduleRebuild();
+    Q_EMIT catchUpSettingsChanged();
+}
+
+void TaskController::setMorningHour(int hour)
+{
+    const int bounded = qBound(0, hour, 23);
+    if (m_morningHour == bounded) {
+        return;
+    }
+    m_morningHour = bounded;
+    scheduleRebuild();
+    Q_EMIT catchUpSettingsChanged();
+}
+
+void TaskController::setAfternoonHour(int hour)
+{
+    const int bounded = qBound(0, hour, 23);
+    if (m_afternoonHour == bounded) {
+        return;
+    }
+    m_afternoonHour = bounded;
+    scheduleRebuild();
+    Q_EMIT catchUpSettingsChanged();
+}
+
+void TaskController::setEveningHour(int hour)
+{
+    const int bounded = qBound(0, hour, 23);
+    if (m_eveningHour == bounded) {
+        return;
+    }
+    m_eveningHour = bounded;
+    scheduleRebuild();
+    Q_EMIT catchUpSettingsChanged();
+}
+
 void TaskController::setEnabledCollectionIds(const QVariantList &ids)
 {
     QList<qint64> enabled;
@@ -366,7 +422,18 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
     }
 
     KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
-    todo->setSummary(summary.trimmed());
+    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(summary, QDate::currentDate(), QTime::currentTime());
+    todo->setSummary(parsed.summary.isEmpty() ? summary.trimmed() : parsed.summary);
+    if (parsed.hasDue) {
+        todo->setDtDue(parsed.due);
+        todo->setAllDay(parsed.allDay);
+    }
+    if (parsed.priority > 0) {
+        todo->setPriority(parsed.priority);
+    }
+    if (!parsed.labels.isEmpty()) {
+        todo->setCategories(parsed.labels);
+    }
 
     Akonadi::Item jobItem;
     jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
@@ -398,6 +465,46 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
         upsertTask(createJob->item(), collectionId);
         scheduleRebuildAll();
     });
+}
+
+QVariantMap TaskController::parseQuickAdd(const QString &text) const
+{
+    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(text, QDate::currentDate(), QTime::currentTime());
+    QVariantMap out;
+    out.insert(QStringLiteral("summary"), parsed.summary);
+    out.insert(QStringLiteral("hasDue"), parsed.hasDue);
+    out.insert(QStringLiteral("allDay"), parsed.allDay);
+    out.insert(QStringLiteral("due"), parsed.due);
+    out.insert(QStringLiteral("priority"), parsed.priority);
+    out.insert(QStringLiteral("labels"), parsed.labels);
+    return out;
+}
+
+void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
+{
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache) {
+        setErrorMessage(tr("Task not found."));
+        Q_EMIT error(m_errorMessage);
+        return;
+    }
+
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+    const QDateTime currentDue = (todo->hasDueDate() && todo->dtDue().isValid()) ? todo->dtDue() : QDateTime();
+    const QDateTime next = TaskLogic::rescheduleDue(currentDue, todo->allDay(), QDateTime::currentDateTime(), preset);
+    if (!next.isValid()) {
+        return;
+    }
+    todo->setDtDue(next);
+    if (preset == QLatin1String("15m") || preset == QLatin1String("1h") || preset == QLatin1String("4h")) {
+        todo->setAllDay(false);
+    }
+    persistTodo(cache->item, todo);
+}
+
+QString TaskController::joinUrlFor(const QString &description, const QString &location) const
+{
+    return TaskLogic::joinUrl(description, location);
 }
 
 TaskController::CachedTask *TaskController::prepareEdit(qint64 itemId)
@@ -551,6 +658,7 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.status = static_cast<int>(todo->status());
     entry.secrecy = static_cast<int>(todo->secrecy());
     entry.recurrencePreset = recurrencePresetFromTodo(todo);
+    entry.joinUrl = TaskLogic::joinUrl(entry.description, entry.location);
     entry.categories = todo->categories();
     entry.collectionId = cached.item.parentCollection().id();
     entry.collectionName = m_collectionNames.value(entry.collectionId, cached.item.parentCollection().displayName());
@@ -651,8 +759,8 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 
     if (fields.contains(QStringLiteral("completed"))) {
         const bool completed = fields.value(QStringLiteral("completed")).toBool();
-        todo->setCompleted(completed);
-        if (!fields.contains(QStringLiteral("percentComplete"))) {
+        TaskCalendar::completeTodo(todo, completed, QDateTime::currentDateTime());
+        if (!fields.contains(QStringLiteral("percentComplete")) && !todo->recurs()) {
             todo->setPercentComplete(completed ? 100 : 0);
         }
     }
@@ -662,6 +770,9 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 
     if (fields.contains(QStringLiteral("recurrencePreset"))) {
         applyRecurrencePreset(todo, fields.value(QStringLiteral("recurrencePreset")).toString());
+    }
+    if (fields.contains(QStringLiteral("section"))) {
+        TaskCalendar::setSection(todo, fields.value(QStringLiteral("section")).toString());
     }
 
     qint64 moveToCollectionId = -1;
@@ -813,8 +924,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
-    todo->setCompleted(completed);
-    todo->setPercentComplete(completed ? 100 : 0);
+    TaskCalendar::completeTodo(todo, completed, QDateTime::currentDateTime());
     persistTodo(cache->item, todo);
 }
 
@@ -1298,6 +1408,11 @@ void TaskController::rebuildTaskList()
     filters.selectedCollectionId = m_selectedCollectionId;
     filters.selectedLabel = m_selectedLabel;
     filters.selectedPriority = m_selectedPriority;
+    filters.catchUpEnabled = m_catchUpEnabled;
+    filters.catchUpDays = m_catchUpDays;
+    filters.morningHour = m_morningHour;
+    filters.afternoonHour = m_afternoonHour;
+    filters.eveningHour = m_eveningHour;
 
     const TaskLogic::VisibleFilterResult filtered = TaskLogic::filterVisibleTasks(tasks, filters, QDate::currentDate());
 
@@ -1399,6 +1514,11 @@ void TaskController::updateCounts(const QList<TaskEntry> &tasks)
     filters.selectedCollectionId = m_selectedCollectionId;
     filters.selectedLabel = m_selectedLabel;
     filters.selectedPriority = m_selectedPriority;
+    filters.catchUpEnabled = m_catchUpEnabled;
+    filters.catchUpDays = m_catchUpDays;
+    filters.morningHour = m_morningHour;
+    filters.afternoonHour = m_afternoonHour;
+    filters.eveningHour = m_eveningHour;
 
     const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts(tasks, filters, s_extraLabels, QDate::currentDate());
 

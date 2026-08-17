@@ -3,6 +3,8 @@
 #include "tasklistmodel.h"
 
 #include <QDate>
+#include <QDateTime>
+#include <QTime>
 #include <QHash>
 #include <QList>
 #include <QPointF>
@@ -21,6 +23,20 @@ struct FilterState {
     qint64 selectedCollectionId = -1;
     QString selectedLabel;
     int selectedPriority = -1;
+    bool catchUpEnabled = true;
+    int catchUpDays = 14;
+    int morningHour = 6;
+    int afternoonHour = 12;
+    int eveningHour = 18;
+};
+
+struct QuickAdd {
+    QString summary;
+    QDateTime due;
+    bool hasDue = false;
+    bool allDay = false;
+    int priority = 0;
+    QStringList labels;
 };
 
 struct SidebarCounts {
@@ -47,6 +63,20 @@ int priorityBand(int priority);
 bool matchesSearch(const TaskEntry &task, const QString &query);
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today);
+
+bool isCatchUp(const TaskEntry &task, const QDate &today, int lookbackDays);
+
+bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const QDate &today);
+
+QString dayPart(const QDateTime &when, const FilterState &filters);
+
+QString listBucket(const TaskEntry &task, const FilterState &filters, const QDate &today);
+
+QDateTime rescheduleDue(const QDateTime &currentDue, bool allDay, const QDateTime &now, const QString &preset);
+
+QString joinUrl(const QString &description, const QString &location);
+
+QuickAdd parseQuickAdd(const QString &raw, const QDate &today, const QTime &now);
 
 bool matchesFilters(const TaskEntry &task, qint64 selectedCollectionId, const QString &selectedLabel, int selectedPriority);
 

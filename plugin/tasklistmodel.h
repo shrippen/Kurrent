@@ -21,12 +21,14 @@ struct TaskEntry {
     int status = 0;
     int secrecy = 0;
     QString recurrencePreset;
+    QString joinUrl;
     QStringList categories;
     qint64 collectionId = 0;
     QString collectionName;
     int indentLevel = 0;
     bool hasChildren = false;
     QString section;
+    QString bucket;
     bool syncing = false;
     bool pendingDelete = false;
 };
@@ -54,12 +56,14 @@ public:
         StatusRole,
         SecrecyRole,
         RecurrencePresetRole,
+        JoinUrlRole,
         CategoriesRole,
         CollectionIdRole,
         CollectionNameRole,
         IndentLevelRole,
         HasChildrenRole,
         SectionRole,
+        BucketRole,
         SyncingRole,
         PendingDeleteRole,
     };

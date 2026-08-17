@@ -27,13 +27,20 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"sidebarRowSize", ValueType::String, QStringLiteral("auto")},
         {"newTaskProjectMode", ValueType::String, QStringLiteral("ask")},
         {"newTaskDefaultCollectionId", ValueType::String, QString()},
+        {"sortMode", ValueType::String, QStringLiteral("default")},
+        {"catchUpEnabled", ValueType::Bool, true},
+        {"catchUpDays", ValueType::Int, 14},
+        {"morningHour", ValueType::Int, 6},
+        {"afternoonHour", ValueType::Int, 12},
+        {"eveningHour", ValueType::Int, 18},
+        {"showJoinButton", ValueType::Bool, true},
     };
     return keys;
 }
 
 int SharedSettings::specCount()
 {
-    return 9;
+    return 16;
 }
 
 SharedSettings *SharedSettings::instance()
@@ -120,6 +127,9 @@ QVariant SharedSettings::readStored(const KeySpec &spec) const
     if (spec.type == ValueType::Bool) {
         return m_group.readEntry(name, spec.defaultValue.toBool());
     }
+    if (spec.type == ValueType::Int) {
+        return m_group.readEntry(name, spec.defaultValue.toInt());
+    }
     return m_group.readEntry(name, spec.defaultValue.toString());
 }
 
@@ -128,6 +138,8 @@ void SharedSettings::writeStored(const KeySpec &spec, const QVariant &value)
     const QString name = QLatin1String(spec.name);
     if (spec.type == ValueType::Bool) {
         m_group.writeEntry(name, value.toBool(), KConfig::Notify);
+    } else if (spec.type == ValueType::Int) {
+        m_group.writeEntry(name, value.toInt(), KConfig::Notify);
     } else {
         m_group.writeEntry(name, value.toString(), KConfig::Notify);
     }
@@ -161,6 +173,9 @@ bool SharedSettings::sameValue(const QVariant &left, const QVariant &right, Valu
     if (type == ValueType::Bool) {
         return left.toBool() == right.toBool();
     }
+    if (type == ValueType::Int) {
+        return left.toInt() == right.toInt();
+    }
     return left.toString() == right.toString();
 }
 
@@ -168,6 +183,9 @@ QVariant SharedSettings::typedValue(const QVariant &value, ValueType type)
 {
     if (type == ValueType::Bool) {
         return value.toBool();
+    }
+    if (type == ValueType::Int) {
+        return value.toInt();
     }
     return value.toString();
 }
