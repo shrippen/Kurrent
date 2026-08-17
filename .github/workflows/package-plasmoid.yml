@@ -1,0 +1,66 @@
+name: Package plasmoid
+
+on:
+  push:
+    tags:
+      - "v*"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach the .plasmoid to (empty = artifact only)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  plasmoid:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext zip
+
+      - name: Build .plasmoid
+        run: |
+          chmod +x scripts/package-plasmoid.sh
+          scripts/package-plasmoid.sh
+          ls -lh dist/*.plasmoid
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plasmoid
+          path: dist/*.plasmoid
+
+      - name: Attach to GitHub Release
+        if: github.event_name != 'workflow_dispatch' || inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "release" ]; then
+            TAG="${RELEASE_TAG}"
+          elif [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            TAG="${INPUT_TAG}"
+          else
+            TAG="${REF_NAME}"
+          fi
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" dist/*.plasmoid --clobber
+          else
+            gh release create "${TAG}" dist/*.plasmoid \
+              --title "Kurrent ${TAG#v}" \
+              --generate-notes
+          fi

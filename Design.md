@@ -9,6 +9,7 @@ Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die 
 ## Produkt
 
 - Name: **Kurrent**. Plasmoid-ID `com.github.shrippen.kurrent`.
+- Autor: shrippen. Website und Issues: GitHub-Repo `https://github.com/shrippen/Kurrent` (About-Dialog im Widget).
 - Plasma 6, Akonadi/CalDAV, kein eigenes Login.
 - Panel: kompaktes Masken-Icon (`Kirigami.Icon { isMask: true; color: textColor }`), Breeze `ColorScheme-Text` / `currentColor`.
 - Desktop: volle Ansicht, frei skalierbar.

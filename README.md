@@ -43,11 +43,21 @@ akonadictl status
 
 ## Install
 
+From source (widget + Akonadi QML plugin):
+
 ```bash
 ./install.sh
 ```
 
 Then add the **Kurrent** widget to your panel or desktop.
+
+Each GitHub Release includes a `.plasmoid` package for the [KDE Store](https://store.kde.org/) and for installing the widget UI with:
+
+```bash
+kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.1.0.plasmoid
+```
+
+The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widget, translations, and metadata; full task access still needs `./install.sh` (or a distro package) so the plugin is on the QML import path.
 
 ## Features
 

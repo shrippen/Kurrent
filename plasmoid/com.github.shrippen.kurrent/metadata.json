@@ -2,10 +2,13 @@
     "KPlugin": {
         "Authors": [
             {
-                "Name": "shrippen"
+                "Name": "shrippen",
+                "Website": "https://github.com/shrippen"
             }
         ],
+        "BugReportUrl": "https://github.com/shrippen/Kurrent/issues",
         "Category": "Utilities",
+        "Copyright": "© 2026 shrippen",
         "Description": "Task manager powered by Akonadi and Nextcloud CalDAV",
         "Description[de]": "Aufgabenverwaltung auf Basis von Akonadi und Nextcloud CalDAV",
         "Description[es]": "Gestor de tareas con Akonadi y Nextcloud CalDAV",
