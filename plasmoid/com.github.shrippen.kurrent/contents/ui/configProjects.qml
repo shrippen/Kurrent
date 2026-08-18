@@ -125,7 +125,6 @@ KCM.SimpleKCM {
 
     ConfigFormShell {
         id: shell
-        anchors.fill: parent
 
         Kirigami.Heading {
             text: i18n("Projects (Akonadi Calendars)")

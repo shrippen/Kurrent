@@ -422,8 +422,9 @@ void TaskLogicTest::flattenTreeHidesCollapsedChildren()
 void TaskLogicTest::emptyKindStates()
 {
     QCOMPARE(TaskLogic::emptyKind(false, true, 2, 3, false), QString());
-    QCOMPARE(TaskLogic::emptyKind(true, false, 0, 0, true), QStringLiteral("offline"));
+    QCOMPARE(TaskLogic::emptyKind(true, false, 0, 0, true), QStringLiteral("loading"));
     QCOMPARE(TaskLogic::emptyKind(true, true, 0, 0, false), QStringLiteral("loading"));
+    QCOMPARE(TaskLogic::emptyKind(false, false, 0, 0, false), QStringLiteral("offline"));
     QCOMPARE(TaskLogic::emptyKind(false, true, 0, 0, false), QStringLiteral("no-collections"));
     QCOMPARE(TaskLogic::emptyKind(false, true, 2, 0, true), QStringLiteral("error"));
     QCOMPARE(TaskLogic::emptyKind(false, true, 2, 0, false), QStringLiteral("empty"));

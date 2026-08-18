@@ -33,9 +33,6 @@ KCM.SimpleKCM {
     }
 
     ConfigFormShell {
-        id: shell
-        anchors.fill: parent
-
         Kirigami.FormLayout {
             Layout.fillWidth: true
 

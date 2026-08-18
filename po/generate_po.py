@@ -411,7 +411,7 @@ def header(lang: str, plural: str) -> str:
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.1.0\\n"
+"Project-Id-Version: kurrent 0.2.0\\n"
 "Report-Msgid-Bugs-To: \\n"
 "POT-Creation-Date: {YEAR}-01-01 00:00+0000\\n"
 "PO-Revision-Date: {YEAR}-01-01 00:00+0000\\n"

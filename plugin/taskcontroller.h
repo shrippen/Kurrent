@@ -243,7 +243,9 @@ private:
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
     void registerSessionInterface();
     void registerGlobalShortcuts();
+    void ensureServerWatch();
     bool initializeAkonadi();
+    bool attachAkonadiMonitor();
     void scheduleAkonadiRetry();
     void loadCollections();
     void scheduleLoadCollections();
@@ -321,6 +323,7 @@ private:
     QVariantMap m_sidebarPriorityCounts;
 
     Akonadi::Monitor *m_monitor = nullptr;
+    bool m_serverWatchConnected = false;
     Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
     bool m_collectionsReloadPending = false;
     int m_pendingFetchJobs = 0;

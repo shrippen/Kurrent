@@ -595,11 +595,11 @@ QString emptyKind(bool loading, bool akonadiAvailable, int collectionCount, int 
     if (visibleCount > 0) {
         return {};
     }
-    if (!akonadiAvailable) {
-        return QStringLiteral("offline");
-    }
     if (loading) {
         return QStringLiteral("loading");
+    }
+    if (!akonadiAvailable) {
+        return QStringLiteral("offline");
     }
     if (collectionCount <= 0) {
         return QStringLiteral("no-collections");

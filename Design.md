@@ -98,6 +98,8 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Ein Schritt **Undo** (Complete / Reschedule / Move / Delete) in der Toolbar und per Standard-Undo-Shortcut.
 - Unteraufgaben: Pfeil klappt den Teilbaum ein (`flattenTree` lässt Kinder weg).
 - Akonadi aus / keine Kalender / leere View: `Kirigami.PlaceholderMessage`, kein nackter Fehlerstring.
+- Widget-Load darf Akonadi nicht blockieren: Icon und Chrome zuerst, dann D-Bus/Shortcuts (`QTimer::singleShot(0)`), dann `refresh()` (`Qt.callLater`). `ServerManager::start()` ist async, nie `Control::start()`. Cache darf Badge/Liste sofort füllen. Solange der Server startet: Placeholder `loading`; wenn er down bleibt: `offline` plus 5s-Retry. Erst nach `Running` Monitor + Fetch.
+- Panel: `preloadFullRepresentation: false`, `preferredRepresentation` ist das Compact-Icon. Plasma delayed-preloadet nur eine leere Größen-Hülle; `FullView.qml` (Sidebar, Liste, Editor) wird erst beim ersten Öffnen des Flyouts geladen.
 - Zeile: Klick öffnet Inline- oder Full-Editor (KCM); Chips für Datum/Label/Priorität/Recurring/Join abschaltbar. Fälligkeitschip: optionale relative Labels (Heute/Morgen/Gestern) und Uhrzeit.
 - Erinnerung: VALARM im Full-Editor; Plasma-Benachrichtigung mit Snooze (15 min / 1 h / morgen, schreibt nur den Alarm). Quiet Hours unterdrücken Popups.
 - Tastatur im fokussierten Widget: Suche, Neu, Undo, Complete, Delete, Full-Editor, Reschedule, Views 1–5. Global: Meta+Shift+K zeigt das Flyout, Meta+Shift+N legt an (Plasma-Shortcuts, D-Bus `org.github.shrippen.Kurrent`).
@@ -122,7 +124,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 ## Konfiguration
 
 - Alle KCM-Seiten (General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels) gelten **gemeinsam** für Desktop-Widget und Panel-Flyout. Jede Seite hat „Reset this page“. Widget-Tastenkürzel und globale Shortcuts werden in Plasma System Settings konfiguriert, nicht in einer eigenen KCM-Seite.
-- Formularseiten nutzen `ConfigFormShell`: zentrierte Spalte, begrenzte Breite, Scroll bei kleinem Fenster; schmale Fenster stapeln Labels/Steuerelemente über `Kirigami.FormLayout`. Listen-artige Optionen (Dichte, Vorschauzeilen, Stunden) als Dropdown, nicht SpinBox mit Pfeilen.
+- Formularseiten nutzen `ConfigFormShell`: zentrierte Spalte, begrenzte Breite. `SimpleKCM` scrollt selbst — keine innere `Flickable`. Schmale Fenster stapeln Labels/Steuerelemente über `Kirigami.FormLayout`. Listen-artige Optionen (Dichte, Vorschauzeilen, Stunden) als Dropdown, nicht SpinBox mit Pfeilen.
 - Sidebar-Reihenfolge (Sektionen/Views) in der Sidebar-KCM per Drag-and-drop (`ConfigOrderList`), nicht als lose FormLayout-Repeater.
 - Quelle: `~/.config/com.github.shrippen.kurrent/kurrentrc` (Gruppe `General`), im Prozess ein Singleton `SharedSettings`. Instanz-Config in `appletsrc` ist nur ein Cache. Ältere `~/.config/plasma_com.github.shrippen.kurrentrc` wird einmalig dorthin verschoben.
 - `Design.qml` liest Sidebar-Breite, Dichte, Overlay-Dim und Reduced Motion aus dieser Config (über `main.qml`).

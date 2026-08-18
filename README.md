@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.1.0"><img alt="Version" src="https://img.shields.io/badge/version-0.1.0-e8dcc4?labelColor=1c1c20"></a>
+  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.0"><img alt="Version" src="https://img.shields.io/badge/version-0.2.0-e8dcc4?labelColor=1c1c20"></a>
   <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
   <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey?labelColor=1c1c20">
 </p>
@@ -54,7 +54,7 @@ Then add the **Kurrent** widget to your panel or desktop.
 Each GitHub Release includes a `.plasmoid` package for the [KDE Store](https://store.kde.org/) and for installing the widget UI with:
 
 ```bash
-kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.1.0.plasmoid
+kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.2.0.plasmoid
 ```
 
 The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widget, translations, and metadata; full task access still needs `./install.sh` (or a distro package) so the plugin is on the QML import path.
@@ -71,7 +71,7 @@ The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widge
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for the path to 1.0 (packaging, CalDAV recurrence/reminders, catch-up and reschedule, keyboard, and a power-user settings dialog).
+See [ROADMAP.md](ROADMAP.md) for the remaining path to 1.0 (AUR packaging, and the rest of the 0.3/0.4 catalog).
 
 ## Configuration
 

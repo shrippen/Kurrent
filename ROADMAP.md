@@ -7,7 +7,7 @@ Out of scope for 1.0: Kanban, swimlanes / calendar grid, habit streaks, merging 
 ```mermaid
 flowchart LR
   v010[0.1.0]
-  v02[0.2 Install and settings]
+  v02[0.2 shipped]
   v03[0.3 Task semantics]
   v04[0.4 Plasma integration]
   v10[1.0]
@@ -24,11 +24,11 @@ Settings stay **shared** across desktop widget and panel flyout (`~/.config/com.
 
 ---
 
-## 0.2 — Installable + settings foundation
+## 0.2 — shipped 2026-08-18
 
-Without a distro package, 1.0 is still `./install.sh` only.
+**0.2.0** shipped the settings foundation, catch-up, and honest release notes. AUR packaging is **not** in this repo; install is still `./install.sh` plus the GitHub `.plasmoid` (widget UI only — it does not replace `libkurrentplugin.so`). Several 0.3/0.4 items also landed in 0.2.0; see [CHANGELOG.md](CHANGELOG.md).
 
-- AUR `kurrent` (CMake plugin + plasmoid). The `.plasmoid` zip is the widget UI for the KDE Store; it does not replace `libkurrentplugin.so`.
+- AUR `kurrent` (CMake plugin + plasmoid) — still not shipped.
 - Honest release notes; `ctest` in CI.
 - Persist sort mode in `kurrentrc`.
 - Empty/error UI when Akonadi is missing or no todo collections are enabled.
@@ -176,4 +176,4 @@ Each page has reset-to-defaults. Desktop and panel stay in sync.
 
 ## Build order
 
-Settings keys and empty KCM pages in parallel with 0.2 packaging and Today catch-up. Reschedule, day sections, and alarms with 0.3. Appearance, sidebar, panel, Join button, and colors with 0.4. KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.
+0.2 packaging (except AUR) and Today catch-up shipped in 0.2.0. Remaining 0.3/0.4 catalog, then KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.

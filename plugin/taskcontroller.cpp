@@ -6,13 +6,13 @@
 #include <Akonadi/Collection>
 #include <Akonadi/CollectionFetchJob>
 #include <Akonadi/CollectionFetchScope>
-#include <Akonadi/Control>
 #include <Akonadi/ItemCreateJob>
 #include <Akonadi/ItemDeleteJob>
 #include <Akonadi/ItemFetchJob>
 #include <Akonadi/ItemFetchScope>
 #include <Akonadi/ItemModifyJob>
 #include <Akonadi/ItemMoveJob>
+#include <Akonadi/ServerManager>
 
 #include <KCalendarCore/Todo>
 
@@ -132,10 +132,12 @@ TaskController::TaskController(QObject *parent)
     connect(&m_reminderTimer, &QTimer::timeout, this, &TaskController::checkReminders);
     m_reminderTimer.start();
 
-    registerSessionInterface();
-    registerGlobalShortcuts();
-
     hydrateFromCache();
+    // D-Bus and GlobalAccel talk to the session bus; let QML finish constructing first.
+    QTimer::singleShot(0, this, [this]() {
+        registerSessionInterface();
+        registerGlobalShortcuts();
+    });
 }
 
 TaskController::~TaskController()
@@ -1397,27 +1399,65 @@ void TaskController::scheduleAkonadiRetry()
     }
 }
 
+void TaskController::ensureServerWatch()
+{
+    if (m_serverWatchConnected) {
+        return;
+    }
+    m_serverWatchConnected = true;
+    connect(Akonadi::ServerManager::self(), &Akonadi::ServerManager::stateChanged,
+            this, [this](Akonadi::ServerManager::State state) {
+                if (state == Akonadi::ServerManager::Running && !m_monitor) {
+                    refresh();
+                }
+            });
+}
+
 bool TaskController::initializeAkonadi()
 {
     if (m_monitor) {
         return true;
     }
 
-    if (!Akonadi::Control::start()) {
+    ensureServerWatch();
+
+    if (!Akonadi::ServerManager::isRunning()) {
+        const Akonadi::ServerManager::State state = Akonadi::ServerManager::state();
+        bool startOk = true;
+        if (state == Akonadi::ServerManager::NotRunning || state == Akonadi::ServerManager::Broken) {
+            startOk = Akonadi::ServerManager::start();
+        }
+
+        const bool comingUp = startOk
+            && state != Akonadi::ServerManager::Broken
+            && state != Akonadi::ServerManager::Stopping
+            && (state != Akonadi::ServerManager::NotRunning || !m_akonadiRetryTimer.isActive());
+
         m_akonadiAvailable = false;
-        setErrorMessage(tr("Akonadi is not running. Start it with: akonadictl start"));
-        logDebug(QStringLiteral("initializeAkonadi: Control::start() failed"));
+        setLoading(comingUp);
+        setErrorMessage(QString());
+        logDebug(QStringLiteral("initializeAkonadi: waiting for Akonadi (state=%1 comingUp=%2)")
+                     .arg(static_cast<int>(state))
+                     .arg(comingUp));
         Q_EMIT akonadiAvailableChanged();
         updateEmptyKind();
-        updateDebugInfo(0, 0, 0, 0, 0);
         scheduleAkonadiRetry();
         return false;
+    }
+
+    return attachAkonadiMonitor();
+}
+
+bool TaskController::attachAkonadiMonitor()
+{
+    if (m_monitor) {
+        return true;
     }
 
     m_akonadiRetryTimer.stop();
     m_akonadiAvailable = true;
     setErrorMessage(QString());
-    logDebug(QStringLiteral("initializeAkonadi: Akonadi started, creating monitor"));
+    logDebug(QStringLiteral("initializeAkonadi: Akonadi running, creating monitor"));
     Q_EMIT akonadiAvailableChanged();
     updateEmptyKind();
 

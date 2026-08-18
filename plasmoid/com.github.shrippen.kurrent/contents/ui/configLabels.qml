@@ -77,7 +77,6 @@ KCM.SimpleKCM {
 
     ConfigFormShell {
         id: shell
-        anchors.fill: parent
 
         Kirigami.Heading {
             text: i18n("Labels (Categories)")
