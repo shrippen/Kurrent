@@ -1,5 +1,7 @@
 #include "taskcalendar.h"
 
+#include <KCalendarCore/Alarm>
+#include <KCalendarCore/Duration>
 #include <KCalendarCore/Recurrence>
 
 #include <QDateTime>
@@ -166,6 +168,88 @@ bool completeTodo(const KCalendarCore::Todo::Ptr &todo, bool completed, const QD
     todo->setCompleted(false);
     todo->setPercentComplete(0);
     return true;
+}
+
+int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return -1;
+    }
+    for (const KCalendarCore::Alarm::Ptr &alarm : todo->alarms()) {
+        if (!alarm || !alarm->enabled()) {
+            continue;
+        }
+        if (alarm->hasEndOffset()) {
+            return qMax(0, -alarm->endOffset().asSeconds() / 60);
+        }
+        if (alarm->hasStartOffset()) {
+            return qMax(0, -alarm->startOffset().asSeconds() / 60);
+        }
+        if (alarm->time().isValid()) {
+            return 0;
+        }
+    }
+    return -1;
+}
+
+void setReminderMinutes(const KCalendarCore::Todo::Ptr &todo, int minutes)
+{
+    if (!todo) {
+        return;
+    }
+    todo->clearAlarms();
+    if (minutes < 0) {
+        return;
+    }
+    KCalendarCore::Alarm::Ptr alarm = todo->newAlarm();
+    alarm->setDisplayAlarm(todo->summary());
+    alarm->setEnabled(true);
+    alarm->setEndOffset(KCalendarCore::Duration(-minutes * 60, KCalendarCore::Duration::Seconds));
+}
+
+QDateTime nextReminderTime(const KCalendarCore::Todo::Ptr &todo, const QDateTime &now)
+{
+    if (!todo || todo->isCompleted() || !now.isValid()) {
+        return {};
+    }
+    QDateTime soonest;
+    const QDateTime probe = now.addSecs(-1);
+    for (const KCalendarCore::Alarm::Ptr &alarm : todo->alarms()) {
+        if (!alarm || !alarm->enabled()) {
+            continue;
+        }
+        const QDateTime next = alarm->nextTime(probe);
+        if (!next.isValid()) {
+            continue;
+        }
+        if (!soonest.isValid() || next < soonest) {
+            soonest = next;
+        }
+    }
+    return soonest;
+}
+
+void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDateTime &now)
+{
+    if (!todo || !now.isValid()) {
+        return;
+    }
+    QDateTime when;
+    if (preset == QLatin1String("15m")) {
+        when = now.addSecs(15 * 60);
+    } else if (preset == QLatin1String("1h")) {
+        when = now.addSecs(60 * 60);
+    } else if (preset == QLatin1String("tomorrow")) {
+        when = QDateTime(now.date().addDays(1), QTime(9, 0));
+    }
+    if (!when.isValid()) {
+        return;
+    }
+    todo->clearAlarms();
+    KCalendarCore::Alarm::Ptr alarm = todo->newAlarm();
+    alarm->setDisplayAlarm(todo->summary());
+    alarm->setEnabled(true);
+    alarm->setTime(when);
 }
 
 } // namespace TaskCalendar

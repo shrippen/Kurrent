@@ -18,6 +18,8 @@ private Q_SLOTS:
     void copyFromIgnoredWhileApplying();
     void migratesLegacyConfigFile();
     void persistsNewPlannerKeys();
+    void persistsKcmCatalogAndReset();
+    void persistsReminderSearchAndColors();
 
 private:
     QTemporaryDir m_dir;
@@ -147,6 +149,88 @@ void SharedSettingsTest::persistsNewPlannerKeys()
     QCOMPARE(target.value(QStringLiteral("showJoinButton")).toBool(), false);
     QVERIFY(store.keys().contains(QStringLiteral("sortMode")));
     QVERIFY(store.keys().contains(QStringLiteral("catchUpDays")));
+}
+
+void SharedSettingsTest::persistsKcmCatalogAndReset()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-e"));
+    SharedSettings store(fileName);
+
+    QCOMPARE(store.defaults().value(QStringLiteral("sidebarWidthUnits")).toInt(), 10);
+    QCOMPARE(store.defaults().value(QStringLiteral("overlayDimStep")).toInt(), 1);
+    QCOMPARE(store.defaults().value(QStringLiteral("clickAction")).toString(), QStringLiteral("inline"));
+    QVERIFY(store.keys().contains(QStringLiteral("rememberLastView")));
+    QVERIFY(store.keys().contains(QStringLiteral("panelBadge")));
+    QVERIFY(store.keys().contains(QStringLiteral("flyoutHeightUnits")));
+    QVERIFY(!store.keys().contains(QString()));
+
+    QQmlPropertyMap source;
+    source.insert(QStringLiteral("rememberLastView"), true);
+    source.insert(QStringLiteral("lastView"), QStringLiteral("today"));
+    source.insert(QStringLiteral("density"), QStringLiteral("compact"));
+    source.insert(QStringLiteral("sidebarWidthUnits"), 14);
+    source.insert(QStringLiteral("overlayDimStep"), 2);
+    source.insert(QStringLiteral("reducedMotion"), true);
+    source.insert(QStringLiteral("showEmptyProjects"), true);
+    source.insert(QStringLiteral("showSidebarCounts"), false);
+    source.insert(QStringLiteral("showDateChip"), false);
+    source.insert(QStringLiteral("showLabelChips"), false);
+    source.insert(QStringLiteral("showPriorityChip"), false);
+    source.insert(QStringLiteral("showRecurringIcon"), false);
+    source.insert(QStringLiteral("defaultDueMode"), QStringLiteral("tomorrow"));
+    source.insert(QStringLiteral("confirmDelete"), true);
+    source.insert(QStringLiteral("clickAction"), QStringLiteral("full"));
+    source.insert(QStringLiteral("panelBadge"), QStringLiteral("overdue"));
+    source.insert(QStringLiteral("flyoutWidthUnits"), 40);
+    source.insert(QStringLiteral("flyoutHeightUnits"), 28);
+    store.copyFrom(&source);
+
+    SharedSettings other(fileName);
+    QQmlPropertyMap target;
+    other.applyTo(&target);
+    QCOMPARE(target.value(QStringLiteral("density")).toString(), QStringLiteral("compact"));
+    QCOMPARE(target.value(QStringLiteral("sidebarWidthUnits")).toInt(), 14);
+    QCOMPARE(target.value(QStringLiteral("panelBadge")).toString(), QStringLiteral("overdue"));
+    QCOMPARE(target.value(QStringLiteral("confirmDelete")).toBool(), true);
+
+    store.resetKeys({QStringLiteral("density"), QStringLiteral("confirmDelete")});
+    QCOMPARE(store.values().value(QStringLiteral("density")).toString(), QStringLiteral("auto"));
+    QCOMPARE(store.values().value(QStringLiteral("confirmDelete")).toBool(), false);
+    QCOMPARE(store.values().value(QStringLiteral("sidebarWidthUnits")).toInt(), 14);
+
+    store.resetToDefaults();
+    QCOMPARE(store.values().value(QStringLiteral("sidebarWidthUnits")).toInt(), 10);
+    QCOMPARE(store.values().value(QStringLiteral("lastView")).toString(), QStringLiteral("inbox"));
+    QCOMPARE(store.values().value(QStringLiteral("flyoutWidthUnits")).toInt(), 32);
+}
+
+void SharedSettingsTest::persistsReminderSearchAndColors()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-f"));
+    SharedSettings store(fileName);
+    QQmlPropertyMap source;
+    source.insert(QStringLiteral("searchTitleOnly"), true);
+    source.insert(QStringLiteral("completeChildren"), true);
+    source.insert(QStringLiteral("notificationsEnabled"), false);
+    source.insert(QStringLiteral("defaultReminderMinutes"), 15);
+    source.insert(QStringLiteral("projectColors"), QStringLiteral("{\"11\":\"#cc3333\"}"));
+    source.insert(QStringLiteral("labelColors"), QStringLiteral("{\"home\":\"#3366cc\"}"));
+    source.insert(QStringLiteral("descriptionPreviewLines"), 2);
+    source.insert(QStringLiteral("hiddenViews"), QStringLiteral("anytime||unlabeled"));
+    source.insert(QStringLiteral("quietHoursEnabled"), true);
+    store.copyFrom(&source);
+
+    SharedSettings other(fileName);
+    QQmlPropertyMap target;
+    other.applyTo(&target);
+    QCOMPARE(target.value(QStringLiteral("searchTitleOnly")).toBool(), true);
+    QCOMPARE(target.value(QStringLiteral("completeChildren")).toBool(), true);
+    QCOMPARE(target.value(QStringLiteral("defaultReminderMinutes")).toInt(), 15);
+    QCOMPARE(target.value(QStringLiteral("descriptionPreviewLines")).toInt(), 2);
+    QCOMPARE(target.value(QStringLiteral("hiddenViews")).toString(), QStringLiteral("anytime||unlabeled"));
+    QCOMPARE(target.value(QStringLiteral("quietHoursEnabled")).toBool(), true);
+    QVERIFY(store.keys().contains(QStringLiteral("projectColors")));
+    QVERIFY(store.keys().contains(QStringLiteral("notificationsEnabled")));
 }
 
 QTEST_MAIN(SharedSettingsTest)

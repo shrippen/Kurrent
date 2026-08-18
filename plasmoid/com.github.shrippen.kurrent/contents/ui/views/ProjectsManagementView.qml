@@ -6,6 +6,7 @@ import org.kde.kirigami.delegates as KirigamiDelegates
 import org.kde.plasma.components as PlasmaComponents3
 import com.github.shrippen.kurrent 1.0
 import "../colors.js" as Colors
+import ".."
 
 ColumnLayout {
     id: root
@@ -77,7 +78,7 @@ ColumnLayout {
 
                 Kirigami.Icon {
                     source: "folder"
-                    color: Colors.colorForKey(String(model.collectionId))
+                    color: Design.colorForKey(String(model.collectionId))
                     width: Kirigami.Units.iconSizes.small
                     height: Kirigami.Units.iconSizes.small
                     anchors.verticalCenter: parent.verticalCenter

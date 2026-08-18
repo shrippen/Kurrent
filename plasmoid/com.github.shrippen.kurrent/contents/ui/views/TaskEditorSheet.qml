@@ -70,6 +70,7 @@ FocusScope {
         statusValue = normalizeStatus(task.status || 0)
         secrecyValue = Math.max(0, Math.min(2, task.secrecy || 0))
         recurrenceBox.currentIndex = recurrenceIndexFor(task.recurrencePreset || "none")
+        reminderBox.currentIndex = reminderIndexFor(task.reminderMinutes)
         projectPicker.collectionId = task.collectionId || -1
         projectPicker.hiddenProjects = Plasmoid.configuration.hiddenProjects || ""
         projectPicker.collectionModel = controller.collectionModel
@@ -116,6 +117,25 @@ FocusScope {
         }
     }
 
+    function reminderIndexFor(minutes) {
+        var n = Number(minutes)
+        if (n === 0) return 1
+        if (n === 15) return 2
+        if (n === 60) return 3
+        if (n === 1440) return 4
+        return 0
+    }
+
+    function reminderValueFor(index) {
+        switch (index) {
+        case 1: return 0
+        case 2: return 15
+        case 3: return 60
+        case 4: return 1440
+        default: return -1
+        }
+    }
+
     function accept() {
         var due = null
         var clearDue = clearDueRequested || dueDateField.text.trim().length === 0
@@ -148,6 +168,7 @@ FocusScope {
             "status": statusValue,
             "secrecy": secrecyValue,
             "recurrencePreset": recurrenceValueFor(recurrenceBox.currentIndex),
+            "reminderMinutes": reminderValueFor(reminderBox.currentIndex),
             "clearDue": clearDue,
             "clearStart": clearStart,
             "collectionId": projectPicker.collectionId
@@ -375,6 +396,19 @@ FocusScope {
                     i18n("Weekly"),
                     i18n("Monthly"),
                     i18n("Yearly")
+                ]
+            }
+
+            FieldLabel { text: i18n("Reminder:") }
+            QQC2.ComboBox {
+                id: reminderBox
+                Layout.fillWidth: true
+                model: [
+                    i18n("Off"),
+                    i18n("At due time"),
+                    i18n("15 minutes before"),
+                    i18n("1 hour before"),
+                    i18n("1 day before")
                 ]
             }
 

@@ -20,6 +20,19 @@ Item {
     property string hiddenLabels: ""
     // "auto" | "compact" | "comfortable"
     property string sidebarRowSize: "auto"
+    property bool showEmptyProjects: false
+    property bool showSidebarCounts: true
+    property string sectionOrder: "views,projects,labels,priorities"
+    property string hiddenSections: ""
+    property string viewOrder: ""
+    property string hiddenViews: ""
+
+    readonly property string sectionDefaults: "views,projects,labels,priorities"
+    readonly property string viewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,recurring,unlabeled,completed"
+    readonly property var visibleSectionIdList: controller
+            ? controller.visibleOrderedKeys(sectionOrder, hiddenSections, sectionDefaults, ",", "||")
+            : ["views", "projects", "labels", "priorities"]
+    readonly property int visibleSectionCount: visibleSectionIdList.length
 
     readonly property int sidebarWidth: Design.sidebarWidth
     readonly property bool isDragging: !!(dragHost && dragHost.draggingTask)
@@ -35,7 +48,7 @@ Item {
     Layout.minimumHeight: 0
     Layout.maximumHeight: Infinity
 
-    readonly property int availableHeight: Math.max(0, Math.floor(height - separatorStrip * 3))
+    readonly property int availableHeight: Math.max(0, Math.floor(height - separatorStrip * Math.max(0, visibleSectionCount - 1)))
 
     // Shared left inset so Inbox/Today/Scheduled icons align with Projects/Labels icons.
     readonly property int rowLeftInset: Design.padInner
@@ -79,7 +92,13 @@ Item {
             + "|" + (controller.collectionModel ? controller.collectionModel.count : 0)
             + "|" + controller.availableLabels.join("\n")
             + "|" + hiddenProjects
+            + "|" + String(showEmptyProjects)
+            + "|" + String(showSidebarCounts)
             + "|" + hiddenLabels
+            + "|" + sectionOrder
+            + "|" + hiddenSections
+            + "|" + viewOrder
+            + "|" + hiddenViews
 
     property var visibleProjects: []
     property var visibleLabelItems: []
@@ -89,13 +108,16 @@ Item {
     onSectionContentKeyChanged: {
         rebuildVisibleLists()
         Qt.callLater(redistributeSections)
+        Qt.callLater(applySectionOrder)
+    }
+    Component.onCompleted: {
+        rebuildVisibleLists()
+        Qt.callLater(applySectionOrder)
+        Qt.callLater(redistributeSections)
     }
     onSectionHeaderHeightChanged: Qt.callLater(redistributeSections)
     onSectionRowHeightChanged: Qt.callLater(redistributeSections)
-    Component.onCompleted: {
-        rebuildVisibleLists()
-        Qt.callLater(redistributeSections)
-    }
+    onComfortableRowsChanged: Qt.callLater(redistributeSections)
 
     function rebuildVisibleLists() {
         var projects = []
@@ -103,7 +125,7 @@ Item {
         if (model) {
             for (var i = 0; i < model.count; ++i) {
                 var collectionId = model.collectionIdAt(i)
-                if (model.taskCountAt(i) > 0 && !root._isProjectHidden(collectionId)) {
+                if ((root.showEmptyProjects || model.taskCountAt(i) > 0) && !root._isProjectHidden(collectionId)) {
                     projects.push({
                         collectionId: collectionId,
                         name: model.nameAt(i),
@@ -141,7 +163,7 @@ Item {
     }
 
     function naturalHeightViews() {
-        return root.naturalListHeight(root.viewItems.length, false)
+        return root.naturalListHeight(root.visibleViewItems.length, false)
     }
     function naturalHeightProjects() {
         return root.naturalListHeight(root.visibleProjectCount(), true)
@@ -151,6 +173,11 @@ Item {
     }
     function naturalHeightPriorities() {
         return root.naturalListHeight(root.priorityItems.length, true)
+    }
+
+    function sectionFloorHeight(hasHeader) {
+        var header = hasHeader ? root.sectionHeaderHeight : 0
+        return Math.max(1, header + root.sectionRowHeight + 1)
     }
 
     function listContentWidth(list) {
@@ -171,75 +198,113 @@ Item {
         return root.listNeedsScroll(list) ? root.scrollGutter : Kirigami.Units.smallSpacing
     }
 
-    function sectionMinHeight(list, estimated) {
-        var measured = list ? Math.ceil(list.contentHeight) : 0
-        if (measured <= 1) {
-            return Math.max(1, estimated)
-        }
-        return Math.max(1, estimated, measured)
-    }
-
     function redistributeSections() {
         var available = root.availableHeight
         if (available < 4) {
             return
         }
 
-        var mins = [
-            root.sectionMinHeight(viewsList, root.naturalHeightViews()),
-            root.sectionMinHeight(projectsList, root.naturalHeightProjects()),
-            root.sectionMinHeight(labelsList, root.naturalHeightLabels()),
-            root.sectionMinHeight(prioritiesList, root.naturalHeightPriorities())
+        var ids = ["views", "projects", "labels", "priorities"]
+        var hasHeader = [false, true, true, true]
+        var naturals = [
+            root.naturalHeightViews(),
+            root.naturalHeightProjects(),
+            root.naturalHeightLabels(),
+            root.naturalHeightPriorities()
         ]
-
-        var sumMins = mins[0] + mins[1] + mins[2] + mins[3]
-        var alloc = [mins[0], mins[1], mins[2], mins[3]]
-
-        if (sumMins > available) {
-            // Not enough space: keep the previous lock/share shrink so sections that
-            // fit stay compact and the rest share what is left (and scroll).
-            var locked = [false, false, false, false]
-            alloc = [0, 0, 0, 0]
-            var remaining = available
-            var open = 4
-            var progress = true
-            var guard = 0
-            while (progress && open > 0 && guard < 8) {
-                ++guard
-                progress = false
-                var share = remaining / open
-                for (var j = 0; j < 4; ++j) {
-                    if (!locked[j] && mins[j] <= share) {
-                        locked[j] = true
-                        alloc[j] = mins[j]
-                        remaining -= mins[j]
-                        open--
-                        progress = true
-                    }
-                }
+        var visibleFlags = []
+        var visibleCount = 0
+        var sumNatural = 0
+        for (var s = 0; s < 4; ++s) {
+            var vis = root.sectionVisible(ids[s])
+            visibleFlags.push(vis)
+            if (vis) {
+                ++visibleCount
+                sumNatural += naturals[s]
             }
-            if (open > 0) {
-                var even = Math.floor(remaining / open)
-                var extra = remaining - even * open
-                for (var k = 0; k < 4; ++k) {
-                    if (!locked[k]) {
-                        alloc[k] = even + (extra > 0 ? 1 : 0)
-                        if (extra > 0) {
-                            extra--
-                        }
-                    }
+        }
+        if (visibleCount <= 0) {
+            viewsAlloc = 0
+            projectsAlloc = 0
+            labelsAlloc = 0
+            prioritiesAlloc = 0
+            return
+        }
+
+        var alloc = [0, 0, 0, 0]
+        if (sumNatural <= available) {
+            var leftover = available - sumNatural
+            var evenGrow = Math.floor(leftover / visibleCount)
+            var extraGrow = leftover - evenGrow * visibleCount
+            for (var i = 0; i < 4; ++i) {
+                if (!visibleFlags[i]) {
+                    continue
+                }
+                alloc[i] = naturals[i] + evenGrow + (extraGrow > 0 ? 1 : 0)
+                if (extraGrow > 0) {
+                    extraGrow--
                 }
             }
         } else {
-            // Extra widget height goes into the lists so the plasmoid can grow
-            // past "all sidebar rows visible".
-            var leftover = available - sumMins
-            var evenGrow = Math.floor(leftover / 4)
-            var extraGrow = leftover - evenGrow * 4
-            for (var i = 0; i < 4; ++i) {
-                alloc[i] += evenGrow + (extraGrow > 0 ? 1 : 0)
-                if (extraGrow > 0) {
-                    extraGrow--
+            var mins = []
+            for (var m = 0; m < 4; ++m) {
+                mins.push(visibleFlags[m] ? root.sectionFloorHeight(hasHeader[m]) : 0)
+            }
+
+            var sumMins = 0
+            for (var n = 0; n < 4; ++n) {
+                sumMins += mins[n]
+            }
+            alloc = mins.slice(0)
+
+            if (sumMins > available) {
+                var locked = [false, false, false, false]
+                alloc = [0, 0, 0, 0]
+                var remaining = available
+                var open = visibleCount
+                var progress = true
+                var guard = 0
+                while (progress && open > 0 && guard < 8) {
+                    ++guard
+                    progress = false
+                    var share = remaining / open
+                    for (var j = 0; j < 4; ++j) {
+                        if (!visibleFlags[j] || locked[j]) {
+                            continue
+                        }
+                        if (mins[j] <= share) {
+                            locked[j] = true
+                            alloc[j] = mins[j]
+                            remaining -= mins[j]
+                            open--
+                            progress = true
+                        }
+                    }
+                }
+                if (open > 0) {
+                    var even = Math.floor(remaining / open)
+                    var extra = remaining - even * open
+                    for (var k = 0; k < 4; ++k) {
+                        if (visibleFlags[k] && !locked[k]) {
+                            alloc[k] = even + (extra > 0 ? 1 : 0)
+                            if (extra > 0) {
+                                extra--
+                            }
+                        }
+                    }
+                }
+            } else {
+                var spare = available - sumMins
+                var grow = Math.floor(spare / visibleCount)
+                var growExtra = spare - grow * visibleCount
+                for (var g = 0; g < 4; ++g) {
+                    if (!visibleFlags[g]) {
+                        continue
+                    }
+                    alloc[g] += grow + (growExtra > 0 ? 1 : 0)
+                    if (growExtra > 0) {
+                        growExtra--
+                    }
                 }
             }
         }
@@ -258,6 +323,37 @@ Item {
         }
     }
 
+    function sectionVisible(id) {
+        return root.visibleSectionIdList.indexOf(id) >= 0
+    }
+
+    function applySectionOrder() {
+        var ids = root.visibleSectionIdList
+        var blocks = {
+            "views": viewsBlock,
+            "projects": projectsBlock,
+            "labels": labelsBlock,
+            "priorities": prioritiesBlock
+        }
+        var key
+        for (key in blocks) {
+            if (!blocks[key]) {
+                continue
+            }
+            blocks[key].visible = ids.indexOf(key) >= 0
+        }
+        for (var i = 0; i < ids.length; ++i) {
+            var block = blocks[ids[i]]
+            if (!block) {
+                continue
+            }
+            block.parent = null
+            block.parent = sectionColumn
+            block.isLastVisible = (i === ids.length - 1)
+        }
+        Qt.callLater(redistributeSections)
+    }
+
     function _isProjectHidden(collectionId) {
         if (!hiddenProjects) return false
         var parts = hiddenProjects.split(",")
@@ -268,25 +364,6 @@ Item {
         if (!hiddenLabels) return false
         var parts = hiddenLabels.split("||")
         return parts.indexOf(label) >= 0
-    }
-
-    function indexForProject(collectionId) {
-        if (collectionId < 0) {
-            return -1
-        }
-        for (var i = 0; i < visibleProjects.length; ++i) {
-            if (Number(visibleProjects[i].collectionId) === Number(collectionId)) {
-                return i
-            }
-        }
-        return -1
-    }
-
-    function indexForLabel(label) {
-        if (!label) {
-            return -1
-        }
-        return visibleLabelItems.indexOf(label)
     }
 
     function dropTaskOnProject(collectionId) {
@@ -316,39 +393,6 @@ Item {
         return true
     }
 
-    function syncProjectsIndex() {
-        var idx = root.indexForProject(controller.selectedCollectionId)
-        if (projectsList.currentIndex !== idx) {
-            projectsList.currentIndex = idx
-        }
-    }
-
-    function syncLabelsIndex() {
-        var idx = root.indexForLabel(controller.selectedLabel)
-        if (labelsList.currentIndex !== idx) {
-            labelsList.currentIndex = idx
-        }
-    }
-
-    function indexForPriority(priority) {
-        if (priority < 0) {
-            return -1
-        }
-        for (var i = 0; i < priorityItems.length; ++i) {
-            if (priorityItems[i].value === priority) {
-                return i
-            }
-        }
-        return -1
-    }
-
-    function syncPrioritiesIndex() {
-        var idx = root.indexForPriority(controller.selectedPriority)
-        if (prioritiesList.currentIndex !== idx) {
-            prioritiesList.currentIndex = idx
-        }
-    }
-
     readonly property var viewItems: [
         { viewId: "inbox", label: i18n("Inbox"), icon: "mail-folder-inbox" },
         { viewId: "today", label: i18n("Today"), icon: "view-calendar-day" },
@@ -361,6 +405,24 @@ Item {
         { viewId: "completed", label: i18n("Completed"), icon: "checkmark" }
     ]
 
+    readonly property var visibleViewItems: {
+        if (!controller) {
+            return viewItems
+        }
+        var order = controller.visibleOrderedKeys(viewOrder, hiddenViews, viewDefaults, ",", "||")
+        var byId = {}
+        for (var i = 0; i < viewItems.length; ++i) {
+            byId[viewItems[i].viewId] = viewItems[i]
+        }
+        var out = []
+        for (var j = 0; j < order.length; ++j) {
+            if (byId[order[j]]) {
+                out.push(byId[order[j]])
+            }
+        }
+        return out.length ? out : viewItems
+    }
+
     readonly property var priorityItems: [
         { value: 1, label: i18n("High") },
         { value: 5, label: i18n("Medium") },
@@ -369,8 +431,8 @@ Item {
     ]
 
     function indexForView(viewId) {
-        for (var i = 0; i < viewItems.length; ++i) {
-            if (viewItems[i].viewId === viewId) {
+        for (var i = 0; i < visibleViewItems.length; ++i) {
+            if (visibleViewItems[i].viewId === viewId) {
                 return i
             }
         }
@@ -432,6 +494,12 @@ Item {
         clip: true
 
     // ── Views ──
+    Item {
+        id: viewsBlock
+        width: parent.width
+        property bool isLastVisible: false
+        height: viewsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
     ListView {
         id: viewsList
         width: parent.width
@@ -439,12 +507,12 @@ Item {
         clip: true
         implicitHeight: 0
         implicitWidth: width
-        interactive: root.listNeedsScroll(viewsList)
+        interactive: root.listNeedsScroll(viewsList) || root.comfortableRows
         boundsBehavior: Flickable.StopAtBounds
         spacing: 1
         leftMargin: 0
         rightMargin: root.scrollMarginFor(viewsList)
-        model: root.viewItems
+        model: root.visibleViewItems
         currentIndex: root.indexForView(controller.currentView)
 
         highlight: PlasmaExtras.Highlight {}
@@ -501,7 +569,7 @@ Item {
                         var n = controller.viewTaskCounts[modelData.viewId]
                         return n === undefined ? "" : String(n)
                     }
-                    visible: text.length > 0
+                    visible: root.showSidebarCounts && text.length > 0
                     opacity: 0.55
                     font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 }
@@ -509,17 +577,20 @@ Item {
         }
     }
 
-    // ── Separator before Projects ──
-    Item {
+    Kirigami.Separator {
         width: parent.width
-        height: root.separatorStrip
-        Kirigami.Separator {
-            width: parent.width
-            anchors.bottom: parent.bottom
-        }
+        anchors.bottom: parent.bottom
+        visible: !viewsBlock.isLastVisible
+    }
     }
 
     // ── Projects section ──
+    Item {
+        id: projectsBlock
+        width: parent.width
+        property bool isLastVisible: false
+        height: projectsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
     ListView {
         id: projectsList
         width: parent.width
@@ -527,7 +598,7 @@ Item {
         clip: true
         implicitHeight: 0
         implicitWidth: width
-        interactive: root.listNeedsScroll(projectsList)
+        interactive: root.listNeedsScroll(projectsList) || root.comfortableRows
         boundsBehavior: Flickable.StopAtBounds
         spacing: 1
         model: root.visibleProjects
@@ -535,30 +606,9 @@ Item {
         leftMargin: 0
         rightMargin: root.scrollMarginFor(projectsList)
 
-        highlight: PlasmaExtras.Highlight {}
-        highlightMoveDuration: Kirigami.Units.longDuration
-
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: projectsList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
         onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        Component.onCompleted: root.syncProjectsIndex()
-
-            Connections {
-                target: controller
-                function onSelectedCollectionIdChanged() {
-                    root.syncProjectsIndex()
-                }
-            }
-
-            Connections {
-                target: controller.collectionModel
-                function onCountChanged() {
-                    root.rebuildVisibleLists()
-                    Qt.callLater(root.syncProjectsIndex)
-                    Qt.callLater(root.redistributeSections)
-                }
-            }
 
             headerPositioning: ListView.InlineHeader
             header: RowLayout {
@@ -609,7 +659,8 @@ Item {
                 id: projectDelegate
                 width: root.listContentWidth(projectsList)
                 hoverEnabled: true
-                highlighted: ListView.isCurrentItem
+                readonly property bool filterSelected: controller.selectedCollectionId === modelData.collectionId
+                highlighted: filterSelected
                 leftPadding: 0
                 rightPadding: Kirigami.Units.smallSpacing
                 topPadding: root.rowVPad
@@ -618,8 +669,9 @@ Item {
                 background: Item {
                     anchors.fill: parent
 
-                    SidebarHoverBackground {
+                    SelectionBackground {
                         control: projectDelegate
+                        selected: projectDelegate.filterSelected
                     }
 
                     Rectangle {
@@ -681,7 +733,7 @@ Item {
                         Layout.preferredWidth: root.rowIconSize
                         Layout.preferredHeight: root.rowIconSize
                         source: "folder"
-                        color: Colors.colorForKey(String(modelData.collectionId))
+                        color: Design.colorForKey(String(modelData.collectionId))
                         width: root.rowIconSize
                         height: root.rowIconSize
                     }
@@ -700,25 +752,28 @@ Item {
                             var n = controller.sidebarProjectCounts[String(modelData.collectionId)]
                             return n === undefined ? "" : String(n)
                         }
-                        visible: text.length > 0
+                        visible: root.showSidebarCounts && text.length > 0
                         opacity: 0.55
                         font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                     }
                 }
-            }
-        }
-
-    // ── Separator before Labels ──
-    Item {
-        width: parent.width
-        height: root.separatorStrip
-        Kirigami.Separator {
-            width: parent.width
-            anchors.bottom: parent.bottom
         }
     }
 
+    Kirigami.Separator {
+        width: parent.width
+        anchors.bottom: parent.bottom
+        visible: !projectsBlock.isLastVisible
+    }
+    }
+
     // ── Labels section ──
+    Item {
+        id: labelsBlock
+        width: parent.width
+        property bool isLastVisible: false
+        height: labelsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
     ListView {
         id: labelsList
         width: parent.width
@@ -726,7 +781,7 @@ Item {
         clip: true
         implicitHeight: 0
         implicitWidth: width
-        interactive: root.listNeedsScroll(labelsList)
+        interactive: root.listNeedsScroll(labelsList) || root.comfortableRows
         boundsBehavior: Flickable.StopAtBounds
         spacing: 1
         model: root.visibleLabelItems
@@ -734,26 +789,9 @@ Item {
         leftMargin: 0
         rightMargin: root.scrollMarginFor(labelsList)
 
-        highlight: PlasmaExtras.Highlight {}
-        highlightMoveDuration: Kirigami.Units.longDuration
-
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: labelsList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
         onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        Component.onCompleted: root.syncLabelsIndex()
-
-            Connections {
-                target: controller
-                function onSelectedLabelChanged() {
-                    root.syncLabelsIndex()
-                }
-                function onAvailableLabelsChanged() {
-                    root.rebuildVisibleLists()
-                    Qt.callLater(root.syncLabelsIndex)
-                    Qt.callLater(root.redistributeSections)
-                }
-            }
 
             headerPositioning: ListView.InlineHeader
             header: RowLayout {
@@ -804,7 +842,8 @@ Item {
                 id: labelDelegate
                 width: root.listContentWidth(labelsList)
                 hoverEnabled: true
-                highlighted: ListView.isCurrentItem
+                readonly property bool filterSelected: controller.selectedLabel === modelData
+                highlighted: filterSelected
                 leftPadding: 0
                 rightPadding: Kirigami.Units.smallSpacing
                 topPadding: root.rowVPad
@@ -813,8 +852,9 @@ Item {
                 background: Item {
                     anchors.fill: parent
 
-                    SidebarHoverBackground {
+                    SelectionBackground {
                         control: labelDelegate
+                        selected: labelDelegate.filterSelected
                     }
 
                     Rectangle {
@@ -870,7 +910,7 @@ Item {
                         Layout.preferredWidth: root.rowIconSize
                         Layout.preferredHeight: root.rowIconSize
                         source: "tag"
-                        color: Colors.colorForKey(String(modelData))
+                        color: Design.colorForKey(String(modelData), "label")
                         width: root.rowIconSize
                         height: root.rowIconSize
                     }
@@ -889,25 +929,28 @@ Item {
                             var n = controller.sidebarLabelCounts[modelData]
                             return n === undefined ? "" : String(n)
                         }
-                        visible: text.length > 0
+                        visible: root.showSidebarCounts && text.length > 0
                         opacity: 0.55
                         font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                     }
                 }
-            }
-        }
-
-    // ── Separator before Priorities ──
-    Item {
-        width: parent.width
-        height: root.separatorStrip
-        Kirigami.Separator {
-            width: parent.width
-            anchors.bottom: parent.bottom
         }
     }
 
+    Kirigami.Separator {
+        width: parent.width
+        anchors.bottom: parent.bottom
+        visible: !labelsBlock.isLastVisible
+    }
+    }
+
     // ── Priorities section ──
+    Item {
+        id: prioritiesBlock
+        width: parent.width
+        property bool isLastVisible: false
+        height: prioritiesList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
     ListView {
         id: prioritiesList
         width: parent.width
@@ -915,7 +958,7 @@ Item {
         clip: true
         implicitHeight: 0
         implicitWidth: width
-        interactive: root.listNeedsScroll(prioritiesList)
+        interactive: root.listNeedsScroll(prioritiesList) || root.comfortableRows
         boundsBehavior: Flickable.StopAtBounds
         spacing: 1
         leftMargin: 0
@@ -923,21 +966,9 @@ Item {
         model: root.priorityItems
         currentIndex: -1
 
-        highlight: PlasmaExtras.Highlight {}
-        highlightMoveDuration: Kirigami.Units.longDuration
-
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: prioritiesList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
         onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        Component.onCompleted: root.syncPrioritiesIndex()
-
-        Connections {
-            target: controller
-            function onSelectedPriorityChanged() {
-                root.syncPrioritiesIndex()
-            }
-        }
 
         headerPositioning: ListView.InlineHeader
         header: RowLayout {
@@ -988,7 +1019,8 @@ Item {
                 id: priorityDelegate
                 width: root.listContentWidth(prioritiesList)
             hoverEnabled: true
-            highlighted: ListView.isCurrentItem
+            readonly property bool filterSelected: controller.selectedPriority === modelData.value
+            highlighted: filterSelected
             leftPadding: 0
             rightPadding: Kirigami.Units.smallSpacing
             topPadding: root.rowVPad
@@ -997,8 +1029,9 @@ Item {
             background: Item {
                 anchors.fill: parent
 
-                SidebarHoverBackground {
+                SelectionBackground {
                     control: priorityDelegate
+                    selected: priorityDelegate.filterSelected
                 }
 
                 Rectangle {
@@ -1087,12 +1120,13 @@ Item {
                         var n = controller.sidebarPriorityCounts[String(modelData.value)]
                         return n === undefined ? "" : String(n)
                     }
-                    visible: text.length > 0
+                    visible: root.showSidebarCounts && text.length > 0
                     opacity: 0.55
                     font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 }
             }
         }
+    }
     }
     }
 }

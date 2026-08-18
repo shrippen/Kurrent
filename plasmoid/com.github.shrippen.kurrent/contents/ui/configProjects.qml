@@ -5,27 +5,32 @@ import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
 import com.github.shrippen.kurrent 1.0
 import "colors.js" as Colors
+import "."
+import "components"
 
 KCM.SimpleKCM {
     id: root
 
     property string cfg_enabledCollections
     property string cfg_hiddenProjects
+    property string cfg_projectColors
+
+    readonly property int writableProjectCount: {
+        var model = configController.collectionModel
+        if (!model) {
+            return 0
+        }
+        var count = 0
+        for (var i = 0; i < model.count; ++i) {
+            if (model.writableAt(i)) {
+                ++count
+            }
+        }
+        return count
+    }
 
     TaskController {
         id: configController
-    }
-
-    function enabledSet() {
-        var raw = cfg_enabledCollections || ""
-        if (!raw.trim()) return {}
-        var parts = raw.split(",")
-        var s = {}
-        for (var i = 0; i < parts.length; ++i) {
-            var v = parts[i].trim()
-            if (v !== "") s[v] = true
-        }
-        return s
     }
 
     function hiddenSet() {
@@ -40,13 +45,36 @@ KCM.SimpleKCM {
         return s
     }
 
+    function enabledSet() {
+        var raw = cfg_enabledCollections || ""
+        if (!raw.trim()) return {}
+        var parts = raw.split(",")
+        var s = {}
+        for (var i = 0; i < parts.length; ++i) {
+            var v = parts[i].trim()
+            if (v !== "") s[v] = true
+        }
+        return s
+    }
+
+    function writableCollectionIds() {
+        var model = configController.collectionModel
+        var ids = []
+        if (!model) {
+            return ids
+        }
+        for (var i = 0; i < model.count; ++i) {
+            if (model.writableAt(i)) {
+                ids.push(String(model.collectionIdAt(i)))
+            }
+        }
+        return ids
+    }
+
     function toggleEnabled(collectionId) {
         var current = enabledSet()
         var key = String(collectionId)
-        var allIds = []
-        for (var i = 0; i < configController.collectionModel.count; ++i) {
-            allIds.push(String(configController.collectionModel.collectionIdAt(i)))
-        }
+        var allIds = writableCollectionIds()
 
         var isEmpty = Object.keys(current).length === 0
         if (isEmpty) {
@@ -91,12 +119,13 @@ KCM.SimpleKCM {
         return !!hiddenSet()[String(collectionId)]
     }
 
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(Math.max(parent.width - Kirigami.Units.largeSpacing * 2,
-                                 Kirigami.Units.gridUnit * 12),
-                        Kirigami.Units.gridUnit * 28)
-        spacing: Kirigami.Units.smallSpacing
+    function applyColor(collectionId, hex) {
+        cfg_projectColors = configController.setColorOverride(cfg_projectColors || "", String(collectionId), hex)
+    }
+
+    ConfigFormShell {
+        id: shell
+        anchors.fill: parent
 
         Kirigami.Heading {
             text: i18n("Projects (Akonadi Calendars)")
@@ -108,7 +137,7 @@ KCM.SimpleKCM {
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
             opacity: 0.75
-            text: i18n("Manage which Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar.")
+            text: i18n("Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar.")
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
@@ -118,8 +147,8 @@ KCM.SimpleKCM {
             spacing: 1
 
             QQC2.Label {
-                visible: projectRepeater.count === 0
-                text: i18n("No Akonadi calendars found. Make sure Akonadi is running.")
+                visible: root.writableProjectCount === 0
+                text: i18n("No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits.")
                 opacity: 0.6
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -130,53 +159,80 @@ KCM.SimpleKCM {
                 model: configController.collectionModel
 
                 delegate: Kirigami.AbstractCard {
+                    visible: model.writable
                     Layout.fillWidth: true
 
-                    contentItem: RowLayout {
-                        spacing: Kirigami.Units.smallSpacing
+                    contentItem: GridLayout {
+                        columns: shell.wideLayout ? 2 : 1
+                        columnSpacing: Kirigami.Units.smallSpacing
+                        rowSpacing: Kirigami.Units.smallSpacing
 
-                        Kirigami.Icon {
-                            source: "folder"
-                            color: Colors.colorForKey(String(model.collectionId))
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                            width: Kirigami.Units.iconSizes.smallMedium
-                            height: Kirigami.Units.iconSizes.smallMedium
-                        }
-
-                        ColumnLayout {
+                        RowLayout {
+                            Layout.columnSpan: shell.wideLayout ? 2 : 1
                             Layout.fillWidth: true
-                            spacing: 0
+                            spacing: Kirigami.Units.smallSpacing
 
-                            QQC2.Label {
-                                Layout.fillWidth: true
-                                text: model.name
-                                font.bold: true
-                                elide: Text.ElideRight
+                            Kirigami.Icon {
+                                source: "folder"
+                                color: Design.colorForKey(String(model.collectionId))
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                                Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
                             }
 
-                            QQC2.Label {
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                text: i18np("%1 task", "%1 tasks", model.taskCount)
-                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                opacity: 0.6
+                                spacing: 0
+
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    text: model.name
+                                    font.bold: true
+                                    wrapMode: Text.WordWrap
+                                    elide: Text.ElideRight
+                                }
+
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    text: i18np("%1 task", "%1 tasks", model.taskCount)
+                                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                                    opacity: 0.6
+                                }
                             }
                         }
 
-                        QQC2.Switch {
-                            text: i18n("Enabled")
-                            checked: root.isEnabled(model.collectionId)
-                            onToggled: root.toggleEnabled(model.collectionId)
-                            QQC2.ToolTip.text: i18n("Include this calendar when fetching tasks")
-                            QQC2.ToolTip.visible: hovered
+                        QQC2.TextField {
+                            Layout.fillWidth: true
+                            placeholderText: "#rrggbb"
+                            text: {
+                                try {
+                                    var map = JSON.parse(root.cfg_projectColors || "{}")
+                                    return map[String(model.collectionId)] || ""
+                                } catch (e) {
+                                    return ""
+                                }
+                            }
+                            onEditingFinished: root.applyColor(model.collectionId, text.trim())
                         }
 
-                        QQC2.Switch {
-                            text: i18n("Visible")
-                            checked: !root.isHidden(model.collectionId)
-                            onToggled: root.toggleHidden(model.collectionId)
-                            QQC2.ToolTip.text: i18n("Show this project in the sidebar")
-                            QQC2.ToolTip.visible: hovered
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Kirigami.Units.smallSpacing
+
+                            QQC2.Switch {
+                                text: i18n("Enabled")
+                                checked: root.isEnabled(model.collectionId)
+                                onToggled: root.toggleEnabled(model.collectionId)
+                                QQC2.ToolTip.text: i18n("Include this calendar when fetching tasks")
+                                QQC2.ToolTip.visible: hovered
+                            }
+
+                            QQC2.Switch {
+                                text: i18n("Visible")
+                                checked: !root.isHidden(model.collectionId)
+                                onToggled: root.toggleHidden(model.collectionId)
+                                QQC2.ToolTip.text: i18n("Show this project in the sidebar")
+                                QQC2.ToolTip.visible: hovered
+                            }
                         }
                     }
                 }

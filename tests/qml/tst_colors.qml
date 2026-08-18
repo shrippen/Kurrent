@@ -31,4 +31,12 @@ TestCase {
         verify(String(Colors.colorForPriority(1)).length > 0)
         verify(String(Colors.colorForPriority(0)).length > 0)
     }
+
+    function test_colorOverrides() {
+        Colors.setColorOverrides({ "11": "#cc3333" }, { "home": "#3366cc" })
+        compare(String(Colors.colorForKey("11")), "#cc3333")
+        compare(String(Colors.colorForKey("home", "label")), "#3366cc")
+        Colors.setColorOverrides({}, {})
+        verify(String(Colors.colorForKey("11")) !== "#cc3333")
+    }
 }

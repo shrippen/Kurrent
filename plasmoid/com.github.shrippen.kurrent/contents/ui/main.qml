@@ -110,21 +110,61 @@ PlasmoidItem {
 
     Plasmoid.icon: "kurrent"
     toolTipMainText: i18n("Kurrent")
-    toolTipSubText: taskController.pendingCount > 0
-        ? i18np("%1 open task", "%1 open tasks", taskController.pendingCount)
+    toolTipSubText: root.panelBadgeCount > 0
+        ? i18np("%1 open task", "%1 open tasks", root.panelBadgeCount)
         : i18n("No open tasks")
+
+    readonly property int panelBadgeCount: {
+        var mode = Plasmoid.configuration.panelBadge || "open"
+        var counts = taskController.viewTaskCounts
+        if (mode === "off") {
+            return 0
+        }
+        if (mode === "today") {
+            return counts["today"] || 0
+        }
+        if (mode === "overdue") {
+            return counts["overdue"] || 0
+        }
+        return taskController.pendingCount
+    }
 
     function persistSharedSettings() {
         SharedSettings.copyFrom(Plasmoid.configuration)
     }
 
+    function applyColorsFromConfig() {
+        var projects = {}
+        var labels = {}
+        try {
+            projects = JSON.parse(Plasmoid.configuration.projectColors || "{}")
+        } catch (e) { projects = {} }
+        try {
+            labels = JSON.parse(Plasmoid.configuration.labelColors || "{}")
+        } catch (e) { labels = {} }
+        Colors.setColorOverrides(projects, labels)
+        KurrentUi.Design.setColorOverrides(projects, labels)
+    }
+
+    function applyDesignFromConfig() {
+        KurrentUi.Design.density = Plasmoid.configuration.density || "auto"
+        KurrentUi.Design.sidebarWidthUnits = Plasmoid.configuration.sidebarWidthUnits || 10
+        KurrentUi.Design.overlayDimStep = Plasmoid.configuration.overlayDimStep !== undefined
+                ? Plasmoid.configuration.overlayDimStep : 1
+        KurrentUi.Design.reducedMotion = Plasmoid.configuration.reducedMotion === true
+    }
+
     function loadSharedSettings() {
         SharedSettings.applyTo(Plasmoid.configuration)
+        applyDesignFromConfig()
+        applyColorsFromConfig()
     }
 
     Component.onCompleted: {
         SharedSettings.seedFromIfEmpty(Plasmoid.configuration)
         SharedSettings.applyTo(Plasmoid.configuration)
+        applyDesignFromConfig()
+        applyColorsFromConfig()
         if (taskController.smokeTest) {
             root.expanded = true
         }
@@ -139,21 +179,57 @@ PlasmoidItem {
         morningHour: Plasmoid.configuration.morningHour !== undefined ? Plasmoid.configuration.morningHour : 6
         afternoonHour: Plasmoid.configuration.afternoonHour !== undefined ? Plasmoid.configuration.afternoonHour : 12
         eveningHour: Plasmoid.configuration.eveningHour !== undefined ? Plasmoid.configuration.eveningHour : 18
+        defaultDueMode: Plasmoid.configuration.defaultDueMode || "none"
+        searchTitleOnly: Plasmoid.configuration.searchTitleOnly === true
+        searchCaseSensitive: Plasmoid.configuration.searchCaseSensitive === true
+        completeChildren: Plasmoid.configuration.completeChildren === true
+        notificationsEnabled: Plasmoid.configuration.notificationsEnabled !== false
+        defaultReminderMinutes: Plasmoid.configuration.defaultReminderMinutes !== undefined
+                ? Plasmoid.configuration.defaultReminderMinutes : -1
+        quietHoursEnabled: Plasmoid.configuration.quietHoursEnabled === true
+        quietHoursStart: Plasmoid.configuration.quietHoursStart !== undefined ? Plasmoid.configuration.quietHoursStart : 22
+        quietHoursEnd: Plasmoid.configuration.quietHoursEnd !== undefined ? Plasmoid.configuration.quietHoursEnd : 7
         Component.onCompleted: {
             var view = Plasmoid.configuration.defaultView || "inbox"
+            if (Plasmoid.configuration.rememberLastView && Plasmoid.configuration.lastView) {
+                view = Plasmoid.configuration.lastView
+            }
             currentView = view
             sortMode = Plasmoid.configuration.sortMode || "default"
 
-            // For Inbox: start with Projects/Labels = "All" to ensure tasks show immediately.
-            if (view === "inbox") {
-                selectedCollectionId = -1
-                selectedLabel = ""
-                selectedPriority = -1
-                managementView = ""
-            }
+            // Sidebar filters always start on "All"; only the view may be remembered.
+            selectedCollectionId = -1
+            selectedLabel = ""
+            selectedPriority = -1
+            managementView = ""
 
             applyEnabledCollections()
             refresh()
+        }
+    }
+
+    Connections {
+        target: taskController
+        function onDbusShowRequested() {
+            root.expanded = true
+        }
+        function onDbusAddTaskRequested(summary) {
+            root.expanded = true
+            if (summary && String(summary).trim().length) {
+                taskController.createTask(summary, -1)
+            } else {
+                Qt.callLater(function() {
+                    if (typeof taskList !== "undefined" && taskList && taskList.focusNewTask) {
+                        taskList.focusNewTask()
+                    }
+                })
+            }
+        }
+        function onDbusOpenViewRequested(view) {
+            root.expanded = true
+            if (view) {
+                taskController.currentView = view
+            }
         }
     }
 
@@ -242,6 +318,124 @@ PlasmoidItem {
         function onShowJoinButtonChanged() {
             root.persistSharedSettings()
         }
+        function onRememberLastViewChanged() {
+            root.persistSharedSettings()
+        }
+        function onLastViewChanged() {
+            root.persistSharedSettings()
+        }
+        function onDensityChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onSidebarWidthUnitsChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onOverlayDimStepChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onReducedMotionChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onShowEmptyProjectsChanged() {
+            root.persistSharedSettings()
+        }
+        function onShowSidebarCountsChanged() {
+            root.persistSharedSettings()
+        }
+        function onShowDateChipChanged() {
+            root.persistSharedSettings()
+        }
+        function onShowLabelChipsChanged() {
+            root.persistSharedSettings()
+        }
+        function onShowPriorityChipChanged() {
+            root.persistSharedSettings()
+        }
+        function onShowRecurringIconChanged() {
+            root.persistSharedSettings()
+        }
+        function onDefaultDueModeChanged() {
+            root.persistSharedSettings()
+            taskController.defaultDueMode = Plasmoid.configuration.defaultDueMode || "none"
+        }
+        function onConfirmDeleteChanged() {
+            root.persistSharedSettings()
+        }
+        function onClickActionChanged() {
+            root.persistSharedSettings()
+        }
+        function onPanelBadgeChanged() {
+            root.persistSharedSettings()
+        }
+        function onFlyoutWidthUnitsChanged() {
+            root.persistSharedSettings()
+        }
+        function onFlyoutHeightUnitsChanged() {
+            root.persistSharedSettings()
+        }
+        function onSearchTitleOnlyChanged() {
+            root.persistSharedSettings()
+            taskController.searchTitleOnly = Plasmoid.configuration.searchTitleOnly === true
+        }
+        function onCompleteChildrenChanged() {
+            root.persistSharedSettings()
+            taskController.completeChildren = Plasmoid.configuration.completeChildren === true
+        }
+        function onNotificationsEnabledChanged() {
+            root.persistSharedSettings()
+            taskController.notificationsEnabled = Plasmoid.configuration.notificationsEnabled !== false
+        }
+        function onDefaultReminderMinutesChanged() {
+            root.persistSharedSettings()
+            taskController.defaultReminderMinutes = Plasmoid.configuration.defaultReminderMinutes
+        }
+        function onProjectColorsChanged() {
+            root.persistSharedSettings()
+            root.applyColorsFromConfig()
+        }
+        function onLabelColorsChanged() {
+            root.persistSharedSettings()
+            root.applyColorsFromConfig()
+        }
+        function onDescriptionPreviewLinesChanged() {
+            root.persistSharedSettings()
+        }
+        function onSidebarSectionOrderChanged() { root.persistSharedSettings() }
+        function onHiddenSidebarSectionsChanged() { root.persistSharedSettings() }
+        function onSidebarViewOrderChanged() { root.persistSharedSettings() }
+        function onHiddenViewsChanged() { root.persistSharedSettings() }
+        function onSearchCaseSensitiveChanged() {
+            root.persistSharedSettings()
+            taskController.searchCaseSensitive = Plasmoid.configuration.searchCaseSensitive === true
+        }
+        function onRelativeDatesChanged() { root.persistSharedSettings() }
+        function onShowTimeOnRowChanged() { root.persistSharedSettings() }
+        function onCompleteNeedsModifierChanged() { root.persistSharedSettings() }
+        function onQuietHoursEnabledChanged() {
+            root.persistSharedSettings()
+            taskController.quietHoursEnabled = Plasmoid.configuration.quietHoursEnabled === true
+        }
+        function onQuietHoursStartChanged() {
+            root.persistSharedSettings()
+            taskController.quietHoursStart = Plasmoid.configuration.quietHoursStart
+        }
+        function onQuietHoursEndChanged() {
+            root.persistSharedSettings()
+            taskController.quietHoursEnd = Plasmoid.configuration.quietHoursEnd
+        }
+    }
+
+    Connections {
+        target: taskController
+        function onCurrentViewChanged() {
+            if (Plasmoid.configuration.rememberLastView) {
+                Plasmoid.configuration.lastView = taskController.currentView
+            }
+        }
     }
 
     Timer {
@@ -271,8 +465,8 @@ PlasmoidItem {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 anchors.margins: -2
-                visible: taskController.pendingCount > 0
-                text: taskController.pendingCount
+                visible: root.panelBadgeCount > 0
+                text: root.panelBadgeCount
                 font.pixelSize: parent.height * 0.4
                 font.bold: true
                 color: Kirigami.Theme.highlightColor
@@ -331,8 +525,8 @@ PlasmoidItem {
 
         Layout.minimumWidth: root.inPanel ? Kirigami.Units.gridUnit * 28 : Kirigami.Units.gridUnit * 12
         Layout.minimumHeight: root.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
-        Layout.preferredWidth: root.inPanel ? Kirigami.Units.gridUnit * 32 : implicitWidth
-        Layout.preferredHeight: root.inPanel ? Kirigami.Units.gridUnit * 24 : implicitHeight
+        Layout.preferredWidth: root.inPanel ? Kirigami.Units.gridUnit * (Plasmoid.configuration.flyoutWidthUnits || 32) : implicitWidth
+        Layout.preferredHeight: root.inPanel ? Kirigami.Units.gridUnit * (Plasmoid.configuration.flyoutHeightUnits || 24) : implicitHeight
         Layout.maximumWidth: Infinity
         Layout.maximumHeight: Infinity
 
@@ -344,6 +538,55 @@ PlasmoidItem {
         property real dragProxyOffsetY: 0
         property int dragCursorSize: 24
         property int dragCursorShape: Qt.ClosedHandCursor
+
+        Shortcut {
+            sequence: StandardKey.Undo
+            enabled: root.backend.canUndo
+            onActivated: root.backend.undo()
+        }
+        Shortcut {
+            sequences: [StandardKey.Find, "/"]
+            onActivated: taskList.focusSearch()
+        }
+        Shortcut {
+            sequence: "Ctrl+N"
+            onActivated: taskList.focusNewTask()
+        }
+        Shortcut {
+            sequence: "1"; onActivated: root.backend.currentView = "inbox"
+        }
+        Shortcut {
+            sequence: "2"; onActivated: root.backend.currentView = "today"
+        }
+        Shortcut {
+            sequence: "3"; onActivated: root.backend.currentView = "overdue"
+        }
+        Shortcut {
+            sequence: "4"; onActivated: root.backend.currentView = "tomorrow"
+        }
+        Shortcut {
+            sequence: "5"; onActivated: root.backend.currentView = "scheduled"
+        }
+        Shortcut {
+            sequence: "E"
+            enabled: taskList.selectedItemId >= 0
+            onActivated: taskList.openSelectedFullEditor()
+        }
+        Shortcut {
+            sequence: "X"
+            enabled: taskList.selectedItemId >= 0
+            onActivated: root.backend.setTaskCompleted(taskList.selectedItemId, true)
+        }
+        Shortcut {
+            sequence: "T"
+            enabled: taskList.selectedItemId >= 0
+            onActivated: root.backend.rescheduleTask(taskList.selectedItemId, "tomorrow")
+        }
+        Shortcut {
+            sequence: StandardKey.Delete
+            enabled: taskList.selectedItemId >= 0
+            onActivated: taskList.requestDelete(taskList.selectedItemId)
+        }
 
         function computeDragProxyGap(cursorSize, shape) {
             return root.backend.dragProxyGap(cursorSize, shape)
@@ -538,9 +781,15 @@ PlasmoidItem {
                 id: sidebar
                 controller: root.backend
                 dragHost: fullRoot
-                hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
-                hiddenLabels: Plasmoid.configuration.hiddenLabels || ""
-                sidebarRowSize: Plasmoid.configuration.sidebarRowSize || "auto"
+                    hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
+                    hiddenLabels: Plasmoid.configuration.hiddenLabels || ""
+                    sidebarRowSize: Plasmoid.configuration.sidebarRowSize || "auto"
+                    showEmptyProjects: Plasmoid.configuration.showEmptyProjects === true
+                    showSidebarCounts: Plasmoid.configuration.showSidebarCounts !== false
+                    sectionOrder: Plasmoid.configuration.sidebarSectionOrder || "views,projects,labels,priorities"
+                    hiddenSections: Plasmoid.configuration.hiddenSidebarSections || ""
+                    viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
+                    hiddenViews: Plasmoid.configuration.hiddenViews || ""
             }
 
             Kirigami.Separator {
@@ -598,7 +847,7 @@ PlasmoidItem {
                                       : "tag"
                                 color: modelData.kind === "priority"
                                        ? Colors.colorForPriority(modelData.key)
-                                       : Colors.colorForKey(modelData.key)
+                                       : KurrentUi.Design.colorForKey(modelData.key, modelData.kind === "label" ? "label" : "project")
                                 width: Kirigami.Units.iconSizes.small
                                 height: Kirigami.Units.iconSizes.small
                             }
@@ -712,7 +961,7 @@ PlasmoidItem {
                             Layout.preferredWidth: Kirigami.Units.iconSizes.small
                             Layout.preferredHeight: Kirigami.Units.iconSizes.small
                             source: "tag"
-                            color: Colors.colorForKey(String(modelData))
+                            color: KurrentUi.Design.colorForKey(String(modelData), "label")
                             width: Kirigami.Units.iconSizes.small
                             height: Kirigami.Units.iconSizes.small
                         }

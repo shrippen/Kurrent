@@ -1,8 +1,16 @@
 /*
  * Stable color assignment for projects/labels.
- * We generate a deterministic HSL color from the given key (label text / collection id),
- * so colors stay consistent across the UI.
+ * Deterministic HSL from the key unless an override is set from kurrentrc.
+ * Shared overrides live on Design.qml (singleton); this file stays importable from qmltestrunner.
  */
+
+var _projectColors = {}
+var _labelColors = {}
+
+function setColorOverrides(projects, labels) {
+    _projectColors = projects || {}
+    _labelColors = labels || {}
+}
 
 function _hashString(str) {
     // FNV-1a-ish simple hash (deterministic, fast).
@@ -15,8 +23,12 @@ function _hashString(str) {
     return Math.abs(hash | 0);
 }
 
-function colorForKey(key) {
+function colorForKey(key, kind) {
     var s = String(key);
+    var map = (kind === "label") ? _labelColors : _projectColors
+    if (map && map[s]) {
+        return map[s]
+    }
     if (s.length === 0) {
         return Qt.hsla(0, 0, 0.5, 1);
     }

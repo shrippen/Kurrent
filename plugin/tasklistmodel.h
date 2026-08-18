@@ -27,6 +27,8 @@ struct TaskEntry {
     QString collectionName;
     int indentLevel = 0;
     bool hasChildren = false;
+    bool treeCollapsed = false;
+    int reminderMinutes = -1;
     QString section;
     QString bucket;
     bool syncing = false;
@@ -62,6 +64,8 @@ public:
         CollectionNameRole,
         IndentLevelRole,
         HasChildrenRole,
+        TreeCollapsedRole,
+        ReminderMinutesRole,
         SectionRole,
         BucketRole,
         SyncingRole,
@@ -77,6 +81,8 @@ public:
 
     void setTasks(const QList<TaskEntry> &tasks);
     TaskEntry taskAt(int row) const;
+    Q_INVOKABLE QString uidAt(int row) const;
+    Q_INVOKABLE int rowForUid(const QString &uid) const;
     int count() const { return m_tasks.size(); }
 
 signals:

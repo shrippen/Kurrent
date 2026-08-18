@@ -49,12 +49,24 @@ private Q_SLOTS:
     void flattenTreeParentsAndOrphans();
     void flattenTreeSortsSiblings();
     void flattenTreeSkipsCycles();
+    void flattenTreeHidesCollapsedChildren();
+
+    void emptyKindStates();
+    void panelBadgeAndDefaultDue();
+    void sidebarWidthAndOverlayDim();
+    void undoStackReplacesPrevious();
 
     void filterVisibleTasksCompletedAndSearch();
     void filterVisibleTasksCompletedView();
 
     void collectionCountsPendingAndLabels();
     void labelMutationsAndCreateGuard();
+    void renameLabelAndHiddenTokens();
+    void descendantUidsWalkChildren();
+    void colorMapRoundTrip();
+    void searchTitleOnlyIgnoresDescription();
+    void searchCaseSensitiveMatch();
+    void orderedKeysQuietHoursAndRelativeDue();
 
     void hiddenTokensAndEnabledCsv();
     void sidebarVisibilityAndLayout();
@@ -377,6 +389,99 @@ void TaskLogicTest::flattenTreeSkipsCycles()
     QVERIFY(flat.size() <= 2);
 }
 
+void TaskLogicTest::flattenTreeHidesCollapsedChildren()
+{
+    TaskEntry root = makeTask(QStringLiteral("Root"));
+    root.uid = QStringLiteral("root");
+    TaskEntry child = makeTask(QStringLiteral("Child"));
+    child.uid = QStringLiteral("child");
+    child.parentUid = QStringLiteral("root");
+    TaskEntry grand = makeTask(QStringLiteral("Grand"));
+    grand.uid = QStringLiteral("grand");
+    grand.parentUid = QStringLiteral("child");
+    TaskEntry sibling = makeTask(QStringLiteral("Other"));
+    sibling.uid = QStringLiteral("other");
+
+    const QList<TaskEntry> collapsed = TaskLogic::flattenTree({root, child, grand, sibling},
+                                                              QStringLiteral("default"),
+                                                              {QStringLiteral("root")});
+    QCOMPARE(collapsed.size(), 2);
+    QCOMPARE(collapsed.at(0).uid, QStringLiteral("root"));
+    QVERIFY(collapsed.at(0).hasChildren);
+    QVERIFY(collapsed.at(0).treeCollapsed);
+    QCOMPARE(collapsed.at(1).uid, QStringLiteral("other"));
+    QVERIFY(!collapsed.at(1).treeCollapsed);
+
+    const QList<TaskEntry> open = TaskLogic::flattenTree({root, child, grand, sibling},
+                                                         QStringLiteral("default"),
+                                                         {});
+    QCOMPARE(open.size(), 4);
+    QVERIFY(!open.at(0).treeCollapsed);
+}
+
+void TaskLogicTest::emptyKindStates()
+{
+    QCOMPARE(TaskLogic::emptyKind(false, true, 2, 3, false), QString());
+    QCOMPARE(TaskLogic::emptyKind(true, false, 0, 0, true), QStringLiteral("offline"));
+    QCOMPARE(TaskLogic::emptyKind(true, true, 0, 0, false), QStringLiteral("loading"));
+    QCOMPARE(TaskLogic::emptyKind(false, true, 0, 0, false), QStringLiteral("no-collections"));
+    QCOMPARE(TaskLogic::emptyKind(false, true, 2, 0, true), QStringLiteral("error"));
+    QCOMPARE(TaskLogic::emptyKind(false, true, 2, 0, false), QStringLiteral("empty"));
+}
+
+void TaskLogicTest::panelBadgeAndDefaultDue()
+{
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("off"), 4, 2, 1), 0);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("open"), 4, 2, 1), 4);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("today"), 4, 2, 1), 2);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("overdue"), 4, 2, 1), 1);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("unknown"), 4, 2, 1), 4);
+
+    const QDate today(2026, 8, 17);
+    QVERIFY(!TaskLogic::defaultDueForMode(QStringLiteral("none"), today).isValid());
+    QCOMPARE(TaskLogic::defaultDueForMode(QStringLiteral("today"), today).date(), today);
+    QCOMPARE(TaskLogic::defaultDueForMode(QStringLiteral("tomorrow"), today).date(), QDate(2026, 8, 18));
+}
+
+void TaskLogicTest::sidebarWidthAndOverlayDim()
+{
+    QCOMPARE(TaskLogic::clampSidebarWidthUnits(3), 6);
+    QCOMPARE(TaskLogic::clampSidebarWidthUnits(10), 10);
+    QCOMPARE(TaskLogic::clampSidebarWidthUnits(99), 20);
+    QCOMPARE(TaskLogic::overlayDimForStep(0), 0.25);
+    QCOMPARE(TaskLogic::overlayDimForStep(1), 0.40);
+    QCOMPARE(TaskLogic::overlayDimForStep(2), 0.55);
+}
+
+void TaskLogicTest::undoStackReplacesPrevious()
+{
+    TaskLogic::UndoStack stack;
+    QVERIFY(!stack.canUndo());
+    QCOMPARE(TaskLogic::undoKindName(TaskLogic::UndoRecord::Kind::None), QString());
+
+    TaskLogic::UndoRecord complete;
+    complete.kind = TaskLogic::UndoRecord::Kind::Complete;
+    complete.itemId = 7;
+    complete.completed = false;
+    stack.push(complete);
+    QVERIFY(stack.canUndo());
+    QCOMPARE(stack.peek().itemId, qint64(7));
+    QCOMPARE(TaskLogic::undoKindName(stack.peek().kind), QStringLiteral("complete"));
+
+    TaskLogic::UndoRecord reschedule;
+    reschedule.kind = TaskLogic::UndoRecord::Kind::Reschedule;
+    reschedule.itemId = 9;
+    reschedule.hadDue = true;
+    stack.push(reschedule);
+    QCOMPARE(stack.peek().itemId, qint64(9));
+    QCOMPARE(TaskLogic::undoKindName(stack.peek().kind), QStringLiteral("reschedule"));
+
+    const TaskLogic::UndoRecord taken = stack.take();
+    QCOMPARE(taken.itemId, qint64(9));
+    QVERIFY(!stack.canUndo());
+    QVERIFY(stack.take().kind == TaskLogic::UndoRecord::Kind::None);
+}
+
 void TaskLogicTest::filterVisibleTasksCompletedAndSearch()
 {
     const QDate today(2026, 8, 13);
@@ -450,6 +555,89 @@ void TaskLogicTest::labelMutationsAndCreateGuard()
     QCOMPARE(TaskLogic::addLabel(added, QStringLiteral("a")), added);
     QCOMPARE(TaskLogic::removeLabel(added, QStringLiteral("a")), QStringList({QStringLiteral("b")}));
     QVERIFY(TaskLogic::containsLabel(added, QStringLiteral("a")));
+}
+
+void TaskLogicTest::renameLabelAndHiddenTokens()
+{
+    QCOMPARE(TaskLogic::renameLabel({QStringLiteral("home"), QStringLiteral("work")},
+                                    QStringLiteral("home"), QStringLiteral("errands")),
+             QStringList({QStringLiteral("work"), QStringLiteral("errands")}));
+    QCOMPARE(TaskLogic::renameLabel({QStringLiteral("home")}, QStringLiteral("missing"), QStringLiteral("x")),
+             QStringList({QStringLiteral("home")}));
+    QCOMPARE(TaskLogic::renameLabel({QStringLiteral("a"), QStringLiteral("b")}, QStringLiteral("a"), QStringLiteral("b")),
+             QStringList({QStringLiteral("b")}));
+    QVERIFY(TaskLogic::canRenameLabel(QStringLiteral("home"), QStringLiteral("errands"),
+                                      {QStringLiteral("home")}, {}));
+    QVERIFY(!TaskLogic::canRenameLabel(QStringLiteral("home"), QStringLiteral("home"),
+                                       {QStringLiteral("home")}, {}));
+    QCOMPARE(TaskLogic::renameToken(QStringLiteral("home||work"), QStringLiteral("home"),
+                                    QStringLiteral("errands"), QStringLiteral("||")),
+             QStringLiteral("work||errands"));
+}
+
+void TaskLogicTest::descendantUidsWalkChildren()
+{
+    QHash<QString, QString> parentByUid;
+    parentByUid.insert(QStringLiteral("child"), QStringLiteral("root"));
+    parentByUid.insert(QStringLiteral("grand"), QStringLiteral("child"));
+    parentByUid.insert(QStringLiteral("other"), QString());
+    const QStringList kids = TaskLogic::descendantUids(QStringLiteral("root"), parentByUid);
+    QVERIFY(kids.contains(QStringLiteral("child")));
+    QVERIFY(kids.contains(QStringLiteral("grand")));
+    QVERIFY(!kids.contains(QStringLiteral("other")));
+    QCOMPARE(TaskLogic::descendantUids(QStringLiteral("missing"), parentByUid).size(), 0);
+}
+
+void TaskLogicTest::colorMapRoundTrip()
+{
+    QVERIFY(TaskLogic::isHexColor(QStringLiteral("#aabbcc")));
+    QVERIFY(!TaskLogic::isHexColor(QStringLiteral("aabbcc")));
+    QVERIFY(!TaskLogic::isHexColor(QStringLiteral("#gg0000")));
+    const QString stored = TaskLogic::setColorOverride(QString(), QStringLiteral("11"), QStringLiteral("#CC3333"));
+    QCOMPARE(TaskLogic::parseColorMap(stored).value(QStringLiteral("11")).toString(), QStringLiteral("#cc3333"));
+    const QString cleared = TaskLogic::setColorOverride(stored, QStringLiteral("11"), QString());
+    QVERIFY(cleared.isEmpty());
+}
+
+void TaskLogicTest::searchTitleOnlyIgnoresDescription()
+{
+    TaskEntry task = makeTask(QStringLiteral("Errand"));
+    task.description = QStringLiteral("Need oat milk");
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("oat"), false));
+    QVERIFY(!TaskLogic::matchesSearch(task, QStringLiteral("oat"), true));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("errand"), true));
+}
+
+void TaskLogicTest::searchCaseSensitiveMatch()
+{
+    TaskEntry task = makeTask(QStringLiteral("Buy Milk"));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("milk"), false, false));
+    QVERIFY(!TaskLogic::matchesSearch(task, QStringLiteral("milk"), false, true));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("Milk"), false, true));
+}
+
+void TaskLogicTest::orderedKeysQuietHoursAndRelativeDue()
+{
+    const QStringList defaults = TaskLogic::defaultSidebarSections();
+    QCOMPARE(TaskLogic::mergeOrderedKeys({QStringLiteral("labels"), QStringLiteral("nope")}, defaults).first(),
+             QStringLiteral("labels"));
+    QCOMPARE(TaskLogic::mergeOrderedKeys({}, defaults), defaults);
+    const QStringList hidden{QStringLiteral("priorities")};
+    QVERIFY(!TaskLogic::visibleOrderedKeys(defaults, hidden).contains(QStringLiteral("priorities")));
+    QCOMPARE(TaskLogic::moveOrderedKey(defaults, QStringLiteral("views"), 1).first(), QStringLiteral("projects"));
+
+    const QDate today(2026, 8, 17);
+    QCOMPARE(TaskLogic::relativeDueKind(today, today), QStringLiteral("today"));
+    QCOMPARE(TaskLogic::relativeDueKind(today.addDays(1), today), QStringLiteral("tomorrow"));
+    QCOMPARE(TaskLogic::relativeDueKind(today.addDays(-1), today), QStringLiteral("yesterday"));
+    QCOMPARE(TaskLogic::relativeDueKind(today.addDays(3), today), QStringLiteral("date"));
+
+    QVERIFY(!TaskLogic::inQuietHours(QTime(21, 0), 22, 7, true));
+    QVERIFY(TaskLogic::inQuietHours(QTime(23, 0), 22, 7, true));
+    QVERIFY(TaskLogic::inQuietHours(QTime(3, 0), 22, 7, true));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(8, 0), 22, 7, true));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(23, 0), 22, 7, false));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(12, 0), 9, 9, true));
 }
 
 void TaskLogicTest::hiddenTokensAndEnabledCsv()

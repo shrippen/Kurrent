@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QStringList>
 #include <QVariant>
 #include <QVariantMap>
 
@@ -24,9 +25,12 @@ public:
     Q_INVOKABLE void seedFromIfEmpty(QObject *configuration);
     Q_INVOKABLE void copyFrom(QObject *configuration);
     Q_INVOKABLE void applyTo(QObject *configuration);
+    Q_INVOKABLE void resetToDefaults();
+    Q_INVOKABLE void resetKeys(const QStringList &names);
     Q_INVOKABLE bool isEmpty() const;
     Q_INVOKABLE QStringList keys() const;
     Q_INVOKABLE QVariantMap values() const;
+    Q_INVOKABLE QVariantMap defaults() const;
 
 Q_SIGNALS:
     void changed();

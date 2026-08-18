@@ -1,0 +1,10 @@
+[Global]
+IconName=kurrent
+Comment=Kurrent
+Name=Kurrent
+
+[Event/taskReminder]
+Name=Task reminder
+Comment=A task reminder is due
+Action=Popup|Sound
+Sound=message-new-instant

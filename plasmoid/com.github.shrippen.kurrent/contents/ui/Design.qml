@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick 2.15
 import org.kde.kirigami 2.20 as Kirigami
+import "colors.js" as Colors
 
 // Prose reference for these decisions: Design.md at the repository root.
 // Update Design.md in the same change whenever a visual rule here changes.
@@ -28,8 +29,10 @@ import org.kde.kirigami 2.20 as Kirigami
 //   ListView contentHeight must never become the plasmoid’s max/preferred height.
 // - Desktop fullRepresentation: implicit size is the default; Layout.maximumHeight is Infinity.
 // - Do not bind PlasmoidItem width/height; do not set Layout.maximumWidth Infinity on the PlasmoidItem root.
-// - Project/label accents live in colors.js; do not duplicate palettes here.
+// - Project/label accents live in `colors.js` (hash) plus optional overrides on this singleton (`setColorOverrides` / `colorForKey`). Do not duplicate palettes in views.
 // - TaskDelegate height comes only from implicitHeight (never height ↔ implicitHeight).
+// - Density (auto/compact/comfortable) sets taskRowPad. sidebarWidthUnits (6–20) sets sidebarWidth.
+// - overlayDimStep 0/1/2 maps to 0.25 / 0.40 / 0.55. reducedMotion skips spinner and hover flash.
 
 QtObject {
     id: d
@@ -54,14 +57,50 @@ QtObject {
     readonly property int windowRadius: Math.max(4, spaceSmall + 2)
     readonly property int overlayHostRadius: Math.max(windowRadius, spaceSmall * 2)
     readonly property int inputRadius: Math.max(3, spaceTiny + 1)
-    readonly property real overlayDim: 0.4
     readonly property real windowBorderOpacity: 0.28
+
+    // Overridable from main.qml / SharedSettings (not one-off tokens in views).
+    property string density: "auto"
+    property int sidebarWidthUnits: 10
+    property int overlayDimStep: 1
+    property bool reducedMotion: false
+    property var projectColorOverrides: ({})
+    property var labelColorOverrides: ({})
+
+    function setColorOverrides(projects, labels) {
+        projectColorOverrides = projects || {}
+        labelColorOverrides = labels || {}
+        Colors.setColorOverrides(projectColorOverrides, labelColorOverrides)
+    }
+
+    function colorForKey(key, kind) {
+        var s = String(key)
+        var map = (kind === "label") ? labelColorOverrides : projectColorOverrides
+        if (map && map[s]) {
+            return map[s]
+        }
+        return Colors.colorForKey(s, kind)
+    }
+
+    readonly property bool compactDensity: {
+        if (density === "comfortable") {
+            return false
+        }
+        if (density === "compact") {
+            return true
+        }
+        return !(Kirigami.Settings.tabletMode
+                 || Kirigami.Settings.hasTransientTouchInput
+                 || Kirigami.Settings.isMobile)
+    }
+
+    readonly property int taskRowPad: compactDensity ? spaceTiny : spaceSmall
+    readonly property real overlayDim: overlayDimStep <= 0 ? 0.25 : (overlayDimStep >= 2 ? 0.55 : 0.40)
+    readonly property int sidebarWidth: Kirigami.Units.gridUnit * Math.max(6, Math.min(20, sidebarWidthUnits))
 
     readonly property int scrollBarExtent: 6
     readonly property int scrollBarPadding: 1
     readonly property int scrollGutter: scrollBarExtent + spaceSmall
-
-    readonly property int sidebarWidth: Kirigami.Units.gridUnit * 10
 
     function windowBorderColor() {
         var c = Kirigami.Theme.textColor

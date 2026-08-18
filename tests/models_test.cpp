@@ -18,6 +18,7 @@ private Q_SLOTS:
     void taskListExposesAllRoles();
     void taskListIgnoresInvalidIndexes();
     void taskListResetSignal();
+    void taskListUidLookup();
     void collectionEnabledAtWithoutFilter();
     void collectionEnabledAtWithCustomFilter();
     void collectionLookupHelpers();
@@ -72,6 +73,7 @@ void ModelsTest::taskListExposesAllRoles()
     task.collectionName = QStringLiteral("Work");
     task.indentLevel = 2;
     task.hasChildren = true;
+    task.treeCollapsed = true;
     task.section = QStringLiteral("Later");
     task.bucket = QStringLiteral("morning");
     task.syncing = true;
@@ -99,6 +101,7 @@ void ModelsTest::taskListExposesAllRoles()
     QCOMPARE(model.data(idx, TaskListModel::CollectionNameRole).toString(), QStringLiteral("Work"));
     QCOMPARE(model.data(idx, TaskListModel::IndentLevelRole).toInt(), 2);
     QCOMPARE(model.data(idx, TaskListModel::HasChildrenRole).toBool(), true);
+    QCOMPARE(model.data(idx, TaskListModel::TreeCollapsedRole).toBool(), true);
     QCOMPARE(model.data(idx, TaskListModel::SectionRole).toString(), QStringLiteral("Later"));
     QCOMPARE(model.data(idx, TaskListModel::BucketRole).toString(), QStringLiteral("morning"));
     QCOMPARE(model.data(idx, TaskListModel::SyncingRole).toBool(), true);
@@ -110,6 +113,7 @@ void ModelsTest::taskListExposesAllRoles()
     QCOMPARE(model.roleNames().value(TaskListModel::PendingDeleteRole), QByteArray("pendingDelete"));
     QCOMPARE(model.roleNames().value(TaskListModel::JoinUrlRole), QByteArray("joinUrl"));
     QCOMPARE(model.roleNames().value(TaskListModel::BucketRole), QByteArray("bucket"));
+    QCOMPARE(model.roleNames().value(TaskListModel::TreeCollapsedRole), QByteArray("treeCollapsed"));
 }
 
 void ModelsTest::taskListIgnoresInvalidIndexes()
@@ -141,6 +145,23 @@ void ModelsTest::taskListResetSignal()
     model.setTasks({});
     QCOMPARE(spy.count(), 2);
     QCOMPARE(model.count(), 0);
+}
+
+void ModelsTest::taskListUidLookup()
+{
+    TaskListModel model;
+    TaskEntry first;
+    first.uid = QStringLiteral("alpha");
+    first.summary = QStringLiteral("A");
+    TaskEntry second;
+    second.uid = QStringLiteral("beta");
+    second.summary = QStringLiteral("B");
+    model.setTasks({first, second});
+
+    QCOMPARE(model.uidAt(0), QStringLiteral("alpha"));
+    QCOMPARE(model.uidAt(1), QStringLiteral("beta"));
+    QCOMPARE(model.rowForUid(QStringLiteral("beta")), 1);
+    QCOMPARE(model.rowForUid(QStringLiteral("missing")), -1);
 }
 
 void ModelsTest::collectionEnabledAtWithoutFilter()

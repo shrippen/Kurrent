@@ -23,9 +23,10 @@ Item {
     signal requestExpand(var itemId)
     signal requestCollapse
     signal requestOpenFullEditor(var task)
+    signal requestDelete(var itemId)
 
     readonly property int labelIconSize: Kirigami.Units.iconSizes.small
-    readonly property int pad: Design.padInner
+    readonly property int pad: Design.taskRowPad
     readonly property bool listMoving: ListView.view && (ListView.view.moving || ListView.view.flicking)
     readonly property bool isDragSource: !!(dragHost && dragHost.draggingTask
                                             && dragHost.draggingTask.itemId === task.itemId)
@@ -135,7 +136,7 @@ Item {
         height: root.expanded ? Math.round(root.collapsedHeight) : parent.height
         radius: 3
         color: dropHighlight ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.highlightColor
-        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && hoverHandler.hovered)) ? 0.12 : 0)
+        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && hoverHandler.hovered && !Design.reducedMotion)) ? 0.12 : 0)
         visible: opacity > 0
         z: 0
     }
@@ -239,11 +240,37 @@ Item {
                 Layout.preferredWidth: (task.indentLevel || 0) * Kirigami.Units.gridUnit
             }
 
+            QQC2.ToolButton {
+                visible: task.hasChildren === true
+                icon.name: task.treeCollapsed ? "arrow-right" : "arrow-down"
+                display: QQC2.AbstractButton.IconOnly
+                Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                enabled: !root.awaitingAkonadi
+                onClicked: {
+                    if (!task.treeCollapsed && root.taskListRoot) {
+                        root.taskListRoot.preserveScrollForUid(task.uid)
+                    }
+                    controller.toggleTreeCollapsed(task.uid)
+                }
+                QQC2.ToolTip.text: task.treeCollapsed ? i18n("Expand subtasks") : i18n("Collapse subtasks")
+                QQC2.ToolTip.visible: hovered && !root.listMoving
+            }
+
             QQC2.CheckBox {
                 id: completedCheck
                 checked: task.completed === true
                 enabled: !root.awaitingAkonadi
-                onToggled: controller.setTaskCompleted(task.itemId, checked)
+                onToggled: {
+                    if (Plasmoid.configuration.completeNeedsModifier === true) {
+                        var mods = Qt.keyboardModifiers()
+                        if (!(mods & Qt.ShiftModifier) && !(mods & Qt.ControlModifier)) {
+                            checked = task.completed === true
+                            return
+                        }
+                    }
+                    controller.setTaskCompleted(task.itemId, checked)
+                }
             }
 
             QQC2.BusyIndicator {
@@ -265,7 +292,23 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
                     onTapped: {
-                        if (root.expanded) {
+                        var action = Plasmoid.configuration.clickAction || "inline"
+                        if (taskListRoot) {
+                            taskListRoot.selectedItemId = task.itemId
+                        }
+                        if (tapCount >= 2) {
+                            if (action === "full") {
+                                root.requestExpand(task.itemId)
+                            } else {
+                                root.requestOpenFullEditor(root.taskSnapshot())
+                            }
+                            return
+                        }
+                        if (action === "full") {
+                            root.requestOpenFullEditor(root.taskSnapshot())
+                        } else if (action === "select") {
+                            return
+                        } else if (root.expanded) {
                             root.requestCollapse()
                         } else {
                             root.requestExpand(task.itemId)
@@ -289,16 +332,31 @@ Item {
                     maximumLineCount: 3
                 }
 
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    visible: (Plasmoid.configuration.descriptionPreviewLines || 0) > 0
+                             && !!(task.description && String(task.description).trim().length)
+                    text: task.description || ""
+                    opacity: 0.7
+                    wrapMode: Text.Wrap
+                    elide: Text.ElideRight
+                    maximumLineCount: Plasmoid.configuration.descriptionPreviewLines || 0
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
+
                 RowLayout {
                     id: statusRow
                     Layout.fillWidth: true
                     spacing: 2
-                    visible: dateChip.visible || root.visibleCategories.length > 0 || task.priority > 0
+                    visible: dateChip.visible || (Plasmoid.configuration.showLabelChips !== false && root.visibleCategories.length > 0)
+                             || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0)
+                             || (Plasmoid.configuration.showRecurringIcon !== false && task.recurring)
                              || (Plasmoid.configuration.showJoinButton !== false && task.joinUrl && task.joinUrl.length)
 
                     Rectangle {
                         id: dateChip
-                        visible: task.dueDate !== undefined && task.dueDate !== null && task.dueDate.isValid === true
+                        visible: Plasmoid.configuration.showDateChip !== false
+                                 && task.dueDate !== undefined && task.dueDate !== null && task.dueDate.isValid === true
                         radius: 3
                         Layout.preferredHeight: dateChipLabel.implicitHeight + 2
                         Layout.preferredWidth: dateChipLabel.implicitWidth + Kirigami.Units.smallSpacing * 2
@@ -324,7 +382,38 @@ Item {
                         QQC2.Label {
                             id: dateChipLabel
                             anchors.centerIn: parent
-                            text: dateChip.visible ? Qt.formatDate(task.dueDate, Qt.DefaultLocaleShortDate) : ""
+                            text: {
+                                if (!dateChip.visible) {
+                                    return ""
+                                }
+                                var due = task.dueDate
+                                var dueDay = Qt.formatDate(due, "yyyy-MM-dd")
+                                var todayDate = new Date()
+                                var today = Qt.formatDate(todayDate, "yyyy-MM-dd")
+                                var label = Qt.formatDate(due, Qt.DefaultLocaleShortDate)
+                                if (Plasmoid.configuration.relativeDates === true) {
+                                    if (dueDay === today) {
+                                        label = i18n("Today")
+                                    } else {
+                                        var tomorrow = new Date(todayDate)
+                                        tomorrow.setDate(tomorrow.getDate() + 1)
+                                        var yesterday = new Date(todayDate)
+                                        yesterday.setDate(yesterday.getDate() - 1)
+                                        if (dueDay === Qt.formatDate(tomorrow, "yyyy-MM-dd")) {
+                                            label = i18n("Tomorrow")
+                                        } else if (dueDay === Qt.formatDate(yesterday, "yyyy-MM-dd")) {
+                                            label = i18n("Yesterday")
+                                        }
+                                    }
+                                }
+                                if (Plasmoid.configuration.showTimeOnRow !== false && task.allDay !== true) {
+                                    var timeText = Qt.formatTime(due, Qt.DefaultLocaleShortDate)
+                                    if (timeText && timeText.length) {
+                                        label += " " + timeText
+                                    }
+                                }
+                                return label
+                            }
                             font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                             color: {
                                 if (!dateChip.visible) {
@@ -341,13 +430,13 @@ Item {
                     }
 
                     Repeater {
-                        model: root.visibleCategories
+                        model: Plasmoid.configuration.showLabelChips !== false ? root.visibleCategories : []
                         delegate: Kirigami.Icon {
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredWidth: root.labelIconSize
                             Layout.preferredHeight: root.labelIconSize
                             source: "tag"
-                            color: Colors.colorForKey(String(modelData))
+                            color: Design.colorForKey(String(modelData), "label")
                             width: root.labelIconSize
                             height: root.labelIconSize
 
@@ -363,7 +452,7 @@ Item {
                     }
 
                     Kirigami.Icon {
-                        visible: task.priority > 0
+                        visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0
                         source: "flag"
                         color: Colors.colorForPriority(task.priority)
                         Layout.alignment: Qt.AlignVCenter
@@ -390,6 +479,22 @@ Item {
 
                         HoverHandler {
                             id: priorityHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showRecurringIcon !== false && task.recurring === true
+                        source: "media-playlist-repeat"
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: i18n("Recurring")
+                        QQC2.ToolTip.visible: recurHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: recurHover
                             enabled: !root.listMoving
                         }
                     }
@@ -434,7 +539,7 @@ Item {
                 icon.name: "edit-delete"
                 display: QQC2.AbstractButton.IconOnly
                 enabled: !root.awaitingAkonadi
-                onClicked: controller.deleteTask(task.itemId)
+                onClicked: root.requestDelete(task.itemId)
                 QQC2.ToolTip.text: i18n("Delete task")
                 QQC2.ToolTip.visible: hovered && !root.listMoving
             }

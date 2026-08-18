@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
+import ".."
 
 Item {
     id: root
@@ -119,7 +120,7 @@ Item {
                     spacing: Kirigami.Units.smallSpacing
                     Kirigami.Icon {
                         source: "folder"
-                        color: Colors.colorForKey(String(modelData.collectionId))
+                        color: Design.colorForKey(String(modelData.collectionId))
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                         Layout.alignment: Qt.AlignVCenter
@@ -156,7 +157,7 @@ Item {
             Kirigami.Icon {
                 source: "folder"
                 color: combo.currentIndex >= 0 && combo.currentIndex < root.projects.length
-                       ? Colors.colorForKey(String(root.projects[combo.currentIndex].collectionId))
+                       ? Design.colorForKey(String(root.projects[combo.currentIndex].collectionId))
                        : Kirigami.Theme.textColor
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
@@ -181,7 +182,7 @@ Item {
                 spacing: Kirigami.Units.smallSpacing
                 Kirigami.Icon {
                     source: "folder"
-                    color: Colors.colorForKey(String(modelData.collectionId))
+                    color: Design.colorForKey(String(modelData.collectionId))
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small
                     Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     width: Kirigami.Units.iconSizes.small

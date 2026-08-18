@@ -2,6 +2,7 @@
 
 #include "collectionlistmodel.h"
 #include "tasklistmodel.h"
+#include "tasklogic.h"
 
 #include <Akonadi/Item>
 #include <Akonadi/Monitor>
@@ -11,6 +12,7 @@
 #include <QHash>
 #include <QObject>
 #include <QPointF>
+#include <QSet>
 #include <QTimer>
 #include <QVariantMap>
 
@@ -30,6 +32,7 @@ class TaskController : public QObject
     Q_PROPERTY(bool akonadiAvailable READ akonadiAvailable NOTIFY akonadiAvailableChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
+    Q_PROPERTY(QString emptyKind READ emptyKind NOTIFY emptyKindChanged)
     Q_PROPERTY(QString currentView READ currentView WRITE setCurrentView NOTIFY currentViewChanged)
     Q_PROPERTY(QString managementView READ managementView WRITE setManagementView NOTIFY managementViewChanged)
     Q_PROPERTY(QString searchQuery READ searchQuery WRITE setSearchQuery NOTIFY searchQueryChanged)
@@ -43,6 +46,17 @@ class TaskController : public QObject
     Q_PROPERTY(int morningHour READ morningHour WRITE setMorningHour NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int afternoonHour READ afternoonHour WRITE setAfternoonHour NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int eveningHour READ eveningHour WRITE setEveningHour NOTIFY catchUpSettingsChanged)
+    Q_PROPERTY(QString defaultDueMode READ defaultDueMode WRITE setDefaultDueMode NOTIFY defaultDueModeChanged)
+    Q_PROPERTY(bool searchTitleOnly READ searchTitleOnly WRITE setSearchTitleOnly NOTIFY searchSettingsChanged)
+    Q_PROPERTY(bool searchCaseSensitive READ searchCaseSensitive WRITE setSearchCaseSensitive NOTIFY searchSettingsChanged)
+    Q_PROPERTY(bool completeChildren READ completeChildren WRITE setCompleteChildren NOTIFY completeChildrenChanged)
+    Q_PROPERTY(bool notificationsEnabled READ notificationsEnabled WRITE setNotificationsEnabled NOTIFY notificationsEnabledChanged)
+    Q_PROPERTY(int defaultReminderMinutes READ defaultReminderMinutes WRITE setDefaultReminderMinutes NOTIFY defaultReminderMinutesChanged)
+    Q_PROPERTY(bool quietHoursEnabled READ quietHoursEnabled WRITE setQuietHoursEnabled NOTIFY quietHoursChanged)
+    Q_PROPERTY(int quietHoursStart READ quietHoursStart WRITE setQuietHoursStart NOTIFY quietHoursChanged)
+    Q_PROPERTY(int quietHoursEnd READ quietHoursEnd WRITE setQuietHoursEnd NOTIFY quietHoursChanged)
+    Q_PROPERTY(bool canUndo READ canUndo NOTIFY undoChanged)
+    Q_PROPERTY(QString undoKind READ undoKind NOTIFY undoChanged)
     Q_PROPERTY(int pendingCount READ pendingCount NOTIFY pendingCountChanged)
     Q_PROPERTY(QStringList availableLabels READ availableLabels NOTIFY availableLabelsChanged)
     Q_PROPERTY(QVariantMap labelTaskCounts READ labelTaskCounts NOTIFY labelTaskCountsChanged)
@@ -65,6 +79,7 @@ public:
     bool akonadiAvailable() const { return m_akonadiAvailable; }
     bool loading() const { return m_loading; }
     QString errorMessage() const { return m_errorMessage; }
+    QString emptyKind() const { return m_emptyKind; }
     QString currentView() const { return m_currentView; }
     QString managementView() const { return m_managementView; }
     QString searchQuery() const { return m_searchQuery; }
@@ -78,6 +93,17 @@ public:
     int morningHour() const { return m_morningHour; }
     int afternoonHour() const { return m_afternoonHour; }
     int eveningHour() const { return m_eveningHour; }
+    QString defaultDueMode() const { return m_defaultDueMode; }
+    bool searchTitleOnly() const { return m_searchTitleOnly; }
+    bool searchCaseSensitive() const { return m_searchCaseSensitive; }
+    bool completeChildren() const { return m_completeChildren; }
+    bool notificationsEnabled() const { return m_notificationsEnabled; }
+    int defaultReminderMinutes() const { return m_defaultReminderMinutes; }
+    bool quietHoursEnabled() const { return m_quietHoursEnabled; }
+    int quietHoursStart() const { return m_quietHoursStart; }
+    int quietHoursEnd() const { return m_quietHoursEnd; }
+    bool canUndo() const { return m_undo.canUndo(); }
+    QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
     int pendingCount() const { return m_pendingCount; }
     QStringList availableLabels() const { return m_availableLabels; }
     QVariantMap labelTaskCounts() const { return m_labelTaskCounts; }
@@ -116,6 +142,15 @@ public:
     void setMorningHour(int hour);
     void setAfternoonHour(int hour);
     void setEveningHour(int hour);
+    void setDefaultDueMode(const QString &mode);
+    void setSearchTitleOnly(bool titleOnly);
+    void setSearchCaseSensitive(bool sensitive);
+    void setCompleteChildren(bool complete);
+    void setNotificationsEnabled(bool enabled);
+    void setDefaultReminderMinutes(int minutes);
+    void setQuietHoursEnabled(bool enabled);
+    void setQuietHoursStart(int hour);
+    void setQuietHoursEnd(int hour);
     Q_INVOKABLE void setEnabledCollectionIds(const QVariantList &ids);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void syncNow();
@@ -137,14 +172,30 @@ public:
     Q_INVOKABLE void moveTaskToCollection(qint64 itemId, qint64 collectionId);
     Q_INVOKABLE void setTaskCompleted(qint64 itemId, bool completed);
     Q_INVOKABLE void deleteTask(qint64 itemId);
+    Q_INVOKABLE void undo();
+    Q_INVOKABLE void toggleTreeCollapsed(const QString &uid);
     Q_INVOKABLE void createLabel(const QString &name);
     Q_INVOKABLE void deleteLabel(const QString &name);
+    Q_INVOKABLE void renameLabel(const QString &from, const QString &to);
+    Q_INVOKABLE void snoozeTask(qint64 itemId, const QString &preset);
+    Q_INVOKABLE QString renameSeparatedList(const QString &raw, const QString &from, const QString &to, const QString &separator) const;
+    Q_INVOKABLE QString setColorOverride(const QString &raw, const QString &key, const QString &color) const;
+    Q_INVOKABLE QString moveColorKey(const QString &raw, const QString &from, const QString &to) const;
+    Q_INVOKABLE QStringList mergeOrderedKeys(const QString &raw, const QString &defaultsCsv, const QString &separator) const;
+    Q_INVOKABLE QStringList visibleOrderedKeys(const QString &orderRaw, const QString &hiddenRaw, const QString &defaultsCsv, const QString &orderSep, const QString &hiddenSep) const;
+    Q_INVOKABLE QString moveOrderedKey(const QString &raw, const QString &key, int delta, const QString &defaultsCsv, const QString &separator) const;
+    Q_INVOKABLE QString toggleToken(const QString &raw, const QString &token, const QString &separator) const;
     Q_INVOKABLE bool hydrateFromCache();
+
+    static void broadcastDbusShow();
+    static void broadcastDbusAddTask(const QString &summary);
+    static void broadcastDbusOpenView(const QString &view);
 
 signals:
     void akonadiAvailableChanged();
     void loadingChanged();
     void errorMessageChanged();
+    void emptyKindChanged();
     void currentViewChanged();
     void managementViewChanged();
     void searchQueryChanged();
@@ -154,12 +205,22 @@ signals:
     void selectedPriorityChanged();
     void sortModeChanged();
     void catchUpSettingsChanged();
+    void defaultDueModeChanged();
+    void searchSettingsChanged();
+    void completeChildrenChanged();
+    void notificationsEnabledChanged();
+    void defaultReminderMinutesChanged();
+    void quietHoursChanged();
+    void undoChanged();
     void pendingCountChanged();
     void availableLabelsChanged();
     void labelTaskCountsChanged();
     void sidebarCountsChanged();
     void debugInfoChanged();
     void error(const QString &message);
+    void dbusShowRequested();
+    void dbusAddTaskRequested(const QString &summary);
+    void dbusOpenViewRequested(const QString &view);
 
 private:
     struct CachedTask {
@@ -174,6 +235,14 @@ private:
 
     void setLoading(bool loading);
     void setErrorMessage(const QString &message);
+    void updateEmptyKind();
+    TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
+    void pushUndo(TaskLogic::UndoRecord record);
+    void recreateTask(const TaskLogic::UndoRecord &record);
+    void checkReminders();
+    void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
+    void registerSessionInterface();
+    void registerGlobalShortcuts();
     bool initializeAkonadi();
     void scheduleAkonadiRetry();
     void loadCollections();
@@ -201,7 +270,7 @@ private:
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
     Akonadi::Collection collectionById(qint64 collectionId) const;
     Akonadi::Collection firstWritableCollection() const;
-    void updatePendingCount();
+    void updatePendingCount(const QList<TaskEntry> &tasks);
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
     void updateCounts(const QList<TaskEntry> &tasks);
     void publishSharedCache();
@@ -227,6 +296,22 @@ private:
     int m_morningHour = 6;
     int m_afternoonHour = 12;
     int m_eveningHour = 18;
+    QString m_defaultDueMode = QStringLiteral("none");
+    bool m_searchTitleOnly = false;
+    bool m_searchCaseSensitive = false;
+    bool m_completeChildren = false;
+    bool m_notificationsEnabled = true;
+    int m_defaultReminderMinutes = -1;
+    bool m_quietHoursEnabled = false;
+    int m_quietHoursStart = 22;
+    int m_quietHoursEnd = 7;
+    QDateTime m_lastReminderScan;
+    QHash<qint64, QDateTime> m_lastNotifiedReminder;
+    QString m_emptyKind;
+    TaskLogic::UndoStack m_undo;
+    bool m_applyingUndo = false;
+    QSet<QString> m_collapsedUids;
+    QHash<qint64, TaskLogic::UndoRecord> m_recreateAfterDelete;
     int m_pendingCount = 0;
     QStringList m_availableLabels;
     QVariantMap m_labelTaskCounts;
@@ -254,6 +339,7 @@ private:
     QTimer m_rebuildTimer;
     QTimer m_collectionsTimer;
     QTimer m_akonadiRetryTimer;
+    QTimer m_reminderTimer;
 
     static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
     static QList<Akonadi::Collection> s_collections;

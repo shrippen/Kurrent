@@ -54,5 +54,113 @@
         <entry name="showJoinButton" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="rememberLastView" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="lastView" type="String">
+            <default>inbox</default>
+        </entry>
+        <entry name="density" type="String">
+            <default>auto</default>
+        </entry>
+        <entry name="sidebarWidthUnits" type="Int">
+            <default>10</default>
+        </entry>
+        <entry name="overlayDimStep" type="Int">
+            <default>1</default>
+        </entry>
+        <entry name="reducedMotion" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showEmptyProjects" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showSidebarCounts" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showDateChip" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showLabelChips" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showPriorityChip" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showRecurringIcon" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="defaultDueMode" type="String">
+            <default>none</default>
+        </entry>
+        <entry name="confirmDelete" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="clickAction" type="String">
+            <default>inline</default>
+        </entry>
+        <entry name="panelBadge" type="String">
+            <default>open</default>
+        </entry>
+        <entry name="flyoutWidthUnits" type="Int">
+            <default>32</default>
+        </entry>
+        <entry name="flyoutHeightUnits" type="Int">
+            <default>24</default>
+        </entry>
+        <entry name="searchTitleOnly" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="completeChildren" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="notificationsEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="defaultReminderMinutes" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="projectColors" type="String">
+            <default></default>
+        </entry>
+        <entry name="labelColors" type="String">
+            <default></default>
+        </entry>
+        <entry name="descriptionPreviewLines" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="sidebarSectionOrder" type="String">
+            <default>views,projects,labels,priorities</default>
+        </entry>
+        <entry name="hiddenSidebarSections" type="String">
+            <default></default>
+        </entry>
+        <entry name="sidebarViewOrder" type="String">
+            <default></default>
+        </entry>
+        <entry name="hiddenViews" type="String">
+            <default></default>
+        </entry>
+        <entry name="searchCaseSensitive" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="relativeDates" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showTimeOnRow" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="completeNeedsModifier" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="quietHoursEnabled" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="quietHoursStart" type="Int">
+            <default>22</default>
+        </entry>
+        <entry name="quietHoursEnd" type="Int">
+            <default>7</default>
+        </entry>
     </group>
 </kcfg>

@@ -22,6 +22,7 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QLocale>
 #include <QTime>
 #include <QDebug>
 #include <QFile>
@@ -34,6 +35,19 @@
 #include <QTimer>
 #include <QVariantMap>
 #include <QtGlobal>
+#include <QDBusConnection>
+
+#ifdef KURRENT_HAS_NOTIFICATIONS
+#include <KNotification>
+#endif
+
+#ifdef KURRENT_HAS_GLOBALACCEL
+#include <KGlobalAccel>
+#include <QAction>
+#include <QKeySequence>
+#endif
+
+#include "kurrentdbus.h"
 
 #include <algorithm>
 
@@ -112,6 +126,14 @@ TaskController::TaskController(QObject *parent)
     m_akonadiRetryTimer.setInterval(kAkonadiRetryIntervalMs);
     m_akonadiRetryTimer.setSingleShot(false);
     connect(&m_akonadiRetryTimer, &QTimer::timeout, this, &TaskController::refresh);
+
+    m_reminderTimer.setInterval(30000);
+    m_reminderTimer.setSingleShot(false);
+    connect(&m_reminderTimer, &QTimer::timeout, this, &TaskController::checkReminders);
+    m_reminderTimer.start();
+
+    registerSessionInterface();
+    registerGlobalShortcuts();
 
     hydrateFromCache();
 }
@@ -353,6 +375,95 @@ void TaskController::setEveningHour(int hour)
     Q_EMIT catchUpSettingsChanged();
 }
 
+void TaskController::setDefaultDueMode(const QString &mode)
+{
+    const QString normalized = (mode == QLatin1String("today") || mode == QLatin1String("tomorrow"))
+            ? mode
+            : QStringLiteral("none");
+    if (m_defaultDueMode == normalized) {
+        return;
+    }
+    m_defaultDueMode = normalized;
+    Q_EMIT defaultDueModeChanged();
+}
+
+void TaskController::setSearchTitleOnly(bool titleOnly)
+{
+    if (m_searchTitleOnly == titleOnly) {
+        return;
+    }
+    m_searchTitleOnly = titleOnly;
+    scheduleRebuild();
+    Q_EMIT searchSettingsChanged();
+}
+
+void TaskController::setSearchCaseSensitive(bool sensitive)
+{
+    if (m_searchCaseSensitive == sensitive) {
+        return;
+    }
+    m_searchCaseSensitive = sensitive;
+    scheduleRebuild();
+    Q_EMIT searchSettingsChanged();
+}
+
+void TaskController::setCompleteChildren(bool complete)
+{
+    if (m_completeChildren == complete) {
+        return;
+    }
+    m_completeChildren = complete;
+    Q_EMIT completeChildrenChanged();
+}
+
+void TaskController::setNotificationsEnabled(bool enabled)
+{
+    if (m_notificationsEnabled == enabled) {
+        return;
+    }
+    m_notificationsEnabled = enabled;
+    Q_EMIT notificationsEnabledChanged();
+}
+
+void TaskController::setDefaultReminderMinutes(int minutes)
+{
+    const int bounded = (minutes < 0) ? -1 : minutes;
+    if (m_defaultReminderMinutes == bounded) {
+        return;
+    }
+    m_defaultReminderMinutes = bounded;
+    Q_EMIT defaultReminderMinutesChanged();
+}
+
+void TaskController::setQuietHoursEnabled(bool enabled)
+{
+    if (m_quietHoursEnabled == enabled) {
+        return;
+    }
+    m_quietHoursEnabled = enabled;
+    Q_EMIT quietHoursChanged();
+}
+
+void TaskController::setQuietHoursStart(int hour)
+{
+    const int bounded = qBound(0, hour, 23);
+    if (m_quietHoursStart == bounded) {
+        return;
+    }
+    m_quietHoursStart = bounded;
+    Q_EMIT quietHoursChanged();
+}
+
+void TaskController::setQuietHoursEnd(int hour)
+{
+    const int bounded = qBound(0, hour, 23);
+    if (m_quietHoursEnd == bounded) {
+        return;
+    }
+    m_quietHoursEnd = bounded;
+    Q_EMIT quietHoursChanged();
+}
+
 void TaskController::setEnabledCollectionIds(const QVariantList &ids)
 {
     QList<qint64> enabled;
@@ -427,6 +538,15 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
     if (parsed.hasDue) {
         todo->setDtDue(parsed.due);
         todo->setAllDay(parsed.allDay);
+    } else {
+        const QDateTime fallback = TaskLogic::defaultDueForMode(m_defaultDueMode, QDate::currentDate());
+        if (fallback.isValid()) {
+            todo->setDtDue(fallback);
+            todo->setAllDay(true);
+        }
+    }
+    if (todo->hasDueDate() && m_defaultReminderMinutes >= 0) {
+        TaskCalendar::setReminderMinutes(todo, m_defaultReminderMinutes);
     }
     if (parsed.priority > 0) {
         todo->setPriority(parsed.priority);
@@ -490,6 +610,7 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
+    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
     const QDateTime currentDue = (todo->hasDueDate() && todo->dtDue().isValid()) ? todo->dtDue() : QDateTime();
     const QDateTime next = TaskLogic::rescheduleDue(currentDue, todo->allDay(), QDateTime::currentDateTime(), preset);
     if (!next.isValid()) {
@@ -664,6 +785,8 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.collectionName = m_collectionNames.value(entry.collectionId, cached.item.parentCollection().displayName());
     entry.indentLevel = indentLevel;
     entry.hasChildren = hasChildren;
+    entry.treeCollapsed = false;
+    entry.reminderMinutes = TaskCalendar::reminderMinutesFromTodo(todo);
     entry.section = sectionFromTodo(todo);
     entry.syncing = cached.syncing;
     entry.pendingDelete = cached.pendingDelete;
@@ -773,6 +896,9 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
     }
     if (fields.contains(QStringLiteral("section"))) {
         TaskCalendar::setSection(todo, fields.value(QStringLiteral("section")).toString());
+    }
+    if (fields.contains(QStringLiteral("reminderMinutes"))) {
+        TaskCalendar::setReminderMinutes(todo, fields.value(QStringLiteral("reminderMinutes")).toInt());
     }
 
     qint64 moveToCollectionId = -1;
@@ -897,6 +1023,8 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
         return;
     }
 
+    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Move, *cache));
+
     const Akonadi::Collection destination = collectionById(collectionId);
     if (!CollectionListModel::isTaskWritable(destination)) {
         setErrorMessage(tr("This project cannot accept tasks."));
@@ -924,8 +1052,37 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
+    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Complete, *cache));
     TaskCalendar::completeTodo(todo, completed, QDateTime::currentDateTime());
     persistTodo(cache->item, todo);
+
+    if (completed && m_completeChildren && todo) {
+        QHash<QString, QString> parentByUid;
+        QHash<QString, qint64> idByUid;
+        for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+            if (!it->todo) {
+                continue;
+            }
+            parentByUid.insert(it->todo->uid(), it->todo->relatedTo());
+            idByUid.insert(it->todo->uid(), it.key());
+        }
+        const QStringList kids = TaskLogic::descendantUids(todo->uid(), parentByUid);
+        const bool wasApplying = m_applyingUndo;
+        m_applyingUndo = true;
+        for (const QString &uid : kids) {
+            const qint64 childId = idByUid.value(uid, -1);
+            if (childId < 0) {
+                continue;
+            }
+            CachedTask *child = prepareEdit(childId);
+            if (!child || !child->todo || child->todo->isCompleted()) {
+                continue;
+            }
+            TaskCalendar::completeTodo(child->todo, true, QDateTime::currentDateTime());
+            persistTodo(child->item, child->todo);
+        }
+        m_applyingUndo = wasApplying;
+    }
 }
 
 void TaskController::deleteTask(qint64 itemId)
@@ -941,6 +1098,8 @@ void TaskController::deleteTask(qint64 itemId)
         return;
     }
 
+    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Delete, *cache));
+
     const Akonadi::Item jobItem = cache->item;
     cache->pendingDelete = true;
     cache->syncing = true;
@@ -950,10 +1109,190 @@ void TaskController::deleteTask(qint64 itemId)
     auto *job = new Akonadi::ItemDeleteJob(jobItem, this);
     connect(job, &Akonadi::ItemDeleteJob::result, this, [this, itemId](KJob *kjob) {
         if (kjob->error()) {
+            m_recreateAfterDelete.remove(itemId);
             finishSync(itemId, false, kjob);
             return;
         }
         s_tasks.remove(itemId);
+        if (m_recreateAfterDelete.contains(itemId)) {
+            const TaskLogic::UndoRecord record = m_recreateAfterDelete.take(itemId);
+            recreateTask(record);
+            return;
+        }
+        scheduleRebuildAll();
+    });
+}
+
+void TaskController::undo()
+{
+    if (!m_undo.canUndo()) {
+        return;
+    }
+
+    const TaskLogic::UndoRecord record = m_undo.take();
+    Q_EMIT undoChanged();
+    m_applyingUndo = true;
+
+    if (record.kind == TaskLogic::UndoRecord::Kind::Delete) {
+        auto it = s_tasks.find(record.itemId);
+        if (it != s_tasks.end() && it->pendingDelete) {
+            m_recreateAfterDelete.insert(record.itemId, record);
+            it->pendingDelete = false;
+            it->syncing = it->inflight > 1;
+            scheduleRebuildAll();
+            m_applyingUndo = false;
+            return;
+        }
+        recreateTask(record);
+        m_applyingUndo = false;
+        return;
+    }
+
+    if (record.kind == TaskLogic::UndoRecord::Kind::Move) {
+        if (record.collectionId > 0) {
+            moveTaskToCollection(record.itemId, record.collectionId);
+        }
+        m_applyingUndo = false;
+        return;
+    }
+
+    CachedTask *cache = prepareEdit(record.itemId);
+    if (!cache || !cache->todo) {
+        m_applyingUndo = false;
+        return;
+    }
+
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+    if (record.kind == TaskLogic::UndoRecord::Kind::Complete) {
+        todo->setCompleted(record.completed);
+        todo->setPercentComplete(record.percentComplete);
+        if (record.start.isValid()) {
+            todo->setDtStart(record.start);
+        }
+        if (record.hadDue) {
+            todo->setDtDue(record.due, true);
+            todo->setAllDay(record.allDay);
+        }
+        persistTodo(cache->item, todo);
+    } else if (record.kind == TaskLogic::UndoRecord::Kind::Reschedule) {
+        if (record.hadDue) {
+            todo->setDtDue(record.due, true);
+            todo->setAllDay(record.allDay);
+        } else {
+            todo->setDtDue(QDateTime());
+        }
+        persistTodo(cache->item, todo);
+    }
+    m_applyingUndo = false;
+}
+
+void TaskController::toggleTreeCollapsed(const QString &uid)
+{
+    if (uid.isEmpty()) {
+        return;
+    }
+    if (m_collapsedUids.contains(uid)) {
+        m_collapsedUids.remove(uid);
+    } else {
+        m_collapsedUids.insert(uid);
+    }
+    scheduleRebuild();
+}
+
+TaskLogic::UndoRecord TaskController::snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const
+{
+    TaskLogic::UndoRecord record;
+    record.kind = kind;
+    record.itemId = cache.item.id();
+    if (!cache.todo) {
+        return record;
+    }
+    record.summary = cache.todo->summary();
+    record.description = cache.todo->description();
+    record.location = cache.todo->location();
+    record.hadDue = cache.todo->hasDueDate() && cache.todo->dtDue().isValid();
+    record.due = record.hadDue ? cache.todo->dtDue() : QDateTime();
+    record.start = (cache.todo->hasStartDate() && cache.todo->dtStart().isValid()) ? cache.todo->dtStart() : QDateTime();
+    record.allDay = cache.todo->allDay();
+    record.completed = cache.todo->isCompleted();
+    record.priority = cache.todo->priority();
+    record.percentComplete = cache.todo->percentComplete();
+    record.categories = cache.todo->categories();
+    record.parentUid = cache.todo->relatedTo();
+    record.collectionId = cache.item.parentCollection().id();
+    record.section = TaskCalendar::sectionFromTodo(cache.todo);
+    return record;
+}
+
+void TaskController::pushUndo(TaskLogic::UndoRecord record)
+{
+    if (m_applyingUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
+        return;
+    }
+    m_undo.push(record);
+    Q_EMIT undoChanged();
+}
+
+void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
+{
+    Akonadi::Collection collection = collectionById(record.collectionId);
+    if (!CollectionListModel::isTaskWritable(collection)) {
+        collection = firstWritableCollection();
+    }
+    if (!CollectionListModel::isTaskWritable(collection)) {
+        setErrorMessage(tr("No writable task list selected."));
+        Q_EMIT error(m_errorMessage);
+        return;
+    }
+
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setSummary(record.summary);
+    todo->setDescription(record.description);
+    todo->setLocation(record.location);
+    if (record.hadDue) {
+        todo->setDtDue(record.due);
+        todo->setAllDay(record.allDay);
+    }
+    if (record.start.isValid()) {
+        todo->setDtStart(record.start);
+    }
+    todo->setPriority(record.priority);
+    todo->setPercentComplete(record.percentComplete);
+    todo->setCompleted(record.completed);
+    todo->setCategories(record.categories);
+    if (!record.parentUid.isEmpty()) {
+        todo->setRelatedTo(record.parentUid);
+    }
+    TaskCalendar::setSection(todo, record.section);
+
+    Akonadi::Item jobItem;
+    jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+    jobItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
+
+    const qint64 tempId = s_nextTempId--;
+    Akonadi::Item cacheItem = jobItem;
+    cacheItem.setId(tempId);
+    cacheItem.setParentCollection(collection);
+
+    CachedTask cached;
+    cached.item = cacheItem;
+    cached.todo = todo;
+    cached.syncing = true;
+    cached.inflight = 1;
+    s_tasks.insert(tempId, cached);
+    scheduleRebuildAll();
+
+    auto *job = new Akonadi::ItemCreateJob(jobItem, collection, this);
+    connect(job, &Akonadi::ItemCreateJob::result, this, [this, tempId, collectionId = collection.id()](KJob *kjob) {
+        s_tasks.remove(tempId);
+        auto *createJob = qobject_cast<Akonadi::ItemCreateJob *>(kjob);
+        if (kjob->error() || !createJob) {
+            scheduleRebuildAll();
+            setErrorMessage(kjob->errorString());
+            Q_EMIT error(kjob->errorString());
+            return;
+        }
+        upsertTask(createJob->item(), collectionId);
         scheduleRebuildAll();
     });
 }
@@ -1023,6 +1362,7 @@ void TaskController::setLoading(bool loading)
     }
     m_loading = loading;
     Q_EMIT loadingChanged();
+    updateEmptyKind();
 }
 
 void TaskController::setErrorMessage(const QString &message)
@@ -1032,6 +1372,21 @@ void TaskController::setErrorMessage(const QString &message)
     }
     m_errorMessage = message;
     Q_EMIT errorMessageChanged();
+    updateEmptyKind();
+}
+
+void TaskController::updateEmptyKind()
+{
+    const QString kind = TaskLogic::emptyKind(m_loading,
+                                              m_akonadiAvailable,
+                                              m_collectionModel.count(),
+                                              m_taskModel.count(),
+                                              !m_errorMessage.isEmpty());
+    if (m_emptyKind == kind) {
+        return;
+    }
+    m_emptyKind = kind;
+    Q_EMIT emptyKindChanged();
 }
 
 void TaskController::scheduleAkonadiRetry()
@@ -1053,6 +1408,7 @@ bool TaskController::initializeAkonadi()
         setErrorMessage(tr("Akonadi is not running. Start it with: akonadictl start"));
         logDebug(QStringLiteral("initializeAkonadi: Control::start() failed"));
         Q_EMIT akonadiAvailableChanged();
+        updateEmptyKind();
         updateDebugInfo(0, 0, 0, 0, 0);
         scheduleAkonadiRetry();
         return false;
@@ -1063,6 +1419,7 @@ bool TaskController::initializeAkonadi()
     setErrorMessage(QString());
     logDebug(QStringLiteral("initializeAkonadi: Akonadi started, creating monitor"));
     Q_EMIT akonadiAvailableChanged();
+    updateEmptyKind();
 
     m_monitor = new Akonadi::Monitor(this);
     m_monitor->setMimeTypeMonitored(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
@@ -1399,7 +1756,7 @@ void TaskController::rebuildTaskList()
         }
         tasks.append(makeTaskEntry(it.value(), 0, false));
     }
-    tasks = TaskLogic::flattenTree(tasks, m_sortMode);
+    tasks = TaskLogic::flattenTree(tasks, m_sortMode, m_collapsedUids);
 
     TaskLogic::FilterState filters;
     filters.currentView = m_currentView;
@@ -1413,15 +1770,18 @@ void TaskController::rebuildTaskList()
     filters.morningHour = m_morningHour;
     filters.afternoonHour = m_afternoonHour;
     filters.eveningHour = m_eveningHour;
+    filters.searchTitleOnly = m_searchTitleOnly;
+    filters.searchCaseSensitive = m_searchCaseSensitive;
 
     const TaskLogic::VisibleFilterResult filtered = TaskLogic::filterVisibleTasks(tasks, filters, QDate::currentDate());
 
     m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(tasks));
     m_taskModel.setTasks(filtered.tasks);
-    updatePendingCount();
+    updatePendingCount(tasks);
     updateAvailableLabels(tasks);
     updateCounts(tasks);
     publishSharedCache();
+    updateEmptyKind();
     updateDebugInfo(tasks.size(),
                     filtered.tasks.size(),
                     filtered.filteredOutCompleted,
@@ -1462,7 +1822,7 @@ bool TaskController::taskMatchesViewId(const TaskEntry &task, const QString &vie
 
 bool TaskController::taskMatchesSearch(const TaskEntry &task) const
 {
-    return TaskLogic::matchesSearch(task, m_searchQuery);
+    return TaskLogic::matchesSearch(task, m_searchQuery, m_searchTitleOnly, m_searchCaseSensitive);
 }
 
 Akonadi::Item TaskController::itemById(qint64 itemId) const
@@ -1480,13 +1840,8 @@ QString TaskController::sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) co
     return TaskCalendar::sectionFromTodo(todo);
 }
 
-void TaskController::updatePendingCount()
+void TaskController::updatePendingCount(const QList<TaskEntry> &tasks)
 {
-    QList<TaskEntry> tasks;
-    tasks.reserve(m_taskModel.count());
-    for (int row = 0; row < m_taskModel.count(); ++row) {
-        tasks.append(m_taskModel.taskAt(row));
-    }
     const int pending = TaskLogic::pendingRootCount(tasks);
     if (m_pendingCount == pending) {
         return;
@@ -1519,6 +1874,8 @@ void TaskController::updateCounts(const QList<TaskEntry> &tasks)
     filters.morningHour = m_morningHour;
     filters.afternoonHour = m_afternoonHour;
     filters.eveningHour = m_eveningHour;
+    filters.searchTitleOnly = m_searchTitleOnly;
+    filters.searchCaseSensitive = m_searchCaseSensitive;
 
     const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts(tasks, filters, s_extraLabels, QDate::currentDate());
 
@@ -1603,4 +1960,224 @@ void TaskController::deleteLabel(const QString &name)
     }
 
     scheduleRebuildAll();
+}
+
+void TaskController::renameLabel(const QString &from, const QString &to)
+{
+    const QString source = from.trimmed();
+    const QString dest = to.trimmed();
+    if (!TaskLogic::canRenameLabel(source, dest, m_availableLabels, s_extraLabels)) {
+        return;
+    }
+
+    for (int i = 0; i < s_extraLabels.size(); ++i) {
+        if (s_extraLabels.at(i) == source) {
+            s_extraLabels[i] = dest;
+        }
+    }
+    s_extraLabels.removeAll(source);
+    if (!s_extraLabels.contains(dest)) {
+        s_extraLabels.append(dest);
+    }
+
+    QList<qint64> toUpdate;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (it->todo && it->todo->categories().contains(source)) {
+            toUpdate.append(it.key());
+        }
+    }
+    for (qint64 itemId : toUpdate) {
+        CachedTask *cache = prepareEdit(itemId);
+        if (!cache) {
+            continue;
+        }
+        cache->todo->setCategories(TaskLogic::renameLabel(cache->todo->categories(), source, dest));
+        persistTodo(cache->item, cache->todo);
+    }
+    scheduleRebuildAll();
+}
+
+void TaskController::snoozeTask(qint64 itemId, const QString &preset)
+{
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache || !cache->todo) {
+        return;
+    }
+    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
+    TaskCalendar::snoozeReminder(cache->todo, preset, QDateTime::currentDateTime());
+    persistTodo(cache->item, cache->todo);
+}
+
+QString TaskController::renameSeparatedList(const QString &raw, const QString &from, const QString &to, const QString &separator) const
+{
+    return TaskLogic::renameToken(raw, from, to, separator);
+}
+
+QString TaskController::setColorOverride(const QString &raw, const QString &key, const QString &color) const
+{
+    return TaskLogic::setColorOverride(raw, key, color);
+}
+
+QString TaskController::moveColorKey(const QString &raw, const QString &from, const QString &to) const
+{
+    QVariantMap map = TaskLogic::parseColorMap(raw);
+    const QString source = from.trimmed();
+    const QString dest = to.trimmed();
+    if (source.isEmpty() || dest.isEmpty() || !map.contains(source)) {
+        return TaskLogic::serializeColorMap(map);
+    }
+    const QString color = map.value(source).toString();
+    map.remove(source);
+    map.insert(dest, color);
+    return TaskLogic::serializeColorMap(map);
+}
+
+QStringList TaskController::mergeOrderedKeys(const QString &raw, const QString &defaultsCsv, const QString &separator) const
+{
+    return TaskLogic::mergeOrderedKeys(TaskLogic::parseTokens(raw, separator),
+                                       TaskLogic::parseTokens(defaultsCsv, QStringLiteral(",")));
+}
+
+QStringList TaskController::visibleOrderedKeys(const QString &orderRaw, const QString &hiddenRaw, const QString &defaultsCsv, const QString &orderSep, const QString &hiddenSep) const
+{
+    const QStringList defaults = TaskLogic::parseTokens(defaultsCsv, QStringLiteral(","));
+    const QStringList ordered = TaskLogic::mergeOrderedKeys(TaskLogic::parseTokens(orderRaw, orderSep), defaults);
+    return TaskLogic::visibleOrderedKeys(ordered, TaskLogic::parseTokens(hiddenRaw, hiddenSep));
+}
+
+QString TaskController::moveOrderedKey(const QString &raw, const QString &key, int delta, const QString &defaultsCsv, const QString &separator) const
+{
+    const QStringList defaults = TaskLogic::parseTokens(defaultsCsv, QStringLiteral(","));
+    const QStringList ordered = TaskLogic::mergeOrderedKeys(TaskLogic::parseTokens(raw, separator), defaults);
+    return TaskLogic::joinTokens(TaskLogic::moveOrderedKey(ordered, key, delta), separator);
+}
+
+QString TaskController::toggleToken(const QString &raw, const QString &token, const QString &separator) const
+{
+    return TaskLogic::toggleToken(raw, token, separator);
+}
+
+void TaskController::registerSessionInterface()
+{
+    static bool registered = false;
+    if (registered) {
+        return;
+    }
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    if (!bus.isConnected()) {
+        return;
+    }
+    if (!bus.registerService(QStringLiteral("org.github.shrippen.Kurrent"))) {
+        return;
+    }
+    new KurrentDBusAdaptor(this);
+    if (!bus.registerObject(QStringLiteral("/Kurrent"), this)) {
+        return;
+    }
+    registered = true;
+}
+
+void TaskController::broadcastDbusShow()
+{
+    for (TaskController *controller : s_instances) {
+        Q_EMIT controller->dbusShowRequested();
+    }
+}
+
+void TaskController::broadcastDbusAddTask(const QString &summary)
+{
+    for (TaskController *controller : s_instances) {
+        Q_EMIT controller->dbusAddTaskRequested(summary);
+    }
+}
+
+void TaskController::broadcastDbusOpenView(const QString &view)
+{
+    for (TaskController *controller : s_instances) {
+        Q_EMIT controller->dbusOpenViewRequested(view);
+    }
+}
+
+void TaskController::registerGlobalShortcuts()
+{
+#ifdef KURRENT_HAS_GLOBALACCEL
+    static bool registered = false;
+    if (registered) {
+        return;
+    }
+    auto *showAction = new QAction(this);
+    showAction->setObjectName(QStringLiteral("show-kurrent"));
+    showAction->setText(tr("Show Kurrent"));
+    KGlobalAccel::self()->setDefaultShortcut(showAction, {QKeySequence(QStringLiteral("Meta+Shift+K"))});
+    KGlobalAccel::self()->setShortcut(showAction, {QKeySequence(QStringLiteral("Meta+Shift+K"))});
+    connect(showAction, &QAction::triggered, this, []() {
+        TaskController::broadcastDbusShow();
+    });
+
+    auto *addAction = new QAction(this);
+    addAction->setObjectName(QStringLiteral("add-kurrent-task"));
+    addAction->setText(tr("Add Kurrent task"));
+    KGlobalAccel::self()->setDefaultShortcut(addAction, {QKeySequence(QStringLiteral("Meta+Shift+N"))});
+    KGlobalAccel::self()->setShortcut(addAction, {QKeySequence(QStringLiteral("Meta+Shift+N"))});
+    connect(addAction, &QAction::triggered, this, []() {
+        TaskController::broadcastDbusAddTask(QString());
+    });
+    registered = true;
+#else
+    return;
+#endif
+}
+
+void TaskController::checkReminders()
+{
+    if (!m_notificationsEnabled || !m_akonadiAvailable) {
+        return;
+    }
+    const QDateTime now = QDateTime::currentDateTime();
+    if (TaskLogic::inQuietHours(now.time(), m_quietHoursStart, m_quietHoursEnd, m_quietHoursEnabled)) {
+        return;
+    }
+    const QDateTime from = m_lastReminderScan.isValid() ? m_lastReminderScan : now.addSecs(-45);
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (!it->todo || it->todo->isCompleted()) {
+            continue;
+        }
+        const QDateTime when = TaskCalendar::nextReminderTime(it->todo, from);
+        if (!when.isValid() || when > now || when <= from) {
+            continue;
+        }
+        const QDateTime last = m_lastNotifiedReminder.value(it.key());
+        if (last.isValid() && last == when) {
+            continue;
+        }
+        m_lastNotifiedReminder.insert(it.key(), when);
+        notifyReminder(it.key(), it->todo->summary(), when);
+    }
+    m_lastReminderScan = now;
+}
+
+void TaskController::notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when)
+{
+#ifdef KURRENT_HAS_NOTIFICATIONS
+    auto *notification = new KNotification(QStringLiteral("taskReminder"), KNotification::CloseOnTimeout, this);
+    notification->setTitle(summary.isEmpty() ? tr("Task reminder") : summary);
+    notification->setText(when.isValid() ? tr("Due %1").arg(QLocale().toString(when, QLocale::ShortFormat)) : tr("A task is due."));
+    KNotificationAction *snooze15 = notification->addAction(tr("15 minutes"));
+    KNotificationAction *snoozeHour = notification->addAction(tr("1 hour"));
+    KNotificationAction *snoozeTomorrow = notification->addAction(tr("Tomorrow"));
+    connect(snooze15, &KNotificationAction::activated, this, [this, itemId]() {
+        snoozeTask(itemId, QStringLiteral("15m"));
+    });
+    connect(snoozeHour, &KNotificationAction::activated, this, [this, itemId]() {
+        snoozeTask(itemId, QStringLiteral("1h"));
+    });
+    connect(snoozeTomorrow, &KNotificationAction::activated, this, [this, itemId]() {
+        snoozeTask(itemId, QStringLiteral("tomorrow"));
+    });
+    notification->sendEvent();
+#else
+    Q_UNUSED(itemId);
+    Q_UNUSED(summary);
+    Q_UNUSED(when);
+#endif
 }

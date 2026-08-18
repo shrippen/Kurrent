@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
+import org.kde.plasma.plasmoid 2.0
 import com.github.shrippen.kurrent 1.0
 import "../components"
 import "../colors.js" as Colors
@@ -18,6 +19,7 @@ ColumnLayout {
     property string newTaskDefaultCollectionId: ""
 
     property var expandedItemId: -1
+    property var selectedItemId: -1
     property int expandedIndex: -1
     property bool deleteModeEnabled: false
     property string pendingNewTask: ""
@@ -47,6 +49,109 @@ ColumnLayout {
         }
         controller.setTaskParent(draggedId, parentUid || "")
         return true
+    }
+
+    function focusSearch() {
+        searchField.forceActiveFocus()
+        searchField.selectAll()
+    }
+
+    function focusNewTask() {
+        newTaskField.forceActiveFocus()
+    }
+
+    function openSelectedFullEditor() {
+        if (selectedItemId < 0 || !dragHost || !dragHost.openFullEditor) {
+            return
+        }
+        for (var i = 0; i < taskList.count; ++i) {
+            var item = taskList.itemAtIndex(i)
+            if (item && item.task && item.task.itemId === selectedItemId) {
+                dragHost.openFullEditor(item.taskSnapshot ? item.taskSnapshot() : item.task)
+                return
+            }
+        }
+    }
+
+    function requestDelete(itemId) {
+        if (Plasmoid.configuration.confirmDelete) {
+            pendingDeleteId = itemId
+            confirmDeleteDialog.open()
+            return
+        }
+        controller.deleteTask(itemId)
+    }
+
+    property var pendingDeleteId: -1
+
+    property string scrollAnchorUid: ""
+    property real scrollAnchorViewportY: 0
+
+    function preserveScrollForUid(uid) {
+        if (!uid) {
+            return
+        }
+        var row = controller.taskModel.rowForUid(uid)
+        if (row < 0) {
+            return
+        }
+        var item = taskList.itemAtIndex(row)
+        if (item) {
+            scrollAnchorUid = uid
+            scrollAnchorViewportY = item.y - taskList.contentY
+            return
+        }
+        scrollAnchorUid = uid
+        scrollAnchorViewportY = 0
+        taskList.positionViewAtIndex(row, ListView.Beginning)
+        item = taskList.itemAtIndex(row)
+        if (item) {
+            scrollAnchorViewportY = item.y - taskList.contentY
+        }
+    }
+
+    function restoreScrollAnchor() {
+        if (!scrollAnchorUid) {
+            return
+        }
+        var uid = scrollAnchorUid
+        var viewportY = scrollAnchorViewportY
+        scrollAnchorUid = ""
+
+        Qt.callLater(function() {
+            var row = controller.taskModel.rowForUid(uid)
+            if (row < 0) {
+                return
+            }
+            taskList.positionViewAtIndex(row, ListView.Beginning)
+            var item = taskList.itemAtIndex(row)
+            if (item) {
+                taskList.contentY = Math.max(0, item.y - viewportY)
+            } else {
+                scrollAnchorRetry.targetRow = row
+                scrollAnchorRetry.viewportY = viewportY
+                scrollAnchorRetry.start()
+            }
+        })
+    }
+
+    Timer {
+        id: scrollAnchorRetry
+        interval: 16
+        repeat: false
+        property int targetRow: -1
+        property real viewportY: 0
+        onTriggered: {
+            if (targetRow < 0) {
+                return
+            }
+            taskList.positionViewAtIndex(targetRow, ListView.Beginning)
+            var item = taskList.itemAtIndex(targetRow)
+            if (item) {
+                taskList.contentY = Math.max(0, item.y - viewportY)
+            }
+            targetRow = -1
+        }
     }
 
     RowLayout {
@@ -81,6 +186,22 @@ ColumnLayout {
         }
 
         QQC2.ToolButton {
+            visible: controller.canUndo
+            icon.name: "edit-undo"
+            onClicked: controller.undo()
+            QQC2.ToolTip.text: {
+                switch (controller.undoKind) {
+                case "complete": return i18n("Undo complete")
+                case "reschedule": return i18n("Undo reschedule")
+                case "move": return i18n("Undo move")
+                case "delete": return i18n("Undo delete")
+                default: return i18n("Undo")
+                }
+            }
+            QQC2.ToolTip.visible: hovered
+        }
+
+        QQC2.ToolButton {
             icon.name: "view-refresh"
             onClicked: controller.syncNow()
             enabled: !controller.loading
@@ -91,24 +212,51 @@ ColumnLayout {
 
     QQC2.BusyIndicator {
         Layout.alignment: Qt.AlignHCenter
-        running: controller.loading
-        visible: running
+        running: controller.loading && controller.emptyKind === "loading"
+        visible: running && !Design.reducedMotion
     }
 
-    QQC2.Label {
+    Kirigami.PlaceholderMessage {
         Layout.fillWidth: true
-        visible: controller.errorMessage !== ""
-        text: controller.errorMessage
-        color: Kirigami.Theme.negativeTextColor
-        wrapMode: Text.WordWrap
+        Layout.fillHeight: true
+        visible: controller.emptyKind === "offline"
+        icon.name: "state-offline"
+        text: i18n("Akonadi is not running")
+        explanation: i18n("Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer.")
+        helpfulAction: Kirigami.Action {
+            icon.name: "view-refresh"
+            text: i18n("Try again")
+            onTriggered: controller.refresh()
+        }
     }
 
-    QQC2.Label {
+    Kirigami.PlaceholderMessage {
         Layout.fillWidth: true
-        visible: !controller.loading && controller.errorMessage === "" && controller.taskModel.count === 0
+        Layout.fillHeight: true
+        visible: controller.emptyKind === "no-collections"
+        icon.name: "view-calendar-tasks"
+        text: i18n("No task lists")
+        explanation: i18n("Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer.")
+    }
+
+    Kirigami.PlaceholderMessage {
+        Layout.fillWidth: true
+        visible: controller.emptyKind === "error"
+        icon.name: "dialog-error"
+        text: i18n("Could not load tasks")
+        explanation: controller.errorMessage
+        helpfulAction: Kirigami.Action {
+            icon.name: "view-refresh"
+            text: i18n("Try again")
+            onTriggered: controller.refresh()
+        }
+    }
+
+    Kirigami.PlaceholderMessage {
+        Layout.fillWidth: true
+        visible: controller.emptyKind === "empty"
+        icon.name: "checkmark"
         text: i18n("No tasks in this view.")
-        opacity: 0.7
-        horizontalAlignment: Text.AlignHCenter
     }
 
     Rectangle {
@@ -174,6 +322,7 @@ ColumnLayout {
         clip: true
         spacing: Design.spaceSmall
         model: controller.taskModel
+        visible: controller.emptyKind === "" || controller.emptyKind === "empty"
         reuseItems: true
         section.property: "bucket"
         section.criteria: ViewSection.FullString
@@ -259,6 +408,7 @@ ColumnLayout {
             deleteModeEnabled: root.deleteModeEnabled
             // Height applied imperatively for the expanded row only (see syncInlineGeometry).
             onRequestExpand: function(itemId) {
+                root.selectedItemId = itemId
                 root.expandTask(itemId, index)
             }
             onRequestCollapse: {
@@ -269,6 +419,9 @@ ColumnLayout {
                 if (root.dragHost && root.dragHost.openFullEditor) {
                     root.dragHost.openFullEditor(taskObj)
                 }
+            }
+            onRequestDelete: function(itemId) {
+                root.requestDelete(itemId)
             }
 
             ListView.onReused: {
@@ -461,11 +614,13 @@ ColumnLayout {
             if (sharedInline.visible && root.expandedIndex >= taskList.count) {
                 root.collapseInline()
             }
+            root.restoreScrollAnchor()
         }
     }
 
     RowLayout {
         Layout.fillWidth: true
+        visible: controller.emptyKind === "" || controller.emptyKind === "empty" || controller.emptyKind === "error"
 
         QQC2.TextField {
             id: newTaskField
@@ -480,6 +635,27 @@ ColumnLayout {
             onClicked: addTask()
             QQC2.ToolTip.text: i18n("Add task")
             QQC2.ToolTip.visible: hovered
+        }
+    }
+
+    QQC2.Dialog {
+        id: confirmDeleteDialog
+        parent: root.dragHost || root
+        popupType: QQC2.Popup.Item
+        modal: true
+        title: i18n("Delete task?")
+        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
+        onAccepted: {
+            if (root.pendingDeleteId >= 0) {
+                controller.deleteTask(root.pendingDeleteId)
+            }
+            root.pendingDeleteId = -1
+        }
+        onRejected: root.pendingDeleteId = -1
+        QQC2.Label {
+            text: i18n("Delete this task?")
+            wrapMode: Text.WordWrap
+            width: Kirigami.Units.gridUnit * 16
         }
     }
 
@@ -546,7 +722,7 @@ ColumnLayout {
                         spacing: Kirigami.Units.smallSpacing
                         Kirigami.Icon {
                             source: "folder"
-                            color: Colors.colorForKey(String(modelData.collectionId))
+                            color: Design.colorForKey(String(modelData.collectionId))
                             Layout.preferredWidth: Kirigami.Units.iconSizes.small
                             Layout.preferredHeight: Kirigami.Units.iconSizes.small
                             Layout.alignment: Qt.AlignVCenter

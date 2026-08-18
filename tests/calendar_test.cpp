@@ -21,6 +21,8 @@ private Q_SLOTS:
     void completeDailyAdvancesDatesAndKeepsRrule();
     void otherPresetDoesNotClearCustomRrule();
     void nullTodoIsSafe();
+    void reminderOffAtDueAndBefore();
+    void snoozeSetsAbsoluteTime();
 };
 
 void CalendarTest::presetNoneWithoutRecurrence()
@@ -131,6 +133,43 @@ void CalendarTest::nullTodoIsSafe()
     TaskCalendar::applyRecurrencePreset({}, QStringLiteral("daily"), QDate(2026, 8, 13));
     TaskCalendar::setSection({}, QStringLiteral("x"));
     QVERIFY(!TaskCalendar::completeTodo({}, true, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
+}
+
+void CalendarTest::reminderOffAtDueAndBefore()
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setSummary(QStringLiteral("Call"));
+    todo->setDtDue(QDateTime(QDate(2026, 8, 17), QTime(18, 0)));
+    QCOMPARE(TaskCalendar::reminderMinutesFromTodo(todo), -1);
+
+    TaskCalendar::setReminderMinutes(todo, 0);
+    QCOMPARE(TaskCalendar::reminderMinutesFromTodo(todo), 0);
+    QVERIFY(todo->alarms().size() >= 1);
+
+    TaskCalendar::setReminderMinutes(todo, 15);
+    QCOMPARE(TaskCalendar::reminderMinutesFromTodo(todo), 15);
+
+    const QDateTime now(QDate(2026, 8, 17), QTime(17, 40));
+    const QDateTime next = TaskCalendar::nextReminderTime(todo, now);
+    QVERIFY(next.isValid());
+    QCOMPARE(next, QDateTime(QDate(2026, 8, 17), QTime(17, 45)));
+
+    TaskCalendar::setReminderMinutes(todo, -1);
+    QCOMPARE(TaskCalendar::reminderMinutesFromTodo(todo), -1);
+    QVERIFY(todo->alarms().isEmpty());
+}
+
+void CalendarTest::snoozeSetsAbsoluteTime()
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setSummary(QStringLiteral("Call"));
+    todo->setDtDue(QDateTime(QDate(2026, 8, 17), QTime(18, 0)));
+    TaskCalendar::setReminderMinutes(todo, 0);
+    const QDateTime now(QDate(2026, 8, 17), QTime(17, 50));
+    TaskCalendar::snoozeReminder(todo, QStringLiteral("15m"), now);
+    QCOMPARE(TaskCalendar::nextReminderTime(todo, now), now.addSecs(15 * 60));
+    TaskCalendar::snoozeReminder(todo, QStringLiteral("tomorrow"), now);
+    QCOMPARE(TaskCalendar::nextReminderTime(todo, now).date(), QDate(2026, 8, 18));
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)

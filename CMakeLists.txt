@@ -77,3 +77,6 @@ install(DIRECTORY plasmoid/com.github.shrippen.kurrent/
 install(FILES icons/kurrent.svg
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"
 )
+install(FILES kurrent.notifyrc
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/knotifications6"
+)

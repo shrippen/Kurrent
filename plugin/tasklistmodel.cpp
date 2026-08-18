@@ -66,6 +66,10 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.indentLevel;
     case HasChildrenRole:
         return task.hasChildren;
+    case TreeCollapsedRole:
+        return task.treeCollapsed;
+    case ReminderMinutesRole:
+        return task.reminderMinutes;
     case SectionRole:
         return task.section;
     case BucketRole:
@@ -104,6 +108,8 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
         {CollectionNameRole, "collectionName"},
         {IndentLevelRole, "indentLevel"},
         {HasChildrenRole, "hasChildren"},
+        {TreeCollapsedRole, "treeCollapsed"},
+        {ReminderMinutesRole, "reminderMinutes"},
         {SectionRole, "section"},
         {BucketRole, "bucket"},
         {SyncingRole, "syncing"},
@@ -125,4 +131,25 @@ TaskEntry TaskListModel::taskAt(int row) const
         return {};
     }
     return m_tasks.at(row);
+}
+
+QString TaskListModel::uidAt(int row) const
+{
+    if (row < 0 || row >= m_tasks.size()) {
+        return {};
+    }
+    return m_tasks.at(row).uid;
+}
+
+int TaskListModel::rowForUid(const QString &uid) const
+{
+    if (uid.isEmpty()) {
+        return -1;
+    }
+    for (int row = 0; row < m_tasks.size(); ++row) {
+        if (m_tasks.at(row).uid == uid) {
+            return row;
+        }
+    }
+    return -1;
 }

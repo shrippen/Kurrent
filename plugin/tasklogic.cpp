@@ -1,6 +1,9 @@
 #include "tasklogic.h"
 
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
+#include <QSet>
 #include <QTime>
 #include <QUrl>
 #include <QtGlobal>
@@ -26,16 +29,23 @@ int priorityBand(int priority)
     return 0;
 }
 
-bool matchesSearch(const TaskEntry &task, const QString &query)
+bool matchesSearch(const TaskEntry &task, const QString &query, bool titleOnly, bool caseSensitive)
 {
     if (query.trimmed().isEmpty()) {
         return true;
     }
 
-    const QString needle = query.trimmed().toLower();
-    return task.summary.toLower().contains(needle) || task.description.toLower().contains(needle)
-        || task.collectionName.toLower().contains(needle)
-        || task.categories.join(QLatin1Char(' ')).toLower().contains(needle);
+    const Qt::CaseSensitivity cs = caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    const QString needle = query.trimmed();
+    if (task.summary.contains(needle, cs)) {
+        return true;
+    }
+    if (titleOnly) {
+        return false;
+    }
+    return task.description.contains(needle, cs)
+        || task.collectionName.contains(needle, cs)
+        || task.categories.join(QLatin1Char(' ')).contains(needle, cs);
 }
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today)
@@ -406,7 +416,7 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
         const bool passCollection = filters.selectedCollectionId < 0 || task.collectionId == filters.selectedCollectionId;
         const bool passLabel = filters.selectedLabel.isEmpty() || task.categories.contains(filters.selectedLabel);
         const bool passPriority = filters.selectedPriority < 0 || priorityBand(task.priority) == filters.selectedPriority;
-        const bool passSearch = matchesSearch(task, filters.searchQuery);
+        const bool passSearch = matchesSearch(task, filters.searchQuery, filters.searchTitleOnly, filters.searchCaseSensitive);
         const bool passCompleted = filters.showCompleted || !task.completed;
 
         if (passCollection && passLabel && passPriority && passSearch) {
@@ -526,7 +536,7 @@ QPointF clampDragProxyOffset(qreal cursorX,
     return QPointF(ox, oy);
 }
 
-QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode)
+QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode, const QSet<QString> &collapsedUids)
 {
     QHash<QString, QList<int>> children;
     for (int i = 0; i < input.size(); ++i) {
@@ -559,8 +569,11 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
             walking.insert(entry.uid);
             entry.indentLevel = indent;
             entry.hasChildren = children.contains(entry.uid) && !children.value(entry.uid).isEmpty();
+            entry.treeCollapsed = entry.hasChildren && collapsedUids.contains(entry.uid);
             out.append(entry);
-            walk(entry.uid, indent + 1);
+            if (!entry.treeCollapsed) {
+                walk(entry.uid, indent + 1);
+            }
             walking.remove(entry.uid);
         }
     };
@@ -570,10 +583,119 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
         for (TaskEntry entry : input) {
             entry.indentLevel = 0;
             entry.hasChildren = false;
+            entry.treeCollapsed = false;
             out.append(entry);
         }
     }
     return out;
+}
+
+QString emptyKind(bool loading, bool akonadiAvailable, int collectionCount, int visibleCount, bool hasError)
+{
+    if (visibleCount > 0) {
+        return {};
+    }
+    if (!akonadiAvailable) {
+        return QStringLiteral("offline");
+    }
+    if (loading) {
+        return QStringLiteral("loading");
+    }
+    if (collectionCount <= 0) {
+        return QStringLiteral("no-collections");
+    }
+    if (hasError) {
+        return QStringLiteral("error");
+    }
+    return QStringLiteral("empty");
+}
+
+int panelBadgeCount(const QString &mode, int openRoots, int todayCount, int overdueCount)
+{
+    if (mode == QLatin1String("off")) {
+        return 0;
+    }
+    if (mode == QLatin1String("today")) {
+        return qMax(0, todayCount);
+    }
+    if (mode == QLatin1String("overdue")) {
+        return qMax(0, overdueCount);
+    }
+    return qMax(0, openRoots);
+}
+
+QDateTime defaultDueForMode(const QString &mode, const QDate &today)
+{
+    if (!today.isValid()) {
+        return {};
+    }
+    if (mode == QLatin1String("today")) {
+        return QDateTime(today, QTime(0, 0));
+    }
+    if (mode == QLatin1String("tomorrow")) {
+        return QDateTime(today.addDays(1), QTime(0, 0));
+    }
+    return {};
+}
+
+int clampSidebarWidthUnits(int units)
+{
+    return qBound(6, units, 20);
+}
+
+qreal overlayDimForStep(int step)
+{
+    if (step <= 0) {
+        return 0.25;
+    }
+    if (step >= 2) {
+        return 0.55;
+    }
+    return 0.40;
+}
+
+QString undoKindName(UndoRecord::Kind kind)
+{
+    switch (kind) {
+    case UndoRecord::Kind::Complete:
+        return QStringLiteral("complete");
+    case UndoRecord::Kind::Reschedule:
+        return QStringLiteral("reschedule");
+    case UndoRecord::Kind::Move:
+        return QStringLiteral("move");
+    case UndoRecord::Kind::Delete:
+        return QStringLiteral("delete");
+    case UndoRecord::Kind::None:
+        break;
+    }
+    return {};
+}
+
+void UndoStack::push(UndoRecord record)
+{
+    m_record = record;
+}
+
+UndoRecord UndoStack::take()
+{
+    const UndoRecord out = m_record;
+    m_record = {};
+    return out;
+}
+
+UndoRecord UndoStack::peek() const
+{
+    return m_record;
+}
+
+bool UndoStack::canUndo() const
+{
+    return m_record.kind != UndoRecord::Kind::None;
+}
+
+void UndoStack::clear()
+{
+    m_record = {};
 }
 
 VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const FilterState &filters, const QDate &today)
@@ -601,7 +723,7 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
             ++out.filteredOutView;
             continue;
         }
-        if (!matchesSearch(task, filters.searchQuery)) {
+        if (!matchesSearch(task, filters.searchQuery, filters.searchTitleOnly, filters.searchCaseSensitive)) {
             ++out.filteredOutSearch;
             continue;
         }
@@ -688,6 +810,138 @@ QStringList removeLabel(const QStringList &selected, const QString &name)
     return out;
 }
 
+QStringList renameLabel(QStringList selected, const QString &from, const QString &to)
+{
+    const QString source = from.trimmed();
+    const QString dest = to.trimmed();
+    if (source.isEmpty() || dest.isEmpty() || source == dest) {
+        return selected;
+    }
+    bool found = false;
+    QStringList out;
+    for (const QString &label : selected) {
+        if (label == source) {
+            found = true;
+            continue;
+        }
+        if (!out.contains(label)) {
+            out.append(label);
+        }
+    }
+    if (!found) {
+        return selected;
+    }
+    if (!out.contains(dest)) {
+        out.append(dest);
+    }
+    return out;
+}
+
+bool canRenameLabel(const QString &from, const QString &to, const QStringList &available, const QStringList &extraLabels)
+{
+    const QString source = from.trimmed();
+    const QString dest = to.trimmed();
+    if (source.isEmpty() || dest.isEmpty() || source == dest) {
+        return false;
+    }
+    return available.contains(source) || extraLabels.contains(source);
+}
+
+QString renameToken(const QString &raw, const QString &from, const QString &to, const QString &separator)
+{
+    return joinTokens(renameLabel(parseTokens(raw, separator), from, to), separator);
+}
+
+QStringList descendantUids(const QString &parentUid, const QHash<QString, QString> &parentByUid)
+{
+    QStringList out;
+    if (parentUid.isEmpty()) {
+        return out;
+    }
+    QList<QString> stack{parentUid};
+    QSet<QString> seen;
+    seen.insert(parentUid);
+    while (!stack.isEmpty()) {
+        const QString current = stack.takeLast();
+        for (auto it = parentByUid.constBegin(); it != parentByUid.constEnd(); ++it) {
+            if (it.value() != current || seen.contains(it.key())) {
+                continue;
+            }
+            seen.insert(it.key());
+            out.append(it.key());
+            stack.append(it.key());
+        }
+    }
+    return out;
+}
+
+bool isHexColor(const QString &color)
+{
+    const QString s = color.trimmed();
+    if (s.size() != 7 || !s.startsWith(QLatin1Char('#'))) {
+        return false;
+    }
+    for (int i = 1; i < 7; ++i) {
+        const char ch = s.at(i).toLower().toLatin1();
+        if (!((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f'))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+QVariantMap parseColorMap(const QString &raw)
+{
+    QVariantMap out;
+    const QString trimmed = raw.trimmed();
+    if (trimmed.isEmpty()) {
+        return out;
+    }
+    const QJsonDocument doc = QJsonDocument::fromJson(trimmed.toUtf8());
+    if (!doc.isObject()) {
+        return out;
+    }
+    const QJsonObject obj = doc.object();
+    for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
+        const QString color = it.value().toString();
+        if (isHexColor(color)) {
+            out.insert(it.key(), color.toLower());
+        }
+    }
+    return out;
+}
+
+QString serializeColorMap(const QVariantMap &map)
+{
+    QJsonObject obj;
+    for (auto it = map.constBegin(); it != map.constEnd(); ++it) {
+        const QString color = it.value().toString();
+        if (it.key().isEmpty() || !isHexColor(color)) {
+            continue;
+        }
+        obj.insert(it.key(), color.toLower());
+    }
+    if (obj.isEmpty()) {
+        return {};
+    }
+    return QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact));
+}
+
+QString setColorOverride(const QString &raw, const QString &key, const QString &color)
+{
+    QVariantMap map = parseColorMap(raw);
+    const QString trimmedKey = key.trimmed();
+    if (trimmedKey.isEmpty()) {
+        return serializeColorMap(map);
+    }
+    if (color.trimmed().isEmpty()) {
+        map.remove(trimmedKey);
+    } else if (isHexColor(color)) {
+        map.insert(trimmedKey, color.trimmed().toLower());
+    }
+    return serializeColorMap(map);
+}
+
 QStringList parseTokens(const QString &raw, const QString &separator)
 {
     QStringList out;
@@ -707,6 +961,105 @@ QStringList parseTokens(const QString &raw, const QString &separator)
 QString joinTokens(const QStringList &tokens, const QString &separator)
 {
     return tokens.join(separator);
+}
+
+QStringList defaultSidebarSections()
+{
+    return {QStringLiteral("views"), QStringLiteral("projects"), QStringLiteral("labels"), QStringLiteral("priorities")};
+}
+
+QStringList defaultViewIds()
+{
+    return {
+        QStringLiteral("inbox"),
+        QStringLiteral("today"),
+        QStringLiteral("overdue"),
+        QStringLiteral("tomorrow"),
+        QStringLiteral("scheduled"),
+        QStringLiteral("anytime"),
+        QStringLiteral("recurring"),
+        QStringLiteral("unlabeled"),
+        QStringLiteral("completed"),
+    };
+}
+
+QStringList mergeOrderedKeys(const QStringList &raw, const QStringList &defaults)
+{
+    QStringList out;
+    QSet<QString> seen;
+    for (const QString &key : raw) {
+        if (defaults.contains(key) && !seen.contains(key)) {
+            out.append(key);
+            seen.insert(key);
+        }
+    }
+    for (const QString &key : defaults) {
+        if (!seen.contains(key)) {
+            out.append(key);
+        }
+    }
+    return out;
+}
+
+QStringList visibleOrderedKeys(const QStringList &ordered, const QStringList &hidden)
+{
+    QSet<QString> hide(hidden.begin(), hidden.end());
+    QStringList out;
+    for (const QString &key : ordered) {
+        if (!hide.contains(key)) {
+            out.append(key);
+        }
+    }
+    return out;
+}
+
+QStringList moveOrderedKey(QStringList ordered, const QString &key, int delta)
+{
+    const int idx = ordered.indexOf(key);
+    if (idx < 0 || delta == 0) {
+        return ordered;
+    }
+    const int dest = qBound(0, idx + delta, ordered.size() - 1);
+    if (dest == idx) {
+        return ordered;
+    }
+    ordered.move(idx, dest);
+    return ordered;
+}
+
+QString relativeDueKind(const QDate &due, const QDate &today)
+{
+    if (!due.isValid() || !today.isValid()) {
+        return {};
+    }
+    const int delta = today.daysTo(due);
+    if (delta == 0) {
+        return QStringLiteral("today");
+    }
+    if (delta == 1) {
+        return QStringLiteral("tomorrow");
+    }
+    if (delta == -1) {
+        return QStringLiteral("yesterday");
+    }
+    return QStringLiteral("date");
+}
+
+bool inQuietHours(const QTime &now, int startHour, int endHour, bool enabled)
+{
+    if (!enabled || !now.isValid()) {
+        return false;
+    }
+    const int start = qBound(0, startHour, 23);
+    const int end = qBound(0, endHour, 23);
+    if (start == end) {
+        return false;
+    }
+    const int hour = now.hour();
+    if (start < end) {
+        return hour >= start && hour < end;
+    }
+    return hour >= start || hour < end;
 }
 
 QString toggleToken(const QString &raw, const QString &token, const QString &separator)

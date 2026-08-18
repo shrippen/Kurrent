@@ -17,12 +17,17 @@ Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die 
 ## Layout
 
 - Links Sidebar (Projekte, Labels, Prioritäten, Views), 1px-Separator, rechts Aufgabenfläche.
-- Sidebar-Breite: `Design.sidebarWidth` (10 Grid-Units), fest.
+- Sidebar-Breite: `Design.sidebarWidth` aus `sidebarWidthUnits` (6–20 Grid-Units, Default 10), gemeinsam in `kurrentrc`.
+- Dichte: `Design.density` (`auto` / `compact` / `comfortable`) steuert `taskRowPad` für Aufgabenzeilen. Sidebar-Zeilen extra über `sidebarRowSize`.
+- Overlay-Dim in drei Stufen (`overlayDimStep` 0/1/2 → 0,25 / 0,40 / 0,55).
+- Reduced motion: kein Sync-Spinner, kein Hover-Flash auf Aufgabenzeilen.
+- Sidebar-Abschnitte (Views/Projekte/Labels/Prioritäten) und einzelne Views: Reihenfolge und Sichtbarkeit aus `kurrentrc`.
 - Desktop-`fullRepresentation`: Default `52×40` Grid-Units. `Layout.maximumWidth/Height: Infinity`.
 - Inhalt bleibt **innerhalb** der Plasma-FrameSvg-Margins. Ränder nicht mit `collapseMarginsHint` kollabieren.
 - **Nicht** `width`/`height` am `PlasmoidItem` binden. **Nicht** `Layout.maximumWidth: Infinity` am Plasmoid-Root.
 - Listen und Sidebar, die die Höhe füllen: `implicitHeight: 0`, `Layout.preferredHeight: 0`. `ListView.contentHeight` darf nie die maximale Desktop-Widget-Höhe werden.
 - Extra Höhe der Sidebar gleichmäßig auf alle Abschnitte verteilen (nicht bei „alles ohne Scrollbar sichtbar“ stoppen).
+- Passt die **natürliche** Höhe aller sichtbaren Abschnitte (Zeilenanzahl × Zeilenhöhe, inkl. touchfreundlich) **nicht** in die Sidebar, bleibt die Gesamthöhe begrenzt und jeder Abschnitt scrollt intern (`ThinScrollBar`, Gutter nur bei Bedarf). Die Verteilung nutzt dann nur eine Mindesthöhe (Kopfzeile + eine Zeile), nicht die volle Inhaltshöhe.
 
 ## Abstände
 
@@ -41,7 +46,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 
 ## Farbe
 
-- Projekte/Labels: deterministisches HSL aus dem Schlüssel (`colors.js` / `colorForKey`), Sättigung 0,62, Helligkeit 0,46.
+- Projekte/Labels: deterministisches HSL aus dem Schlüssel (`colors.js` / `colorForKey`), Sättigung 0,62, Helligkeit 0,46. Optional Hex-Override pro Projekt-ID und Label-Name (`projectColors` / `labelColors` in `kurrentrc`); leer = Hash.
 - Priorität (KCalendarCore 1–9): 1–3 rot, 4–6 gelb/amber, 7–9 blau; innerhalb der Bandstärke abgestuft (`colorForPriority`).
 - Keine zweite Palette in QML hardcoden.
 
@@ -90,6 +95,12 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 ## Aufgaben-Zustand
 
 - Mutationen (anlegen, erledigen, speichern, verschieben, löschen, **reschedule**) sofort in der Liste; bis Akonadi bestätigt: `syncing` / `pendingDelete`.
+- Ein Schritt **Undo** (Complete / Reschedule / Move / Delete) in der Toolbar und per Standard-Undo-Shortcut.
+- Unteraufgaben: Pfeil klappt den Teilbaum ein (`flattenTree` lässt Kinder weg).
+- Akonadi aus / keine Kalender / leere View: `Kirigami.PlaceholderMessage`, kein nackter Fehlerstring.
+- Zeile: Klick öffnet Inline- oder Full-Editor (KCM); Chips für Datum/Label/Priorität/Recurring/Join abschaltbar. Fälligkeitschip: optionale relative Labels (Heute/Morgen/Gestern) und Uhrzeit.
+- Erinnerung: VALARM im Full-Editor; Plasma-Benachrichtigung mit Snooze (15 min / 1 h / morgen, schreibt nur den Alarm). Quiet Hours unterdrücken Popups.
+- Tastatur im fokussierten Widget: Suche, Neu, Undo, Complete, Delete, Full-Editor, Reschedule, Views 1–5. Global: Meta+Shift+K zeigt das Flyout, Meta+Shift+N legt an (Plasma-Shortcuts, D-Bus `org.github.shrippen.Kurrent`).
 - Wiederkehrende Aufgaben: Abhaken schiebt DTSTART/DUE auf die nächste Instanz und lässt die RRULE stehen.
 - Today: fällig heute, gruppiert nach Morning/Afternoon/Evening (`Design` + Stunden im KCM). Unerledigtes der letzten N Tage als Abschnitt **Still open** (Catch-up), kein Auto-Rollover. Overdue ist eine eigene Sidebar-View.
 - Meeting-URL in Beschreibung/Ort: kompakter Join-Knopf in der Zeile (`internet-services`).
@@ -110,9 +121,12 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 
 ## Konfiguration
 
-- Alle KCM-Einstellungen (Ansicht, erledigte Aufgaben, Unschärfe, Projekte, Labels, Sidebar-Zeilenhöhe, neue Aufgaben) gelten **gemeinsam** für Desktop-Widget und Panel-Flyout.
+- Alle KCM-Seiten (General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels) gelten **gemeinsam** für Desktop-Widget und Panel-Flyout. Jede Seite hat „Reset this page“. Widget-Tastenkürzel und globale Shortcuts werden in Plasma System Settings konfiguriert, nicht in einer eigenen KCM-Seite.
+- Formularseiten nutzen `ConfigFormShell`: zentrierte Spalte, begrenzte Breite, Scroll bei kleinem Fenster; schmale Fenster stapeln Labels/Steuerelemente über `Kirigami.FormLayout`. Listen-artige Optionen (Dichte, Vorschauzeilen, Stunden) als Dropdown, nicht SpinBox mit Pfeilen.
+- Sidebar-Reihenfolge (Sektionen/Views) in der Sidebar-KCM per Drag-and-drop (`ConfigOrderList`), nicht als lose FormLayout-Repeater.
 - Quelle: `~/.config/com.github.shrippen.kurrent/kurrentrc` (Gruppe `General`), im Prozess ein Singleton `SharedSettings`. Instanz-Config in `appletsrc` ist nur ein Cache. Ältere `~/.config/plasma_com.github.shrippen.kurrentrc` wird einmalig dorthin verschoben.
-- Transienter UI-Zustand (aktuelle View, Suche, Selektion) bleibt pro Instanz.
+- `Design.qml` liest Sidebar-Breite, Dichte, Overlay-Dim und Reduced Motion aus dieser Config (über `main.qml`).
+- Transienter UI-Zustand (aktuelle View sofern nicht „remember last“, Suche, Selektion, eingeklappte Bäume) bleibt pro Instanz.
 
 ## i18n
 

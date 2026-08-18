@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
+import ".."
 
 ColumnLayout {
     id: root
@@ -121,7 +122,7 @@ ColumnLayout {
             delegate: QQC2.Button {
                 text: modelData
                 icon.name: "tag"
-                icon.color: Colors.colorForKey(String(modelData))
+                icon.color: Design.colorForKey(String(modelData), "label")
                 onClicked: root.removeLabel(modelData)
                 QQC2.ToolTip.text: i18n("Remove label")
                 QQC2.ToolTip.visible: hovered
@@ -172,7 +173,7 @@ ColumnLayout {
                         source: modelData.kind === "create" ? "list-add" : "tag"
                         color: modelData.kind === "create"
                                ? Kirigami.Theme.textColor
-                               : Colors.colorForKey(String(modelData.name))
+                               : Design.colorForKey(String(modelData.name), "label")
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                         width: Kirigami.Units.iconSizes.small

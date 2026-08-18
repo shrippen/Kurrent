@@ -28,6 +28,8 @@ struct FilterState {
     int morningHour = 6;
     int afternoonHour = 12;
     int eveningHour = 18;
+    bool searchTitleOnly = false;
+    bool searchCaseSensitive = false;
 };
 
 struct QuickAdd {
@@ -60,7 +62,7 @@ struct NewTaskTarget {
 
 int priorityBand(int priority);
 
-bool matchesSearch(const TaskEntry &task, const QString &query);
+bool matchesSearch(const TaskEntry &task, const QString &query, bool titleOnly = false, bool caseSensitive = false);
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today);
 
@@ -112,7 +114,52 @@ struct VisibleFilterResult {
     int filteredOutSearch = 0;
 };
 
-QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode);
+QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode, const QSet<QString> &collapsedUids = {});
+
+QString emptyKind(bool loading, bool akonadiAvailable, int collectionCount, int visibleCount, bool hasError);
+
+int panelBadgeCount(const QString &mode, int openRoots, int todayCount, int overdueCount);
+
+QDateTime defaultDueForMode(const QString &mode, const QDate &today);
+
+int clampSidebarWidthUnits(int units);
+
+qreal overlayDimForStep(int step);
+
+struct UndoRecord {
+    enum class Kind { None, Complete, Reschedule, Move, Delete };
+    Kind kind = Kind::None;
+    qint64 itemId = -1;
+    QString summary;
+    QString description;
+    QString location;
+    QDateTime due;
+    QDateTime start;
+    bool allDay = false;
+    bool hadDue = false;
+    bool completed = false;
+    int priority = 0;
+    int percentComplete = 0;
+    QStringList categories;
+    QString parentUid;
+    qint64 collectionId = -1;
+    QString section;
+};
+
+QString undoKindName(UndoRecord::Kind kind);
+
+class UndoStack
+{
+public:
+    void push(UndoRecord record);
+    UndoRecord take();
+    UndoRecord peek() const;
+    bool canUndo() const;
+    void clear();
+
+private:
+    UndoRecord m_record;
+};
 
 VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const FilterState &filters, const QDate &today);
 
@@ -128,6 +175,22 @@ QStringList addLabel(QStringList selected, const QString &name);
 
 QStringList removeLabel(const QStringList &selected, const QString &name);
 
+QStringList renameLabel(QStringList selected, const QString &from, const QString &to);
+
+bool canRenameLabel(const QString &from, const QString &to, const QStringList &available, const QStringList &extraLabels);
+
+QString renameToken(const QString &raw, const QString &from, const QString &to, const QString &separator);
+
+QStringList descendantUids(const QString &parentUid, const QHash<QString, QString> &parentByUid);
+
+QVariantMap parseColorMap(const QString &raw);
+
+QString serializeColorMap(const QVariantMap &map);
+
+QString setColorOverride(const QString &raw, const QString &key, const QString &color);
+
+bool isHexColor(const QString &color);
+
 bool containsLabel(const QStringList &selected, const QString &name);
 
 QStringList parseTokens(const QString &raw, const QString &separator);
@@ -137,6 +200,20 @@ QString joinTokens(const QStringList &tokens, const QString &separator);
 QString toggleToken(const QString &raw, const QString &token, const QString &separator);
 
 bool tokenSetContains(const QString &raw, const QString &token, const QString &separator);
+
+QStringList defaultSidebarSections();
+
+QStringList defaultViewIds();
+
+QStringList mergeOrderedKeys(const QStringList &raw, const QStringList &defaults);
+
+QStringList visibleOrderedKeys(const QStringList &ordered, const QStringList &hidden);
+
+QStringList moveOrderedKey(QStringList ordered, const QString &key, int delta);
+
+QString relativeDueKind(const QDate &due, const QDate &today);
+
+bool inQuietHours(const QTime &now, int startHour, int endHour, bool enabled);
 
 QString toggleEnabledCsv(const QString &csv, qint64 id, const QList<qint64> &allIds);
 

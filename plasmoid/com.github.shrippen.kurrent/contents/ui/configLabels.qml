@@ -5,11 +5,14 @@ import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
 import com.github.shrippen.kurrent 1.0
 import "colors.js" as Colors
+import "."
+import "components"
 
 KCM.SimpleKCM {
     id: root
 
     property string cfg_hiddenLabels
+    property string cfg_labelColors
 
     TaskController {
         id: configController
@@ -56,12 +59,25 @@ KCM.SimpleKCM {
         newLabelField.text = ""
     }
 
-    ColumnLayout {
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: Math.min(Math.max(parent.width - Kirigami.Units.largeSpacing * 2,
-                                 Kirigami.Units.gridUnit * 12),
-                        Kirigami.Units.gridUnit * 28)
-        spacing: Kirigami.Units.smallSpacing
+    function renameCurrent(from) {
+        var dest = renameField.text.trim()
+        if (!dest || dest === from) {
+            return
+        }
+        configController.renameLabel(from, dest)
+        cfg_hiddenLabels = configController.renameSeparatedList(cfg_hiddenLabels || "", from, dest, "||")
+        cfg_labelColors = configController.moveColorKey(cfg_labelColors || "", from, dest)
+        renameField.text = ""
+        renameFromCombo.currentIndex = -1
+    }
+
+    function applyColor(name, hex) {
+        cfg_labelColors = configController.setColorOverride(cfg_labelColors || "", name, hex)
+    }
+
+    ConfigFormShell {
+        id: shell
+        anchors.fill: parent
 
         Kirigami.Heading {
             text: i18n("Labels (Categories)")
@@ -97,51 +113,79 @@ KCM.SimpleKCM {
                 delegate: Kirigami.AbstractCard {
                     Layout.fillWidth: true
 
-                    contentItem: RowLayout {
-                        spacing: Kirigami.Units.smallSpacing
+                    contentItem: GridLayout {
+                        columns: shell.wideLayout ? 2 : 1
+                        columnSpacing: Kirigami.Units.smallSpacing
+                        rowSpacing: Kirigami.Units.smallSpacing
 
-                        Kirigami.Icon {
-                            source: "tag"
-                            color: Colors.colorForKey(modelData)
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                            width: Kirigami.Units.iconSizes.smallMedium
-                            height: Kirigami.Units.iconSizes.smallMedium
-                        }
-
-                        ColumnLayout {
+                        RowLayout {
+                            Layout.columnSpan: shell.wideLayout ? 2 : 1
                             Layout.fillWidth: true
-                            spacing: 0
+                            spacing: Kirigami.Units.smallSpacing
 
-                            QQC2.Label {
-                                Layout.fillWidth: true
-                                text: modelData
-                                font.bold: true
-                                elide: Text.ElideRight
+                            Kirigami.Icon {
+                                source: "tag"
+                                color: Design.colorForKey(modelData, "label")
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                                Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
                             }
 
-                            QQC2.Label {
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                text: i18np("%1 task", "%1 tasks", root.labelCount(modelData))
-                                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                                opacity: 0.6
+                                spacing: 0
+
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    text: modelData
+                                    font.bold: true
+                                    wrapMode: Text.WordWrap
+                                    elide: Text.ElideRight
+                                }
+
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    text: i18np("%1 task", "%1 tasks", root.labelCount(modelData))
+                                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                                    opacity: 0.6
+                                }
                             }
                         }
 
-                        QQC2.Switch {
-                            text: i18n("Visible")
-                            checked: !root.isHidden(modelData)
-                            onToggled: root.toggleHidden(modelData)
-                            QQC2.ToolTip.text: i18n("Show this label in the sidebar filter")
-                            QQC2.ToolTip.visible: hovered
+                        QQC2.TextField {
+                            Layout.fillWidth: true
+                            placeholderText: "#rrggbb"
+                            text: {
+                                try {
+                                    var map = JSON.parse(root.cfg_labelColors || "{}")
+                                    return map[modelData] || ""
+                                } catch (e) {
+                                    return ""
+                                }
+                            }
+                            onEditingFinished: root.applyColor(modelData, text.trim())
                         }
 
-                        QQC2.ToolButton {
-                            icon.name: "edit-delete"
-                            display: QQC2.AbstractButton.IconOnly
-                            onClicked: configController.deleteLabel(modelData)
-                            QQC2.ToolTip.text: i18n("Delete label")
-                            QQC2.ToolTip.visible: hovered
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Kirigami.Units.smallSpacing
+
+                            QQC2.Switch {
+                                text: i18n("Visible")
+                                checked: !root.isHidden(modelData)
+                                onToggled: root.toggleHidden(modelData)
+                                QQC2.ToolTip.text: i18n("Show this label in the sidebar filter")
+                                QQC2.ToolTip.visible: hovered
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            QQC2.ToolButton {
+                                icon.name: "edit-delete"
+                                display: QQC2.AbstractButton.IconOnly
+                                onClicked: configController.deleteLabel(modelData)
+                                QQC2.ToolTip.text: i18n("Delete label")
+                                QQC2.ToolTip.visible: hovered
+                            }
                         }
                     }
                 }
@@ -165,6 +209,41 @@ KCM.SimpleKCM {
                 icon.name: "list-add"
                 enabled: newLabelField.text.trim().length > 0
                 onClicked: root.addCurrentLabel()
+            }
+        }
+
+        GridLayout {
+            Layout.fillWidth: true
+            columns: shell.wideLayout ? 3 : 1
+            columnSpacing: Kirigami.Units.smallSpacing
+            rowSpacing: Kirigami.Units.smallSpacing
+
+            QQC2.ComboBox {
+                id: renameFromCombo
+                Layout.fillWidth: true
+                displayText: currentIndex >= 0 ? currentText : i18n("Rename from")
+                model: configController.availableLabels
+                enabled: configController.availableLabels.length > 0
+            }
+
+            QQC2.TextField {
+                id: renameField
+                Layout.fillWidth: true
+                placeholderText: i18n("Rename to")
+                enabled: renameFromCombo.currentIndex >= 0
+                Keys.onReturnPressed: {
+                    if (renameFromCombo.currentIndex >= 0) {
+                        root.renameCurrent(renameFromCombo.currentText)
+                    }
+                }
+            }
+
+            QQC2.Button {
+                Layout.fillWidth: !shell.wideLayout
+                text: i18n("Rename")
+                icon.name: "edit-rename"
+                enabled: renameFromCombo.currentIndex >= 0 && renameField.text.trim().length > 0
+                onClicked: root.renameCurrent(renameFromCombo.currentText)
             }
         }
 

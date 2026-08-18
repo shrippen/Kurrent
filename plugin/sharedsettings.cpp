@@ -34,13 +34,55 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"afternoonHour", ValueType::Int, 12},
         {"eveningHour", ValueType::Int, 18},
         {"showJoinButton", ValueType::Bool, true},
+        {"rememberLastView", ValueType::Bool, false},
+        {"lastView", ValueType::String, QStringLiteral("inbox")},
+        {"density", ValueType::String, QStringLiteral("auto")},
+        {"sidebarWidthUnits", ValueType::Int, 10},
+        {"overlayDimStep", ValueType::Int, 1},
+        {"reducedMotion", ValueType::Bool, false},
+        {"showEmptyProjects", ValueType::Bool, false},
+        {"showSidebarCounts", ValueType::Bool, true},
+        {"showDateChip", ValueType::Bool, true},
+        {"showLabelChips", ValueType::Bool, true},
+        {"showPriorityChip", ValueType::Bool, true},
+        {"showRecurringIcon", ValueType::Bool, true},
+        {"defaultDueMode", ValueType::String, QStringLiteral("none")},
+        {"confirmDelete", ValueType::Bool, false},
+        {"clickAction", ValueType::String, QStringLiteral("inline")},
+        {"panelBadge", ValueType::String, QStringLiteral("open")},
+        {"flyoutWidthUnits", ValueType::Int, 32},
+        {"flyoutHeightUnits", ValueType::Int, 24},
+        {"searchTitleOnly", ValueType::Bool, false},
+        {"completeChildren", ValueType::Bool, false},
+        {"notificationsEnabled", ValueType::Bool, true},
+        {"defaultReminderMinutes", ValueType::Int, -1},
+        {"projectColors", ValueType::String, QString()},
+        {"labelColors", ValueType::String, QString()},
+        {"descriptionPreviewLines", ValueType::Int, 0},
+        {"sidebarSectionOrder", ValueType::String, QStringLiteral("views,projects,labels,priorities")},
+        {"hiddenSidebarSections", ValueType::String, QString()},
+        {"sidebarViewOrder", ValueType::String, QString()},
+        {"hiddenViews", ValueType::String, QString()},
+        {"searchCaseSensitive", ValueType::Bool, false},
+        {"relativeDates", ValueType::Bool, false},
+        {"showTimeOnRow", ValueType::Bool, true},
+        {"completeNeedsModifier", ValueType::Bool, false},
+        {"quietHoursEnabled", ValueType::Bool, false},
+        {"quietHoursStart", ValueType::Int, 22},
+        {"quietHoursEnd", ValueType::Int, 7},
+        {nullptr, ValueType::String, {}},
     };
     return keys;
 }
 
 int SharedSettings::specCount()
 {
-    return 16;
+    const KeySpec *keys = specs();
+    int n = 0;
+    while (keys[n].name) {
+        ++n;
+    }
+    return n;
 }
 
 SharedSettings *SharedSettings::instance()
@@ -214,6 +256,55 @@ QStringList SharedSettings::keys() const
 QVariantMap SharedSettings::values() const
 {
     return m_cache;
+}
+
+QVariantMap SharedSettings::defaults() const
+{
+    QVariantMap out;
+    const KeySpec *keySpecs = specs();
+    for (int i = 0; i < specCount(); ++i) {
+        out.insert(QLatin1String(keySpecs[i].name), keySpecs[i].defaultValue);
+    }
+    return out;
+}
+
+void SharedSettings::resetToDefaults()
+{
+    resetKeys(keys());
+}
+
+void SharedSettings::resetKeys(const QStringList &names)
+{
+    if (names.isEmpty()) {
+        return;
+    }
+
+    bool dirty = false;
+    const KeySpec *keySpecs = specs();
+    const int count = specCount();
+    for (const QString &name : names) {
+        const KeySpec *spec = nullptr;
+        for (int i = 0; i < count; ++i) {
+            if (QLatin1String(keySpecs[i].name) == name) {
+                spec = &keySpecs[i];
+                break;
+            }
+        }
+        if (!spec) {
+            continue;
+        }
+        if (sameValue(m_cache.value(name), spec->defaultValue, spec->type)) {
+            continue;
+        }
+        m_cache.insert(name, spec->defaultValue);
+        writeStored(*spec, spec->defaultValue);
+        dirty = true;
+    }
+    if (!dirty) {
+        return;
+    }
+    m_config->sync();
+    Q_EMIT changed();
 }
 
 void SharedSettings::seedFromIfEmpty(QObject *configuration)

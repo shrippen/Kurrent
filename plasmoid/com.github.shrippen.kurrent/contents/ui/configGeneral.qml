@@ -10,212 +10,170 @@ KCM.SimpleKCM {
     id: root
 
     property alias cfg_showCompleted: showCompletedCheck.checked
-    property alias cfg_blurBackground: blurBackgroundCheck.checked
-    property alias cfg_catchUpEnabled: catchUpCheck.checked
-    property alias cfg_showJoinButton: showJoinCheck.checked
-    property int cfg_catchUpDays
-    property int cfg_morningHour
-    property int cfg_afternoonHour
-    property int cfg_eveningHour
+    property alias cfg_rememberLastView: rememberLastCheck.checked
+    property alias cfg_confirmDelete: confirmDeleteCheck.checked
+    property alias cfg_completeNeedsModifier: modifierCheck.checked
     property string cfg_defaultView
-    property string cfg_sidebarRowSize
     property string cfg_newTaskProjectMode
     property string cfg_newTaskDefaultCollectionId
+    property string cfg_defaultDueMode
 
-    Kirigami.FormLayout {
-        Kirigami.Heading {
-            Kirigami.FormData.label: i18n("Akonadi")
-            text: i18n("Tasks are loaded from your existing Akonadi setup.")
-            level: 3
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
+    function selectCombo(combo, value) {
+        for (var i = 0; i < combo.model.length; ++i) {
+            if (combo.model[i].value === value) {
+                combo.currentIndex = i
+                return
+            }
         }
+    }
 
-        QQC2.Label {
-            Kirigami.FormData.label: i18n("Setup")
-            text: i18n("Configure CalDAV/Nextcloud in KOrganizer or Kalendar (DAV groupware resource).")
-            wrapMode: Text.WordWrap
+    function syncControls() {
+        selectCombo(defaultViewCombo, cfg_defaultView || "inbox")
+        selectCombo(defaultDueCombo, cfg_defaultDueMode || "none")
+    }
+
+    ConfigFormShell {
+        id: shell
+        anchors.fill: parent
+
+        Kirigami.FormLayout {
             Layout.fillWidth: true
-        }
 
-        QQC2.ComboBox {
-            id: defaultViewCombo
-            Kirigami.FormData.label: i18n("Default view")
-            textRole: "text"
-            model: [
-                { text: i18n("Inbox"), value: "inbox" },
-                { text: i18n("Today"), value: "today" },
-                { text: i18n("Overdue"), value: "overdue" },
-                { text: i18n("Tomorrow"), value: "tomorrow" },
-                { text: i18n("Scheduled"), value: "scheduled" },
-                { text: i18n("Anytime"), value: "anytime" },
-                { text: i18n("Recurring"), value: "recurring" },
-                { text: i18n("Unlabeled"), value: "unlabeled" },
-                { text: i18n("Completed"), value: "completed" }
-            ]
-            onActivated: cfg_defaultView = model[currentIndex].value
-            Component.onCompleted: {
-                var selected = plasmoid.configuration.defaultView || "inbox"
-                for (var i = 0; i < model.length; ++i) {
-                    if (model[i].value === selected) {
-                        currentIndex = i
-                        break
+            Kirigami.Heading {
+                Kirigami.FormData.label: i18n("Akonadi")
+                text: i18n("Tasks are loaded from your existing Akonadi setup.")
+                level: 3
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            QQC2.Label {
+                Kirigami.FormData.label: i18n("Setup")
+                text: i18n("Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource).")
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            QQC2.ComboBox {
+                id: defaultViewCombo
+                Kirigami.FormData.label: i18n("Default view")
+                Layout.fillWidth: true
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 20
+                textRole: "text"
+                model: [
+                    { text: i18n("Inbox"), value: "inbox" },
+                    { text: i18n("Today"), value: "today" },
+                    { text: i18n("Overdue"), value: "overdue" },
+                    { text: i18n("Tomorrow"), value: "tomorrow" },
+                    { text: i18n("Scheduled"), value: "scheduled" },
+                    { text: i18n("Anytime"), value: "anytime" },
+                    { text: i18n("Recurring"), value: "recurring" },
+                    { text: i18n("Unlabeled"), value: "unlabeled" },
+                    { text: i18n("Completed"), value: "completed" }
+                ]
+                onActivated: cfg_defaultView = model[currentIndex].value
+                Component.onCompleted: selectCombo(defaultViewCombo, plasmoid.configuration.defaultView || "inbox")
+            }
+
+            QQC2.CheckBox {
+                id: rememberLastCheck
+                text: i18n("Remember the last view instead")
+                Component.onCompleted: checked = plasmoid.configuration.rememberLastView === true
+            }
+
+            QQC2.CheckBox {
+                id: showCompletedCheck
+                Kirigami.FormData.label: i18n("Completed tasks")
+                text: i18n("Show completed tasks")
+            }
+
+            QQC2.RadioButton {
+                id: newTaskAskRadio
+                Kirigami.FormData.label: i18n("New tasks")
+                text: i18n("Ask which project to use")
+                checked: (root.cfg_newTaskProjectMode || "ask") === "ask"
+                QQC2.ButtonGroup.group: newTaskModeGroup
+                onClicked: root.cfg_newTaskProjectMode = "ask"
+            }
+
+            QQC2.RadioButton {
+                text: i18n("Use the top project in the sidebar")
+                checked: root.cfg_newTaskProjectMode === "first"
+                QQC2.ButtonGroup.group: newTaskModeGroup
+                onClicked: root.cfg_newTaskProjectMode = "first"
+            }
+
+            QQC2.RadioButton {
+                text: i18n("Use a specific project")
+                checked: root.cfg_newTaskProjectMode === "fixed"
+                QQC2.ButtonGroup.group: newTaskModeGroup
+                onClicked: root.cfg_newTaskProjectMode = "fixed"
+            }
+
+            ProjectPicker {
+                id: defaultProjectPicker
+                visible: root.cfg_newTaskProjectMode === "fixed"
+                Kirigami.FormData.label: visible ? i18n("Default project") : ""
+                Layout.fillWidth: true
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 24
+                collectionModel: settingsController.collectionModel
+                hiddenProjects: plasmoid.configuration.hiddenProjects || ""
+                includeEmptyProjects: true
+                includeHiddenProjects: true
+                collectionId: {
+                    var n = Number(root.cfg_newTaskDefaultCollectionId)
+                    return n > 0 ? n : -1
+                }
+                onCollectionIdChanged: {
+                    if (root.cfg_newTaskProjectMode === "fixed" && collectionId > 0) {
+                        root.cfg_newTaskDefaultCollectionId = String(collectionId)
                     }
                 }
-                cfg_defaultView = selected
             }
-        }
 
-        QQC2.CheckBox {
-            id: showCompletedCheck
-            Kirigami.FormData.label: i18n("Completed tasks")
-            text: i18n("Show completed tasks")
-        }
-
-        QQC2.CheckBox {
-            id: blurBackgroundCheck
-            Kirigami.FormData.label: i18n("Appearance")
-            text: i18n("Blurred background")
-        }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            opacity: 0.7
-            text: i18n("Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout.")
-        }
-
-        QQC2.ComboBox {
-            id: sidebarRowSizeCombo
-            Kirigami.FormData.label: i18n("Sidebar row size")
-            textRole: "text"
-            model: [
-                { text: i18n("Auto (compact, larger with touch)"), value: "auto" },
-                { text: i18n("Compact"), value: "compact" },
-                { text: i18n("Comfortable (touch-friendly)"), value: "comfortable" }
-            ]
-            onActivated: cfg_sidebarRowSize = model[currentIndex].value
-            Component.onCompleted: {
-                var selected = plasmoid.configuration.sidebarRowSize || "auto"
-                for (var i = 0; i < model.length; ++i) {
-                    if (model[i].value === selected) {
-                        currentIndex = i
-                        break
-                    }
-                }
-                cfg_sidebarRowSize = selected
+            QQC2.ComboBox {
+                id: defaultDueCombo
+                Kirigami.FormData.label: i18n("Default due date")
+                Layout.fillWidth: true
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                textRole: "text"
+                model: [
+                    { text: i18n("None"), value: "none" },
+                    { text: i18n("Today"), value: "today" },
+                    { text: i18n("Tomorrow"), value: "tomorrow" }
+                ]
+                onActivated: cfg_defaultDueMode = model[currentIndex].value
+                Component.onCompleted: selectCombo(defaultDueCombo, plasmoid.configuration.defaultDueMode || "none")
             }
-        }
 
-        QQC2.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            opacity: 0.7
-            text: i18n("Auto uses compact rows on mouse/desktop and comfortable rows when Plasma detects tablet or touch input.")
-        }
-
-        QQC2.RadioButton {
-            id: newTaskAskRadio
-            Kirigami.FormData.label: i18n("New tasks")
-            text: i18n("Ask which project to use")
-            checked: (root.cfg_newTaskProjectMode || "ask") === "ask"
-            QQC2.ButtonGroup.group: newTaskModeGroup
-            onClicked: root.cfg_newTaskProjectMode = "ask"
-        }
-
-        QQC2.RadioButton {
-            text: i18n("Use the top project in the sidebar")
-            checked: root.cfg_newTaskProjectMode === "first"
-            QQC2.ButtonGroup.group: newTaskModeGroup
-            onClicked: root.cfg_newTaskProjectMode = "first"
-        }
-
-        QQC2.RadioButton {
-            text: i18n("Use a specific project")
-            checked: root.cfg_newTaskProjectMode === "fixed"
-            QQC2.ButtonGroup.group: newTaskModeGroup
-            onClicked: root.cfg_newTaskProjectMode = "fixed"
-        }
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-            opacity: 0.7
-            text: i18n("When no project is selected in the sidebar, new tasks follow this setting.")
-        }
-
-        ProjectPicker {
-            id: defaultProjectPicker
-            visible: root.cfg_newTaskProjectMode === "fixed"
-            Kirigami.FormData.label: visible ? i18n("Default project") : ""
-            Layout.fillWidth: true
-            collectionModel: settingsController.collectionModel
-            hiddenProjects: plasmoid.configuration.hiddenProjects || ""
-            includeEmptyProjects: true
-            includeHiddenProjects: true
-            collectionId: {
-                var n = Number(root.cfg_newTaskDefaultCollectionId)
-                return n > 0 ? n : -1
+            QQC2.CheckBox {
+                id: confirmDeleteCheck
+                Kirigami.FormData.label: i18n("Delete")
+                text: i18n("Ask before deleting a task")
+                Component.onCompleted: checked = plasmoid.configuration.confirmDelete === true
             }
-            onCollectionIdChanged: {
-                if (root.cfg_newTaskProjectMode === "fixed" && collectionId > 0) {
-                    root.cfg_newTaskDefaultCollectionId = String(collectionId)
-                }
+
+            QQC2.CheckBox {
+                id: modifierCheck
+                Kirigami.FormData.label: i18n("Checkbox")
+                text: i18n("Complete only with Shift or Ctrl held")
+                Component.onCompleted: checked = plasmoid.configuration.completeNeedsModifier === true
             }
-        }
 
-        QQC2.CheckBox {
-            id: catchUpCheck
-            Kirigami.FormData.label: i18n("Catch-up")
-            text: i18n("Show unfinished recent tasks at the top of Today")
-            Component.onCompleted: checked = plasmoid.configuration.catchUpEnabled !== false
-        }
-
-        QQC2.SpinBox {
-            id: catchUpDaysBox
-            Kirigami.FormData.label: i18n("Catch-up window")
-            from: 1
-            to: 365
-            value: plasmoid.configuration.catchUpDays || 14
-            onValueChanged: root.cfg_catchUpDays = value
-            Component.onCompleted: root.cfg_catchUpDays = value
-        }
-
-        QQC2.SpinBox {
-            id: morningHourBox
-            Kirigami.FormData.label: i18n("Morning starts")
-            from: 0
-            to: 23
-            value: plasmoid.configuration.morningHour !== undefined ? plasmoid.configuration.morningHour : 6
-            onValueChanged: root.cfg_morningHour = value
-            Component.onCompleted: root.cfg_morningHour = value
-        }
-
-        QQC2.SpinBox {
-            id: afternoonHourBox
-            Kirigami.FormData.label: i18n("Afternoon starts")
-            from: 0
-            to: 23
-            value: plasmoid.configuration.afternoonHour !== undefined ? plasmoid.configuration.afternoonHour : 12
-            onValueChanged: root.cfg_afternoonHour = value
-            Component.onCompleted: root.cfg_afternoonHour = value
-        }
-
-        QQC2.SpinBox {
-            id: eveningHourBox
-            Kirigami.FormData.label: i18n("Evening starts")
-            from: 0
-            to: 23
-            value: plasmoid.configuration.eveningHour !== undefined ? plasmoid.configuration.eveningHour : 18
-            onValueChanged: root.cfg_eveningHour = value
-            Component.onCompleted: root.cfg_eveningHour = value
-        }
-
-        QQC2.CheckBox {
-            id: showJoinCheck
-            Kirigami.FormData.label: i18n("Meetings")
-            text: i18n("Show a Join button for http(s) links")
-            Component.onCompleted: checked = plasmoid.configuration.showJoinButton !== false
+            ConfigResetButton {
+                Kirigami.FormData.label: ""
+                page: root
+                defaults: ({
+                    defaultView: "inbox",
+                    rememberLastView: false,
+                    showCompleted: false,
+                    newTaskProjectMode: "ask",
+                    newTaskDefaultCollectionId: "",
+                    defaultDueMode: "none",
+                    confirmDelete: false,
+                    completeNeedsModifier: false
+                })
+            }
         }
     }
 
