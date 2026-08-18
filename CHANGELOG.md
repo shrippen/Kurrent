@@ -2,11 +2,11 @@
 
 ## Unreleased
 
-- GitHub Releases ship a Linux plugin tarball (`kurrent-linux-x86_64.tar.gz`) next to the `.plasmoid`; `install-linux.sh` installs that binary into `~/.local` (compile with `--from-source` if the `.so` does not match the distro).
-
 ## 0.2.0 — 2026-08-18
 
 Catch-up on the 1.0 branch: planner-style task flow, a full settings dialog, notifications, and a faster panel startup.
+
+- GitHub Releases attach `kurrent-linux-x86_64.tar.gz` and `install-linux.sh` next to the `.plasmoid`; the one-liner installs the plugin into `~/.local` (`--from-source` if the `.so` does not match the distro)
 
 - Today no longer mixes overdue into “due today”; Catch-up (“Still open”) and an Overdue sidebar view
 - Reschedule from the task row (15m / 1h / 4h / tomorrow / next week)
