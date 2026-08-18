@@ -125,6 +125,33 @@ msgstr "拖到此处设为顶级任务"
 msgid "Add a task…"
 msgstr "添加任务…"
 
+msgid "Add a task…  tomorrow 18:00 !high #tag @project"
+msgstr "添加任务…  tomorrow 18:00 !high #tag @project"
+
+msgid "Yesterday"
+msgstr "昨天"
+
+msgid "Next week"
+msgstr "下周"
+
+msgid "Tonight"
+msgstr "今晚"
+
+msgid "No priority"
+msgstr "无优先级"
+
+msgid "Backend not installed"
+msgstr "未安装后端"
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "KDE 商店安装包只有部件界面。在终端运行下面的命令以安装插件："
+
+msgid "Copy command"
+msgstr "复制命令"
+
+msgid "Open GitHub"
+msgstr "打开 GitHub"
+
 msgid "Add task"
 msgstr "添加任务"
 

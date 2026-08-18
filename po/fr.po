@@ -125,6 +125,33 @@ msgstr "Déposez ici pour en faire une tâche principale"
 msgid "Add a task…"
 msgstr "Ajouter une tâche…"
 
+msgid "Add a task…  tomorrow 18:00 !high #tag @project"
+msgstr "Ajouter une tâche…  tomorrow 18:00 !high #tag @project"
+
+msgid "Yesterday"
+msgstr "Hier"
+
+msgid "Next week"
+msgstr "Semaine prochaine"
+
+msgid "Tonight"
+msgstr "Ce soir"
+
+msgid "No priority"
+msgstr "Sans priorité"
+
+msgid "Backend not installed"
+msgstr "Moteur non installé"
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "Le paquet KDE Store n’est que le widget. Exécutez ceci dans un terminal pour installer le greffon :"
+
+msgid "Copy command"
+msgstr "Copier la commande"
+
+msgid "Open GitHub"
+msgstr "Ouvrir GitHub"
+
 msgid "Add task"
 msgstr "Ajouter une tâche"
 

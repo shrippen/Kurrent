@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
-import com.github.shrippen.kurrent 1.0
 import "components"
 
 KCM.SimpleKCM {
@@ -21,9 +20,11 @@ KCM.SimpleKCM {
     readonly property string sectionDefaults: "views,projects,labels,priorities"
     readonly property string viewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,recurring,unlabeled,completed"
 
-    TaskController {
-        id: orderController
+    Loader {
+        id: orderControllerLoader
+        source: Qt.resolvedUrl("PluginController.qml")
     }
+    readonly property var orderController: orderControllerLoader.item
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {
@@ -65,6 +66,12 @@ KCM.SimpleKCM {
     }
 
     ConfigFormShell {
+
+        PluginMissingView {
+            visible: orderControllerLoader.status === Loader.Error
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? implicitHeight : 0
+        }
 
         Kirigami.FormLayout {
             Layout.fillWidth: true
@@ -120,12 +127,17 @@ KCM.SimpleKCM {
             ConfigOrderList {
                 Kirigami.FormData.label: i18n("Order and visibility")
                 Layout.fillWidth: true
-                keys: orderController.mergeOrderedKeys(root.cfg_sidebarSectionOrder || "", root.sectionDefaults, ",")
+                keys: orderController
+                      ? orderController.mergeOrderedKeys(root.cfg_sidebarSectionOrder || "", root.sectionDefaults, ",")
+                      : []
                 hiddenRaw: root.cfg_hiddenSidebarSections || ""
                 hiddenSeparator: "||"
                 titleForKey: function(key) { return root.sectionLabel(key) }
                 onOrderChanged: function(joined) { root.cfg_sidebarSectionOrder = joined }
                 onVisibilityToggled: function(key) {
+                    if (!orderController) {
+                        return
+                    }
                     root.cfg_hiddenSidebarSections = orderController.toggleToken(
                         root.cfg_hiddenSidebarSections || "", key, "||")
                 }
@@ -139,12 +151,17 @@ KCM.SimpleKCM {
             ConfigOrderList {
                 Kirigami.FormData.label: i18n("Order and visibility")
                 Layout.fillWidth: true
-                keys: orderController.mergeOrderedKeys(root.cfg_sidebarViewOrder || "", root.viewDefaults, ",")
+                keys: orderController
+                      ? orderController.mergeOrderedKeys(root.cfg_sidebarViewOrder || "", root.viewDefaults, ",")
+                      : []
                 hiddenRaw: root.cfg_hiddenViews || ""
                 hiddenSeparator: "||"
                 titleForKey: function(key) { return root.viewLabel(key) }
                 onOrderChanged: function(joined) { root.cfg_sidebarViewOrder = joined }
                 onVisibilityToggled: function(key) {
+                    if (!orderController) {
+                        return
+                    }
                     root.cfg_hiddenViews = orderController.toggleToken(
                         root.cfg_hiddenViews || "", key, "||")
                 }

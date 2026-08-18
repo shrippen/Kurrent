@@ -11,6 +11,7 @@ add_library(kurrentplugin SHARED
     taskcontroller.h
     tasklogic.cpp
     tasklogic.h
+    quickadd.cpp
     taskcalendar.cpp
     taskcalendar.h
     tasklistmodel.cpp

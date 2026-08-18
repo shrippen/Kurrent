@@ -11,6 +11,7 @@
 #include <QSet>
 #include <QString>
 #include <QStringList>
+#include <QVariantList>
 #include <QVariantMap>
 
 namespace TaskLogic
@@ -32,6 +33,35 @@ struct FilterState {
     bool searchCaseSensitive = false;
 };
 
+struct QuickAddProject {
+    qint64 id = -1;
+    QString name;
+};
+
+struct QuickAddContext {
+    QString uiLanguage;
+    QList<QuickAddProject> projects;
+    QStringList labels;
+};
+
+struct QuickAddSpan {
+    int start = 0;
+    int length = 0;
+    QString kind;
+    QString value;
+};
+
+struct QuickAddSuggestion {
+    QString kind;
+    QString insertText;
+    QString value;
+    qint64 collectionId = -1;
+    int priority = 0;
+    int tokenStart = 0;
+    int tokenEnd = 0;
+    int score = 0;
+};
+
 struct QuickAdd {
     QString summary;
     QDateTime due;
@@ -39,6 +69,14 @@ struct QuickAdd {
     bool allDay = false;
     int priority = 0;
     QStringList labels;
+    qint64 collectionId = -1;
+    QList<QuickAddSpan> spans;
+};
+
+struct QuickAddSuggestResult {
+    int tokenStart = 0;
+    int tokenEnd = 0;
+    QList<QuickAddSuggestion> items;
 };
 
 struct SidebarCounts {
@@ -79,6 +117,8 @@ QDateTime rescheduleDue(const QDateTime &currentDue, bool allDay, const QDateTim
 QString joinUrl(const QString &description, const QString &location);
 
 QuickAdd parseQuickAdd(const QString &raw, const QDate &today, const QTime &now);
+QuickAdd parseQuickAdd(const QString &raw, const QDate &today, const QTime &now, const QuickAddContext &ctx);
+QuickAddSuggestResult suggestQuickAdd(const QString &raw, int cursor, const QuickAddContext &ctx);
 
 bool matchesFilters(const TaskEntry &task, qint64 selectedCollectionId, const QString &selectedLabel, int selectedPriority);
 

@@ -5,7 +5,6 @@ import QtQuick.Window 2.15
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami 2.20 as Kirigami
-import com.github.shrippen.kurrent 1.0
 import "colors.js" as Colors
 import "." as KurrentUi
 
@@ -40,8 +39,8 @@ PlasmoidItem {
                 : PlasmaCore.AppletPopup.SolidBackground
     }
 
-    onExpandedChanged: {
-        if (expanded && fullRepresentationItem && fullRepresentationItem.loadUi) {
+    onExpandedChanged: function () {
+        if (root.expanded && fullRepresentationItem && fullRepresentationItem.loadUi) {
             fullRepresentationItem.loadUi()
         }
         applyPopupBackground()
@@ -55,9 +54,33 @@ PlasmoidItem {
         PlasmaCore.Types.LeftEdge
     ].includes(Plasmoid.location)
 
-    readonly property TaskController backend: taskController
+    Loader {
+        id: pluginLoader
+        width: 0
+        height: 0
+        source: Qt.resolvedUrl("PluginBackend.qml")
+        asynchronous: false
+        onStatusChanged: {
+            if (status === Loader.Ready) {
+                root.initPluginSettings()
+            }
+            var shell = root.fullRepresentationItem
+            if (shell && shell.loadUi) {
+                shell.loadUi()
+            }
+        }
+        onLoaded: root.initPluginSettings()
+    }
+
+    readonly property bool pluginReady: pluginLoader.status === Loader.Ready && !!pluginLoader.item
+    readonly property bool pluginMissing: pluginLoader.status === Loader.Error
+    readonly property var backend: pluginReady ? pluginLoader.item.controller : null
+    readonly property var sharedSettings: pluginReady ? pluginLoader.item.settings : null
 
     readonly property var activeFilters: {
+        if (!backend) {
+            return []
+        }
         // Depend on filter properties so the UI updates when they change.
         var collectionId = backend.selectedCollectionId
         var label = backend.selectedLabel
@@ -87,6 +110,9 @@ PlasmoidItem {
     }
 
     function activeViewIconSource() {
+        if (!backend) {
+            return "kurrent"
+        }
         switch (backend.currentView) {
         case "today": return "view-calendar-day"
         case "overdue": return "appointment-missed"
@@ -101,6 +127,9 @@ PlasmoidItem {
     }
 
     function activeViewTitle() {
+        if (!backend) {
+            return i18n("Kurrent")
+        }
         switch (backend.currentView) {
         case "today": return i18n("Today")
         case "overdue": return i18n("Overdue")
@@ -121,8 +150,11 @@ PlasmoidItem {
         : i18n("No open tasks")
 
     readonly property int panelBadgeCount: {
+        if (!backend) {
+            return 0
+        }
         var mode = Plasmoid.configuration.panelBadge || "open"
-        var counts = taskController.viewTaskCounts
+        var counts = backend.viewTaskCounts
         if (mode === "off") {
             return 0
         }
@@ -132,11 +164,13 @@ PlasmoidItem {
         if (mode === "overdue") {
             return counts["overdue"] || 0
         }
-        return taskController.pendingCount
+        return backend.pendingCount
     }
 
     function persistSharedSettings() {
-        SharedSettings.copyFrom(Plasmoid.configuration)
+        if (sharedSettings) {
+            sharedSettings.copyFrom(Plasmoid.configuration)
+        }
     }
 
     function applyColorsFromConfig() {
@@ -161,68 +195,48 @@ PlasmoidItem {
     }
 
     function loadSharedSettings() {
-        SharedSettings.applyTo(Plasmoid.configuration)
+        if (sharedSettings) {
+            sharedSettings.applyTo(Plasmoid.configuration)
+        }
         applyDesignFromConfig()
         applyColorsFromConfig()
     }
 
-    Component.onCompleted: {
-        SharedSettings.seedFromIfEmpty(Plasmoid.configuration)
-        SharedSettings.applyTo(Plasmoid.configuration)
+    function initPluginSettings() {
+        if (!sharedSettings) {
+            applyDesignFromConfig()
+            applyColorsFromConfig()
+            return
+        }
+        sharedSettings.seedFromIfEmpty(Plasmoid.configuration)
+        sharedSettings.applyTo(Plasmoid.configuration)
         applyDesignFromConfig()
         applyColorsFromConfig()
-        if (taskController.smokeTest) {
+        if (backend && backend.smokeTest) {
             root.expanded = true
         }
         applyPopupBackground()
     }
 
-    TaskController {
-        id: taskController
-        showCompleted: Plasmoid.configuration.showCompleted
-        catchUpEnabled: Plasmoid.configuration.catchUpEnabled !== false
-        catchUpDays: Plasmoid.configuration.catchUpDays || 14
-        morningHour: Plasmoid.configuration.morningHour !== undefined ? Plasmoid.configuration.morningHour : 6
-        afternoonHour: Plasmoid.configuration.afternoonHour !== undefined ? Plasmoid.configuration.afternoonHour : 12
-        eveningHour: Plasmoid.configuration.eveningHour !== undefined ? Plasmoid.configuration.eveningHour : 18
-        defaultDueMode: Plasmoid.configuration.defaultDueMode || "none"
-        searchTitleOnly: Plasmoid.configuration.searchTitleOnly === true
-        searchCaseSensitive: Plasmoid.configuration.searchCaseSensitive === true
-        completeChildren: Plasmoid.configuration.completeChildren === true
-        notificationsEnabled: Plasmoid.configuration.notificationsEnabled !== false
-        defaultReminderMinutes: Plasmoid.configuration.defaultReminderMinutes !== undefined
-                ? Plasmoid.configuration.defaultReminderMinutes : -1
-        quietHoursEnabled: Plasmoid.configuration.quietHoursEnabled === true
-        quietHoursStart: Plasmoid.configuration.quietHoursStart !== undefined ? Plasmoid.configuration.quietHoursStart : 22
-        quietHoursEnd: Plasmoid.configuration.quietHoursEnd !== undefined ? Plasmoid.configuration.quietHoursEnd : 7
-        Component.onCompleted: {
-            var view = Plasmoid.configuration.defaultView || "inbox"
-            if (Plasmoid.configuration.rememberLastView && Plasmoid.configuration.lastView) {
-                view = Plasmoid.configuration.lastView
-            }
-            currentView = view
-            sortMode = Plasmoid.configuration.sortMode || "default"
-
-            // Sidebar filters always start on "All"; only the view may be remembered.
-            selectedCollectionId = -1
-            selectedLabel = ""
-            selectedPriority = -1
-            managementView = ""
-
-            applyEnabledCollections()
-            Qt.callLater(function() { refresh() })
+    Component.onCompleted: {
+        if (pluginReady) {
+            initPluginSettings()
+        } else {
+            applyDesignFromConfig()
+            applyColorsFromConfig()
         }
+        applyPopupBackground()
     }
 
     Connections {
-        target: taskController
+        target: backend
         function onDbusShowRequested() {
             root.expanded = true
         }
         function onDbusAddTaskRequested(summary) {
             root.expanded = true
             if (summary && String(summary).trim().length) {
-                taskController.createTask(summary, -1)
+                backend.createTask(summary, -1)
             } else {
                 Qt.callLater(root.focusNewTaskField)
             }
@@ -230,12 +244,15 @@ PlasmoidItem {
         function onDbusOpenViewRequested(view) {
             root.expanded = true
             if (view) {
-                taskController.currentView = view
+                backend.currentView = view
             }
         }
     }
 
     function applyEnabledCollections() {
+        if (!backend) {
+            return
+        }
         var raw = Plasmoid.configuration.enabledCollections || ""
         if (!raw.trim()) {
             return
@@ -249,12 +266,12 @@ PlasmoidItem {
             }
         }
         if (ids.length > 0) {
-            taskController.setEnabledCollectionIds(ids)
+            backend.setEnabledCollectionIds(ids)
         }
     }
 
     Connections {
-        target: SharedSettings
+        target: sharedSettings
         function onChanged() {
             root.loadSharedSettings()
         }
@@ -264,16 +281,22 @@ PlasmoidItem {
         target: Plasmoid.configuration
         function onShowCompletedChanged() {
             root.persistSharedSettings()
-            taskController.showCompleted = Plasmoid.configuration.showCompleted
+            if (backend) {
+                backend.showCompleted = Plasmoid.configuration.showCompleted
+            }
         }
         function onDefaultViewChanged() {
             root.persistSharedSettings()
-            taskController.currentView = Plasmoid.configuration.defaultView
+            if (backend) {
+                backend.currentView = Plasmoid.configuration.defaultView
+            }
         }
         function onEnabledCollectionsChanged() {
             root.persistSharedSettings()
             root.applyEnabledCollections()
-            taskController.refresh()
+            if (backend) {
+                backend.refresh()
+            }
         }
         function onBlurBackgroundChanged() {
             root.persistSharedSettings()
@@ -299,23 +322,33 @@ PlasmoidItem {
         }
         function onCatchUpEnabledChanged() {
             root.persistSharedSettings()
-            taskController.catchUpEnabled = Plasmoid.configuration.catchUpEnabled !== false
+            if (backend) {
+                backend.catchUpEnabled = Plasmoid.configuration.catchUpEnabled !== false
+            }
         }
         function onCatchUpDaysChanged() {
             root.persistSharedSettings()
-            taskController.catchUpDays = Plasmoid.configuration.catchUpDays || 14
+            if (backend) {
+                backend.catchUpDays = Plasmoid.configuration.catchUpDays || 14
+            }
         }
         function onMorningHourChanged() {
             root.persistSharedSettings()
-            taskController.morningHour = Plasmoid.configuration.morningHour
+            if (backend) {
+                backend.morningHour = Plasmoid.configuration.morningHour
+            }
         }
         function onAfternoonHourChanged() {
             root.persistSharedSettings()
-            taskController.afternoonHour = Plasmoid.configuration.afternoonHour
+            if (backend) {
+                backend.afternoonHour = Plasmoid.configuration.afternoonHour
+            }
         }
         function onEveningHourChanged() {
             root.persistSharedSettings()
-            taskController.eveningHour = Plasmoid.configuration.eveningHour
+            if (backend) {
+                backend.eveningHour = Plasmoid.configuration.eveningHour
+            }
         }
         function onShowJoinButtonChanged() {
             root.persistSharedSettings()
@@ -362,7 +395,9 @@ PlasmoidItem {
         }
         function onDefaultDueModeChanged() {
             root.persistSharedSettings()
-            taskController.defaultDueMode = Plasmoid.configuration.defaultDueMode || "none"
+            if (backend) {
+                backend.defaultDueMode = Plasmoid.configuration.defaultDueMode || "none"
+            }
         }
         function onConfirmDeleteChanged() {
             root.persistSharedSettings()
@@ -381,19 +416,27 @@ PlasmoidItem {
         }
         function onSearchTitleOnlyChanged() {
             root.persistSharedSettings()
-            taskController.searchTitleOnly = Plasmoid.configuration.searchTitleOnly === true
+            if (backend) {
+                backend.searchTitleOnly = Plasmoid.configuration.searchTitleOnly === true
+            }
         }
         function onCompleteChildrenChanged() {
             root.persistSharedSettings()
-            taskController.completeChildren = Plasmoid.configuration.completeChildren === true
+            if (backend) {
+                backend.completeChildren = Plasmoid.configuration.completeChildren === true
+            }
         }
         function onNotificationsEnabledChanged() {
             root.persistSharedSettings()
-            taskController.notificationsEnabled = Plasmoid.configuration.notificationsEnabled !== false
+            if (backend) {
+                backend.notificationsEnabled = Plasmoid.configuration.notificationsEnabled !== false
+            }
         }
         function onDefaultReminderMinutesChanged() {
             root.persistSharedSettings()
-            taskController.defaultReminderMinutes = Plasmoid.configuration.defaultReminderMinutes
+            if (backend) {
+                backend.defaultReminderMinutes = Plasmoid.configuration.defaultReminderMinutes
+            }
         }
         function onProjectColorsChanged() {
             root.persistSharedSettings()
@@ -412,36 +455,44 @@ PlasmoidItem {
         function onHiddenViewsChanged() { root.persistSharedSettings() }
         function onSearchCaseSensitiveChanged() {
             root.persistSharedSettings()
-            taskController.searchCaseSensitive = Plasmoid.configuration.searchCaseSensitive === true
+            if (backend) {
+                backend.searchCaseSensitive = Plasmoid.configuration.searchCaseSensitive === true
+            }
         }
         function onRelativeDatesChanged() { root.persistSharedSettings() }
         function onShowTimeOnRowChanged() { root.persistSharedSettings() }
         function onCompleteNeedsModifierChanged() { root.persistSharedSettings() }
         function onQuietHoursEnabledChanged() {
             root.persistSharedSettings()
-            taskController.quietHoursEnabled = Plasmoid.configuration.quietHoursEnabled === true
+            if (backend) {
+                backend.quietHoursEnabled = Plasmoid.configuration.quietHoursEnabled === true
+            }
         }
         function onQuietHoursStartChanged() {
             root.persistSharedSettings()
-            taskController.quietHoursStart = Plasmoid.configuration.quietHoursStart
+            if (backend) {
+                backend.quietHoursStart = Plasmoid.configuration.quietHoursStart
+            }
         }
         function onQuietHoursEndChanged() {
             root.persistSharedSettings()
-            taskController.quietHoursEnd = Plasmoid.configuration.quietHoursEnd
+            if (backend) {
+                backend.quietHoursEnd = Plasmoid.configuration.quietHoursEnd
+            }
         }
     }
 
     Connections {
-        target: taskController
+        target: backend
         function onCurrentViewChanged() {
-            if (Plasmoid.configuration.rememberLastView) {
-                Plasmoid.configuration.lastView = taskController.currentView
+            if (Plasmoid.configuration.rememberLastView && backend) {
+                Plasmoid.configuration.lastView = backend.currentView
             }
         }
     }
 
     Timer {
-        running: taskController.smokeTest
+        running: !!(backend && backend.smokeTest)
         interval: 200
         repeat: false
         onTriggered: root.expanded = true
@@ -505,7 +556,17 @@ PlasmoidItem {
         Layout.maximumHeight: Infinity
 
         function loadUi() {
-            if (fullLoader.source.toString() !== "") {
+            if (root.pluginMissing) {
+                if (fullLoader.source.toString().indexOf("PluginMissingView.qml") >= 0) {
+                    return
+                }
+                fullLoader.setSource(Qt.resolvedUrl("PluginMissingView.qml"))
+                return
+            }
+            if (!root.pluginReady) {
+                return
+            }
+            if (fullLoader.source.toString().indexOf("FullView.qml") >= 0) {
                 return
             }
             fullLoader.setSource(Qt.resolvedUrl("FullView.qml"), { plasmoidRoot: root })
@@ -518,7 +579,7 @@ PlasmoidItem {
         }
 
         Component.onCompleted: {
-            if (!root.inPanel || root.expanded || taskController.smokeTest) {
+            if (!root.inPanel || root.expanded || (backend && backend.smokeTest) || root.pluginMissing) {
                 loadUi()
             }
         }

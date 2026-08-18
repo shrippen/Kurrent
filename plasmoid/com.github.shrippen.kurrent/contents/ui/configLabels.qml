@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
-import com.github.shrippen.kurrent 1.0
 import "colors.js" as Colors
 import "."
 import "components"
@@ -14,10 +13,12 @@ KCM.SimpleKCM {
     property string cfg_hiddenLabels
     property string cfg_labelColors
 
-    TaskController {
-        id: configController
-        showCompleted: true
+    Loader {
+        id: configControllerLoader
+        source: Qt.resolvedUrl("PluginController.qml")
+        onLoaded: item.showCompleted = true
     }
+    readonly property var configController: configControllerLoader.item
 
     function hiddenSet() {
         var raw = cfg_hiddenLabels || ""
@@ -46,13 +47,16 @@ KCM.SimpleKCM {
     }
 
     function labelCount(name) {
+        if (!configController) {
+            return 0
+        }
         var n = configController.labelTaskCounts[name]
         return n === undefined || n === null ? 0 : Number(n)
     }
 
     function addCurrentLabel() {
         var name = newLabelField.text.trim()
-        if (!name) {
+        if (!name || !configController) {
             return
         }
         configController.createLabel(name)
@@ -61,7 +65,7 @@ KCM.SimpleKCM {
 
     function renameCurrent(from) {
         var dest = renameField.text.trim()
-        if (!dest || dest === from) {
+        if (!dest || dest === from || !configController) {
             return
         }
         configController.renameLabel(from, dest)
@@ -72,11 +76,20 @@ KCM.SimpleKCM {
     }
 
     function applyColor(name, hex) {
+        if (!configController) {
+            return
+        }
         cfg_labelColors = configController.setColorOverride(cfg_labelColors || "", name, hex)
     }
 
     ConfigFormShell {
         id: shell
+
+        PluginMissingView {
+            visible: configControllerLoader.status === Loader.Error
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? implicitHeight : 0
+        }
 
         Kirigami.Heading {
             text: i18n("Labels (Categories)")
@@ -107,7 +120,7 @@ KCM.SimpleKCM {
 
             Repeater {
                 id: labelRepeater
-                model: configController.availableLabels
+                model: configController ? configController.availableLabels : []
 
                 delegate: Kirigami.AbstractCard {
                     Layout.fillWidth: true
@@ -181,7 +194,7 @@ KCM.SimpleKCM {
                             QQC2.ToolButton {
                                 icon.name: "edit-delete"
                                 display: QQC2.AbstractButton.IconOnly
-                                onClicked: configController.deleteLabel(modelData)
+                                onClicked: if (configController) configController.deleteLabel(modelData)
                                 QQC2.ToolTip.text: i18n("Delete label")
                                 QQC2.ToolTip.visible: hovered
                             }
@@ -221,8 +234,8 @@ KCM.SimpleKCM {
                 id: renameFromCombo
                 Layout.fillWidth: true
                 displayText: currentIndex >= 0 ? currentText : i18n("Rename from")
-                model: configController.availableLabels
-                enabled: configController.availableLabels.length > 0
+                model: configController ? configController.availableLabels : []
+                enabled: configController && configController.availableLabels.length > 0
             }
 
             QQC2.TextField {
@@ -262,7 +275,7 @@ KCM.SimpleKCM {
             QQC2.Button {
                 text: i18n("Refresh")
                 icon.name: "view-refresh"
-                onClicked: configController.refresh()
+                onClicked: if (configController) configController.refresh()
             }
         }
     }

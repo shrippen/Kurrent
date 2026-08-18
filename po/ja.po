@@ -125,6 +125,33 @@ msgstr "ここにドロップして最上位タスクにします"
 msgid "Add a task…"
 msgstr "タスクを追加…"
 
+msgid "Add a task…  tomorrow 18:00 !high #tag @project"
+msgstr "タスクを追加…  tomorrow 18:00 !high #tag @project"
+
+msgid "Yesterday"
+msgstr "昨日"
+
+msgid "Next week"
+msgstr "来週"
+
+msgid "Tonight"
+msgstr "今夜"
+
+msgid "No priority"
+msgstr "優先度なし"
+
+msgid "Backend not installed"
+msgstr "バックエンドが未インストール"
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "KDE Store のパッケージはウィジェットのみです。プラグインを入れるには、次のコマンドを端末で実行してください:"
+
+msgid "Copy command"
+msgstr "コマンドをコピー"
+
+msgid "Open GitHub"
+msgstr "GitHub を開く"
+
 msgid "Add task"
 msgstr "タスクを追加"
 

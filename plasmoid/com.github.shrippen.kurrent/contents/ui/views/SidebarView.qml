@@ -496,13 +496,13 @@ Item {
     // ── Views ──
     Item {
         id: viewsBlock
-        width: parent.width
+        width: parent ? parent.width : 0
         property bool isLastVisible: false
         height: viewsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
 
     ListView {
         id: viewsList
-        width: parent.width
+        width: parent ? parent.width : 0
         height: root.viewsAlloc > 0 ? root.viewsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
@@ -578,7 +578,7 @@ Item {
     }
 
     Kirigami.Separator {
-        width: parent.width
+        width: parent ? parent.width : 0
         anchors.bottom: parent.bottom
         visible: !viewsBlock.isLastVisible
     }
@@ -587,13 +587,13 @@ Item {
     // ── Projects section ──
     Item {
         id: projectsBlock
-        width: parent.width
+        width: parent ? parent.width : 0
         property bool isLastVisible: false
         height: projectsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
 
     ListView {
         id: projectsList
-        width: parent.width
+        width: parent ? parent.width : 0
         height: root.projectsAlloc > 0 ? root.projectsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
@@ -761,7 +761,7 @@ Item {
     }
 
     Kirigami.Separator {
-        width: parent.width
+        width: parent ? parent.width : 0
         anchors.bottom: parent.bottom
         visible: !projectsBlock.isLastVisible
     }
@@ -770,13 +770,13 @@ Item {
     // ── Labels section ──
     Item {
         id: labelsBlock
-        width: parent.width
+        width: parent ? parent.width : 0
         property bool isLastVisible: false
         height: labelsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
 
     ListView {
         id: labelsList
-        width: parent.width
+        width: parent ? parent.width : 0
         height: root.labelsAlloc > 0 ? root.labelsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
@@ -938,7 +938,7 @@ Item {
     }
 
     Kirigami.Separator {
-        width: parent.width
+        width: parent ? parent.width : 0
         anchors.bottom: parent.bottom
         visible: !labelsBlock.isLastVisible
     }
@@ -947,13 +947,13 @@ Item {
     // ── Priorities section ──
     Item {
         id: prioritiesBlock
-        width: parent.width
+        width: parent ? parent.width : 0
         property bool isLastVisible: false
         height: prioritiesList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
 
     ListView {
         id: prioritiesList
-        width: parent.width
+        width: parent ? parent.width : 0
         height: root.prioritiesAlloc > 0 ? root.prioritiesAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0

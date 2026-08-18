@@ -89,6 +89,22 @@ add("Drop here to make a top-level task", zh_CN="拖到此处设为顶级任务"
     ur="اوپر کی سطح کا کام بنانے کے لیے یہاں چھوڑیں")
 add("Add a task…", zh_CN="添加任务…", hi="कार्य जोड़ें…", es="Añadir una tarea…", ar="إضافة مهمة…",
     fr="Ajouter une tâche…", bn="একটি কাজ যোগ করুন…", pt_BR="Adicionar uma tarefa…", ru="Добавить задачу…", ur="ایک کام شامل کریں…")
+add("Add a task…  tomorrow 18:00 !high #tag @project",
+    zh_CN="添加任务…  tomorrow 18:00 !high #tag @project",
+    es="Añadir una tarea…  tomorrow 18:00 !high #tag @project",
+    fr="Ajouter une tâche…  tomorrow 18:00 !high #tag @project")
+add("Yesterday", zh_CN="昨天", es="Ayer", fr="Hier", ja="昨日")
+add("Next week", zh_CN="下周", es="Próxima semana", fr="Semaine prochaine", ja="来週")
+add("Tonight", zh_CN="今晚", es="Esta noche", fr="Ce soir", ja="今夜")
+add("No priority", zh_CN="无优先级", es="Sin prioridad", fr="Sans priorité", ja="優先度なし")
+add("Backend not installed",
+    zh_CN="未安装后端", es="Motor no instalado", fr="Moteur non installé", ja="バックエンドが未インストール")
+add("The KDE Store package is only the widget. Run this in a terminal to install the plugin:",
+    zh_CN="KDE 商店安装包只有部件界面。在终端运行下面的命令以安装插件：",
+    es="El paquete de KDE Store es solo el widget. Ejecuta esto en una terminal para instalar el complemento:",
+    fr="Le paquet KDE Store n’est que le widget. Exécutez ceci dans un terminal pour installer le greffon :")
+add("Copy command", zh_CN="复制命令", es="Copiar comando", fr="Copier la commande", ja="コマンドをコピー")
+add("Open GitHub", zh_CN="打开 GitHub", es="Abrir GitHub", fr="Ouvrir GitHub", ja="GitHub を開く")
 add("Add task", zh_CN="添加任务", hi="कार्य जोड़ें", es="Añadir tarea", ar="إضافة مهمة", fr="Ajouter une tâche", bn="কাজ যোগ করুন", pt_BR="Adicionar tarefa", ru="Добавить задачу", ur="کام شامل کریں")
 add("Make subtask of “%1”", zh_CN="设为“%1”的子任务", hi="“%1” का उपकार्य बनाएँ", es="Convertir en subtarea de “%1”",
     ar="جعلها مهمة فرعية لـ “%1”", fr="En faire une sous-tâche de « %1 »", bn="“%1”-এর সাবটাস্ক করুন",

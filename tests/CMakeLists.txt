@@ -10,6 +10,7 @@ add_executable(kurrent-tasklogic-test
     tasklogic_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.h
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
 )
 target_include_directories(kurrent-tasklogic-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
 target_link_libraries(kurrent-tasklogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)

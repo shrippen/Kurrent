@@ -548,7 +548,7 @@ Item {
 
     QQC2.Menu {
         id: rescheduleMenu
-        popupType: Item
+        popupType: QQC2.Popup.Item
         enabled: !root.awaitingAkonadi
         QQC2.MenuItem {
             text: i18n("In 15 minutes")

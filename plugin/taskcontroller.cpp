@@ -33,6 +33,7 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QVariantList>
 #include <QVariantMap>
 #include <QtGlobal>
 #include <QDBusConnection>
@@ -535,7 +536,14 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
     }
 
     KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
-    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(summary, QDate::currentDate(), QTime::currentTime());
+    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(summary, QDate::currentDate(), QTime::currentTime(),
+                                                                quickAddContext(QString(), QVariantList()));
+    if (parsed.collectionId > 0) {
+        const Akonadi::Collection fromKeyword = collectionById(parsed.collectionId);
+        if (CollectionListModel::isTaskWritable(fromKeyword)) {
+            collection = fromKeyword;
+        }
+    }
     todo->setSummary(parsed.summary.isEmpty() ? summary.trimmed() : parsed.summary);
     if (parsed.hasDue) {
         todo->setDtDue(parsed.due);
@@ -589,9 +597,65 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
     });
 }
 
-QVariantMap TaskController::parseQuickAdd(const QString &text) const
+QVariantMap TaskController::parseQuickAdd(const QString &text, const QString &uiLanguage, const QVariantList &projects) const
 {
-    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(text, QDate::currentDate(), QTime::currentTime());
+    const TaskLogic::QuickAdd parsed = TaskLogic::parseQuickAdd(text, QDate::currentDate(), QTime::currentTime(),
+                                                                quickAddContext(uiLanguage, projects));
+    return quickAddToVariant(parsed);
+}
+
+QVariantMap TaskController::suggestQuickAdd(const QString &text, int cursor, const QString &uiLanguage, const QVariantList &projects) const
+{
+    const TaskLogic::QuickAddSuggestResult suggested = TaskLogic::suggestQuickAdd(text, cursor, quickAddContext(uiLanguage, projects));
+    QVariantMap out;
+    out.insert(QStringLiteral("tokenStart"), suggested.tokenStart);
+    out.insert(QStringLiteral("tokenEnd"), suggested.tokenEnd);
+    QVariantList items;
+    for (const TaskLogic::QuickAddSuggestion &s : suggested.items) {
+        QVariantMap m;
+        m.insert(QStringLiteral("kind"), s.kind);
+        m.insert(QStringLiteral("insertText"), s.insertText);
+        m.insert(QStringLiteral("value"), s.value);
+        m.insert(QStringLiteral("collectionId"), s.collectionId);
+        m.insert(QStringLiteral("priority"), s.priority);
+        m.insert(QStringLiteral("score"), s.score);
+        items.append(m);
+    }
+    out.insert(QStringLiteral("items"), items);
+    return out;
+}
+
+TaskLogic::QuickAddContext TaskController::quickAddContext(const QString &uiLanguage, const QVariantList &projects) const
+{
+    TaskLogic::QuickAddContext ctx;
+    ctx.uiLanguage = uiLanguage.isEmpty() ? QLocale::system().name() : uiLanguage;
+    ctx.labels = m_availableLabels;
+    if (!projects.isEmpty()) {
+        for (const QVariant &v : projects) {
+            const QVariantMap m = v.toMap();
+            TaskLogic::QuickAddProject p;
+            p.id = m.value(QStringLiteral("collectionId")).toLongLong();
+            p.name = m.value(QStringLiteral("name")).toString();
+            if (p.id > 0 && !p.name.isEmpty()) {
+                ctx.projects.append(p);
+            }
+        }
+        return ctx;
+    }
+    for (int i = 0; i < m_collectionModel.count(); ++i) {
+        if (!m_collectionModel.enabledAt(i) || !m_collectionModel.writableAt(i)) {
+            continue;
+        }
+        TaskLogic::QuickAddProject p;
+        p.id = m_collectionModel.collectionIdAt(i);
+        p.name = m_collectionModel.nameAt(i);
+        ctx.projects.append(p);
+    }
+    return ctx;
+}
+
+QVariantMap TaskController::quickAddToVariant(const TaskLogic::QuickAdd &parsed) const
+{
     QVariantMap out;
     out.insert(QStringLiteral("summary"), parsed.summary);
     out.insert(QStringLiteral("hasDue"), parsed.hasDue);
@@ -599,6 +663,17 @@ QVariantMap TaskController::parseQuickAdd(const QString &text) const
     out.insert(QStringLiteral("due"), parsed.due);
     out.insert(QStringLiteral("priority"), parsed.priority);
     out.insert(QStringLiteral("labels"), parsed.labels);
+    out.insert(QStringLiteral("collectionId"), parsed.collectionId);
+    QVariantList spans;
+    for (const TaskLogic::QuickAddSpan &span : parsed.spans) {
+        QVariantMap m;
+        m.insert(QStringLiteral("start"), span.start);
+        m.insert(QStringLiteral("length"), span.length);
+        m.insert(QStringLiteral("kind"), span.kind);
+        m.insert(QStringLiteral("value"), span.value);
+        spans.append(m);
+    }
+    out.insert(QStringLiteral("spans"), spans);
     return out;
 }
 

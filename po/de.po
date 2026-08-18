@@ -125,6 +125,33 @@ msgstr "Hier ablegen, um eine Hauptaufgabe zu erstellen"
 msgid "Add a task…"
 msgstr "Aufgabe hinzufügen …"
 
+msgid "Add a task…  tomorrow 18:00 !high #tag @project"
+msgstr "Aufgabe hinzufügen …  morgen 18:00 !hoch #tag @projekt"
+
+msgid "Yesterday"
+msgstr "Gestern"
+
+msgid "Next week"
+msgstr "Nächste Woche"
+
+msgid "Tonight"
+msgstr "Heute Abend"
+
+msgid "No priority"
+msgstr "Keine Priorität"
+
+msgid "Backend not installed"
+msgstr "Backend nicht installiert"
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "Das Paket aus dem KDE Store ist nur das Widget. Dieses Kommando im Terminal ausführen, um das Plugin zu installieren:"
+
+msgid "Copy command"
+msgstr "Befehl kopieren"
+
+msgid "Open GitHub"
+msgstr "GitHub öffnen"
+
 msgid "Add task"
 msgstr "Aufgabe hinzufügen"
 

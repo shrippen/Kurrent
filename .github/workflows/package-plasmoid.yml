@@ -1,4 +1,4 @@
-name: Package plasmoid
+name: Release packages
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to attach the .plasmoid to (empty = artifact only)"
+        description: "Release tag to attach artifacts to (empty = artifact only)"
         required: false
         default: ""
 
@@ -57,10 +57,63 @@ jobs:
           else
             TAG="${REF_NAME}"
           fi
+          chmod +x install-linux.sh
           if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release upload "${TAG}" dist/*.plasmoid --clobber
+            gh release upload "${TAG}" dist/*.plasmoid install-linux.sh --clobber
           else
-            gh release create "${TAG}" dist/*.plasmoid \
+            gh release create "${TAG}" dist/*.plasmoid install-linux.sh \
+              --title "Kurrent ${TAG#v}" \
+              --generate-notes
+          fi
+
+  linux-binary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build plugin tarball (Arch)
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src archlinux:latest bash -lc '
+            set -euo pipefail
+            pacman -Syu --noconfirm
+            pacman -S --noconfirm --needed \
+              base-devel cmake extra-cmake-modules python gettext \
+              qt6-base qt6-declarative \
+              kcalendarcore ki18n kconfig knotifications kglobalaccel \
+              akonadi akonadi-calendar
+            chmod +x scripts/package-linux-bin.sh
+            scripts/package-linux-bin.sh
+            ls -lh dist/kurrent-linux-*.tar.gz
+          '
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: dist/kurrent-linux-*.tar.gz
+
+      - name: Attach to GitHub Release
+        if: github.event_name != 'workflow_dispatch' || inputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "release" ]; then
+            TAG="${RELEASE_TAG}"
+          elif [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            TAG="${INPUT_TAG}"
+          else
+            TAG="${REF_NAME}"
+          fi
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" dist/kurrent-*.tar.gz --clobber
+          else
+            gh release create "${TAG}" dist/kurrent-*.tar.gz \
               --title "Kurrent ${TAG#v}" \
               --generate-notes
           fi

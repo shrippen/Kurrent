@@ -125,6 +125,33 @@ msgstr "Suelta aquí para convertirla en tarea principal"
 msgid "Add a task…"
 msgstr "Añadir una tarea…"
 
+msgid "Add a task…  tomorrow 18:00 !high #tag @project"
+msgstr "Añadir una tarea…  tomorrow 18:00 !high #tag @project"
+
+msgid "Yesterday"
+msgstr "Ayer"
+
+msgid "Next week"
+msgstr "Próxima semana"
+
+msgid "Tonight"
+msgstr "Esta noche"
+
+msgid "No priority"
+msgstr "Sin prioridad"
+
+msgid "Backend not installed"
+msgstr "Motor no instalado"
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "El paquete de KDE Store es solo el widget. Ejecuta esto en una terminal para instalar el complemento:"
+
+msgid "Copy command"
+msgstr "Copiar comando"
+
+msgid "Open GitHub"
+msgstr "Abrir GitHub"
+
 msgid "Add task"
 msgstr "Añadir tarea"
 

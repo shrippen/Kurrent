@@ -80,6 +80,7 @@ private Q_SLOTS:
     void reschedulePresets();
     void joinUrlExtraction();
     void parseQuickAddTokens();
+    void parseQuickAddFuzzyLanguageAndProjects();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -860,7 +861,9 @@ void TaskLogicTest::parseQuickAddTokens()
     QCOMPARE(parsed.priority, 1);
     QCOMPARE(parsed.labels, QStringList{QStringLiteral("einkauf")});
 
-    const TaskLogic::QuickAdd heute = TaskLogic::parseQuickAdd(QStringLiteral("Call heute"), today, now);
+    TaskLogic::QuickAddContext de;
+    de.uiLanguage = QStringLiteral("de");
+    const TaskLogic::QuickAdd heute = TaskLogic::parseQuickAdd(QStringLiteral("Call heute"), today, now, de);
     QVERIFY(heute.hasDue);
     QVERIFY(heute.allDay);
     QCOMPARE(heute.due.date(), today);
@@ -872,6 +875,54 @@ void TaskLogicTest::parseQuickAddTokens()
 
     const TaskLogic::QuickAdd late = TaskLogic::parseQuickAdd(QStringLiteral("Gym 08:00"), today, QTime(9, 0));
     QCOMPARE(late.due.date(), QDate(2026, 8, 14));
+}
+
+void TaskLogicTest::parseQuickAddFuzzyLanguageAndProjects()
+{
+    const QDate today(2026, 8, 13);
+    const QTime now(9, 0);
+    TaskLogic::QuickAddContext ctx;
+    ctx.uiLanguage = QStringLiteral("de");
+    TaskLogic::QuickAddProject work;
+    work.id = 42;
+    work.name = QStringLiteral("Work");
+    ctx.projects.append(work);
+    ctx.labels.append(QStringLiteral("einkauf"));
+
+    const TaskLogic::QuickAdd typo = TaskLogic::parseQuickAdd(QStringLiteral("Milk tommorow !hihg"), today, now, ctx);
+    QCOMPARE(typo.summary, QStringLiteral("Milk"));
+    QVERIFY(typo.hasDue);
+    QCOMPARE(typo.due.date(), QDate(2026, 8, 14));
+    QCOMPARE(typo.priority, 1);
+
+    const TaskLogic::QuickAdd title = TaskLogic::parseQuickAdd(QStringLiteral("The high road tomorrow"), today, now, ctx);
+    QCOMPARE(title.summary, QStringLiteral("The high road"));
+    QCOMPARE(title.priority, 0);
+
+    const TaskLogic::QuickAdd project = TaskLogic::parseQuickAdd(QStringLiteral("Invoice @Work"), today, now, ctx);
+    QCOMPARE(project.summary, QStringLiteral("Invoice"));
+    QCOMPARE(project.collectionId, qint64(42));
+
+    TaskLogic::QuickAddContext en;
+    en.uiLanguage = QStringLiteral("en");
+    const TaskLogic::QuickAdd enHeute = TaskLogic::parseQuickAdd(QStringLiteral("Call heute"), today, now, en);
+    QCOMPARE(enHeute.summary, QStringLiteral("Call heute"));
+    QVERIFY(!enHeute.hasDue);
+
+    const TaskLogic::QuickAdd next = TaskLogic::parseQuickAdd(QStringLiteral("Report next week"), today, now, en);
+    QVERIFY(next.hasDue);
+    QCOMPARE(next.due.date(), QDate(2026, 8, 20));
+
+    const TaskLogic::QuickAdd fuzzyLabel = TaskLogic::parseQuickAdd(QStringLiteral("Buy #einkuf"), today, now, ctx);
+    QCOMPARE(fuzzyLabel.labels, QStringList{QStringLiteral("einkauf")});
+
+    const TaskLogic::QuickAddSuggestResult suggest = TaskLogic::suggestQuickAdd(QStringLiteral("Milk tom"), 8, ctx);
+    QVERIFY(!suggest.items.isEmpty());
+    QCOMPARE(suggest.items.first().value, QStringLiteral("tomorrow"));
+
+    const TaskLogic::QuickAddSuggestResult projects = TaskLogic::suggestQuickAdd(QStringLiteral("Note @W"), 7, ctx);
+    QVERIFY(!projects.items.isEmpty());
+    QCOMPARE(projects.items.first().collectionId, qint64(42));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

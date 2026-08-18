@@ -1,3 +1,5 @@
+> **Note:** This is completely vibe coded from start to finish. This is simply something I wanted for myself but might as well share here.
+
 <p align="center">
   <img src="icons/kurrent-mark.png" width="128" height="128" alt="Kurrent">
 </p>
@@ -43,7 +45,15 @@ akonadictl status
 
 ## Install
 
-From source (widget + Akonadi QML plugin):
+Until AUR and COPR packages exist, the supported install is this one-liner. It downloads the prebuilt plugin from the latest GitHub Release (plus the `.plasmoid` UI) into `~/.local`:
+
+```bash
+curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash
+```
+
+`sudo` is only for distro packages. The widget is installed as your user (`SUDO_USER`). Without sudo, use `bash <(curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh)` so a password prompt can use the terminal. Pin a release with `| bash -s -- --tag v0.2.0`. Compile instead of using the Arch-built `.so`: `| bash -s -- --from-source`.
+
+From a git checkout (widget + Akonadi QML plugin):
 
 ```bash
 ./install.sh
@@ -51,13 +61,17 @@ From source (widget + Akonadi QML plugin):
 
 Then add the **Kurrent** widget to your panel or desktop.
 
-Each GitHub Release includes a `.plasmoid` package for the [KDE Store](https://store.kde.org/) and for installing the widget UI with:
+Each GitHub Release includes:
+
+- a `.plasmoid` zip for the [KDE Store](https://store.kde.org/) (widget UI only)
+- `kurrent-linux-x86_64.tar.gz` — compiled Akonadi QML plugin + plasmoid for `~/.local` (built on Arch Linux)
+- `install-linux.sh` — the one-liner above
 
 ```bash
 kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.2.0.plasmoid
 ```
 
-The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widget, translations, and metadata; full task access still needs `./install.sh` (or a distro package) so the plugin is on the QML import path.
+The Akonadi backend is a compiled QML plugin. The `.plasmoid` from the KDE Store is only the widget UI — if you install that alone, Kurrent shows how to get the plugin instead of a QML error. Full task access needs the one-liner, `./install.sh`, or a distro package so `libkurrentplugin.so` is on the QML import path. The prebuilt tarball is linked against Arch’s Plasma 6 / KDE PIM; on other distros the installer falls back to compiling from source.
 
 ## Features
 
@@ -71,7 +85,7 @@ The Akonadi backend is a compiled QML plugin. The `.plasmoid` contains the widge
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for the remaining path to 1.0 (AUR packaging, and the rest of the 0.3/0.4 catalog).
+See [ROADMAP.md](ROADMAP.md) for the remaining path to 1.0 (AUR + COPR, then OBS / Debian if cheap, and the rest of the 0.3/0.4 catalog).
 
 ## Configuration
 

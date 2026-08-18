@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
-import com.github.shrippen.kurrent 1.0
 import "colors.js" as Colors
 import "."
 import "components"
@@ -16,7 +15,7 @@ KCM.SimpleKCM {
     property string cfg_projectColors
 
     readonly property int writableProjectCount: {
-        var model = configController.collectionModel
+        var model = configController ? configController.collectionModel : null
         if (!model) {
             return 0
         }
@@ -29,9 +28,11 @@ KCM.SimpleKCM {
         return count
     }
 
-    TaskController {
-        id: configController
+    Loader {
+        id: configControllerLoader
+        source: Qt.resolvedUrl("PluginController.qml")
     }
+    readonly property var configController: configControllerLoader.item
 
     function hiddenSet() {
         var raw = cfg_hiddenProjects || ""
@@ -58,7 +59,7 @@ KCM.SimpleKCM {
     }
 
     function writableCollectionIds() {
-        var model = configController.collectionModel
+        var model = configController ? configController.collectionModel : null
         var ids = []
         if (!model) {
             return ids
@@ -120,11 +121,20 @@ KCM.SimpleKCM {
     }
 
     function applyColor(collectionId, hex) {
+        if (!configController) {
+            return
+        }
         cfg_projectColors = configController.setColorOverride(cfg_projectColors || "", String(collectionId), hex)
     }
 
     ConfigFormShell {
         id: shell
+
+        PluginMissingView {
+            visible: configControllerLoader.status === Loader.Error
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? implicitHeight : 0
+        }
 
         Kirigami.Heading {
             text: i18n("Projects (Akonadi Calendars)")
@@ -155,7 +165,7 @@ KCM.SimpleKCM {
 
             Repeater {
                 id: projectRepeater
-                model: configController.collectionModel
+                model: configController ? configController.collectionModel : 0
 
                 delegate: Kirigami.AbstractCard {
                     visible: model.writable
@@ -260,7 +270,7 @@ KCM.SimpleKCM {
             QQC2.Button {
                 text: i18n("Refresh")
                 icon.name: "view-refresh"
-                onClicked: configController.refresh()
+                onClicked: if (configController) configController.refresh()
             }
         }
     }

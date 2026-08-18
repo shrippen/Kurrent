@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
-import com.github.shrippen.kurrent 1.0
 import "components"
 
 KCM.SimpleKCM {
@@ -35,6 +34,12 @@ KCM.SimpleKCM {
     ConfigFormShell {
         Kirigami.FormLayout {
             Layout.fillWidth: true
+
+            PluginMissingView {
+                visible: settingsControllerLoader.status === Loader.Error
+                Layout.fillWidth: true
+                Layout.preferredHeight: visible ? implicitHeight : 0
+            }
 
             Kirigami.Heading {
                 Kirigami.FormData.label: i18n("Akonadi")
@@ -113,7 +118,7 @@ KCM.SimpleKCM {
                 Kirigami.FormData.label: visible ? i18n("Default project") : ""
                 Layout.fillWidth: true
                 Layout.maximumWidth: Kirigami.Units.gridUnit * 24
-                collectionModel: settingsController.collectionModel
+                collectionModel: settingsController ? settingsController.collectionModel : null
                 hiddenProjects: plasmoid.configuration.hiddenProjects || ""
                 includeEmptyProjects: true
                 includeHiddenProjects: true
@@ -178,9 +183,10 @@ KCM.SimpleKCM {
         id: newTaskModeGroup
     }
 
-    TaskController {
-        id: settingsController
-        Component.onCompleted: {
+    Loader {
+        id: settingsControllerLoader
+        source: Qt.resolvedUrl("PluginController.qml")
+        onLoaded: {
             var raw = plasmoid.configuration.enabledCollections || ""
             if (!raw.trim()) {
                 defaultProjectPicker.rebuild()
@@ -195,9 +201,10 @@ KCM.SimpleKCM {
                 }
             }
             if (ids.length > 0) {
-                settingsController.setEnabledCollectionIds(ids)
+                item.setEnabledCollectionIds(ids)
             }
             defaultProjectPicker.rebuild()
         }
     }
+    readonly property var settingsController: settingsControllerLoader.item
 }

@@ -14,6 +14,7 @@
 #include <QPointF>
 #include <QSet>
 #include <QTimer>
+#include <QVariantList>
 #include <QVariantMap>
 
 namespace Akonadi
@@ -155,7 +156,13 @@ public:
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void syncNow();
     Q_INVOKABLE void createTask(const QString &summary, qint64 collectionId);
-    Q_INVOKABLE QVariantMap parseQuickAdd(const QString &text) const;
+    Q_INVOKABLE QVariantMap parseQuickAdd(const QString &text,
+                                          const QString &uiLanguage = QString(),
+                                          const QVariantList &projects = QVariantList()) const;
+    Q_INVOKABLE QVariantMap suggestQuickAdd(const QString &text,
+                                            int cursor,
+                                            const QString &uiLanguage,
+                                            const QVariantList &projects) const;
     Q_INVOKABLE void rescheduleTask(qint64 itemId, const QString &preset);
     Q_INVOKABLE QString joinUrlFor(const QString &description, const QString &location) const;
     Q_INVOKABLE void updateTask(qint64 itemId,
@@ -233,6 +240,8 @@ private:
         qint64 revertCollectionId = -1;
     };
 
+    TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
+    QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
     void setLoading(bool loading);
     void setErrorMessage(const QString &message);
     void updateEmptyKind();

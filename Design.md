@@ -98,6 +98,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Ein Schritt **Undo** (Complete / Reschedule / Move / Delete) in der Toolbar und per Standard-Undo-Shortcut.
 - Unteraufgaben: Pfeil klappt den Teilbaum ein (`flattenTree` lässt Kinder weg).
 - Akonadi aus / keine Kalender / leere View: `Kirigami.PlaceholderMessage`, kein nackter Fehlerstring.
+- **KDE Store / `.plasmoid`:** nur Widget-UI. Das Akonadi-Backend ist ein kompiliertes QML-Modul (`com.github.shrippen.kurrent`). `main.qml` importiert es nicht statisch — fehlt das Plugin, bleibt das Widget stehen und zeigt `PluginMissingView` statt „module is not installed“: Placeholder, danach der Release-Einzeiler `https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh` in einem wählbaren Feld (`padInner`, `inputRadius`, Rahmen wie Editor-Felder) plus **Copy command** und GitHub. Vollständig: One-Liner (Binary aus dem Release) oder `./install.sh`.
 - Widget-Load darf Akonadi nicht blockieren: Icon und Chrome zuerst, dann D-Bus/Shortcuts (`QTimer::singleShot(0)`), dann `refresh()` (`Qt.callLater`). `ServerManager::start()` ist async, nie `Control::start()`. Cache darf Badge/Liste sofort füllen. Solange der Server startet: Placeholder `loading`; wenn er down bleibt: `offline` plus 5s-Retry. Erst nach `Running` Monitor + Fetch.
 - Panel: `preloadFullRepresentation: false`, `preferredRepresentation` ist das Compact-Icon. Plasma delayed-preloadet nur eine leere Größen-Hülle; `FullView.qml` (Sidebar, Liste, Editor) wird erst beim ersten Öffnen des Flyouts geladen.
 - Zeile: Klick öffnet Inline- oder Full-Editor (KCM); Chips für Datum/Label/Priorität/Recurring/Join abschaltbar. Fälligkeitschip: optionale relative Labels (Heute/Morgen/Gestern) und Uhrzeit.
@@ -107,7 +108,9 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Today: fällig heute, gruppiert nach Morning/Afternoon/Evening (`Design` + Stunden im KCM). Unerledigtes der letzten N Tage als Abschnitt **Still open** (Catch-up), kein Auto-Rollover. Overdue ist eine eigene Sidebar-View.
 - Meeting-URL in Beschreibung/Ort: kompakter Join-Knopf in der Zeile (`internet-services`).
 - Rechtsklick: Reschedule (15 min / 1 h / 4 h / morgen / nächste Woche).
-- Quick Add im Anlegefeld: `tomorrow 18:00`, `heute`, `!high`, `#label`.
+- Quick Add im Anlegefeld: Natural Language auf **Englisch plus der UI-Sprache**. Bare Datums-Wörter (`tomorrow` / `morgen`, `next week` / `nächste woche`, Wochentage), Uhrzeit (`18:00`, `6pm`, `18 Uhr`), Präfixe `!priority`, `#label`, `@projekt`.
+- Erkannte Schlüsselwörter werden im Feld farbig und fett hervorgehoben — sie gehören nicht zum Aufgabentitel. Vorschläge (unvollständige oder vertippten Tokens) per ↑/↓, Tab übernimmt, Enter übernimmt wenn der Token noch nicht vollständig ist, sonst legt an. Escape schließt die Liste.
+- Fuzzy nur dort, wo klar ein Schlüsselwort gemeint ist: Tippfehler (`tommorow`, `!hihg`) mit Damerau-Distanz, Prefix-Tokens (`!` `#` `@`) schon ab 3 Zeichen. Bare Wörter wie `high` in „The high road“ bleiben Titel. `@` matched Projektnamen (schreibbare, nicht versteckte Kalender).
 - Visuell: blasser, `BusyIndicator`, Zeile nicht erneut klickbar. Bei Fehler: Snapshot zurück.
 - Neue Aufgaben: temporäre negative Item-ID, nach Create durch die echte ersetzen.
 

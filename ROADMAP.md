@@ -26,9 +26,9 @@ Settings stay **shared** across desktop widget and panel flyout (`~/.config/com.
 
 ## 0.2 — shipped 2026-08-18
 
-**0.2.0** shipped the settings foundation, catch-up, and honest release notes. AUR packaging is **not** in this repo; install is still `./install.sh` plus the GitHub `.plasmoid` (widget UI only — it does not replace `libkurrentplugin.so`). Several 0.3/0.4 items also landed in 0.2.0; see [CHANGELOG.md](CHANGELOG.md).
+**0.2.0** shipped the settings foundation, catch-up, and honest release notes. Distro packages are **not** in this repo yet; until AUR/COPR exist, install with `install-linux.sh` from GitHub Releases (prebuilt `kurrent-linux-x86_64.tar.gz`, or `--from-source`). The Store `.plasmoid` is widget UI only — it does not replace `libkurrentplugin.so`. Several 0.3/0.4 items also landed in 0.2.0; see [CHANGELOG.md](CHANGELOG.md).
 
-- AUR `kurrent` (CMake plugin + plasmoid) — still not shipped.
+- AUR `kurrent` / `kurrent-git` — still not shipped (see Easy install).
 - Honest release notes; `ctest` in CI.
 - Persist sort mode in `kurrentrc`.
 - Empty/error UI when Akonadi is missing or no todo collections are enabled.
@@ -154,9 +154,40 @@ Each page has reset-to-defaults. Desktop and panel stay in sync.
 
 ---
 
+## Easy install (1.0 packaging)
+
+Compiling from a git clone is the fallback, not the product. The bar for 1.0 is: add the widget, get a working Akonadi plugin, no CMake in the user’s face.
+
+**Now (until packages exist):** one-liner that installs the **GitHub Release binary** (`kurrent-linux-x86_64.tar.gz`, plugin + plasmoid) into `~/.local`. Compiling is the fallback (`--from-source`) when the `.so` does not match the distro. Prefer AUR/COPR once they exist.
+
+```bash
+curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash
+```
+
+`sudo` is for packages only. The script installs the widget as `$SUDO_USER` (do not log in as root). Without sudo: `bash <(curl -fsSL …/install-linux.sh)` so a password prompt can use the terminal. Pin 0.2: `| bash -s -- --tag v0.2.0`. Every `v*` tag publishes `.plasmoid` + Linux plugin tarball + this script.
+
+**Must have for 1.0**
+
+- **AUR:** `kurrent` (release tarball / tag, plugin + plasmoid) and `kurrent-git` (tracking `1.0` / `main`). Arch is the primary desktop for this project; this is the first channel.
+- **COPR:** Fedora RPM with the same layout (`~` or `/usr` — prefer a proper `/usr` prefix so QML import paths do not need `plasma-workspace/env`). Enable with `dnf copr enable …` then `dnf install kurrent`.
+
+**Should have (same 1.0 window if the spec ports cheaply)**
+
+- **OBS** (openSUSE Tumbleweed, Leap if KF6 PIM is there): one RPM spec can feed OBS and stay close to COPR.
+- **Debian / Ubuntu / KDE neon:** `.deb` or a PPA. Neon is the obvious Ubuntu-family target. Only ship if KPim6 Akonadi devel is installable on the suite we claim.
+
+**Nice, not a 1.0 gate**
+
+- Nixpkgs overlay / flake (user profile, not a substitute for AUR/COPR).
+- Do **not** chase Flatpak or a Store-only native plugin for 1.0: KPackage/GHNS cannot ship `libkurrentplugin.so`; Flatpak + Akonadi is a later research item.
+
+Packaging work lives outside this application repo (AUR `PKGBUILD`, COPR spec) so release tags stay small. Link those repos from the README once they exist.
+
+---
+
 ## 1.0 ship criteria
 
-1. Install without git (AUR or equivalent) plus Store `.plasmoid` with a clear plugin note.
+1. **Easy install without compiling from a git clone:** AUR (`kurrent` from tags + `kurrent-git`) and Fedora COPR at minimum. Stretch: OBS (openSUSE Tumbleweed/Leap) and a Debian/Ubuntu package or PPA. Until those exist, the `install-linux.sh` one-liner. Store `.plasmoid` stays UI-only with a plugin note.
 2. Nextcloud round-trip: create, due, label, subtask, recur, complete the series, reminder — visible in Merkuro/Nextcloud and back.
 3. Keyboard-only daily use in the widget.
 4. All KCM pages above, with reset; desktop and panel identical.
@@ -176,4 +207,4 @@ Each page has reset-to-defaults. Desktop and panel stay in sync.
 
 ## Build order
 
-0.2 packaging (except AUR) and Today catch-up shipped in 0.2.0. Remaining 0.3/0.4 catalog, then KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.
+0.2 packaging (except AUR/COPR) and Today catch-up shipped in 0.2.0. One-liner installer is the bridge to distro packages. Remaining 0.3/0.4 catalog, then KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.

@@ -622,12 +622,14 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: controller.emptyKind === "" || controller.emptyKind === "empty" || controller.emptyKind === "error"
 
-        QQC2.TextField {
+        QuickAddField {
             id: newTaskField
             Layout.fillWidth: true
-            placeholderText: i18n("Add a task…  tomorrow 18:00 !high #tag")
-            Keys.onReturnPressed: addTask()
-            Keys.onEnterPressed: addTask()
+            placeholderText: i18n("Add a task…  tomorrow 18:00 !high #tag @project")
+            controller: root.controller
+            projects: root.writableProjects
+            popupHost: root.dragHost || root
+            onAccepted: root.addTask()
         }
 
         QQC2.ToolButton {
@@ -806,6 +808,12 @@ ColumnLayout {
         return firstNonHidden
     }
 
+    readonly property var writableProjects: {
+        var _count = controller.collectionModel ? controller.collectionModel.count : 0
+        var _hidden = hiddenProjects
+        return askProjectList()
+    }
+
     function askProjectList() {
         var model = controller.collectionModel
         var out = []
@@ -837,6 +845,12 @@ ColumnLayout {
     function addTask() {
         var text = newTaskField.text.trim()
         if (!text) {
+            return
+        }
+        var parsed = controller.parseQuickAdd(text, Qt.locale().name, writableProjects)
+        if (parsed && parsed.collectionId > 0) {
+            controller.createTask(text, parsed.collectionId)
+            newTaskField.text = ""
             return
         }
         var collectionId = controller.selectedCollectionId
