@@ -240,7 +240,8 @@ Item {
         id: field
         width: root.width
         height: implicitHeight
-        color: highlightLabel.visible ? "transparent" : Kirigami.Theme.textColor
+        readonly property bool hasSelection: selectionStart !== selectionEnd
+        color: (highlightLabel.visible && !hasSelection) ? "transparent" : Kirigami.Theme.textColor
         selectedTextColor: Kirigami.Theme.highlightedTextColor
         selectionColor: Kirigami.Theme.highlightColor
         Keys.priority: Keys.BeforeItem
@@ -292,8 +293,10 @@ Item {
 
     Text {
         id: highlightLabel
-        parent: field.contentItem || field
-        anchors.fill: parent
+        x: field.leftPadding
+        y: field.topPadding
+        width: field.width - field.leftPadding - field.rightPadding
+        height: field.height - field.topPadding - field.bottomPadding
         font: field.font
         verticalAlignment: Text.AlignVCenter
         textFormat: Text.StyledText
@@ -302,7 +305,7 @@ Item {
         elide: Text.ElideRight
         clip: true
         renderType: field.renderType
-        visible: field.text.length > 0
+        visible: field.text.length > 0 && !field.hasSelection
     }
 
     QQC2.Popup {

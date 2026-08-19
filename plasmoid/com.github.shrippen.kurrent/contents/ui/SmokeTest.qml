@@ -50,71 +50,72 @@ Item {
             return
         }
 
-        switch (i) {
-        case 9:
+        var base = views.length + 1
+        switch (i - base) {
+        case 0:
             backend.searchQuery = "qa-smoke"
             return
-        case 10:
+        case 1:
             backend.searchQuery = ""
             return
-        case 11:
+        case 2:
             backend.showCompleted = true
             return
-        case 12:
+        case 3:
             backend.showCompleted = false
             return
-        case 13:
+        case 4:
             backend.sortMode = "due"
             return
-        case 14:
+        case 5:
             backend.sortMode = "priority,title"
             return
-        case 15:
+        case 6:
             backend.sortMode = "default"
             return
-        case 16:
+        case 7:
             backend.selectedPriority = 1
             return
-        case 17:
+        case 8:
             backend.selectedPriority = 5
             return
-        case 18:
+        case 9:
             backend.selectedPriority = 0
             return
-        case 19:
+        case 10:
             backend.selectedPriority = -1
             return
-        case 20:
+        case 11:
             if (backend.availableLabels && backend.availableLabels.length > 0) {
                 backend.selectedLabel = backend.availableLabels[0]
             }
             return
-        case 21:
+        case 12:
             backend.selectedLabel = ""
             return
-        case 22:
+        case 13:
             if (backend.collectionModel && backend.collectionModel.count > 0) {
                 backend.selectedCollectionId = backend.collectionModel.collectionIdAt(0)
             }
             return
-        case 23:
+        case 14:
             backend.selectedCollectionId = -1
             return
-        case 24:
+        case 15:
             fullRoot.openSortMenu()
             return
-        case 25:
+        case 16:
             if (sortMenu) {
                 sortMenu.close()
             }
             return
-        case 26:
+        case 17:
             backend.systemCursorSize()
             backend.dragScreenLimits()
             backend.dragProxyGap(24, 0)
             backend.clampDragProxyOffset(100, 100, 14, 14, 180, 48, 1920, 1080)
             return
-        case 27:
+        case 18:
             fullRoot.beginTaskDrag({
                 itemId: -1,
                 uid: "smoke-uid",
@@ -130,7 +131,7 @@ Item {
             fullRoot.clearDropHint("smoke")
             fullRoot.endTaskDrag()
             return
-        case 28:
+        case 19:
             if (taskFullEditor) {
                 taskFullEditor.task = {
                     summary: "Smoke editor",
@@ -149,23 +150,23 @@ Item {
                 taskFullEditor.open()
             }
             return
-        case 29:
+        case 20:
             if (taskFullEditor) {
                 taskFullEditor.close()
             }
             return
-        case 30:
+        case 21:
             if (taskList && taskList.projectAskPopup) {
                 taskList.askProjects = [{ collectionId: 1, name: "Smoke" }]
                 taskList.projectAskPopup.open()
             }
             return
-        case 31:
+        case 22:
             if (taskList && taskList.projectAskPopup) {
                 taskList.projectAskPopup.close()
             }
             return
-        case 32:
+        case 23:
             backend.currentView = "inbox"
             backend.smokeTrace("KURRENT_SMOKE_DONE")
             runner.stop()
