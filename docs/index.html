@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kurrent — Plasma 6 Task Manager</title>
+<meta name="description" content="A KDE Plasma 6 task manager widget powered by Akonadi and Nextcloud CalDAV. Inbox, Today, Projects, Labels — right on your desktop.">
+<meta property="og:title" content="Kurrent — Plasma 6 Task Manager">
+<meta property="og:description" content="A KDE Plasma 6 task widget powered by Akonadi and Nextcloud CalDAV.">
+<meta property="og:image" content="https://shrippen.github.io/Kurrent/screenshot.jpg">
+<meta property="og:url" content="https://shrippen.github.io/Kurrent/">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#111113;--bg2:#1a1a1e;--fg:#e8dcc4;--fg2:#a09882;
+  --accent:#3daee9;--accent2:#27d796;--red:#e85050;
+  --radius:12px;--max:860px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
+  --mono:'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);line-height:1.6;
+  -webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* hero */
+.hero{display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:5rem 1.5rem 3rem;max-width:var(--max);margin:0 auto}
+.hero-icon{width:88px;height:88px;margin-bottom:1.5rem;filter:drop-shadow(0 0 24px rgba(61,174,233,.25))}
+.hero h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem}
+.hero .tagline{font-size:1.15rem;color:var(--fg2);max-width:520px;margin-bottom:2rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem}
+.badges img{height:22px}
+
+/* install card */
+.install-card{background:var(--bg2);border:1px solid #2a2a30;border-radius:var(--radius);
+  padding:1.5rem;width:100%;max-width:640px;margin-bottom:1rem}
+.install-card label{display:block;font-size:.8rem;color:var(--fg2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em}
+.cmd-row{display:flex;gap:.5rem;align-items:stretch}
+.cmd-box{flex:1;background:#0d0d0f;border:1px solid #2a2a30;border-radius:8px;padding:.7rem 1rem;
+  font-family:var(--mono);font-size:.85rem;color:var(--accent);white-space:nowrap;overflow-x:auto;
+  user-select:all;-webkit-user-select:all;cursor:text}
+.cmd-box::-webkit-scrollbar{height:4px}
+.cmd-box::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.copy-btn{background:#2a2a30;border:1px solid #3a3a40;border-radius:8px;padding:.7rem .9rem;
+  cursor:pointer;color:var(--fg);font-size:.95rem;transition:background .15s}
+.copy-btn:hover{background:#3a3a44}
+.copy-btn.copied{background:#1a3a2a;border-color:var(--accent2);color:var(--accent2)}
+.install-note{font-size:.78rem;color:var(--fg2);margin-top:.6rem}
+.install-links{display:flex;gap:1rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.2rem;border-radius:8px;
+  font-size:.88rem;font-weight:500;transition:all .15s;border:1px solid transparent}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#2c9ad8;text-decoration:none}
+.btn-ghost{border-color:#3a3a40;color:var(--fg2)}
+.btn-ghost:hover{border-color:var(--fg2);color:var(--fg);text-decoration:none}
+.btn svg{width:16px;height:16px;fill:currentColor}
+
+/* screenshot */
+.screenshot-wrap{padding:2.5rem 1.5rem;max-width:var(--max);margin:0 auto;text-align:center}
+.screenshot-wrap img{width:100%;max-width:780px;border-radius:var(--radius);
+  border:1px solid #2a2a30;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+
+/* features */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;
+  padding:2rem 1.5rem 3rem;max-width:var(--max);margin:0 auto}
+.feat{background:var(--bg2);border:1px solid #2a2a30;border-radius:var(--radius);padding:1.3rem}
+.feat h3{font-size:1rem;margin-bottom:.35rem}
+.feat p{font-size:.88rem;color:var(--fg2);line-height:1.5}
+
+/* prereqs */
+.section{padding:2rem 1.5rem;max-width:var(--max);margin:0 auto}
+.section h2{font-size:1.5rem;font-weight:600;margin-bottom:1rem}
+.section ul{list-style:none;padding:0}
+.section li{position:relative;padding-left:1.4rem;margin-bottom:.5rem;color:var(--fg2);font-size:.92rem}
+.section li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
+
+/* footer */
+footer{border-top:1px solid #2a2a30;padding:2rem 1.5rem;text-align:center;
+  color:var(--fg2);font-size:.82rem;margin-top:2rem}
+footer a{color:var(--fg2)}
+footer a:hover{color:var(--fg)}
+
+@media(max-width:500px){
+  .cmd-box{font-size:.75rem;padding:.6rem .7rem}
+  .hero{padding:3rem 1rem 2rem}
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <img class="hero-icon" src="icon.svg" alt="Kurrent icon">
+  <h1>Kurrent</h1>
+  <p class="tagline">A KDE Plasma 6 task manager powered by Akonadi&nbsp;&amp;&nbsp;Nextcloud&nbsp;CalDAV. Inbox, Today, Projects, and Labels — right on your desktop.</p>
+
+  <div class="badges">
+    <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.0"><img alt="Version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-e8dcc4?labelColor=1c1c20"></a>
+    <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
+    <img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey?labelColor=1c1c20">
+  </div>
+
+  <div class="install-card">
+    <label>Install with one command</label>
+    <div class="cmd-row">
+      <div class="cmd-box" id="cmd">curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash</div>
+      <button class="copy-btn" id="copyBtn" title="Copy to clipboard" onclick="copyCmd()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+    </div>
+    <p class="install-note"><code>sudo</code> is only for distro packages — the widget installs as your user. On non-Arch distros the installer falls back to compiling from source.</p>
+  </div>
+
+  <div class="install-links">
+    <a class="btn btn-primary" href="https://github.com/shrippen/Kurrent/releases/latest">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download v0.2.0
+    </a>
+    <a class="btn btn-ghost" href="https://github.com/shrippen/Kurrent">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+    <a class="btn btn-ghost" href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a>
+  </div>
+</section>
+
+<section class="screenshot-wrap">
+  <img src="screenshot.jpg" alt="Kurrent desktop widget showing Today view with sidebar, projects, labels, and quick-add" loading="lazy">
+</section>
+
+<section class="features">
+  <div class="feat">
+    <h3>📥 Inbox → Today flow</h3>
+    <p>Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled, and Completed views — all from Akonadi.</p>
+  </div>
+  <div class="feat">
+    <h3>⚡ Quick Add</h3>
+    <p><code>tomorrow 18:00 !high #tag @project</code> — natural-language task entry with fuzzy matching.</p>
+  </div>
+  <div class="feat">
+    <h3>🗂️ Projects &amp; Labels</h3>
+    <p>Akonadi calendars as projects, CalDAV categories as labels. Color-coded, filterable, drag-and-drop subtasks.</p>
+  </div>
+  <div class="feat">
+    <h3>🔁 CalDAV round-trip</h3>
+    <p>Uses your existing Nextcloud / KOrganizer / Merkuro CalDAV setup. No separate login.</p>
+  </div>
+  <div class="feat">
+    <h3>🖥️ Panel &amp; Desktop</h3>
+    <p>Works as a panel flyout and a desktop widget. Shared settings, shared config, same full editor.</p>
+  </div>
+  <div class="feat">
+    <h3>🌍 Translations</h3>
+    <p>German, Spanish, French, Japanese, Simplified Chinese — with Quick Add understanding your language too.</p>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Prerequisites</h2>
+  <ul>
+    <li>KDE Plasma 6</li>
+    <li>Akonadi with a task-capable calendar (DAV groupware / Nextcloud VTODO)</li>
+    <li>The installer handles build dependencies on Arch, Fedora, Debian/Ubuntu, and openSUSE</li>
+  </ul>
+</section>
+
+<section class="section">
+  <h2>How it works</h2>
+  <ul>
+    <li>Run the one-liner above — it downloads a prebuilt plugin from the latest GitHub Release into <code>~/.local</code></li>
+    <li>Add the <strong>Kurrent</strong> widget to your panel or desktop</li>
+    <li>Tasks come from your existing Akonadi collections — configure CalDAV in Merkuro or KOrganizer</li>
+    <li>The KDE Store <code>.plasmoid</code> is UI only — the install script adds the Akonadi backend plugin</li>
+  </ul>
+</section>
+
+<footer>
+  <p>GPL-3.0-or-later · Made by <a href="https://github.com/shrippen">shrippen</a> · <a href="https://github.com/shrippen/Kurrent/issues">Issues</a></p>
+</footer>
+
+<script>
+function copyCmd(){
+  var t=document.getElementById('cmd').textContent;
+  navigator.clipboard.writeText(t).then(function(){
+    var b=document.getElementById('copyBtn');
+    b.classList.add('copied');b.innerHTML='✓';
+    setTimeout(function(){b.classList.remove('copied');
+      b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    },1500);
+  });
+}
+</script>
+</body>
+</html>
