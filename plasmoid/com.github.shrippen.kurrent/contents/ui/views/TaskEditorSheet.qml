@@ -137,22 +137,13 @@ FocusScope {
     }
 
     function accept() {
-        var due = null
-        var clearDue = clearDueRequested || dueDateField.text.trim().length === 0
-        if (!clearDue) {
-            due = DateTime.combineDateTime(dueDateField.text, dueTimeField.text, allDayCheck.checked)
-            if (!due) {
-                return
-            }
+        var dueResult = DateTime.resolveDateFields(dueDateField.text, dueTimeField.text, allDayCheck.checked, clearDueRequested)
+        if (!dueResult) {
+            return
         }
-
-        var start = null
-        var clearStart = clearStartRequested || startDateField.text.trim().length === 0
-        if (!clearStart) {
-            start = DateTime.combineDateTime(startDateField.text, startTimeField.text, allDayCheck.checked)
-            if (!start) {
-                return
-            }
+        var startResult = DateTime.resolveDateFields(startDateField.text, startTimeField.text, allDayCheck.checked, clearStartRequested)
+        if (!startResult) {
+            return
         }
 
         var fields = {
@@ -169,16 +160,16 @@ FocusScope {
             "secrecy": secrecyValue,
             "recurrencePreset": recurrenceValueFor(recurrenceBox.currentIndex),
             "reminderMinutes": reminderValueFor(reminderBox.currentIndex),
-            "clearDue": clearDue,
-            "clearStart": clearStart,
+            "clearDue": dueResult.clear,
+            "clearStart": startResult.clear,
             "collectionId": projectPicker.collectionId
         }
 
-        if (!clearDue && due) {
-            fields.dueDate = due
+        if (!dueResult.clear && dueResult.date) {
+            fields.dueDate = dueResult.date
         }
-        if (!clearStart && start) {
-            fields.startDate = start
+        if (!startResult.clear && startResult.date) {
+            fields.startDate = startResult.date
         }
 
         controller.updateTaskFull(task.itemId, fields)

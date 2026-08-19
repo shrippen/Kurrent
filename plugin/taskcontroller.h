@@ -335,6 +335,8 @@ private:
     bool m_serverWatchConnected = false;
     Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
     bool m_collectionsReloadPending = false;
+    int m_collectionFetchFailures = 0;
+    bool m_collectionsInitialized = false;
     int m_pendingFetchJobs = 0;
 
     int m_lastFetchItemCount = 0;

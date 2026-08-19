@@ -486,7 +486,7 @@ void TaskController::refresh()
     if (!initializeAkonadi()) {
         return;
     }
-    loadCollections();
+    scheduleLoadCollections();
 }
 
 void TaskController::syncNow()
@@ -1551,14 +1551,20 @@ bool TaskController::attachAkonadiMonitor()
     m_monitor->setItemFetchScope(itemScope);
 
     connect(m_monitor, &Akonadi::Monitor::collectionAdded, this, [this](const Akonadi::Collection &) {
-        scheduleLoadCollections();
+        if (m_collectionsInitialized) {
+            scheduleLoadCollections();
+        }
     });
     connect(m_monitor, &Akonadi::Monitor::collectionRemoved, this, [this](const Akonadi::Collection &) {
-        scheduleLoadCollections();
+        if (m_collectionsInitialized) {
+            scheduleLoadCollections();
+        }
     });
     connect(m_monitor, static_cast<void (Akonadi::Monitor::*)(const Akonadi::Collection &, const QSet<QByteArray> &)>(&Akonadi::Monitor::collectionChanged),
             this, [this](const Akonadi::Collection &, const QSet<QByteArray> &parts) {
-                // Ignore empty/statistics-only updates (fired constantly as items change).
+                if (!m_collectionsInitialized) {
+                    return;
+                }
                 if (parts.isEmpty() || (parts.size() == 1 && parts.contains("Statistics"))) {
                     return;
                 }
@@ -1600,6 +1606,9 @@ void TaskController::scheduleLoadCollections()
     if (!m_akonadiAvailable) {
         return;
     }
+    if (!m_collectionsInitialized && !m_collectionsTimer.isActive()) {
+        m_collectionsTimer.setInterval(3500);
+    }
     m_collectionsTimer.start();
 }
 
@@ -1638,13 +1647,20 @@ void TaskController::loadCollections()
             setErrorMessage(kjob ? kjob->errorString() : tr("Failed to fetch collections."));
             logDebug(QStringLiteral("loadCollections failed: %1").arg(m_errorMessage));
             updateDebugInfo(0, 0, 0, 0, 0);
+            ++m_collectionFetchFailures;
             if (m_collectionsReloadPending) {
                 m_collectionsReloadPending = false;
-                scheduleLoadCollections();
+                const int backoffMs = std::min(kCollectionsReloadDelayMs * (1 << std::min(m_collectionFetchFailures, 6)), 30000);
+                logDebug(QStringLiteral("loadCollections retry in %1 ms (failure #%2)").arg(backoffMs).arg(m_collectionFetchFailures));
+                m_collectionsTimer.setInterval(backoffMs);
+                m_collectionsTimer.start();
             }
             return;
         }
 
+        m_collectionFetchFailures = 0;
+        m_collectionsInitialized = true;
+        m_collectionsTimer.setInterval(kCollectionsReloadDelayMs);
         m_collectionNames.clear();
         const QList<Akonadi::Collection> fetched = fetchJob->collections();
         QList<Akonadi::Collection> collections;

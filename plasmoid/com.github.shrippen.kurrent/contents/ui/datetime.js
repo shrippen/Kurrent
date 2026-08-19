@@ -96,14 +96,20 @@ function timeTokens() {
 }
 
 function formatDate(dt) {
-    if (!dt || dt.isValid !== true) {
+    if (!dt) {
+        return ""
+    }
+    if (dt.isValid === false) {
         return ""
     }
     return Qt.formatDate(dt, dateFormatString())
 }
 
 function formatTime(dt) {
-    if (!dt || dt.isValid !== true) {
+    if (!dt) {
+        return ""
+    }
+    if (dt.isValid === false) {
         return ""
     }
     return Qt.formatTime(dt, timeFormatString())
@@ -249,7 +255,7 @@ function parseDate(str) {
         return null
     }
     var d = Date.fromLocaleDateString(Qt.locale(), s, dateFormatString())
-    if (d && d.isValid === true) {
+    if (d && d.isValid !== false && !isNaN(d.getTime())) {
         return d
     }
     var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -268,7 +274,7 @@ function parseTime(str) {
         return { hours: 0, minutes: 0 }
     }
     var t = Date.fromLocaleTimeString(Qt.locale(), s, timeFormatString())
-    if (t && t.isValid === true) {
+    if (t && t.isValid !== false && !isNaN(t.getTime())) {
         return { hours: t.getHours(), minutes: t.getMinutes() }
     }
     var m = s.match(/^(\d{1,2}):(\d{2})$/)
@@ -281,6 +287,22 @@ function parseTime(str) {
         return null
     }
     return { hours: h, minutes: min }
+}
+
+/**
+ * Resolve a due/start date field triplet into { date, clear } or null on
+ * parse error (invalid non-empty input).
+ */
+function resolveDateFields(dateText, timeText, allDay, clearRequested) {
+    var clear = clearRequested || String(dateText || "").trim().length === 0
+    if (clear) {
+        return { date: null, clear: true }
+    }
+    var dt = combineDateTime(dateText, timeText, allDay)
+    if (!dt) {
+        return null
+    }
+    return { date: dt, clear: false }
 }
 
 function combineDateTime(dateStr, timeStr, allDay) {

@@ -43,13 +43,9 @@ Item {
     }
 
     function save() {
-        var due = null
-        var clearDue = clearDueRequested || dueDateField.text.trim().length === 0
-        if (!clearDue) {
-            due = DateTime.combineDateTime(dueDateField.text, dueTimeField.text, allDayCheck.checked)
-            if (!due) {
-                return
-            }
+        var dueResult = DateTime.resolveDateFields(dueDateField.text, dueTimeField.text, allDayCheck.checked, clearDueRequested)
+        if (!dueResult) {
+            return
         }
 
         var fields = {
@@ -58,10 +54,10 @@ Item {
             "priority": Colors.normalizePriority(priorityPicker.priority),
             "categories": labelPicker.selectedLabels.slice(),
             "allDay": allDayCheck.checked,
-            "clearDue": clearDue
+            "clearDue": dueResult.clear
         }
-        if (!clearDue && due) {
-            fields.dueDate = due
+        if (!dueResult.clear && dueResult.date) {
+            fields.dueDate = dueResult.date
         }
         controller.updateTaskFull(task.itemId, fields)
         root.saved()

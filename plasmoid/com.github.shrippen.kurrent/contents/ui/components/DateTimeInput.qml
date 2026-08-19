@@ -90,14 +90,10 @@ RowLayout {
         }
 
         // Click on a segment selects that year/month/day/hour/minute.
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            propagateComposedEvents: true
-            cursorShape: Qt.IBeamCursor
-            onClicked: function(mouse) {
-                var pos = field.positionAt(mouse.x, mouse.y)
-                mouse.accepted = false
+        TapHandler {
+            onTapped: function(eventPoint) {
+                var pos = field.positionAt(eventPoint.position.x, eventPoint.position.y)
+                field.forceActiveFocus()
                 Qt.callLater(function() {
                     root._selectSegmentAt(pos)
                 })
