@@ -10,12 +10,17 @@
 <meta property="og:image" content="https://shrippen.github.io/Kurrent/screenshot.jpg">
 <meta property="og:url" content="https://shrippen.github.io/Kurrent/">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<script defer src="https://um.arianw.de/script.js" data-website-id="056d39ee-6a9d-4b14-9902-5a1ac399df08"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#111113;--bg2:#1a1a1e;--fg:#e8dcc4;--fg2:#a09882;
   --accent:#3daee9;--accent2:#27d796;--red:#e85050;
   --radius:12px;--max:860px;
+  --font-heading:'Rajdhani',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
   --mono:'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace;
 }
@@ -29,7 +34,7 @@ a:hover{text-decoration:underline}
 .hero{display:flex;flex-direction:column;align-items:center;text-align:center;
   padding:5rem 1.5rem 3rem;max-width:var(--max);margin:0 auto}
 .hero-icon{width:88px;height:88px;margin-bottom:1.5rem;filter:drop-shadow(0 0 24px rgba(61,174,233,.25))}
-.hero h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem}
+.hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem}
 .hero .tagline{font-size:1.15rem;color:var(--fg2);max-width:520px;margin-bottom:2rem}
 .badges{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem}
 .badges img{height:22px}
@@ -67,12 +72,12 @@ a:hover{text-decoration:underline}
 .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;
   padding:2rem 1.5rem 3rem;max-width:var(--max);margin:0 auto}
 .feat{background:var(--bg2);border:1px solid #2a2a30;border-radius:var(--radius);padding:1.3rem}
-.feat h3{font-size:1rem;margin-bottom:.35rem}
+.feat h3{font-family:var(--font-heading);font-size:1rem;font-weight:600;margin-bottom:.35rem}
 .feat p{font-size:.88rem;color:var(--fg2);line-height:1.5}
 
 /* prereqs */
 .section{padding:2rem 1.5rem;max-width:var(--max);margin:0 auto}
-.section h2{font-size:1.5rem;font-weight:600;margin-bottom:1rem}
+.section h2{font-family:var(--font-heading);font-size:1.5rem;font-weight:600;margin-bottom:1rem}
 .section ul{list-style:none;padding:0}
 .section li{position:relative;padding-left:1.4rem;margin-bottom:.5rem;color:var(--fg2);font-size:.92rem}
 .section li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
@@ -97,7 +102,7 @@ footer a:hover{color:var(--fg)}
   <p class="tagline">A KDE Plasma 6 task manager powered by Akonadi&nbsp;&amp;&nbsp;Nextcloud&nbsp;CalDAV. Inbox, Today, Projects, and Labels — right on your desktop.</p>
 
   <div class="badges">
-    <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.0"><img alt="Version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-e8dcc4?labelColor=1c1c20"></a>
+    <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.1"><img alt="Version 0.2.1" src="https://img.shields.io/badge/version-0.2.1-e8dcc4?labelColor=1c1c20"></a>
     <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
     <img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey?labelColor=1c1c20">
   </div>
@@ -116,7 +121,7 @@ footer a:hover{color:var(--fg)}
   <div class="install-links">
     <a class="btn btn-primary" href="https://github.com/shrippen/Kurrent/releases/latest">
       <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Download v0.2.0
+      Download v0.2.1
     </a>
     <a class="btn btn-ghost" href="https://github.com/shrippen/Kurrent">
       <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
