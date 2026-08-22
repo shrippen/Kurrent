@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.2.2 — 2026-08-22
+
+Installer fix release.
+
+- Fix `install-linux.sh` updates deleting the plasmoid (`kpackagetool6 -u` on the install path removed the widget; updates now copy files in place)
+- Fix root-owned files under `~/.local` when installing via `sudo bash` (`cp --no-preserve=ownership` + `chown`)
+
 ## 0.2.1 — 2026-08-19
 
 Bug-fix release.

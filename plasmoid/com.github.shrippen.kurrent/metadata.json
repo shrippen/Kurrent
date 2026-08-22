@@ -24,7 +24,7 @@
         "Name[fr]": "Kurrent",
         "Name[ja]": "Kurrent",
         "Name[zh_CN]": "Kurrent",
-        "Version": "0.2.1",
+        "Version": "0.2.2",
         "Website": "https://github.com/shrippen/Kurrent"
     },
     "KPackageStructure": "Plasma/Applet",

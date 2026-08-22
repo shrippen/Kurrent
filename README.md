@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.0"><img alt="Version" src="https://img.shields.io/badge/version-0.2.0-e8dcc4?labelColor=1c1c20"></a>
+  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.2"><img alt="Version" src="https://img.shields.io/badge/version-0.2.2-e8dcc4?labelColor=1c1c20"></a>
   <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
   <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey?labelColor=1c1c20">
 </p>
@@ -51,7 +51,7 @@ Until AUR and COPR packages exist, the supported install is this one-liner. It d
 curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash
 ```
 
-`sudo` is only for distro packages. The widget is installed as your user (`SUDO_USER`). Without sudo, use `bash <(curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh)` so a password prompt can use the terminal. Pin a release with `| bash -s -- --tag v0.2.0`. Compile instead of using the Arch-built `.so`: `| bash -s -- --from-source`.
+`sudo` is only for distro packages. The widget is installed as your user (`SUDO_USER`). Without sudo, use `bash <(curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh)` so a password prompt can use the terminal. Pin a release with `| bash -s -- --tag v0.2.2`. Compile instead of using the Arch-built `.so`: `| bash -s -- --from-source`.
 
 From a git checkout (widget + Akonadi QML plugin):
 

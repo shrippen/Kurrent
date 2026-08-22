@@ -387,23 +387,46 @@ restart_plasmashell() {
         '
 }
 
+fix_install_ownership() {
+    if [[ "${EUID}" -eq 0 ]]; then
+        chown -R "${INSTALL_USER}:${INSTALL_USER}" \
+            "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
+    fi
+}
+
+copy_overlay_tree() {
+    local src="$1" dest="$2"
+    if [[ ! -d "$src" ]]; then
+        return 0
+    fi
+    as_user mkdir -p "$dest"
+    # cp -a keeps root-owned files from a root workdir; drop ownership when installing via sudo.
+    if as_user cp -a --no-preserve=ownership "$src/." "$dest/" 2>/dev/null; then
+        :
+    else
+        as_user cp -a "$src/." "$dest/"
+        fix_install_ownership
+    fi
+}
+
 register_plasmoid() {
     local plasmoid="$1"
     as_user kpackagetool6 -t Plasma/Applet -r org.planify.plasmoid 2>/dev/null || true
     as_user kpackagetool6 -t Plasma/Applet -r org.kde.kurrent 2>/dev/null || true
-    as_user kpackagetool6 -t Plasma/Applet -i "$plasmoid" || \
-        as_user kpackagetool6 -t Plasma/Applet -u "$plasmoid"
+    # Binary installs copy the plasmoid into ~/.local/share/plasma/plasmoids/ already.
+    # kpackagetool6 -i/-u on that same path deletes the install dir on update and breaks.
+    if [[ ! -f "${plasmoid}/metadata.json" ]]; then
+        error "Plasmoid metadata missing: ${plasmoid}/metadata.json"
+        exit 1
+    fi
+    info "Plasmoid com.github.shrippen.kurrent installed"
 }
 
 install_from_overlay() {
     local overlay="$1"
-    as_user mkdir -p "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
-    if [[ -d "${overlay}/lib" ]]; then
-        as_user cp -a "${overlay}/lib/." "${INSTALL_PREFIX}/lib/"
-    fi
-    if [[ -d "${overlay}/share" ]]; then
-        as_user cp -a "${overlay}/share/." "${INSTALL_PREFIX}/share/"
-    fi
+    copy_overlay_tree "${overlay}/lib" "${INSTALL_PREFIX}/lib"
+    copy_overlay_tree "${overlay}/share" "${INSTALL_PREFIX}/share"
+    fix_install_ownership
     local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
     if [[ ! -d "$plasmoid" ]]; then
         error "Plasmoid missing after extract: ${plasmoid}"
