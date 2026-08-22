@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.2.1 — 2026-08-19
+
+Bug-fix release.
+
+- Fix QuickAdd highlight overlay shifting left when typing
+- Fix double-text ghost layer when selecting text in QuickAdd (Ctrl+A)
+- Fix smoke test never starting (QML scope shadowing made backend null)
+- Fix smoke test skipping the first post-view step (off-by-one in switch cases)
+- Landing page: Rajdhani heading font
+- Design.md: reference shared DesignDefault repo
+
 ## 0.2.0 — 2026-08-18
 
 Catch-up on the 1.0 branch: planner-style task flow, a full settings dialog, notifications, and a faster panel startup.

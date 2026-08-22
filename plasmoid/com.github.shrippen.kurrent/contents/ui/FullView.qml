@@ -605,8 +605,8 @@ Item {
 
     SmokeTest {
         id: smokeTest
-        plasmoidRoot: plasmoidRoot
-        backend: backend
+        plasmoidRoot: fullRoot.plasmoidRoot
+        backend: fullRoot.backend
         fullRoot: fullRoot
         taskList: taskList
         taskFullEditor: taskFullEditor

@@ -1,6 +1,6 @@
 # Kurrent — Design
 
-Prosa-Referenz für UI- und UX-Entscheidungen. Laufzeit-Tokens: `plasmoid/com.github.shrippen.kurrent/contents/ui/Design.qml`. Akzente: `contents/ui/colors.js`.
+Prosa-Referenz für UI- und UX-Entscheidungen. Laufzeit-Tokens: `plasmoid/com.github.shrippen.kurrent/contents/ui/Design.qml`. Akzente: `contents/ui/colors.js`. Projektübergreifende Designsprache (Farbpalette, Typografie, Icon-Stil, Landing-Page-Template): **[DesignDefault](https://github.com/shrippen/DesignDefault)**.
 
 Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die **maschinelle Quelle** für Maße. Beides bei jeder neuen visuellen Entscheidung im selben Change aktualisieren (Cursor-Regel `.cursor/rules/kurrent-ui.mdc`). Es gibt keinen Datei-Watcher — „automatisch“ heißt: jeder Agent-Change an der UI muss diese Datei mitziehen.
 
