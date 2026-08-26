@@ -17,6 +17,52 @@
 namespace TaskLogic
 {
 
+enum class SearchScope { All, TitleOnly };
+enum class SearchCase { Insensitive, Sensitive };
+enum class QuietHoursMode { Disabled, Enabled };
+enum class ListHeader { No, Yes };
+enum class DaySpan { Timed, AllDay };
+enum class DefaultCollection { Missing, Exists };
+enum class CursorKind { Other, Arrow };
+enum class EnvCursor { Invalid, Valid };
+enum class LoadState { Idle, Loading };
+enum class BackendState { Offline, Online };
+enum class ErrorPresence { None, Present };
+
+// Sidebar / filter view ids (string API stays for QML).
+namespace ViewId
+{
+inline const QString Inbox = QStringLiteral("inbox");
+inline const QString Today = QStringLiteral("today");
+inline const QString Overdue = QStringLiteral("overdue");
+inline const QString Tomorrow = QStringLiteral("tomorrow");
+inline const QString Scheduled = QStringLiteral("scheduled");
+inline const QString Anytime = QStringLiteral("anytime");
+inline const QString Recurring = QStringLiteral("recurring");
+inline const QString Unlabeled = QStringLiteral("unlabeled");
+inline const QString Completed = QStringLiteral("completed");
+}
+
+namespace ReschedulePreset
+{
+inline const QString Min15 = QStringLiteral("15m");
+inline const QString Hour1 = QStringLiteral("1h");
+inline const QString Hour4 = QStringLiteral("4h");
+inline const QString Tomorrow = QStringLiteral("tomorrow");
+inline const QString NextWeek = QStringLiteral("next-week");
+constexpr int Sec15m = 15 * 60;
+constexpr int Sec1h = 60 * 60;
+constexpr int Sec4h = 4 * 60 * 60;
+}
+
+namespace PriorityBand
+{
+constexpr int None = 0;
+constexpr int High = 1;
+constexpr int Medium = 5;
+constexpr int Low = 9;
+}
+
 struct FilterState {
     QString currentView;
     QString searchQuery;
@@ -29,8 +75,8 @@ struct FilterState {
     int morningHour = 6;
     int afternoonHour = 12;
     int eveningHour = 18;
-    bool searchTitleOnly = false;
-    bool searchCaseSensitive = false;
+    SearchScope searchScope = SearchScope::All;
+    SearchCase searchCase = SearchCase::Insensitive;
 };
 
 struct QuickAddProject {
@@ -100,7 +146,7 @@ struct NewTaskTarget {
 
 int priorityBand(int priority);
 
-bool matchesSearch(const TaskEntry &task, const QString &query, bool titleOnly = false, bool caseSensitive = false);
+bool matchesSearch(const TaskEntry &task, const QString &query, SearchScope scope = SearchScope::All, SearchCase cs = SearchCase::Insensitive);
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today);
 
@@ -112,7 +158,7 @@ QString dayPart(const QDateTime &when, const FilterState &filters);
 
 QString listBucket(const TaskEntry &task, const FilterState &filters, const QDate &today);
 
-QDateTime rescheduleDue(const QDateTime &currentDue, bool allDay, const QDateTime &now, const QString &preset);
+QDateTime rescheduleDue(const QDateTime &currentDue, DaySpan daySpan, const QDateTime &now, const QString &preset);
 
 QString joinUrl(const QString &description, const QString &location);
 
@@ -133,10 +179,10 @@ qint64 firstSidebarProjectId(const QList<ProjectCandidate> &projects, const QSet
 NewTaskTarget resolveNewTaskTarget(qint64 selectedCollectionId,
                                    const QString &mode,
                                    qint64 defaultCollectionId,
-                                   bool defaultExists,
+                                   DefaultCollection defaultState,
                                    qint64 firstEnabledId);
 
-QPointF dragProxyGap(int cursorSize, bool arrowCursor);
+QPointF dragProxyGap(int cursorSize, CursorKind cursorKind);
 
 QPointF clampDragProxyOffset(qreal cursorX,
                              qreal cursorY,
@@ -156,7 +202,11 @@ struct VisibleFilterResult {
 
 QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode, const QSet<QString> &collapsedUids = {});
 
-QString emptyKind(bool loading, bool akonadiAvailable, int collectionCount, int visibleCount, bool hasError);
+QString emptyKind(LoadState loading,
+                  BackendState backend,
+                  int collectionCount,
+                  int visibleCount,
+                  ErrorPresence error);
 
 int panelBadgeCount(const QString &mode, int openRoots, int todayCount, int overdueCount);
 
@@ -253,7 +303,7 @@ QStringList moveOrderedKey(QStringList ordered, const QString &key, int delta);
 
 QString relativeDueKind(const QDate &due, const QDate &today);
 
-bool inQuietHours(const QTime &now, int startHour, int endHour, bool enabled);
+bool inQuietHours(const QTime &now, int startHour, int endHour, QuietHoursMode mode);
 
 QString toggleEnabledCsv(const QString &csv, qint64 id, const QList<qint64> &allIds);
 
@@ -263,7 +313,7 @@ int visibleProjectCount(const QList<ProjectCandidate> &projects, const QSet<qint
 
 int visibleLabelCount(const QStringList &labels, const QSet<QString> &hiddenLabels);
 
-int naturalListHeight(int rowCount, bool hasHeader, int headerHeight, int rowHeight, int gap = 1);
+int naturalListHeight(int rowCount, ListHeader hasHeader, int headerHeight, int rowHeight, int gap = 1);
 
 QList<int> redistributeSections(int available, const QList<int> &mins);
 
@@ -285,7 +335,7 @@ int priorityToIndex(int priority);
 
 int indexToPriority(int index);
 
-int resolveCursorSize(int envValue, bool envOk, int configValue);
+int resolveCursorSize(int envValue, EnvCursor envCursor, int configValue);
 
 qreal pickLimitRight(qreal screenRight, qreal cppRight, qreal margin);
 

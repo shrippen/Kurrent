@@ -1,0 +1,26 @@
+---
+description: After every C++ or QML change, run build + install via install.sh without timeout. Smoke tests must run to completion.
+alwaysApply: true
+---
+
+# Kurrent build and install workflow
+
+After every C++ or QML change:
+
+1. Run `./install.sh` from the repo root to build, test, and install into `~/.local`.
+   - Never abort or timeout the output. Smoke tests (`plasmoidviewer_smoke.sh`) take real time.
+   - Use `cmake --build build --parallel` only when you need a quick compile-only check.
+2. Always run the full install (`./install.sh`) before declaring a feature done.
+   - This runs unit tests (`ctest`) and the QML smoke tests.
+3. Do not skip tests (`SKIP_TESTS=1`, `SKIP_PLASMOIDVIEWER=1`). The build must be regression-free.
+4. If `./install.sh` fails, read the error, fix it, and retry.
+
+## Counter
+
+After every successful `./install.sh` the build counter in `.kurrent_build_counter` increments.
+Print the expected build number in the chat after every build so the user knows what to expect in the sidebar (`Build N`):
+```
+Expected build number: <current counter value>
+```
+The sidebar shows `Build N` only when `KURRENT_DEV_BUILD=ON` (the default in `install.sh`).
+Release builds (`package-linux-bin.sh`) set `KURRENT_DEV_BUILD=OFF` and hide the label.

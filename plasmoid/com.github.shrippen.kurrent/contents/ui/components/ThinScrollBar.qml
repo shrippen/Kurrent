@@ -8,25 +8,35 @@ QQC2.ScrollBar {
 
     property Flickable view: null
     property bool alwaysReserve: false
+    // Override bar thickness (e.g. fit into a fixed list margin).
+    property int extent: Design.scrollBarExtent
 
-    implicitWidth: Design.scrollBarExtent
-    width: Design.scrollBarExtent
-    padding: Design.scrollBarPadding
-    policy: {
+    implicitWidth: Math.max(2, extent)
+    width: Math.max(2, extent)
+    padding: Math.min(Design.scrollBarPadding, Math.max(0, Math.floor((extent - 2) / 2)))
+    z: 10
+
+    // Keep AlwaysOn so `size` stays updated; hide when content fits (with slack).
+    policy: QQC2.ScrollBar.AlwaysOn
+    readonly property bool overflowing: {
         if (alwaysReserve) {
-            return QQC2.ScrollBar.AsNeeded
+            return true
         }
-        if (view && view.contentHeight > view.height + 1) {
-            return QQC2.ScrollBar.AsNeeded
+        if (view && Design.listNeedsScroll(view)) {
+            return true
         }
-        return QQC2.ScrollBar.AlwaysOff
+        // Fallback: Qt's own handle ratio when the view binding lags a frame.
+        return size > 0 && size < 0.999
     }
+    visible: overflowing
+    opacity: overflowing ? 1 : 0
+    Behavior on opacity { enabled: false }
 
     contentItem: Rectangle {
-        implicitWidth: Math.max(2, Design.scrollBarExtent - Design.scrollBarPadding * 2)
+        implicitWidth: Math.max(2, bar.extent - bar.padding * 2)
         radius: width / 2
         color: Kirigami.Theme.textColor
-        opacity: Design.scrollBarOpacity(bar.pressed, bar.hovered)
+        opacity: Math.max(0.45, Design.scrollBarOpacity(bar.pressed, bar.hovered))
     }
     background: Item {}
 }

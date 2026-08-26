@@ -58,11 +58,34 @@ target_link_libraries(kurrent-calendar-test PRIVATE
 )
 add_test(NAME kurrent-calendar COMMAND kurrent-calendar-test)
 
+add_executable(kurrent-taskstore-test
+    taskstore_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.h
+    ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
+)
+target_include_directories(kurrent-taskstore-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskstore-test PRIVATE
+    Qt6::Core
+    Qt6::Test
+    KF6::CalendarCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskstore COMMAND kurrent-taskstore-test)
+set_tests_properties(kurrent-taskstore PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
+# controller-store-test needs TaskController symbols from the QML plugin .so;
+# those stay hidden (-fvisibility=hidden). Covered via MemoryTaskStore unit tests
+# until a static test helper or explicit export is added.
+
 set(_kurrent_test_targets
     kurrent-tasklogic-test
     kurrent-sharedsettings-test
     kurrent-models-test
     kurrent-calendar-test
+    kurrent-taskstore-test
 )
 
 find_package(Qt6 COMPONENTS QuickTest Qml Quick)

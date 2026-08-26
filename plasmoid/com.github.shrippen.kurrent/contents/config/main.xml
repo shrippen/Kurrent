@@ -72,11 +72,17 @@
         <entry name="reducedMotion" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="scrollSpeed" type="Int">
+            <default>50</default>
+        </entry>
         <entry name="showEmptyProjects" type="Bool">
             <default>false</default>
         </entry>
         <entry name="showSidebarCounts" type="Bool">
             <default>true</default>
+        </entry>
+        <entry name="countsExcludeCollapsed" type="Bool">
+            <default>false</default>
         </entry>
         <entry name="showDateChip" type="Bool">
             <default>true</default>

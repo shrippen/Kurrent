@@ -11,3 +11,4 @@ test_import.qml
 *.mo
 *~
 .DS_Store
+.kurrent_build_counter

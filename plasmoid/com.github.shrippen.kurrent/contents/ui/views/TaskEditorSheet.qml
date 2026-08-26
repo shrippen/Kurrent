@@ -311,7 +311,7 @@ FocusScope {
             Kirigami.Heading {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
-                Layout.topMargin: Kirigami.Units.smallSpacing
+                Layout.topMargin: Design.spaceSmall
                 level: 3
                 text: i18n("Schedule")
             }
@@ -325,7 +325,7 @@ FocusScope {
             FieldLabel { text: i18n("Start:") }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
 
                 DateTimeInput {
                     id: startDateField
@@ -357,7 +357,7 @@ FocusScope {
             FieldLabel { text: i18n("Due:") }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
 
                 DateTimeInput {
                     id: dueDateField
@@ -415,7 +415,7 @@ FocusScope {
             Kirigami.Heading {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
-                Layout.topMargin: Kirigami.Units.smallSpacing
+                Layout.topMargin: Design.spaceSmall
                 level: 3
                 text: i18n("Status")
             }
@@ -436,11 +436,11 @@ FocusScope {
             FieldLabel { text: i18n("Progress:") }
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing / 2
+                spacing: Design.spaceTiny
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
+                    spacing: Design.spaceSmall
 
                     QQC2.Slider {
                         id: percentSlider
@@ -465,7 +465,7 @@ FocusScope {
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Kirigami.Units.smallSpacing
+                    Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Design.spaceSmall
                     Layout.preferredHeight: Kirigami.Theme.smallFont.pixelSize + 2
 
                     Repeater {
@@ -490,7 +490,7 @@ FocusScope {
             }
             Flow {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.largeSpacing
+                spacing: Design.spaceMedium
 
                 QQC2.ButtonGroup {
                     id: statusGroup
@@ -517,7 +517,7 @@ FocusScope {
             Kirigami.Heading {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
-                Layout.topMargin: Kirigami.Units.smallSpacing
+                Layout.topMargin: Design.spaceSmall
                 level: 3
                 text: i18n("Classification")
             }
@@ -545,7 +545,7 @@ FocusScope {
             }
             Flow {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.largeSpacing
+                spacing: Design.spaceMedium
 
                 QQC2.ButtonGroup {
                     id: secrecyGroup

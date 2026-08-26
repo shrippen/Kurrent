@@ -27,7 +27,14 @@ Item {
 
     readonly property int labelIconSize: Kirigami.Units.iconSizes.small
     readonly property int pad: Design.taskRowPad
-    readonly property bool listMoving: ListView.view && (ListView.view.moving || ListView.view.flicking)
+    // Kirigami.WheelHandler animates contentY without setting moving/flicking.
+    readonly property bool listMoving: {
+        var v = ListView.view
+        if (!v) {
+            return false
+        }
+        return v.moving || v.flicking || v.wheelScrolling === true
+    }
     readonly property bool isDragSource: !!(dragHost && dragHost.draggingTask
                                             && dragHost.draggingTask.itemId === task.itemId)
     readonly property bool dropHighlight: taskDrop.containsDrag && !isDragSource
@@ -77,11 +84,65 @@ Item {
 
     // ListView sizes the delegate from implicitHeight. Do not also bind height
     // to that value (height ↔ implicitHeight loop).
-    implicitHeight: contentColumn.implicitHeight + pad * 2
+    readonly property bool treeHidden: task.treeHidden === true
+    // Latched at toggle time so mid-animation layout shifts do not restart Behavior.
+    property int collapseAnimMs: 0
+    function latchCollapseAnimMs() {
+        if (Design.reducedMotion) {
+            collapseAnimMs = 0
+            return
+        }
+        var v = ListView.view
+        if (!v || v.height <= 0) {
+            collapseAnimMs = 150
+            return
+        }
+        // Height is still full at toggle; use that for viewport overlap.
+        var top = y
+        var bottom = y + Math.max(height, fullContentHeight)
+        if (bottom < v.contentY - 2 || top > v.contentY + v.height + 2) {
+            collapseAnimMs = 0
+            return
+        }
+        collapseAnimMs = 150
+    }
+    function applyTreeHidden() {
+        latchCollapseAnimMs()
+        reveal = treeHidden ? 0 : 1
+    }
+    onTreeHiddenChanged: applyTreeHidden()
+    // Instant reveal when the ListView recycles this delegate onto another row.
+    ListView.onReused: {
+        collapseAnimMs = 0
+        reveal = treeHidden ? 0 : 1
+        Qt.callLater(root.syncEditorGuide)
+    }
+    readonly property real fullContentHeight: contentColumn.implicitHeight + pad * 2
             + (expanded && editorReserveHeight > 0 ? pad + editorReserveHeight : 0)
-    readonly property bool awaitingAkonadi: task.syncing === true || task.pendingDelete === true
-    opacity: isDragSource ? 0.45 : (task.pendingDelete ? 0.4 : (task.syncing ? 0.7 : 1.0))
+            + Design.spaceSmall
 
+    // Animated collapse: height and opacity go to 0 while the row stays in the model.
+    property real reveal: 1
+    Behavior on reveal {
+        enabled: root.collapseAnimMs > 0
+        NumberAnimation {
+            duration: root.collapseAnimMs
+            easing.type: Easing.OutCubic
+        }
+    }
+
+    implicitHeight: Math.round(fullContentHeight * reveal)
+    // clip only while collapsing — full-height rows skip an expensive clip node.
+    clip: reveal < 1
+    // Keep enabled until fully collapsed — disabling mid-animation makes QQC2
+    // Labels pick up highlight/disabled palette (brief blue/washed text).
+    enabled: reveal > 0.02
+    opacity: {
+        var base = isDragSource ? 0.45 : (task.pendingDelete ? 0.4 : (task.syncing ? 0.7 : 1.0))
+        return base * reveal
+    }
+
+    readonly property bool awaitingAkonadi: task.syncing === true || task.pendingDelete === true
     readonly property real collapsedHeight: pad + contentLayout.implicitHeight
             + (expanded && editorReserveHeight > 0 ? pad : 0)
 
@@ -124,26 +185,31 @@ Item {
         function onXChanged() { root.syncEditorGuide() }
         function onWidthChanged() { root.syncEditorGuide() }
     }
-    Component.onCompleted: Qt.callLater(root.syncEditorGuide)
+    Component.onCompleted: {
+        // First paint / model load: no collapse animation.
+        collapseAnimMs = 0
+        reveal = treeHidden ? 0 : 1
+        Qt.callLater(root.syncEditorGuide)
+    }
     onWidthChanged: Qt.callLater(root.syncEditorGuide)
 
-    // Cheap hover; disabled while scrolling so rows sliding under the cursor
-    // don't spam hover enter/leave.
+    // Cheap hover; off while scrolling or collapsing so rows sliding under the
+    // cursor do not flash highlight blue.
     Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
         height: root.expanded ? Math.round(root.collapsedHeight) : parent.height
-        radius: 3
+        radius: Design.inputRadius
         color: dropHighlight ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.highlightColor
-        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && hoverHandler.hovered && !Design.reducedMotion)) ? 0.12 : 0)
+        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && root.reveal >= 1 && hoverHandler.hovered && !Design.reducedMotion)) ? 0.12 : 0)
         visible: opacity > 0
         z: 0
     }
 
     HoverHandler {
         id: hoverHandler
-        enabled: !root.listMoving
+        enabled: !root.listMoving && root.reveal >= 1 && !root.treeHidden
     }
 
     DragHandler {
@@ -236,25 +302,32 @@ Item {
             Layout.fillWidth: true
             spacing: pad
 
+            // Hierarchy indent, then reserved collapse column (keeps checkboxes aligned),
+            // then checkbox — arrow no longer shifts the parent checkbox.
             Item {
-                Layout.preferredWidth: (task.indentLevel || 0) * Kirigami.Units.gridUnit
+                Layout.preferredWidth: (task.indentLevel || 0) * Design.taskIndentUnit
+                Layout.minimumWidth: Layout.preferredWidth
             }
 
-            QQC2.ToolButton {
-                visible: task.hasChildren === true
-                icon.name: task.treeCollapsed ? "arrow-right" : "arrow-down"
-                display: QQC2.AbstractButton.IconOnly
-                Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                enabled: !root.awaitingAkonadi
-                onClicked: {
-                    if (!task.treeCollapsed && root.taskListRoot) {
-                        root.taskListRoot.preserveScrollForUid(task.uid)
+            Item {
+                Layout.preferredWidth: Design.taskCollapseCol
+                Layout.preferredHeight: Design.taskCollapseCol
+                Layout.alignment: Qt.AlignVCenter
+
+                QQC2.ToolButton {
+                    anchors.centerIn: parent
+                    width: Design.taskCollapseCol
+                    height: Design.taskCollapseCol
+                    visible: task.hasChildren === true
+                    icon.name: task.treeCollapsed ? "arrow-right" : "arrow-down"
+                    display: QQC2.AbstractButton.IconOnly
+                    enabled: !root.awaitingAkonadi
+                    onClicked: {
+                        controller.toggleTreeCollapsed(task.uid)
                     }
-                    controller.toggleTreeCollapsed(task.uid)
+                    QQC2.ToolTip.text: task.treeCollapsed ? i18n("Expand subtasks") : i18n("Collapse subtasks")
+                    QQC2.ToolTip.visible: hovered && !root.listMoving
                 }
-                QQC2.ToolTip.text: task.treeCollapsed ? i18n("Expand subtasks") : i18n("Collapse subtasks")
-                QQC2.ToolTip.visible: hovered && !root.listMoving
             }
 
             QQC2.CheckBox {
@@ -287,7 +360,7 @@ Item {
             ColumnLayout {
                 id: mainColumn
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing / 2
+                spacing: Design.spaceTiny
 
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
@@ -348,18 +421,19 @@ Item {
                     id: statusRow
                     Layout.fillWidth: true
                     spacing: 2
-                    visible: dateChip.visible || (Plasmoid.configuration.showLabelChips !== false && root.visibleCategories.length > 0)
+                    visible: dateChip.visible
+                             || (Plasmoid.configuration.showLabelChips !== false && (root.visibleCategories ? root.visibleCategories.length > 0 : false))
                              || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0)
                              || (Plasmoid.configuration.showRecurringIcon !== false && task.recurring)
-                             || (Plasmoid.configuration.showJoinButton !== false && task.joinUrl && task.joinUrl.length)
+                             || (Plasmoid.configuration.showJoinButton !== false && (task.joinUrl ? task.joinUrl.length > 0 : false))
 
                     Rectangle {
                         id: dateChip
                         visible: Plasmoid.configuration.showDateChip !== false
                                  && task.dueDate !== undefined && task.dueDate !== null && task.dueDate.isValid === true
-                        radius: 3
+                        radius: Design.inputRadius
                         Layout.preferredHeight: dateChipLabel.implicitHeight + 2
-                        Layout.preferredWidth: dateChipLabel.implicitWidth + Kirigami.Units.smallSpacing * 2
+                        Layout.preferredWidth: dateChipLabel.implicitWidth + Design.spaceMedium
                         color: {
                             if (!visible) {
                                 return "transparent"

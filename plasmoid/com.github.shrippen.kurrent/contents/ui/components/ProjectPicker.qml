@@ -100,7 +100,7 @@ Item {
         id: radioRow
         anchors.left: parent.left
         anchors.right: parent.right
-        spacing: Kirigami.Units.largeSpacing
+        spacing: Design.spaceMedium
         visible: !root.useCombo && projects.length > 0
 
         QQC2.ButtonGroup {
@@ -117,7 +117,7 @@ Item {
                 onClicked: root.collectionId = modelData.collectionId
 
                 contentItem: RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
+                    spacing: Design.spaceSmall
                     Kirigami.Icon {
                         source: "folder"
                         color: Design.colorForKey(String(modelData.collectionId))
@@ -148,11 +148,11 @@ Item {
         textRole: "name"
 
         contentItem: RowLayout {
-            spacing: Kirigami.Units.smallSpacing
+            spacing: Design.spaceSmall
             anchors.left: parent.left
             anchors.right: parent.indicator.left
             anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin: Kirigami.Units.smallSpacing
+            anchors.leftMargin: Design.spaceSmall
 
             Kirigami.Icon {
                 source: "folder"
@@ -179,7 +179,7 @@ Item {
             highlighted: combo.highlightedIndex === index
 
             contentItem: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
                 Kirigami.Icon {
                     source: "folder"
                     color: Design.colorForKey(String(modelData.collectionId))

@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
+import ".."
 
 Item {
     id: root
@@ -42,7 +43,7 @@ Item {
         height: contentHeight
         interactive: false
         model: root.keys
-        spacing: Kirigami.Units.smallSpacing
+        spacing: Design.spaceSmall
 
         delegate: Kirigami.AbstractCard {
             id: card
@@ -74,7 +75,7 @@ Item {
             }
 
             contentItem: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
 
                 Kirigami.Icon {
                     source: "list-reorder"

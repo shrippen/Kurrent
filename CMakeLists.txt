@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(KURRENT_DEV_BUILD "Show developer-only debug info in the plasmoid UI." OFF)
 
 # Dev build counter: increments once per build invocation.
-set(_KURRENT_COUNTER_FILE "${CMAKE_BINARY_DIR}/kurrent_build_counter.txt")
+# Lives in the source tree so deleting the build directory does not reset it.
+set(_KURRENT_COUNTER_FILE "${CMAKE_SOURCE_DIR}/.kurrent_build_counter")
 if(EXISTS "${_KURRENT_COUNTER_FILE}")
     file(READ "${_KURRENT_COUNTER_FILE}" _kurrent_counter_raw)
     string(STRIP "${_kurrent_counter_raw}" _kurrent_counter_raw)

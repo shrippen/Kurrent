@@ -9,11 +9,13 @@
 namespace TaskCalendar
 {
 
+enum class CompleteAction { Unmark, Mark };
+
 QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
 void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDate &today);
 QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo);
 void setSection(const KCalendarCore::Todo::Ptr &todo, const QString &section);
-bool completeTodo(const KCalendarCore::Todo::Ptr &todo, bool completed, const QDateTime &now);
+bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, const QDateTime &now);
 
 // -1 = no reminder, 0 = at due, N = N minutes before due.
 int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo);

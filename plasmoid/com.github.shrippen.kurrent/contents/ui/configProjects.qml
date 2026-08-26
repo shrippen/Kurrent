@@ -173,13 +173,13 @@ KCM.SimpleKCM {
 
                     contentItem: GridLayout {
                         columns: shell.wideLayout ? 2 : 1
-                        columnSpacing: Kirigami.Units.smallSpacing
-                        rowSpacing: Kirigami.Units.smallSpacing
+                        columnSpacing: Design.spaceSmall
+                        rowSpacing: Design.spaceSmall
 
                         RowLayout {
                             Layout.columnSpan: shell.wideLayout ? 2 : 1
                             Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
+                            spacing: Design.spaceSmall
 
                             Kirigami.Icon {
                                 source: "folder"
@@ -225,7 +225,7 @@ KCM.SimpleKCM {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
+                            spacing: Design.spaceSmall
 
                             QQC2.Switch {
                                 text: i18n("Enabled")

@@ -10,6 +10,7 @@ KCM.SimpleKCM {
 
     property alias cfg_showEmptyProjects: emptyProjectsCheck.checked
     property alias cfg_showSidebarCounts: countsCheck.checked
+    property alias cfg_countsExcludeCollapsed: countsCollapsedCheck.checked
     property string cfg_sidebarRowSize
     property int cfg_sidebarWidthUnits
     property string cfg_sidebarSectionOrder
@@ -119,6 +120,13 @@ KCM.SimpleKCM {
                 Component.onCompleted: checked = plasmoid.configuration.showSidebarCounts !== false
             }
 
+            QQC2.CheckBox {
+                id: countsCollapsedCheck
+                text: i18n("Exclude collapsed subtasks from counts")
+                enabled: countsCheck.checked
+                Component.onCompleted: checked = plasmoid.configuration.countsExcludeCollapsed === true
+            }
+
             Kirigami.Separator {
                 Kirigami.FormData.isSection: true
                 Kirigami.FormData.label: i18n("Sections")
@@ -175,6 +183,7 @@ KCM.SimpleKCM {
                     sidebarRowSize: "auto",
                     showEmptyProjects: false,
                     showSidebarCounts: true,
+                    countsExcludeCollapsed: false,
                     sidebarSectionOrder: "views,projects,labels,priorities",
                     hiddenSidebarSections: "",
                     sidebarViewOrder: "",

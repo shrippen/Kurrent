@@ -28,6 +28,7 @@ struct TaskEntry {
     int indentLevel = 0;
     bool hasChildren = false;
     bool treeCollapsed = false;
+    bool treeHidden = false;
     int reminderMinutes = -1;
     QString section;
     QString bucket;
@@ -65,6 +66,7 @@ public:
         IndentLevelRole,
         HasChildrenRole,
         TreeCollapsedRole,
+        TreeHiddenRole,
         ReminderMinutesRole,
         SectionRole,
         BucketRole,
@@ -90,4 +92,7 @@ signals:
 
 private:
     QList<TaskEntry> m_tasks;
+
+    static bool taskDataDiffers(const TaskEntry &a, const TaskEntry &b);
+    static QVector<int> dataDiffRoles(const TaskEntry &a, const TaskEntry &b);
 };

@@ -82,6 +82,7 @@ Item {
     readonly property int sectionRowHeight: rowIconSize + rowVPad * 2 + 4
 
     // -1: not yet allocated — sections share space (fillHeight) so they can measure.
+    property bool sectionsAllocated: false
     property int viewsAlloc: -1
     property int projectsAlloc: -1
     property int labelsAlloc: -1
@@ -188,14 +189,12 @@ Item {
     }
 
     function listNeedsScroll(list) {
-        return !!(list && list.contentHeight > list.height + 1)
+        return Design.listNeedsScroll(list)
     }
 
     function scrollMarginFor(list) {
-        if (!list) {
-            return Kirigami.Units.smallSpacing
-        }
-        return root.listNeedsScroll(list) ? root.scrollGutter : Kirigami.Units.smallSpacing
+        // Stable gutter: scrollbar fits inside Design.spaceSmall; do not grow/shrink margin.
+        return Design.spaceSmall
     }
 
     function redistributeSections() {
@@ -228,10 +227,13 @@ Item {
             projectsAlloc = 0
             labelsAlloc = 0
             prioritiesAlloc = 0
+            sectionsAllocated = true
             return
         }
 
         var alloc = [0, 0, 0, 0]
+        // Slack is only for scrollbar visibility (Design.listNeedsScroll), not allocation —
+        // otherwise resizing feels sticky near the fit boundary then jumps.
         if (sumNatural <= available) {
             var leftover = available - sumNatural
             var evenGrow = Math.floor(leftover / visibleCount)
@@ -246,66 +248,89 @@ Item {
                 }
             }
         } else {
+            // Short widget: keep relative content sizes (not equal floors).
             var mins = []
-            for (var m = 0; m < 4; ++m) {
-                mins.push(visibleFlags[m] ? root.sectionFloorHeight(hasHeader[m]) : 0)
-            }
-
             var sumMins = 0
-            for (var n = 0; n < 4; ++n) {
-                sumMins += mins[n]
+            for (var m = 0; m < 4; ++m) {
+                var floorH = visibleFlags[m] ? root.sectionFloorHeight(hasHeader[m]) : 0
+                mins.push(floorH)
+                sumMins += floorH
             }
-            alloc = mins.slice(0)
 
-            if (sumMins > available) {
-                var locked = [false, false, false, false]
-                alloc = [0, 0, 0, 0]
-                var remaining = available
-                var open = visibleCount
-                var progress = true
-                var guard = 0
-                while (progress && open > 0 && guard < 8) {
-                    ++guard
-                    progress = false
-                    var share = remaining / open
-                    for (var j = 0; j < 4; ++j) {
-                        if (!visibleFlags[j] || locked[j]) {
+            if (sumMins >= available) {
+                alloc = mins.slice(0)
+                var over = sumMins - available
+                if (over > 0) {
+                    for (var t = 0; t < 4 && over > 0; ++t) {
+                        if (!visibleFlags[t]) {
                             continue
                         }
-                        if (mins[j] <= share) {
-                            locked[j] = true
-                            alloc[j] = mins[j]
-                            remaining -= mins[j]
-                            open--
-                            progress = true
-                        }
-                    }
-                }
-                if (open > 0) {
-                    var even = Math.floor(remaining / open)
-                    var extra = remaining - even * open
-                    for (var k = 0; k < 4; ++k) {
-                        if (visibleFlags[k] && !locked[k]) {
-                            alloc[k] = even + (extra > 0 ? 1 : 0)
-                            if (extra > 0) {
-                                extra--
-                            }
-                        }
+                        var cut = Math.min(over, Math.max(0, alloc[t] - 1))
+                        alloc[t] -= cut
+                        over -= cut
                     }
                 }
             } else {
-                var spare = available - sumMins
-                var grow = Math.floor(spare / visibleCount)
-                var growExtra = spare - grow * visibleCount
-                for (var g = 0; g < 4; ++g) {
-                    if (!visibleFlags[g]) {
-                        continue
-                    }
-                    alloc[g] += grow + (growExtra > 0 ? 1 : 0)
-                    if (growExtra > 0) {
-                        growExtra--
+                var flex = available - sumMins
+                var flexNatural = 0
+                for (var f = 0; f < 4; ++f) {
+                    if (visibleFlags[f]) {
+                        flexNatural += Math.max(0, naturals[f] - mins[f])
                     }
                 }
+                var remain = flex
+                for (var p = 0; p < 4; ++p) {
+                    if (!visibleFlags[p]) {
+                        continue
+                    }
+                    var extraNeed = Math.max(0, naturals[p] - mins[p])
+                    var share = (flexNatural > 0)
+                        ? Math.floor(flex * extraNeed / flexNatural)
+                        : Math.floor(flex / visibleCount)
+                    alloc[p] = mins[p] + share
+                    remain -= share
+                }
+                for (var r = 0; r < 4 && remain > 0; ++r) {
+                    if (visibleFlags[r]) {
+                        alloc[r] += 1
+                        remain--
+                    }
+                }
+            }
+        }
+
+        // Near-fit: if a section is short by at most one row, give it full natural
+        // height by stealing from sections that still overflow by more than one row.
+        var oneRow = root.sectionRowHeight + 1
+        for (var g = 0; g < 4; ++g) {
+            if (!visibleFlags[g]) {
+                continue
+            }
+            var shortfall = naturals[g] - alloc[g]
+            if (shortfall <= 0 || shortfall > oneRow) {
+                continue
+            }
+            var need = shortfall
+            for (var donor = 0; donor < 4 && need > 0; ++donor) {
+                if (!visibleFlags[donor] || donor === g) {
+                    continue
+                }
+                var donorOverflow = naturals[donor] - alloc[donor]
+                var floorH = root.sectionFloorHeight(hasHeader[donor])
+                var spare = Math.max(0, alloc[donor] - floorH)
+                // Prefer donors that must scroll anyway (more than one row short).
+                if (donorOverflow <= oneRow && spare <= 0) {
+                    continue
+                }
+                var take = Math.min(need, spare)
+                if (take <= 0) {
+                    continue
+                }
+                alloc[donor] -= take
+                need -= take
+            }
+            if (need === 0) {
+                alloc[g] = naturals[g]
             }
         }
 
@@ -321,6 +346,7 @@ Item {
         if (prioritiesAlloc !== alloc[3]) {
             prioritiesAlloc = alloc[3]
         }
+        sectionsAllocated = true
     }
 
     function sectionVisible(id) {
@@ -355,13 +381,17 @@ Item {
     }
 
     function _isProjectHidden(collectionId) {
-        if (!hiddenProjects) return false
+        if (!hiddenProjects) {
+            return false
+        }
         var parts = hiddenProjects.split(",")
         return parts.indexOf(String(collectionId)) >= 0
     }
 
     function _isLabelHidden(label) {
-        if (!hiddenLabels) return false
+        if (!hiddenLabels) {
+            return false
+        }
         var parts = hiddenLabels.split("||")
         return parts.indexOf(label) >= 0
     }
@@ -485,6 +515,8 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: parent.right
+        // Fit inside the fixed rightMargin (Design.spaceSmall); do not widen the gutter.
+        extent: Design.spaceSmall
     }
 
     Column {
@@ -503,7 +535,7 @@ Item {
     ListView {
         id: viewsList
         width: parent ? parent.width : 0
-        height: root.viewsAlloc > 0 ? root.viewsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.sectionsAllocated ? root.viewsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -528,7 +560,7 @@ Item {
             hoverEnabled: true
             highlighted: ListView.isCurrentItem
             leftPadding: 0
-            rightPadding: Kirigami.Units.smallSpacing
+            rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
@@ -542,7 +574,7 @@ Item {
             }
 
             contentItem: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
 
@@ -594,7 +626,7 @@ Item {
     ListView {
         id: projectsList
         width: parent ? parent.width : 0
-        height: root.projectsAlloc > 0 ? root.projectsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.sectionsAllocated ? root.projectsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -614,8 +646,8 @@ Item {
             header: RowLayout {
                 width: root.listContentWidth(projectsList)
                 height: root.sectionHeaderHeight
-                Layout.leftMargin: Kirigami.Units.smallSpacing
-                Layout.rightMargin: Kirigami.Units.smallSpacing
+                Layout.leftMargin: Design.spaceSmall
+                Layout.rightMargin: Design.spaceSmall
                 spacing: 0
 
                 QQC2.Label {
@@ -649,8 +681,8 @@ Item {
                         opacity: allProjectsDelegate.highlighted || allProjectsDelegate.down ? 1.0 : 0.75
                         verticalAlignment: Text.AlignVCenter
                         horizontalAlignment: Text.AlignHCenter
-                        leftPadding: Kirigami.Units.smallSpacing
-                        rightPadding: Kirigami.Units.smallSpacing
+                        leftPadding: Design.spaceSmall
+                        rightPadding: Design.spaceSmall
                     }
                 }
             }
@@ -662,7 +694,7 @@ Item {
                 readonly property bool filterSelected: controller.selectedCollectionId === modelData.collectionId
                 highlighted: filterSelected
                 leftPadding: 0
-                rightPadding: Kirigami.Units.smallSpacing
+                rightPadding: Design.spaceSmall
                 topPadding: root.rowVPad
                 bottomPadding: root.rowVPad
 
@@ -676,7 +708,7 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 3
+                        radius: Design.inputRadius
                         color: Kirigami.Theme.highlightColor
                         opacity: projectDrop.containsDrag ? 0.28 : 0
                         visible: opacity > 0
@@ -724,7 +756,7 @@ Item {
                 }
 
                 contentItem: RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
+                    spacing: Design.spaceSmall
 
                     Item { width: root.rowLeftInset }
 
@@ -777,7 +809,7 @@ Item {
     ListView {
         id: labelsList
         width: parent ? parent.width : 0
-        height: root.labelsAlloc > 0 ? root.labelsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.sectionsAllocated ? root.labelsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -797,8 +829,8 @@ Item {
             header: RowLayout {
                 width: root.listContentWidth(labelsList)
                 height: root.sectionHeaderHeight
-                Layout.leftMargin: Kirigami.Units.smallSpacing
-                Layout.rightMargin: Kirigami.Units.smallSpacing
+                Layout.leftMargin: Design.spaceSmall
+                Layout.rightMargin: Design.spaceSmall
                 spacing: 0
 
                 QQC2.Label {
@@ -832,8 +864,8 @@ Item {
                         opacity: allLabelsDelegate.highlighted || allLabelsDelegate.down ? 1.0 : 0.75
                         verticalAlignment: Text.AlignVCenter
                         horizontalAlignment: Text.AlignHCenter
-                        leftPadding: Kirigami.Units.smallSpacing
-                        rightPadding: Kirigami.Units.smallSpacing
+                        leftPadding: Design.spaceSmall
+                        rightPadding: Design.spaceSmall
                     }
                 }
             }
@@ -845,7 +877,7 @@ Item {
                 readonly property bool filterSelected: controller.selectedLabel === modelData
                 highlighted: filterSelected
                 leftPadding: 0
-                rightPadding: Kirigami.Units.smallSpacing
+                rightPadding: Design.spaceSmall
                 topPadding: root.rowVPad
                 bottomPadding: root.rowVPad
 
@@ -859,7 +891,7 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 3
+                        radius: Design.inputRadius
                         color: Kirigami.Theme.highlightColor
                         opacity: labelDrop.containsDrag ? 0.28 : 0
                         visible: opacity > 0
@@ -901,7 +933,7 @@ Item {
                 }
 
                 contentItem: RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
+                    spacing: Design.spaceSmall
 
                     Item { width: root.rowLeftInset }
 
@@ -954,7 +986,7 @@ Item {
     ListView {
         id: prioritiesList
         width: parent ? parent.width : 0
-        height: root.prioritiesAlloc > 0 ? root.prioritiesAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.sectionsAllocated ? root.prioritiesAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -974,8 +1006,8 @@ Item {
         header: RowLayout {
             width: root.listContentWidth(prioritiesList)
             height: root.sectionHeaderHeight
-            Layout.leftMargin: Kirigami.Units.smallSpacing
-            Layout.rightMargin: Kirigami.Units.smallSpacing
+            Layout.leftMargin: Design.spaceSmall
+            Layout.rightMargin: Design.spaceSmall
             spacing: 0
 
             QQC2.Label {
@@ -1009,8 +1041,8 @@ Item {
                     opacity: allPrioritiesDelegate.highlighted || allPrioritiesDelegate.down ? 1.0 : 0.75
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignHCenter
-                    leftPadding: Kirigami.Units.smallSpacing
-                    rightPadding: Kirigami.Units.smallSpacing
+                    leftPadding: Design.spaceSmall
+                    rightPadding: Design.spaceSmall
                 }
             }
         }
@@ -1022,7 +1054,7 @@ Item {
             readonly property bool filterSelected: controller.selectedPriority === modelData.value
             highlighted: filterSelected
             leftPadding: 0
-            rightPadding: Kirigami.Units.smallSpacing
+            rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
@@ -1036,7 +1068,7 @@ Item {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: 3
+                    radius: Design.inputRadius
                     color: Kirigami.Theme.highlightColor
                     opacity: priorityDrop.containsDrag ? 0.28 : 0
                     visible: opacity > 0
@@ -1091,7 +1123,7 @@ Item {
             }
 
             contentItem: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
 
@@ -1129,4 +1161,4 @@ Item {
     }
     }
     }
-}
+    }

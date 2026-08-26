@@ -87,10 +87,10 @@ void CalendarTest::completeNonRecurringMarksDone()
 {
     KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
     todo->setSummary(QStringLiteral("Once"));
-    QVERIFY(TaskCalendar::completeTodo(todo, true, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
     QVERIFY(todo->isCompleted());
     QCOMPARE(todo->percentComplete(), 100);
-    QVERIFY(TaskCalendar::completeTodo(todo, false, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Unmark, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
     QVERIFY(!todo->isCompleted());
 }
 
@@ -103,7 +103,7 @@ void CalendarTest::completeDailyAdvancesDatesAndKeepsRrule()
     TaskCalendar::applyRecurrencePreset(todo, QStringLiteral("daily"), today);
     QVERIFY(todo->recurs());
 
-    QVERIFY(TaskCalendar::completeTodo(todo, true, QDateTime(today, QTime(11, 0))));
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(today, QTime(11, 0))));
     QVERIFY(!todo->isCompleted());
     QCOMPARE(todo->percentComplete(), 0);
     QVERIFY(todo->recurs());
@@ -132,7 +132,7 @@ void CalendarTest::nullTodoIsSafe()
     QCOMPARE(TaskCalendar::sectionFromTodo({}), QString());
     TaskCalendar::applyRecurrencePreset({}, QStringLiteral("daily"), QDate(2026, 8, 13));
     TaskCalendar::setSection({}, QStringLiteral("x"));
-    QVERIFY(!TaskCalendar::completeTodo({}, true, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
+    QVERIFY(!TaskCalendar::completeTodo({}, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 8, 13), QTime(10, 0))));
 }
 
 void CalendarTest::reminderOffAtDueAndBefore()

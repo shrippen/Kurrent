@@ -22,6 +22,11 @@ add_library(kurrentplugin SHARED
     sharedsettings.h
     kurrentdbus.cpp
     kurrentdbus.h
+    taskstore.h
+    akonaditaskstore.cpp
+    akonaditaskstore.h
+    memorytaskstore.cpp
+    memorytaskstore.h
 )
 
 set_target_properties(kurrentplugin PROPERTIES

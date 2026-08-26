@@ -105,13 +105,13 @@ void setSection(const KCalendarCore::Todo::Ptr &todo, const QString &section)
     todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("LIST"), trimmed);
 }
 
-bool completeTodo(const KCalendarCore::Todo::Ptr &todo, bool completed, const QDateTime &now)
+bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, const QDateTime &now)
 {
     if (!todo) {
         return false;
     }
 
-    if (!completed) {
+    if (action == CompleteAction::Unmark) {
         todo->setCompleted(false);
         todo->setPercentComplete(0);
         return true;

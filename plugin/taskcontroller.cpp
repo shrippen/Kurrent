@@ -1,4 +1,6 @@
 #include "taskcontroller.h"
+#include "akonaditaskstore.h"
+#include "memorytaskstore.h"
 #include "taskcalendar.h"
 #include "tasklogic.h"
 
@@ -6,12 +8,8 @@
 #include <Akonadi/Collection>
 #include <Akonadi/CollectionFetchJob>
 #include <Akonadi/CollectionFetchScope>
-#include <Akonadi/ItemCreateJob>
-#include <Akonadi/ItemDeleteJob>
 #include <Akonadi/ItemFetchJob>
 #include <Akonadi/ItemFetchScope>
-#include <Akonadi/ItemModifyJob>
-#include <Akonadi/ItemMoveJob>
 #include <Akonadi/ServerManager>
 
 #include <KCalendarCore/Todo>
@@ -106,6 +104,9 @@ QHash<qint64, QString> TaskController::s_collectionNames;
 QStringList TaskController::s_extraLabels;
 QList<TaskController *> TaskController::s_instances;
 qint64 TaskController::s_nextTempId = -2;
+int TaskController::s_smokeStep = 0;
+bool TaskController::s_smokeFinished = false;
+TaskController *TaskController::s_smokeLeader = nullptr;
 
 TaskController::TaskController(QObject *parent)
     : QObject(parent)
@@ -133,6 +134,10 @@ TaskController::TaskController(QObject *parent)
     connect(&m_reminderTimer, &QTimer::timeout, this, &TaskController::checkReminders);
     m_reminderTimer.start();
 
+    // Akonadi jobs go through the store; MemoryTaskStore swaps in for unit tests.
+    m_store = new AkonadiTaskStore(this);
+    connect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
+
     hydrateFromCache();
     // D-Bus and GlobalAccel talk to the session bus; let QML finish constructing first.
     QTimer::singleShot(0, this, [this]() {
@@ -144,6 +149,141 @@ TaskController::TaskController(QObject *parent)
 TaskController::~TaskController()
 {
     s_instances.removeAll(this);
+    if (s_smokeLeader == this) {
+        s_smokeLeader = nullptr;
+        for (TaskController *instance : s_instances) {
+            Q_EMIT instance->smokeLeaderChanged();
+        }
+    }
+}
+
+void TaskController::setTaskStore(AbstractTaskStore *store)
+{
+    if (!store || store == m_store) {
+        return;
+    }
+
+    disconnect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
+    if (m_store && m_store->parent() == this) {
+        m_store->deleteLater();
+    }
+    m_store = store;
+    if (m_store->parent() == nullptr) {
+        m_store->setParent(this);
+    }
+    connect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
+}
+
+void TaskController::resetSharedStateForTest()
+{
+    s_tasks.clear();
+    s_collections.clear();
+    s_collectionNames.clear();
+    s_extraLabels.clear();
+    m_undo.clear();
+    m_recreateAfterDelete.clear();
+    m_collapsedUids.clear();
+    m_applyingUndo = false;
+    m_errorMessage.clear();
+    m_collectionModel.setCollections({});
+    m_taskModel.setTasks({});
+    m_akonadiAvailable = false;
+    Q_EMIT undoChanged();
+    Q_EMIT errorMessageChanged();
+    updateEmptyKind();
+}
+
+void TaskController::setAkonadiAvailableForTest(bool available)
+{
+    if (m_akonadiAvailable == available) {
+        return;
+    }
+    m_akonadiAvailable = available;
+    Q_EMIT akonadiAvailableChanged();
+    updateEmptyKind();
+}
+
+void TaskController::installTestCollections(const QList<Akonadi::Collection> &collections)
+{
+    s_collections = collections;
+    s_collectionNames.clear();
+    for (const Akonadi::Collection &collection : collections) {
+        s_collectionNames.insert(collection.id(), collection.displayName());
+    }
+    m_collectionModel.setCollections(collections);
+    m_collectionNames = s_collectionNames;
+}
+
+qint64 TaskController::installTestTask(qint64 id, const QString &summary, qint64 collectionId)
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setUid(QStringLiteral("test-uid-%1").arg(id));
+    todo->setSummary(summary);
+
+    Akonadi::Item item;
+    item.setId(id);
+    item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+    item.setPayload(todo);
+    item.setParentCollection(Akonadi::Collection(collectionId));
+
+    CachedTask cached;
+    cached.item = item;
+    cached.todo = todo;
+    s_tasks.insert(id, cached);
+
+    if (auto *memory = qobject_cast<MemoryTaskStore *>(m_store)) {
+        memory->seedItem(item);
+    }
+
+    scheduleRebuildAll();
+    return id;
+}
+
+bool TaskController::testTaskExists(qint64 id) const
+{
+    return s_tasks.contains(id);
+}
+
+bool TaskController::testTaskSyncing(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    return it != s_tasks.cend() && it->syncing;
+}
+
+bool TaskController::testTaskPendingDelete(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    return it != s_tasks.cend() && it->pendingDelete;
+}
+
+bool TaskController::testTaskCompleted(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    return it != s_tasks.cend() && it->todo && it->todo->isCompleted();
+}
+
+QString TaskController::testTaskSummary(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo) {
+        return {};
+    }
+    return it->todo->summary();
+}
+
+qint64 TaskController::testTaskCollectionId(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend()) {
+        return -1;
+    }
+    return it->item.parentCollection().id();
+}
+
+int TaskController::testInflight(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    return it == s_tasks.cend() ? 0 : it->inflight;
 }
 
 int TaskController::buildNumber() const
@@ -170,9 +310,55 @@ bool TaskController::smokeTest() const
     return value == "1" || value.compare("true", Qt::CaseInsensitive) == 0;
 }
 
+int TaskController::smokeStep() const
+{
+    return s_smokeStep;
+}
+
+void TaskController::setSmokeStep(int step)
+{
+    if (s_smokeStep == step) {
+        return;
+    }
+    s_smokeStep = step;
+    for (TaskController *instance : s_instances) {
+        Q_EMIT instance->smokeStepChanged();
+    }
+}
+
+bool TaskController::smokeFinished() const
+{
+    return s_smokeFinished;
+}
+
+bool TaskController::smokeLeader()
+{
+    if (!smokeTest() || s_smokeFinished) {
+        return false;
+    }
+    if (!s_smokeLeader) {
+        s_smokeLeader = this;
+        // Notify siblings so only one SmokeTest timer runs.
+        for (TaskController *instance : s_instances) {
+            if (instance != this) {
+                Q_EMIT instance->smokeLeaderChanged();
+            }
+        }
+    }
+    return s_smokeLeader == this;
+}
+
 void TaskController::smokeTrace(const QString &message) const
 {
     qWarning().noquote() << message;
+    if (message.contains(QLatin1String("KURRENT_SMOKE_DONE"))) {
+        if (!s_smokeFinished) {
+            s_smokeFinished = true;
+            for (TaskController *instance : s_instances) {
+                Q_EMIT instance->smokeFinishedChanged();
+            }
+        }
+    }
     const QString path = QString::fromLocal8Bit(qgetenv("KURRENT_SMOKE_LOG"));
     if (path.isEmpty()) {
         return;
@@ -227,7 +413,10 @@ QVariantMap TaskController::dragScreenLimits() const
 
 QPointF TaskController::dragProxyGap(int cursorSize, int cursorShape) const
 {
-    return TaskLogic::dragProxyGap(cursorSize, cursorShape == static_cast<int>(Qt::ArrowCursor));
+    const TaskLogic::CursorKind kind = cursorShape == static_cast<int>(Qt::ArrowCursor)
+        ? TaskLogic::CursorKind::Arrow
+        : TaskLogic::CursorKind::Other;
+    return TaskLogic::dragProxyGap(cursorSize, kind);
 }
 
 QPointF TaskController::clampDragProxyOffset(qreal cursorX,
@@ -419,6 +608,16 @@ void TaskController::setCompleteChildren(bool complete)
     Q_EMIT completeChildrenChanged();
 }
 
+void TaskController::setCountsExcludeCollapsed(bool exclude)
+{
+    if (m_countsExcludeCollapsed == exclude) {
+        return;
+    }
+    m_countsExcludeCollapsed = exclude;
+    Q_EMIT countsExcludeCollapsedChanged();
+    scheduleRebuild();
+}
+
 void TaskController::setNotificationsEnabled(bool enabled)
 {
     if (m_notificationsEnabled == enabled) {
@@ -582,19 +781,17 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
     s_tasks.insert(tempId, cached);
     scheduleRebuildAll();
 
-    auto *job = new Akonadi::ItemCreateJob(jobItem, collection, this);
-    connect(job, &Akonadi::ItemCreateJob::result, this, [this, tempId, collectionId = collection.id()](KJob *kjob) {
-        s_tasks.remove(tempId);
-        auto *createJob = qobject_cast<Akonadi::ItemCreateJob *>(kjob);
-        if (kjob->error() || !createJob) {
-            scheduleRebuildAll();
-            setErrorMessage(kjob->errorString());
-            Q_EMIT error(kjob->errorString());
-            return;
-        }
-        upsertTask(createJob->item(), collectionId);
-        scheduleRebuildAll();
-    });
+    submitCreate(jobItem, collection, tempId);
+}
+
+void TaskController::submitCreate(const Akonadi::Item &jobItem, const Akonadi::Collection &collection, qint64 tempId)
+{
+    AbstractTaskStore::Request req;
+    req.kind = AbstractTaskStore::Kind::Create;
+    req.clientId = tempId;
+    req.item = jobItem;
+    req.collection = collection;
+    m_store->submit(req);
 }
 
 QVariantMap TaskController::parseQuickAdd(const QString &text, const QString &uiLanguage, const QVariantList &projects) const
@@ -689,7 +886,8 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
     KCalendarCore::Todo::Ptr todo = cache->todo;
     pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
     const QDateTime currentDue = (todo->hasDueDate() && todo->dtDue().isValid()) ? todo->dtDue() : QDateTime();
-    const QDateTime next = TaskLogic::rescheduleDue(currentDue, todo->allDay(), QDateTime::currentDateTime(), preset);
+    const TaskLogic::DaySpan daySpan = todo->allDay() ? TaskLogic::DaySpan::AllDay : TaskLogic::DaySpan::Timed;
+    const QDateTime next = TaskLogic::rescheduleDue(currentDue, daySpan, QDateTime::currentDateTime(), preset);
     if (!next.isValid()) {
         return;
     }
@@ -721,27 +919,28 @@ TaskController::CachedTask *TaskController::prepareEdit(qint64 itemId)
     return &*it;
 }
 
-void TaskController::finishSync(qint64 itemId, bool ok, KJob *job)
+void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &errorString)
 {
     auto it = s_tasks.find(itemId);
     if (it == s_tasks.end()) {
-        if (!ok && job) {
-            setErrorMessage(job->errorString());
-            Q_EMIT error(job->errorString());
+        if (ok == SyncResult::Error && !errorString.isEmpty()) {
+            setErrorMessage(errorString);
+            Q_EMIT error(errorString);
         }
         return;
     }
 
     it->inflight = qMax(0, it->inflight - 1);
     if (it->inflight > 0) {
-        if (!ok && job) {
-            setErrorMessage(job->errorString());
-            Q_EMIT error(job->errorString());
+        if (ok == SyncResult::Error && !errorString.isEmpty()) {
+            setErrorMessage(errorString);
+            Q_EMIT error(errorString);
         }
         return;
     }
 
-    if (!ok) {
+    if (ok == SyncResult::Error) {
+        // Roll back optimistic edit to the snapshot from prepareEdit().
         if (it->revertTodo) {
             it->todo = it->revertTodo;
             it->item.setPayload<KCalendarCore::Todo::Ptr>(it->todo);
@@ -750,9 +949,9 @@ void TaskController::finishSync(qint64 itemId, bool ok, KJob *job)
             }
         }
         it->pendingDelete = false;
-        if (job) {
-            setErrorMessage(job->errorString());
-            Q_EMIT error(job->errorString());
+        if (!errorString.isEmpty()) {
+            setErrorMessage(errorString);
+            Q_EMIT error(errorString);
         }
     }
 
@@ -761,6 +960,45 @@ void TaskController::finishSync(qint64 itemId, bool ok, KJob *job)
     it->syncing = false;
     it->inflight = 0;
     scheduleRebuildAll();
+}
+
+void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
+{
+    switch (result.kind) {
+    case AbstractTaskStore::Kind::Create:
+        s_tasks.remove(result.clientId);
+        if (!result.ok) {
+            scheduleRebuildAll();
+            setErrorMessage(result.errorString);
+            Q_EMIT error(result.errorString);
+            return;
+        }
+        upsertTask(result.item, result.collectionId);
+        scheduleRebuildAll();
+        return;
+
+    case AbstractTaskStore::Kind::Delete:
+        if (!result.ok) {
+            m_recreateAfterDelete.remove(result.clientId);
+            finishSync(result.clientId, SyncResult::Error, result.errorString);
+            return;
+        }
+        s_tasks.remove(result.clientId);
+        if (m_recreateAfterDelete.contains(result.clientId)) {
+            const TaskLogic::UndoRecord record = m_recreateAfterDelete.take(result.clientId);
+            recreateTask(record);
+            return;
+        }
+        scheduleRebuildAll();
+        return;
+
+    case AbstractTaskStore::Kind::Modify:
+    case AbstractTaskStore::Kind::Move:
+        finishSync(result.clientId,
+                   result.ok ? SyncResult::Ok : SyncResult::Error,
+                   result.errorString);
+        return;
+    }
 }
 
 void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId)
@@ -782,21 +1020,12 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
     Akonadi::Item modifiedItem = item;
     modifiedItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
 
-    auto *job = new Akonadi::ItemModifyJob(modifiedItem, this);
-    connect(job, &Akonadi::ItemModifyJob::result, this, [this, itemId, moveToCollectionId](KJob *kjob) {
-        if (kjob->error()) {
-            finishSync(itemId, false, kjob);
-            return;
-        }
-        if (moveToCollectionId > 0) {
-            auto *moveJob = new Akonadi::ItemMoveJob(Akonadi::Item(itemId), Akonadi::Collection(moveToCollectionId), this);
-            connect(moveJob, &Akonadi::ItemMoveJob::result, this, [this, itemId](KJob *moveKjob) {
-                finishSync(itemId, !moveKjob->error(), moveKjob);
-            });
-            return;
-        }
-        finishSync(itemId, true, nullptr);
-    });
+    AbstractTaskStore::Request req;
+    req.kind = AbstractTaskStore::Kind::Modify;
+    req.clientId = itemId;
+    req.item = modifiedItem;
+    req.moveAfterModifyId = moveToCollectionId;
+    m_store->submit(req);
 }
 
 Akonadi::Collection TaskController::collectionById(qint64 collectionId) const
@@ -863,6 +1092,7 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.indentLevel = indentLevel;
     entry.hasChildren = hasChildren;
     entry.treeCollapsed = false;
+    entry.treeHidden = false;
     entry.reminderMinutes = TaskCalendar::reminderMinutesFromTodo(todo);
     entry.section = sectionFromTodo(todo);
     entry.syncing = cached.syncing;
@@ -959,7 +1189,7 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 
     if (fields.contains(QStringLiteral("completed"))) {
         const bool completed = fields.value(QStringLiteral("completed")).toBool();
-        TaskCalendar::completeTodo(todo, completed, QDateTime::currentDateTime());
+        TaskCalendar::completeTodo(todo, completed ? TaskCalendar::CompleteAction::Mark : TaskCalendar::CompleteAction::Unmark, QDateTime::currentDateTime());
         if (!fields.contains(QStringLiteral("percentComplete")) && !todo->recurs()) {
             todo->setPercentComplete(completed ? 100 : 0);
         }
@@ -1115,10 +1345,12 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
     cache->inflight += 1;
     scheduleRebuildAll();
 
-    auto *moveJob = new Akonadi::ItemMoveJob(jobItem, destination, this);
-    connect(moveJob, &Akonadi::ItemMoveJob::result, this, [this, itemId](KJob *kjob) {
-        finishSync(itemId, !kjob->error(), kjob);
-    });
+    AbstractTaskStore::Request req;
+    req.kind = AbstractTaskStore::Kind::Move;
+    req.clientId = itemId;
+    req.item = jobItem;
+    req.collection = destination;
+    m_store->submit(req);
 }
 
 void TaskController::setTaskCompleted(qint64 itemId, bool completed)
@@ -1130,7 +1362,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
     pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Complete, *cache));
-    TaskCalendar::completeTodo(todo, completed, QDateTime::currentDateTime());
+    TaskCalendar::completeTodo(todo, completed ? TaskCalendar::CompleteAction::Mark : TaskCalendar::CompleteAction::Unmark, QDateTime::currentDateTime());
     persistTodo(cache->item, todo);
 
     if (completed && m_completeChildren && todo) {
@@ -1155,7 +1387,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
             if (!child || !child->todo || child->todo->isCompleted()) {
                 continue;
             }
-            TaskCalendar::completeTodo(child->todo, true, QDateTime::currentDateTime());
+            TaskCalendar::completeTodo(child->todo, TaskCalendar::CompleteAction::Mark, QDateTime::currentDateTime());
             persistTodo(child->item, child->todo);
         }
         m_applyingUndo = wasApplying;
@@ -1183,21 +1415,11 @@ void TaskController::deleteTask(qint64 itemId)
     cache->inflight += 1;
     scheduleRebuildAll();
 
-    auto *job = new Akonadi::ItemDeleteJob(jobItem, this);
-    connect(job, &Akonadi::ItemDeleteJob::result, this, [this, itemId](KJob *kjob) {
-        if (kjob->error()) {
-            m_recreateAfterDelete.remove(itemId);
-            finishSync(itemId, false, kjob);
-            return;
-        }
-        s_tasks.remove(itemId);
-        if (m_recreateAfterDelete.contains(itemId)) {
-            const TaskLogic::UndoRecord record = m_recreateAfterDelete.take(itemId);
-            recreateTask(record);
-            return;
-        }
-        scheduleRebuildAll();
-    });
+    AbstractTaskStore::Request req;
+    req.kind = AbstractTaskStore::Kind::Delete;
+    req.clientId = itemId;
+    req.item = jobItem;
+    m_store->submit(req);
 }
 
 void TaskController::undo()
@@ -1359,19 +1581,7 @@ void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
     s_tasks.insert(tempId, cached);
     scheduleRebuildAll();
 
-    auto *job = new Akonadi::ItemCreateJob(jobItem, collection, this);
-    connect(job, &Akonadi::ItemCreateJob::result, this, [this, tempId, collectionId = collection.id()](KJob *kjob) {
-        s_tasks.remove(tempId);
-        auto *createJob = qobject_cast<Akonadi::ItemCreateJob *>(kjob);
-        if (kjob->error() || !createJob) {
-            scheduleRebuildAll();
-            setErrorMessage(kjob->errorString());
-            Q_EMIT error(kjob->errorString());
-            return;
-        }
-        upsertTask(createJob->item(), collectionId);
-        scheduleRebuildAll();
-    });
+    submitCreate(jobItem, collection, tempId);
 }
 
 void TaskController::logDebug(const QString &message)
@@ -1454,11 +1664,18 @@ void TaskController::setErrorMessage(const QString &message)
 
 void TaskController::updateEmptyKind()
 {
-    const QString kind = TaskLogic::emptyKind(m_loading,
-                                              m_akonadiAvailable,
-                                              m_collectionModel.count(),
-                                              m_taskModel.count(),
-                                              !m_errorMessage.isEmpty());
+    int visibleCount = 0;
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        if (!m_taskModel.taskAt(i).treeHidden) {
+            ++visibleCount;
+        }
+    }
+    const QString kind = TaskLogic::emptyKind(
+        m_loading ? TaskLogic::LoadState::Loading : TaskLogic::LoadState::Idle,
+        m_akonadiAvailable ? TaskLogic::BackendState::Online : TaskLogic::BackendState::Offline,
+        m_collectionModel.count(),
+        visibleCount,
+        m_errorMessage.isEmpty() ? TaskLogic::ErrorPresence::None : TaskLogic::ErrorPresence::Present);
     if (m_emptyKind == kind) {
         return;
     }
@@ -1863,15 +2080,18 @@ bool TaskController::isCollectionEnabled(qint64 collectionId) const
 
 void TaskController::rebuildTaskList()
 {
-    QList<TaskEntry> tasks;
-    tasks.reserve(s_tasks.size());
+    QList<TaskEntry> allTasks;
+    allTasks.reserve(s_tasks.size());
     for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
         if (!it->todo) {
             continue;
         }
-        tasks.append(makeTaskEntry(it.value(), 0, false));
+        allTasks.append(makeTaskEntry(it.value(), 0, false));
     }
-    tasks = TaskLogic::flattenTree(tasks, m_sortMode, m_collapsedUids);
+
+    // Flat list omits descendants of collapsed parents so scrollbar/contentHeight
+    // always match the rows on screen.
+    QList<TaskEntry> tasks = TaskLogic::flattenTree(allTasks, m_sortMode, m_collapsedUids);
 
     TaskLogic::FilterState filters;
     filters.currentView = m_currentView;
@@ -1885,18 +2105,22 @@ void TaskController::rebuildTaskList()
     filters.morningHour = m_morningHour;
     filters.afternoonHour = m_afternoonHour;
     filters.eveningHour = m_eveningHour;
-    filters.searchTitleOnly = m_searchTitleOnly;
-    filters.searchCaseSensitive = m_searchCaseSensitive;
+    filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
+    filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
 
     const TaskLogic::VisibleFilterResult filtered = TaskLogic::filterVisibleTasks(tasks, filters, QDate::currentDate());
 
-    m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(tasks));
+    // Sidebar/badge counts: default includes collapsed subtasks so collapsing does not
+    // change numbers. Optional: count only visible (non-collapsed / non-hidden) rows.
+    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? tasks : allTasks;
+    m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(countSource));
     m_taskModel.setTasks(filtered.tasks);
-    updatePendingCount(tasks);
-    updateAvailableLabels(tasks);
-    updateCounts(tasks);
+    updatePendingCount(countSource);
+    updateAvailableLabels(allTasks);
+    updateCounts(countSource);
     publishSharedCache();
     updateEmptyKind();
+
     updateDebugInfo(tasks.size(),
                     filtered.tasks.size(),
                     filtered.filteredOutCompleted,
@@ -1937,7 +2161,9 @@ bool TaskController::taskMatchesViewId(const TaskEntry &task, const QString &vie
 
 bool TaskController::taskMatchesSearch(const TaskEntry &task) const
 {
-    return TaskLogic::matchesSearch(task, m_searchQuery, m_searchTitleOnly, m_searchCaseSensitive);
+    return TaskLogic::matchesSearch(task, m_searchQuery,
+        m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All,
+        m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive);
 }
 
 Akonadi::Item TaskController::itemById(qint64 itemId) const
@@ -1989,8 +2215,8 @@ void TaskController::updateCounts(const QList<TaskEntry> &tasks)
     filters.morningHour = m_morningHour;
     filters.afternoonHour = m_afternoonHour;
     filters.eveningHour = m_eveningHour;
-    filters.searchTitleOnly = m_searchTitleOnly;
-    filters.searchCaseSensitive = m_searchCaseSensitive;
+    filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
+    filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
 
     const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts(tasks, filters, s_extraLabels, QDate::currentDate());
 
@@ -2249,7 +2475,8 @@ void TaskController::checkReminders()
         return;
     }
     const QDateTime now = QDateTime::currentDateTime();
-    if (TaskLogic::inQuietHours(now.time(), m_quietHoursStart, m_quietHoursEnd, m_quietHoursEnabled)) {
+    if (TaskLogic::inQuietHours(now.time(), m_quietHoursStart, m_quietHoursEnd,
+        m_quietHoursEnabled ? TaskLogic::QuietHoursMode::Enabled : TaskLogic::QuietHoursMode::Disabled)) {
         return;
     }
     const QDateTime from = m_lastReminderScan.isValid() ? m_lastReminderScan : now.addSecs(-45);

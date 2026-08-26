@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PREFIX="${KURRENT_PREFIX:-${PREFIX:-${HOME}/.local}}"
 APPLET="${KURRENT_APPLET:-com.github.shrippen.kurrent}"
-TIMEOUT_SEC="${KURRENT_VIEWER_TIMEOUT:-18}"
+TIMEOUT_SEC="${KURRENT_VIEWER_TIMEOUT:-30}"
 
 if [[ "${SKIP_PLASMOIDVIEWER:-0}" == "1" ]]; then
     echo "Skipping plasmoidviewer smoke tests (SKIP_PLASMOIDVIEWER=1)."
@@ -26,8 +26,9 @@ if ! command -v timeout >/dev/null 2>&1; then
     exit 77
 fi
 
-export QML_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
-export QML2_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
+# Prefer lib64 (Fedora/CMake) then lib, then share/qt6 mirror.
+export QML_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
+export QML2_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
 export KURRENT_SMOKE=1
 export QT_FORCE_STDERR_LOGGING=1
 export QT_LOGGING_TO_CONSOLE=1
@@ -38,6 +39,9 @@ LOG_DIR="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-viewer-XXXXXX")"
 cleanup() {
     pkill -f "plasmoidviewer -a ${APPLET}" 2>/dev/null || true
 }
+# Ensure no leftover viewer from a previous run races this one.
+cleanup
+sleep 0.2
 trap cleanup EXIT
 
 strip_ansi() {

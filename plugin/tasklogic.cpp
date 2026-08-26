@@ -18,34 +18,34 @@ namespace TaskLogic
 int priorityBand(int priority)
 {
     if (priority >= 1 && priority <= 3) {
-        return 1;
+        return PriorityBand::High;
     }
     if (priority >= 4 && priority <= 6) {
-        return 5;
+        return PriorityBand::Medium;
     }
     if (priority >= 7 && priority <= 9) {
-        return 9;
+        return PriorityBand::Low;
     }
-    return 0;
+    return PriorityBand::None;
 }
 
-bool matchesSearch(const TaskEntry &task, const QString &query, bool titleOnly, bool caseSensitive)
+bool matchesSearch(const TaskEntry &task, const QString &query, SearchScope scope, SearchCase cs)
 {
     if (query.trimmed().isEmpty()) {
         return true;
     }
 
-    const Qt::CaseSensitivity cs = caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive;
+    const Qt::CaseSensitivity csFlag = cs == SearchCase::Sensitive ? Qt::CaseSensitive : Qt::CaseInsensitive;
     const QString needle = query.trimmed();
-    if (task.summary.contains(needle, cs)) {
+    if (task.summary.contains(needle, csFlag)) {
         return true;
     }
-    if (titleOnly) {
+    if (scope == SearchScope::TitleOnly) {
         return false;
     }
-    return task.description.contains(needle, cs)
-        || task.collectionName.contains(needle, cs)
-        || task.categories.join(QLatin1Char(' ')).contains(needle, cs);
+    return task.description.contains(needle, csFlag)
+        || task.collectionName.contains(needle, csFlag)
+        || task.categories.join(QLatin1Char(' ')).contains(needle, csFlag);
 }
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today)
@@ -54,31 +54,31 @@ bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &toda
     const bool hasDue = task.dueDate.isValid();
     const QDate due = hasDue ? task.dueDate.date() : QDate();
 
-    if (viewId == QLatin1String("inbox")) {
+    if (viewId == ViewId::Inbox) {
         return true;
     }
-    if (viewId == QLatin1String("today")) {
+    if (viewId == ViewId::Today) {
         return hasDue && due == today;
     }
-    if (viewId == QLatin1String("overdue")) {
+    if (viewId == ViewId::Overdue) {
         return hasDue && due < today && !task.completed;
     }
-    if (viewId == QLatin1String("tomorrow")) {
+    if (viewId == ViewId::Tomorrow) {
         return hasDue && due == tomorrow;
     }
-    if (viewId == QLatin1String("scheduled")) {
+    if (viewId == ViewId::Scheduled) {
         return hasDue;
     }
-    if (viewId == QLatin1String("anytime")) {
+    if (viewId == ViewId::Anytime) {
         return !hasDue;
     }
-    if (viewId == QLatin1String("recurring")) {
+    if (viewId == ViewId::Recurring) {
         return task.recurring;
     }
-    if (viewId == QLatin1String("unlabeled")) {
+    if (viewId == ViewId::Unlabeled) {
         return task.categories.isEmpty();
     }
-    if (viewId == QLatin1String("completed")) {
+    if (viewId == ViewId::Completed) {
         return task.completed;
     }
     return true;
@@ -148,27 +148,29 @@ QString listBucket(const TaskEntry &task, const FilterState &filters, const QDat
     return {};
 }
 
-QDateTime rescheduleDue(const QDateTime &currentDue, bool allDay, const QDateTime &now, const QString &preset)
+QDateTime rescheduleDue(const QDateTime &currentDue, DaySpan daySpan, const QDateTime &now, const QString &preset)
 {
+    const bool allDay = daySpan == DaySpan::AllDay;
     const QDateTime base = now.isValid() ? now : QDateTime::currentDateTime();
-    if (preset == QLatin1String("15m")) {
-        return base.addSecs(15 * 60);
+
+    if (preset == ReschedulePreset::Min15) {
+        return base.addSecs(ReschedulePreset::Sec15m);
     }
-    if (preset == QLatin1String("1h")) {
-        return base.addSecs(60 * 60);
+    if (preset == ReschedulePreset::Hour1) {
+        return base.addSecs(ReschedulePreset::Sec1h);
     }
-    if (preset == QLatin1String("4h")) {
-        return base.addSecs(4 * 60 * 60);
+    if (preset == ReschedulePreset::Hour4) {
+        return base.addSecs(ReschedulePreset::Sec4h);
     }
 
     QDateTime seed = currentDue.isValid() ? currentDue : base;
-    if (preset == QLatin1String("tomorrow")) {
+    if (preset == ReschedulePreset::Tomorrow) {
         if (allDay || !seed.time().isValid() || (seed.time() == QTime(0, 0) && allDay)) {
             return QDateTime(base.date().addDays(1), QTime(0, 0));
         }
         return QDateTime(base.date().addDays(1), seed.time());
     }
-    if (preset == QLatin1String("next-week")) {
+    if (preset == ReschedulePreset::NextWeek) {
         if (allDay) {
             return QDateTime(seed.date().addDays(7), QTime(0, 0));
         }
@@ -324,6 +326,9 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
     out.sidebarPriorities.insert(QStringLiteral("9"), 0);
 
     for (const TaskEntry &task : tasks) {
+        if (task.treeHidden) {
+            continue;
+        }
         for (const QString &category : task.categories) {
             if (category.isEmpty()) {
                 continue;
@@ -334,12 +339,12 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
         const bool passCollection = filters.selectedCollectionId < 0 || task.collectionId == filters.selectedCollectionId;
         const bool passLabel = filters.selectedLabel.isEmpty() || task.categories.contains(filters.selectedLabel);
         const bool passPriority = filters.selectedPriority < 0 || priorityBand(task.priority) == filters.selectedPriority;
-        const bool passSearch = matchesSearch(task, filters.searchQuery, filters.searchTitleOnly, filters.searchCaseSensitive);
+        const bool passSearch = matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase);
         const bool passCompleted = filters.showCompleted || !task.completed;
 
         if (passCollection && passLabel && passPriority && passSearch) {
             for (const QString &viewId : viewIds) {
-                if (viewId == QLatin1String("completed")) {
+                if (viewId == ViewId::Completed) {
                     if (task.completed && matchesView(task, viewId, today)) {
                         out.viewCounts.insert(viewId, out.viewCounts.value(viewId).toInt() + 1);
                     }
@@ -403,7 +408,7 @@ qint64 firstSidebarProjectId(const QList<ProjectCandidate> &projects, const QSet
 NewTaskTarget resolveNewTaskTarget(qint64 selectedCollectionId,
                                    const QString &mode,
                                    qint64 defaultCollectionId,
-                                   bool defaultExists,
+                                   DefaultCollection defaultState,
                                    qint64 firstEnabledId)
 {
     NewTaskTarget target;
@@ -416,7 +421,9 @@ NewTaskTarget resolveNewTaskTarget(qint64 selectedCollectionId,
         target.collectionId = firstEnabledId;
         return target;
     }
-    if (mode == QLatin1String("fixed") && defaultExists && defaultCollectionId > 0) {
+    if (mode == QLatin1String("fixed")
+        && defaultState == DefaultCollection::Exists
+        && defaultCollectionId > 0) {
         target.collectionId = defaultCollectionId;
         return target;
     }
@@ -425,10 +432,10 @@ NewTaskTarget resolveNewTaskTarget(qint64 selectedCollectionId,
     return target;
 }
 
-QPointF dragProxyGap(int cursorSize, bool arrowCursor)
+QPointF dragProxyGap(int cursorSize, CursorKind cursorKind)
 {
     const int size = qMax(16, cursorSize);
-    if (arrowCursor) {
+    if (cursorKind == CursorKind::Arrow) {
         return QPointF(qCeil(size * 0.85), qCeil(size * 0.2));
     }
     return QPointF(qCeil(size * 0.55), qCeil(size * 0.55));
@@ -454,6 +461,14 @@ QPointF clampDragProxyOffset(qreal cursorX,
     return QPointF(ox, oy);
 }
 
+// Depth-first flatten for the list view.
+// Parents before children. Collapsed parents omit descendants from the list so
+// contentHeight / scrollbar always match visible rows.
+//
+//   root
+//    ├─ childA
+//    └─ childB
+//         └─ grand
 QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode, const QSet<QString> &collapsedUids)
 {
     QHash<QString, QList<int>> children;
@@ -476,7 +491,8 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
 
     QList<TaskEntry> out;
     QSet<QString> walking;
-    std::function<void(const QString &, int)> walk = [&](const QString &parent, int indent) {
+    std::function<void(const QString &, int)> walk =
+        [&](const QString &parent, int indent) {
         QList<int> kids = children.value(parent);
         sortKids(kids);
         for (int idx : kids) {
@@ -488,6 +504,7 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
             entry.indentLevel = indent;
             entry.hasChildren = children.contains(entry.uid) && !children.value(entry.uid).isEmpty();
             entry.treeCollapsed = entry.hasChildren && collapsedUids.contains(entry.uid);
+            entry.treeHidden = false;
             out.append(entry);
             if (!entry.treeCollapsed) {
                 walk(entry.uid, indent + 1);
@@ -502,27 +519,32 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
             entry.indentLevel = 0;
             entry.hasChildren = false;
             entry.treeCollapsed = false;
+            entry.treeHidden = false;
             out.append(entry);
         }
     }
     return out;
 }
 
-QString emptyKind(bool loading, bool akonadiAvailable, int collectionCount, int visibleCount, bool hasError)
+QString emptyKind(LoadState loading,
+                  BackendState backend,
+                  int collectionCount,
+                  int visibleCount,
+                  ErrorPresence error)
 {
     if (visibleCount > 0) {
         return {};
     }
-    if (loading) {
+    if (loading == LoadState::Loading) {
         return QStringLiteral("loading");
     }
-    if (!akonadiAvailable) {
+    if (backend == BackendState::Offline) {
         return QStringLiteral("offline");
     }
     if (collectionCount <= 0) {
         return QStringLiteral("no-collections");
     }
-    if (hasError) {
+    if (error == ErrorPresence::Present) {
         return QStringLiteral("error");
     }
     return QStringLiteral("empty");
@@ -641,13 +663,44 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
             ++out.filteredOutView;
             continue;
         }
-        if (!matchesSearch(task, filters.searchQuery, filters.searchTitleOnly, filters.searchCaseSensitive)) {
+        if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
             ++out.filteredOutSearch;
             continue;
         }
         TaskEntry visible = task;
         visible.bucket = listBucket(task, filters, today);
         out.tasks.append(visible);
+    }
+
+    // Drop hidden rows whose parent is not in this filtered list (e.g. parent in
+    // another view). Keep hidden children when the parent row is present so the
+    // ListView can animate height without insert/remove.
+    {
+        QSet<QString> present;
+        present.reserve(out.tasks.size());
+        for (const TaskEntry &task : out.tasks) {
+            present.insert(task.uid);
+        }
+        QList<TaskEntry> pruned;
+        pruned.reserve(out.tasks.size());
+        for (const TaskEntry &task : out.tasks) {
+            if (task.treeHidden && !present.contains(task.parentUid)) {
+                continue;
+            }
+            pruned.append(task);
+        }
+        out.tasks = pruned;
+    }
+
+    // Hidden rows inherit the nearest visible ancestor's bucket so Today sections
+    // do not grow empty headers from collapsed subtasks alone.
+    QString lastVisibleBucket;
+    for (TaskEntry &task : out.tasks) {
+        if (task.treeHidden) {
+            task.bucket = lastVisibleBucket;
+        } else {
+            lastVisibleBucket = task.bucket;
+        }
     }
     return out;
 }
@@ -656,6 +709,9 @@ QHash<qint64, int> collectionTaskCounts(const QList<TaskEntry> &tasks)
 {
     QHash<qint64, int> counts;
     for (const TaskEntry &task : tasks) {
+        if (task.treeHidden) {
+            continue;
+        }
         ++counts[task.collectionId];
     }
     return counts;
@@ -665,7 +721,7 @@ int pendingRootCount(const QList<TaskEntry> &tasks)
 {
     int pending = 0;
     for (const TaskEntry &task : tasks) {
-        if (!task.completed && task.indentLevel == 0) {
+        if (!task.completed && task.indentLevel == 0 && !task.treeHidden) {
             ++pending;
         }
     }
@@ -963,9 +1019,9 @@ QString relativeDueKind(const QDate &due, const QDate &today)
     return QStringLiteral("date");
 }
 
-bool inQuietHours(const QTime &now, int startHour, int endHour, bool enabled)
+bool inQuietHours(const QTime &now, int startHour, int endHour, QuietHoursMode mode)
 {
-    if (!enabled || !now.isValid()) {
+    if (mode == QuietHoursMode::Disabled || !now.isValid()) {
         return false;
     }
     const int start = qBound(0, startHour, 23);
@@ -1061,11 +1117,11 @@ int visibleLabelCount(const QStringList &labels, const QSet<QString> &hiddenLabe
     return count;
 }
 
-int naturalListHeight(int rowCount, bool hasHeader, int headerHeight, int rowHeight, int gap)
+int naturalListHeight(int rowCount, ListHeader hasHeader, int headerHeight, int rowHeight, int gap)
 {
     const int rows = qMax(0, rowCount);
-    const int header = hasHeader ? headerHeight : 0;
-    const int parts = rows + (hasHeader ? 1 : 0);
+    const int header = hasHeader == ListHeader::Yes ? headerHeight : 0;
+    const int parts = rows + (hasHeader == ListHeader::Yes ? 1 : 0);
     const int gaps = qMax(0, parts - 1);
     return header + rows * rowHeight + gaps * gap;
 }
@@ -1114,28 +1170,28 @@ QList<int> redistributeSections(int available, const QList<int> &mins)
 
 QString viewIconSource(const QString &viewId)
 {
-    if (viewId == QLatin1String("today")) {
+    if (viewId == ViewId::Today) {
         return QStringLiteral("view-calendar-day");
     }
-    if (viewId == QLatin1String("overdue")) {
+    if (viewId == ViewId::Overdue) {
         return QStringLiteral("appointment-missed");
     }
-    if (viewId == QLatin1String("tomorrow")) {
+    if (viewId == ViewId::Tomorrow) {
         return QStringLiteral("go-next");
     }
-    if (viewId == QLatin1String("scheduled")) {
+    if (viewId == ViewId::Scheduled) {
         return QStringLiteral("view-calendar");
     }
-    if (viewId == QLatin1String("anytime")) {
+    if (viewId == ViewId::Anytime) {
         return QStringLiteral("view-calendar-tasks");
     }
-    if (viewId == QLatin1String("recurring")) {
+    if (viewId == ViewId::Recurring) {
         return QStringLiteral("media-playlist-repeat");
     }
-    if (viewId == QLatin1String("unlabeled")) {
+    if (viewId == ViewId::Unlabeled) {
         return QStringLiteral("tag-delete");
     }
-    if (viewId == QLatin1String("completed")) {
+    if (viewId == ViewId::Completed) {
         return QStringLiteral("checkmark");
     }
     return QStringLiteral("mail-folder-inbox");
@@ -1226,19 +1282,19 @@ int indexToPriority(int index)
 {
     switch (index) {
     case 1:
-        return 1;
+        return PriorityBand::High;
     case 2:
-        return 5;
+        return PriorityBand::Medium;
     case 3:
-        return 9;
+        return PriorityBand::Low;
     default:
-        return 0;
+        return PriorityBand::None;
     }
 }
 
-int resolveCursorSize(int envValue, bool envOk, int configValue)
+int resolveCursorSize(int envValue, EnvCursor envCursor, int configValue)
 {
-    if (envOk && envValue > 0) {
+    if (envCursor == EnvCursor::Valid && envValue > 0) {
         return envValue;
     }
     return configValue > 0 ? configValue : 24;

@@ -127,13 +127,13 @@ KCM.SimpleKCM {
 
                     contentItem: GridLayout {
                         columns: shell.wideLayout ? 2 : 1
-                        columnSpacing: Kirigami.Units.smallSpacing
-                        rowSpacing: Kirigami.Units.smallSpacing
+                        columnSpacing: Design.spaceSmall
+                        rowSpacing: Design.spaceSmall
 
                         RowLayout {
                             Layout.columnSpan: shell.wideLayout ? 2 : 1
                             Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
+                            spacing: Design.spaceSmall
 
                             Kirigami.Icon {
                                 source: "tag"
@@ -179,7 +179,7 @@ KCM.SimpleKCM {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
+                            spacing: Design.spaceSmall
 
                             QQC2.Switch {
                                 text: i18n("Visible")
@@ -206,7 +206,7 @@ KCM.SimpleKCM {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
+            spacing: Design.spaceSmall
 
             QQC2.TextField {
                 id: newLabelField
@@ -227,8 +227,8 @@ KCM.SimpleKCM {
         GridLayout {
             Layout.fillWidth: true
             columns: shell.wideLayout ? 3 : 1
-            columnSpacing: Kirigami.Units.smallSpacing
-            rowSpacing: Kirigami.Units.smallSpacing
+            columnSpacing: Design.spaceSmall
+            rowSpacing: Design.spaceSmall
 
             QQC2.ComboBox {
                 id: renameFromCombo

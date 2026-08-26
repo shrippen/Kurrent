@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kirigamiaddons.dateandtime as KDateTime
 import "../datetime.js" as DateTime
+import ".."
 
 RowLayout {
     id: root
@@ -17,7 +18,7 @@ RowLayout {
 
     signal textEdited()
 
-    spacing: Kirigami.Units.smallSpacing
+    spacing: Design.spaceSmall
 
     readonly property var tokens: mode === "time" ? DateTime.timeTokens() : DateTime.dateTokens()
     readonly property int maxDigits: DateTime.maxDigitsFor(tokens)

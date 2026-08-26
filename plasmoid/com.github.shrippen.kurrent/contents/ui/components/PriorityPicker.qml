@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
+import ".."
 
 RowLayout {
     id: root
@@ -11,7 +12,7 @@ RowLayout {
     /** When false, the parent FormLayout supplies the left-side label. */
     property bool showLabel: false
 
-    spacing: Kirigami.Units.largeSpacing
+    spacing: Design.spaceMedium
 
     QQC2.Label {
         visible: root.showLabel

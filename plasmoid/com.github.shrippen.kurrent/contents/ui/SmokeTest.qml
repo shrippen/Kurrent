@@ -14,7 +14,6 @@ Item {
     height: 0
     visible: false
 
-    property int step: 0
     readonly property var views: [
         "inbox", "today", "overdue", "tomorrow", "scheduled",
         "anytime", "recurring", "unlabeled", "completed"
@@ -22,19 +21,21 @@ Item {
 
     Timer {
         id: runner
-        interval: 280
+        interval: 140
         repeat: true
-        running: !!(backend && backend.smokeTest)
+        running: !!(backend && backend.smokeTest && backend.smokeLeader && !backend.smokeFinished
+                    && fullRoot)
         onTriggered: root.nextStep()
     }
 
     function nextStep() {
-        if (!backend || !fullRoot) {
+        if (!backend || !fullRoot || backend.smokeFinished) {
+            runner.stop()
             return
         }
 
-        var i = step
-        step += 1
+        var i = backend.smokeStep
+        backend.smokeStep = i + 1
 
         if (i === 0) {
             backend.smokeTrace("KURRENT_SMOKE_START")
@@ -167,7 +168,24 @@ Item {
             }
             return
         case 23:
+            backend.currentView = "today"
+            return
+        case 24:
+            backend.currentView = "overdue"
+            return
+        case 25:
             backend.currentView = "inbox"
+            return
+        case 26:
+            backend.currentView = "overdue"
+            return
+        case 27:
+            backend.currentView = "today"
+            return
+        case 28:
+            backend.currentView = "inbox"
+            return
+        case 29:
             backend.smokeTrace("KURRENT_SMOKE_DONE")
             runner.stop()
             return

@@ -132,7 +132,7 @@ Item {
     }
 
     function dragLimitRight() {
-        var margin = Kirigami.Units.smallSpacing
+        var margin = KurrentUi.Design.spaceSmall
         var sg = Plasmoid.screenGeometry
         var cpp = backend.dragScreenLimits()
         var right = Screen.virtualX + Screen.width
@@ -146,7 +146,7 @@ Item {
     }
 
     function dragLimitBottom() {
-        var margin = Kirigami.Units.smallSpacing
+        var margin = KurrentUi.Design.spaceSmall
         var sg = Plasmoid.screenGeometry
         var ar = Plasmoid.availableScreenRect
         var cpp = backend.dragScreenLimits()
@@ -259,7 +259,7 @@ Item {
     ]
 
     function openSortMenu() {
-        var margin = Kirigami.Units.smallSpacing
+        var margin = KurrentUi.Design.spaceSmall
         var maxWidth = Math.max(Kirigami.Units.gridUnit * 8, fullRoot.width - margin * 2)
         sortMenu.width = Math.min(Kirigami.Units.gridUnit * 18,
                                   Math.max(Kirigami.Units.gridUnit * 12, maxWidth))
@@ -332,8 +332,41 @@ Item {
         }
 
         Kirigami.Separator {
+            id: sidebarSplitter
             Layout.fillHeight: true
             Layout.preferredWidth: 1
+
+            // Drag hit area: resize sidebar width (6–20 grid units), persist to config.
+            MouseArea {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: Math.max(KurrentUi.Design.spaceMedium, Kirigami.Units.gridUnit)
+                cursorShape: Qt.SplitHCursor
+                hoverEnabled: true
+                preventStealing: true
+                property real pressGlobalX: 0
+                property int pressUnits: 10
+
+                onPressed: function(mouse) {
+                    pressGlobalX = mapToItem(shellRow, mouse.x, 0).x
+                    pressUnits = KurrentUi.Design.sidebarWidthUnits
+                }
+                onPositionChanged: function(mouse) {
+                    if (!pressed) {
+                        return
+                    }
+                    var x = mapToItem(shellRow, mouse.x, 0).x
+                    var dx = x - pressGlobalX
+                    var units = Math.round(pressUnits + dx / Kirigami.Units.gridUnit)
+                    units = Math.max(6, Math.min(20, units))
+                    if (units === KurrentUi.Design.sidebarWidthUnits) {
+                        return
+                    }
+                    KurrentUi.Design.sidebarWidthUnits = units
+                    Plasmoid.configuration.sidebarWidthUnits = units
+                }
+            }
         }
 
         ColumnLayout {
@@ -348,7 +381,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
+                spacing: KurrentUi.Design.spaceSmall
 
                 Kirigami.Icon {
                     source: plasmoidRoot.activeViewIconSource()
@@ -417,10 +450,11 @@ Item {
                 QQC2.Label {
                     visible: backend.devBuild
                     text: i18n("Build") + " " + String(backend.buildNumber)
-                    opacity: 0.6
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                    elide: Text.ElideRight
+                    opacity: 0.85
+                    font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
+                    font.bold: true
                     Layout.alignment: Qt.AlignVCenter
+                    Layout.rightMargin: KurrentUi.Design.spaceSmall
                 }
 
                 QQC2.Label {
@@ -445,7 +479,7 @@ Item {
     Rectangle {
         id: dragProxy
         z: 1000
-        readonly property int contentPad: Kirigami.Units.smallSpacing
+        readonly property int contentPad: KurrentUi.Design.spaceSmall
         readonly property int moveIconSize: Kirigami.Units.iconSizes.small
 
         width: Math.min(Math.max(proxyContent.implicitWidth + contentPad * 2,
@@ -481,7 +515,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
+                spacing: KurrentUi.Design.spaceSmall
 
                 Kirigami.Icon {
                     id: moveIcon
@@ -537,7 +571,7 @@ Item {
         dim: false
         focus: true
         clip: true
-        padding: Kirigami.Units.smallSpacing
+        padding: KurrentUi.Design.spaceSmall
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
         z: 1500
 
@@ -556,9 +590,9 @@ Item {
             spacing: 0
             header: QQC2.Label {
                 width: sortList.width
-                leftPadding: Kirigami.Units.smallSpacing
-                rightPadding: Kirigami.Units.smallSpacing
-                bottomPadding: Kirigami.Units.smallSpacing
+                leftPadding: KurrentUi.Design.spaceSmall
+                rightPadding: KurrentUi.Design.spaceSmall
+                bottomPadding: KurrentUi.Design.spaceSmall
                 text: i18n("Sort tasks")
                 font.bold: true
                 opacity: 0.75

@@ -84,76 +84,6 @@ ColumnLayout {
 
     property var pendingDeleteId: -1
 
-    property string scrollAnchorUid: ""
-    property real scrollAnchorViewportY: 0
-
-    function preserveScrollForUid(uid) {
-        if (!uid) {
-            return
-        }
-        var row = controller.taskModel.rowForUid(uid)
-        if (row < 0) {
-            return
-        }
-        var item = taskList.itemAtIndex(row)
-        if (item) {
-            scrollAnchorUid = uid
-            scrollAnchorViewportY = item.y - taskList.contentY
-            return
-        }
-        scrollAnchorUid = uid
-        scrollAnchorViewportY = 0
-        taskList.positionViewAtIndex(row, ListView.Beginning)
-        item = taskList.itemAtIndex(row)
-        if (item) {
-            scrollAnchorViewportY = item.y - taskList.contentY
-        }
-    }
-
-    function restoreScrollAnchor() {
-        if (!scrollAnchorUid) {
-            return
-        }
-        var uid = scrollAnchorUid
-        var viewportY = scrollAnchorViewportY
-        scrollAnchorUid = ""
-
-        Qt.callLater(function() {
-            var row = controller.taskModel.rowForUid(uid)
-            if (row < 0) {
-                return
-            }
-            taskList.positionViewAtIndex(row, ListView.Beginning)
-            var item = taskList.itemAtIndex(row)
-            if (item) {
-                taskList.contentY = Math.max(0, item.y - viewportY)
-            } else {
-                scrollAnchorRetry.targetRow = row
-                scrollAnchorRetry.viewportY = viewportY
-                scrollAnchorRetry.start()
-            }
-        })
-    }
-
-    Timer {
-        id: scrollAnchorRetry
-        interval: 16
-        repeat: false
-        property int targetRow: -1
-        property real viewportY: 0
-        onTriggered: {
-            if (targetRow < 0) {
-                return
-            }
-            taskList.positionViewAtIndex(targetRow, ListView.Beginning)
-            var item = taskList.itemAtIndex(targetRow)
-            if (item) {
-                taskList.contentY = Math.max(0, item.y - viewportY)
-            }
-            targetRow = -1
-        }
-    }
-
     RowLayout {
         Layout.fillWidth: true
 
@@ -320,10 +250,11 @@ ColumnLayout {
         Layout.fillHeight: true
         implicitHeight: 0
         clip: true
-        spacing: Design.spaceSmall
         model: controller.taskModel
         visible: controller.emptyKind === "" || controller.emptyKind === "empty"
         reuseItems: true
+        // True while Kirigami.WheelHandler is driving contentY (moving/flicking stay false).
+        property bool wheelScrolling: false
         section.property: "bucket"
         section.criteria: ViewSection.FullString
         section.delegate: Item {
@@ -350,16 +281,35 @@ ColumnLayout {
                 visible: text.length > 0
             }
         }
-        // Small cache: fewer off-screen delegates to move/update while scrolling.
-        cacheBuffer: Math.round(Kirigami.Units.gridUnit * 6)
-        // Pixel-aligned scrolling reduces subpixel text relayout churn.
-        pixelAligned: true
+        // Prefetch ~2 viewports so scroll rarely instantiates rows mid-gesture.
+        cacheBuffer: Math.max(Math.round(height * 2), Math.round(Kirigami.Units.gridUnit * 24))
+        spacing: 0
         boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.VerticalFlick
 
         // Narrow scrollbar + permanent gutter so edit icons never sit under it.
         readonly property int scrollBarExtent: Design.scrollBarExtent
         readonly property int scrollGutter: Design.scrollGutter
         rightMargin: scrollGutter
+
+        // Same stack as Kirigami.ScrollablePage / ScrollView: WheelHandler owns wheel,
+        // Flickable keeps touch flick; mouse does not flick the list.
+        Kirigami.WheelHandler {
+            id: taskWheelHandler
+            target: taskList
+            filterMouseEvents: true
+            // Mark scroll activity so delegates can suppress hover (contentY anim does not set moving).
+            onWheel: function(wheel) {
+                taskList.wheelScrolling = true
+                wheelScrollIdle.restart()
+            }
+        }
+        Timer {
+            id: wheelScrollIdle
+            interval: 400
+            repeat: false
+            onTriggered: taskList.wheelScrolling = false
+        }
 
         QQC2.ScrollBar.vertical: ThinScrollBar {
             view: taskList
@@ -367,6 +317,9 @@ ColumnLayout {
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.right: parent.right
+            stepSize: taskList.contentHeight > 0
+                    ? taskWheelHandler.verticalStepSize / taskList.contentHeight
+                    : 0.1
         }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
             policy: QQC2.ScrollBar.AlwaysOff
@@ -423,12 +376,6 @@ ColumnLayout {
             onRequestDelete: function(itemId) {
                 root.requestDelete(itemId)
             }
-
-            ListView.onReused: {
-                editorReserveHeight = (model.itemId === root.expandedItemId)
-                    ? root.expandedEditorHeight
-                    : 0
-            }
         }
 
         // One always-alive editor — opening is instant (no per-row Loader).
@@ -463,7 +410,7 @@ ColumnLayout {
     }
 
     readonly property real expandedEditorHeight: sharedInline.visible
-        ? Math.ceil(sharedInline.implicitHeight) + Kirigami.Units.smallSpacing
+        ? Math.ceil(sharedInline.implicitHeight) + Design.spaceSmall
         : 0
 
     // Track the expanded row's guide so width settles after layout.
@@ -614,7 +561,6 @@ ColumnLayout {
             if (sharedInline.visible && root.expandedIndex >= taskList.count) {
                 root.collapseInline()
             }
-            root.restoreScrollAnchor()
         }
     }
 
@@ -677,12 +623,12 @@ ColumnLayout {
             dim: true
             focus: true
             clip: true
-            padding: Kirigami.Units.smallSpacing
+            padding: Design.spaceSmall
             closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
             z: 1500
 
         width: Math.min(Kirigami.Units.gridUnit * 18,
-                        Math.max(Kirigami.Units.gridUnit * 12, parent.width - Kirigami.Units.largeSpacing * 2))
+                        Math.max(Kirigami.Units.gridUnit * 12, parent.width - Design.spaceMedium * 2))
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - implicitHeight) / 2)
 
@@ -694,7 +640,7 @@ ColumnLayout {
         }
 
         contentItem: ColumnLayout {
-            spacing: Kirigami.Units.smallSpacing
+            spacing: Design.spaceSmall
 
             QQC2.Label {
                 Layout.fillWidth: true
@@ -721,7 +667,7 @@ ColumnLayout {
                     onClicked: root.confirmNewTask(modelData.collectionId)
 
                     contentItem: RowLayout {
-                        spacing: Kirigami.Units.smallSpacing
+                        spacing: Design.spaceSmall
                         Kirigami.Icon {
                             source: "folder"
                             color: Design.colorForKey(String(modelData.collectionId))

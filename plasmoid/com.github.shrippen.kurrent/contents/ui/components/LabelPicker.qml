@@ -12,7 +12,7 @@ ColumnLayout {
     property var selectedLabels: []
     property bool _ignoreMenuOpen: false
 
-    spacing: Kirigami.Units.smallSpacing
+    spacing: Design.spaceSmall
 
     function _containsLabel(list, name) {
         for (var i = 0; i < list.length; ++i) {
@@ -114,7 +114,7 @@ ColumnLayout {
 
     Flow {
         Layout.fillWidth: true
-        spacing: Kirigami.Units.smallSpacing
+        spacing: Design.spaceSmall
         visible: selectedLabels.length > 0
 
         Repeater {
@@ -133,10 +133,10 @@ ColumnLayout {
     QQC2.Popup {
         id: labelPopup
         x: 0
-        y: searchField.height + Kirigami.Units.smallSpacing
+        y: searchField.height + Design.spaceSmall
         width: root.width
-        height: Math.min(Kirigami.Units.gridUnit * 12, Math.max(Kirigami.Units.gridUnit * 4, listView.contentHeight + Kirigami.Units.smallSpacing * 2))
-        padding: Kirigami.Units.smallSpacing
+        height: Math.min(Kirigami.Units.gridUnit * 12, Math.max(Kirigami.Units.gridUnit * 4, listView.contentHeight + Design.spaceMedium))
+        padding: Design.spaceSmall
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
         parent: root
         focus: true
@@ -145,7 +145,7 @@ ColumnLayout {
             color: Kirigami.Theme.backgroundColor
             border.color: Kirigami.Theme.disabledTextColor
             border.width: 1
-            radius: 3
+            radius: Design.inputRadius
         }
 
         contentItem: ListView {
@@ -167,7 +167,7 @@ ColumnLayout {
                 onClicked: root.pickEntry(modelData)
 
                 contentItem: RowLayout {
-                    spacing: Kirigami.Units.smallSpacing
+                    spacing: Design.spaceSmall
 
                     Kirigami.Icon {
                         source: modelData.kind === "create" ? "list-add" : "tag"

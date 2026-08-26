@@ -19,11 +19,17 @@ private Q_SLOTS:
     void taskListIgnoresInvalidIndexes();
     void taskListResetSignal();
     void taskListUidLookup();
+    void taskListIncrementalUpdateRemovesRows();
+    void taskListIncrementalUpdateInsertsRows();
+    void taskListIncrementalUpdatePrefixDataChange();
+    void taskListIncrementalUpdateSuffixDataChange();
     void collectionEnabledAtWithoutFilter();
     void collectionEnabledAtWithCustomFilter();
     void collectionLookupHelpers();
     void collectionDataRolesAndSignals();
     void collectionWritableHelpers();
+    void taskListRapidCollapseExpand();
+    void taskListDeepNestedCollapseExpand();
 };
 
 void ModelsTest::taskListExposesRolesAndCount()
@@ -114,6 +120,7 @@ void ModelsTest::taskListExposesAllRoles()
     QCOMPARE(model.roleNames().value(TaskListModel::JoinUrlRole), QByteArray("joinUrl"));
     QCOMPARE(model.roleNames().value(TaskListModel::BucketRole), QByteArray("bucket"));
     QCOMPARE(model.roleNames().value(TaskListModel::TreeCollapsedRole), QByteArray("treeCollapsed"));
+    QCOMPARE(model.roleNames().value(TaskListModel::TreeHiddenRole), QByteArray("treeHidden"));
 }
 
 void ModelsTest::taskListIgnoresInvalidIndexes()
@@ -162,6 +169,90 @@ void ModelsTest::taskListUidLookup()
     QCOMPARE(model.uidAt(1), QStringLiteral("beta"));
     QCOMPARE(model.rowForUid(QStringLiteral("beta")), 1);
     QCOMPARE(model.rowForUid(QStringLiteral("missing")), -1);
+}
+
+void ModelsTest::taskListIncrementalUpdateRemovesRows()
+{
+    TaskListModel model;
+    TaskEntry a, b, c, d;
+    a.uid = QStringLiteral("a");
+    b.uid = QStringLiteral("b");
+    c.uid = QStringLiteral("c");
+    d.uid = QStringLiteral("d");
+    model.setTasks({a, b, c, d});
+
+    // Removing middle two rows (b, c) should use removeRows, not reset.
+    QSignalSpy rowsRemoved(&model, &TaskListModel::rowsRemoved);
+    QSignalSpy modelReset(&model, &TaskListModel::modelReset);
+    model.setTasks({a, d});
+
+    QCOMPARE(model.count(), 2);
+    QCOMPARE(model.uidAt(0), QStringLiteral("a"));
+    QCOMPARE(model.uidAt(1), QStringLiteral("d"));
+    QVERIFY(!modelReset.isEmpty() || rowsRemoved.count() > 0);
+}
+
+void ModelsTest::taskListIncrementalUpdateInsertsRows()
+{
+    TaskListModel model;
+    TaskEntry a, d;
+    a.uid = QStringLiteral("a");
+    d.uid = QStringLiteral("d");
+    model.setTasks({a, d});
+
+    // Inserting middle two rows (b, c) should use insertRows, not reset.
+    TaskEntry b, c;
+    b.uid = QStringLiteral("b");
+    c.uid = QStringLiteral("c");
+    QSignalSpy rowsInserted(&model, &TaskListModel::rowsInserted);
+    QSignalSpy modelReset(&model, &TaskListModel::modelReset);
+    model.setTasks({a, b, c, d});
+
+    QCOMPARE(model.count(), 4);
+    QCOMPARE(model.uidAt(1), QStringLiteral("b"));
+    QCOMPARE(model.uidAt(2), QStringLiteral("c"));
+    QVERIFY(!modelReset.isEmpty() || rowsInserted.count() > 0);
+}
+
+void ModelsTest::taskListIncrementalUpdatePrefixDataChange()
+{
+    TaskListModel model;
+    TaskEntry a, b;
+    a.uid = QStringLiteral("a");
+    a.treeCollapsed = false;
+    b.uid = QStringLiteral("b");
+    model.setTasks({a, b});
+
+    // Change treeCollapsed on prefix item a.
+    QSignalSpy dataChanged(&model, &TaskListModel::dataChanged);
+    TaskEntry a2 = a;
+    a2.treeCollapsed = true;
+    model.setTasks({a2, b});
+
+    QCOMPARE(model.count(), 2);
+    QVERIFY(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool());
+    QCOMPARE(dataChanged.count(), 1);
+}
+
+void ModelsTest::taskListIncrementalUpdateSuffixDataChange()
+{
+    TaskListModel model;
+    TaskEntry a, b, c;
+    a.uid = QStringLiteral("a");
+    b.uid = QStringLiteral("b");
+    c.uid = QStringLiteral("c");
+    c.treeCollapsed = false;
+    model.setTasks({a, b, c});
+
+    // Remove middle row b, and change treeCollapsed on suffix item c.
+    QSignalSpy dataChanged(&model, &TaskListModel::dataChanged);
+    TaskEntry c2 = c;
+    c2.treeCollapsed = true;
+    model.setTasks({a, c2});
+
+    QCOMPARE(model.count(), 2);
+    QVERIFY(model.data(model.index(1, 0), TaskListModel::TreeCollapsedRole).toBool());
+    QCOMPARE(dataChanged.count(), 1);
 }
 
 void ModelsTest::collectionEnabledAtWithoutFilter()
@@ -297,6 +388,147 @@ void ModelsTest::collectionWritableHelpers()
     QVERIFY(!model.writableForId(99));
     QCOMPARE(model.data(model.index(0, 0), CollectionListModel::WritableRole).toBool(), true);
     QCOMPARE(model.data(model.index(1, 0), CollectionListModel::WritableRole).toBool(), false);
+}
+
+void ModelsTest::taskListRapidCollapseExpand()
+{
+    TaskListModel model;
+    QSignalSpy countSpy(&model, &TaskListModel::countChanged);
+
+    TaskEntry parent;
+    parent.uid = QStringLiteral("parent");
+    parent.indentLevel = 0;
+    parent.hasChildren = true;
+    parent.treeCollapsed = false;
+
+    TaskEntry child;
+    child.uid = QStringLiteral("child");
+    child.indentLevel = 1;
+
+    TaskEntry other;
+    other.uid = QStringLiteral("other");
+    other.indentLevel = 0;
+
+    // Expanded: parent, child, other
+    QList<TaskEntry> expanded = {parent, child, other};
+    // Collapsed: child omitted from the list (scrollbar/contentHeight match visible rows)
+    TaskEntry parentCollapsed = parent;
+    parentCollapsed.treeCollapsed = true;
+    QList<TaskEntry> collapsed = {parentCollapsed, other};
+
+    model.setTasks(expanded);
+    QCOMPARE(model.count(), 3);
+    QCOMPARE(countSpy.count(), 1);
+    QCOMPARE(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool(), false);
+
+    // Collapse → child removed
+    countSpy.clear();
+    model.setTasks(collapsed);
+    QCOMPARE(model.count(), 2);
+    QCOMPARE(model.uidAt(1), QStringLiteral("other"));
+    QCOMPARE(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool(), true);
+
+    // Expand → child visible again
+    countSpy.clear();
+    model.setTasks(expanded);
+    QCOMPARE(model.count(), 3);
+    QCOMPARE(model.uidAt(1), QStringLiteral("child"));
+    QCOMPARE(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool(), false);
+
+    // Rapid cycles
+    for (int cycle = 0; cycle < 5; ++cycle) {
+        model.setTasks(collapsed);
+        QCOMPARE(model.count(), 2);
+        QCOMPARE(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool(), true);
+
+        model.setTasks(expanded);
+        QCOMPARE(model.count(), 3);
+        QCOMPARE(model.uidAt(1), QStringLiteral("child"));
+    }
+
+    QCOMPARE(model.rowForUid(QStringLiteral("child")), 1);
+    QCOMPARE(model.rowForUid(QStringLiteral("nonexistent")), -1);
+}
+
+void ModelsTest::taskListDeepNestedCollapseExpand()
+{
+    TaskListModel model;
+
+    TaskEntry gp;
+    gp.uid = QStringLiteral("gp");
+    gp.indentLevel = 0;
+    gp.hasChildren = true;
+    gp.treeCollapsed = false;
+
+    TaskEntry parent;
+    parent.uid = QStringLiteral("p");
+    parent.parentUid = QStringLiteral("gp");
+    parent.indentLevel = 1;
+    parent.hasChildren = true;
+    parent.treeCollapsed = false;
+
+    TaskEntry child;
+    child.uid = QStringLiteral("c");
+    child.parentUid = QStringLiteral("p");
+    child.indentLevel = 2;
+
+    TaskEntry sibling;
+    sibling.uid = QStringLiteral("s");
+    sibling.parentUid = QStringLiteral("gp");
+    sibling.indentLevel = 1;
+
+    // Fully expanded: gp, p, c, s
+    QList<TaskEntry> allExpanded = {gp, parent, child, sibling};
+
+    // Collapse parent only: child omitted
+    TaskEntry parentCollapsed = parent;
+    parentCollapsed.treeCollapsed = true;
+    QList<TaskEntry> parentOnlyCollapsed = {gp, parentCollapsed, sibling};
+
+    // Collapse grandparent: only gp remains from that subtree
+    TaskEntry gpCollapsed = gp;
+    gpCollapsed.treeCollapsed = true;
+    QList<TaskEntry> gpOnlyCollapsed = {gpCollapsed};
+
+    // Phase 1: all expanded
+    model.setTasks(allExpanded);
+    QCOMPARE(model.count(), 4);
+
+    // Phase 2: collapse parent only → child omitted
+    model.setTasks(parentOnlyCollapsed);
+    QCOMPARE(model.count(), 3);
+    QCOMPARE(model.uidAt(2), QStringLiteral("s"));
+    QCOMPARE(model.data(model.index(1, 0), TaskListModel::TreeCollapsedRole).toBool(), true);
+
+    // Phase 3: expand parent
+    model.setTasks(allExpanded);
+    QCOMPARE(model.count(), 4);
+
+    // Phase 4: collapse grandparent → only gp
+    model.setTasks(gpOnlyCollapsed);
+    QCOMPARE(model.count(), 1);
+    QCOMPARE(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool(), true);
+
+    // Phase 5: expand grandparent
+    model.setTasks(allExpanded);
+    QCOMPARE(model.count(), 4);
+    QCOMPARE(model.data(model.index(0, 0), TaskListModel::TreeCollapsedRole).toBool(), false);
+
+    // Phase 6: rapid toggling
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        model.setTasks(gpOnlyCollapsed);
+        QCOMPARE(model.count(), 1);
+        model.setTasks(allExpanded);
+        QCOMPARE(model.count(), 4);
+        model.setTasks(parentOnlyCollapsed);
+        QCOMPARE(model.count(), 3);
+        model.setTasks(gpOnlyCollapsed);
+        QCOMPARE(model.count(), 1);
+    }
+
+    model.setTasks(allExpanded);
+    QCOMPARE(model.count(), 4);
+    QCOMPARE(model.rowForUid(QStringLiteral("c")), 2);
 }
 
 QTEST_GUILESS_MAIN(ModelsTest)

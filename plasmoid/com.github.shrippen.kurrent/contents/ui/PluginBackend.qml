@@ -25,6 +25,7 @@ Item {
         searchTitleOnly: Plasmoid.configuration.searchTitleOnly === true
         searchCaseSensitive: Plasmoid.configuration.searchCaseSensitive === true
         completeChildren: Plasmoid.configuration.completeChildren === true
+        countsExcludeCollapsed: Plasmoid.configuration.countsExcludeCollapsed === true
         notificationsEnabled: Plasmoid.configuration.notificationsEnabled !== false
         defaultReminderMinutes: Plasmoid.configuration.defaultReminderMinutes !== undefined
                 ? Plasmoid.configuration.defaultReminderMinutes : -1

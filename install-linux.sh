@@ -146,6 +146,28 @@ resolve_install_user() {
     info "Installing as ${INSTALL_USER} into ${INSTALL_PREFIX}"
 }
 
+warn_if_not_sudo() {
+    if [[ "${EUID}" -eq 0 ]]; then
+        return 0
+    fi
+    warn "Not running as root."
+    warn "Distro packages need elevated privileges. Preferred:"
+    warn "  curl -fsSL ${INSTALLER_URL} | sudo bash"
+    warn "Without sudo, package install may fail and you must fix root-owned files yourself."
+    check_install_prefix_writable || true
+}
+
+check_install_prefix_writable() {
+    local plasmoids_dir="${INSTALL_PREFIX}/share/plasma/plasmoids"
+    if [[ -e "$plasmoids_dir" && ! -w "$plasmoids_dir" ]]; then
+        error "${plasmoids_dir} is not writable as ${INSTALL_USER}."
+        error "A previous install via sudo left root-owned files under ${INSTALL_PREFIX}."
+        error "Fix ownership, then re-run:"
+        error "  sudo chown -R ${INSTALL_USER}:${INSTALL_USER} ${INSTALL_PREFIX}/lib ${INSTALL_PREFIX}/share"
+        exit 1
+    fi
+}
+
 as_user() {
     if [[ "${EUID}" -eq 0 ]]; then
         sudo -u "$INSTALL_USER" -H -- "$@"
@@ -321,10 +343,14 @@ need_cmd() {
 
 plugin_ok() {
     local so="$1"
-    [[ -f "$so" ]] || return 1
+    if [[ ! -f "$so" ]]; then
+        warn "Prebuilt plugin missing from tarball (no libkurrentplugin.so)."
+        return 1
+    fi
     if command -v ldd >/dev/null 2>&1 && ldd "$so" 2>/dev/null | grep -q 'not found'; then
-        warn "Prebuilt plugin does not match this system (missing libraries):"
+        warn "Prebuilt plugin was built on another distro (missing libraries on this system)."
         ldd "$so" | grep 'not found' >&2 || true
+        warn "Will compile from source instead (--from-source)."
         return 1
     fi
     return 0
@@ -394,6 +420,22 @@ fix_install_ownership() {
     fi
 }
 
+prepare_install_prefix() {
+    as_user mkdir -p "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
+    fix_install_ownership
+}
+
+remove_legacy_install() {
+    as_user rm -rf \
+        "${INSTALL_PREFIX}/lib/qml/org/planify" \
+        "${INSTALL_PREFIX}/share/qt6/qml/org/planify" \
+        "${INSTALL_PREFIX}/share/plasma/plasmoids/org.planify.plasmoid" \
+        "${INSTALL_PREFIX}/lib/qml/org/kde/kurrent" \
+        "${INSTALL_PREFIX}/share/qt6/qml/org/kde/kurrent" \
+        "${INSTALL_PREFIX}/share/plasma/plasmoids/org.kde.kurrent" \
+        "${INSTALL_HOME}/.config/plasma-workspace/env/planify-qml.sh" 2>/dev/null || true
+}
+
 copy_overlay_tree() {
     local src="$1" dest="$2"
     if [[ ! -d "$src" ]]; then
@@ -405,16 +447,36 @@ copy_overlay_tree() {
         :
     else
         as_user cp -a "$src/." "$dest/"
-        fix_install_ownership
+    fi
+}
+
+verify_install_ownership() {
+    local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+    local meta="${plasmoid}/metadata.json"
+    local owner
+    if [[ ! -f "$meta" ]]; then
+        error "Plasmoid metadata missing after install: ${meta}"
+        exit 1
+    fi
+    owner="$(stat -c '%U' "$meta" 2>/dev/null || echo "")"
+    if [[ "$owner" != "$INSTALL_USER" ]]; then
+        error "Kurrent files are owned by ${owner:-?}, expected ${INSTALL_USER}."
+        if [[ "$owner" == "root" || "${EUID}" -ne 0 ]]; then
+            error "Fix ownership, then re-run:"
+            error "  sudo chown -R ${INSTALL_USER}:${INSTALL_USER} ${INSTALL_PREFIX}/lib ${INSTALL_PREFIX}/share"
+            if [[ "${EUID}" -ne 0 ]]; then
+                error "Or re-run the installer with sudo:"
+                error "  curl -fsSL ${INSTALLER_URL} | sudo bash"
+            fi
+        fi
+        exit 1
     fi
 }
 
 register_plasmoid() {
     local plasmoid="$1"
-    as_user kpackagetool6 -t Plasma/Applet -r org.planify.plasmoid 2>/dev/null || true
-    as_user kpackagetool6 -t Plasma/Applet -r org.kde.kurrent 2>/dev/null || true
-    # Binary installs copy the plasmoid into ~/.local/share/plasma/plasmoids/ already.
-    # kpackagetool6 -i/-u on that same path deletes the install dir on update and breaks.
+    remove_legacy_install
+    # Files are copied into ~/.local/share/plasma/plasmoids/; Plasma loads them directly.
     if [[ ! -f "${plasmoid}/metadata.json" ]]; then
         error "Plasmoid metadata missing: ${plasmoid}/metadata.json"
         exit 1
@@ -424,9 +486,12 @@ register_plasmoid() {
 
 install_from_overlay() {
     local overlay="$1"
+    prepare_install_prefix
+    remove_legacy_install
     copy_overlay_tree "${overlay}/lib" "${INSTALL_PREFIX}/lib"
     copy_overlay_tree "${overlay}/share" "${INSTALL_PREFIX}/share"
     fix_install_ownership
+    verify_install_ownership
     local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
     if [[ ! -d "$plasmoid" ]]; then
         error "Plasmoid missing after extract: ${plasmoid}"
@@ -454,14 +519,15 @@ try_install_binary() {
     url="$(asset_url "kurrent-linux-${arch}.tar.gz")"
     info "Downloading ${url}"
     if ! as_user curl -fL --retry 3 -o "$tarball" "$url"; then
-        warn "No binary asset at ${url}"
+        warn "Could not download prebuilt plugin (${url})."
+        warn "Will compile from source instead."
         return 1
     fi
 
     overlay="${WORKDIR}/overlay"
     as_user mkdir -p "$overlay"
     if ! as_user tar -xzf "$tarball" -C "$overlay"; then
-        warn "Failed to extract plugin tarball"
+        warn "Failed to extract plugin tarball; will compile from source."
         return 1
     fi
 
@@ -544,6 +610,7 @@ print_success() {
     echo -e "${GREEN}Installation complete.${NC}" >&2
     echo "" >&2
     echo "Add the Kurrent widget to your panel or desktop if it is not there yet." >&2
+    echo "If the widget still shows an error, remove it from the panel and add it again." >&2
     echo "CalDAV: configure tasks in Merkuro or KOrganizer, then check: akonadictl status" >&2
     echo "" >&2
     echo "Update with:" >&2
@@ -555,6 +622,8 @@ main() {
     parse_args "$@"
     info "Kurrent installer"
     resolve_install_user
+    warn_if_not_sudo
+    check_install_prefix_writable
     detect_local_src
 
     if [[ -n "$LOCAL_SRC" ]]; then
@@ -569,20 +638,14 @@ main() {
     if [[ "$FROM_SOURCE" != true ]]; then
         install_runtime_deps
         need_cmd curl tar
-        if ! command -v kpackagetool6 >/dev/null 2>&1; then
-            warn "kpackagetool6 not found; compiling from source."
-        elif try_install_binary; then
+        if try_install_binary; then
             print_success
             return 0
         fi
-        warn "Falling back to compiling from source."
+        warn "Prebuilt install unavailable; compiling from source (several minutes)."
     fi
     install_build_deps
     need_cmd cmake
-    if ! command -v kpackagetool6 >/dev/null 2>&1; then
-        error "kpackagetool6 not found. Install plasma-workspace / kf6-kpackage."
-        exit 1
-    fi
     fetch_source
     build_and_install
     print_success

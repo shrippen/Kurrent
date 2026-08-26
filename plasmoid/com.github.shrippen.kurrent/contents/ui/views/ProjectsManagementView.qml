@@ -18,7 +18,7 @@ ColumnLayout {
     Layout.preferredHeight: 0
     Layout.minimumHeight: 0
     Layout.maximumHeight: Infinity
-    spacing: Kirigami.Units.smallSpacing
+    spacing: Design.spaceSmall
 
     RowLayout {
         Layout.fillWidth: true
@@ -73,7 +73,7 @@ ColumnLayout {
             background: null
 
             contentItem: RowLayout {
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Design.spaceSmall
                 Layout.fillWidth: true
 
                 Kirigami.Icon {

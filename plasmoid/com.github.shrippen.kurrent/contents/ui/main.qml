@@ -192,6 +192,8 @@ PlasmoidItem {
         KurrentUi.Design.overlayDimStep = Plasmoid.configuration.overlayDimStep !== undefined
                 ? Plasmoid.configuration.overlayDimStep : 1
         KurrentUi.Design.reducedMotion = Plasmoid.configuration.reducedMotion === true
+        KurrentUi.Design.scrollSpeed = Plasmoid.configuration.scrollSpeed !== undefined
+                ? Plasmoid.configuration.scrollSpeed : 50
     }
 
     function loadSharedSettings() {
@@ -424,6 +426,12 @@ PlasmoidItem {
             root.persistSharedSettings()
             if (backend) {
                 backend.completeChildren = Plasmoid.configuration.completeChildren === true
+            }
+        }
+        function onCountsExcludeCollapsedChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.countsExcludeCollapsed = Plasmoid.configuration.countsExcludeCollapsed === true
             }
         }
         function onNotificationsEnabledChanged() {

@@ -101,6 +101,14 @@ QtObject {
     readonly property int scrollBarExtent: 6
     readonly property int scrollBarPadding: 1
     readonly property int scrollGutter: scrollBarExtent + spaceSmall
+    // Fallback step for Design.applyWheel (editor/fields). Task list uses Kirigami.WheelHandler.
+    readonly property int wheelNotchPx: Math.max(48, Math.round(Kirigami.Units.gridUnit * 3.5))
+    // 0–100; reserved for config / field helpers (task list follows Kirigami defaults).
+    property int scrollSpeed: 50
+
+    // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
+    readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small
+    readonly property int taskIndentUnit: Math.round(Kirigami.Units.gridUnit * 1.25)
 
     function windowBorderColor() {
         var c = Kirigami.Theme.textColor
@@ -117,21 +125,25 @@ QtObject {
         return 0.28
     }
 
-    // Apply a wheel event to a Flickable and keep it inside bounds.
-    // Returns true if the view can scroll (caller should still accept the event
-    // when a nested scroller is hovered so parents do not steal the wheel).
-    function applyWheel(flick, event) {
-        if (!flick) {
+    function listNeedsScroll(flick) {
+        if (!flick || flick.height <= 0) {
             return false
+        }
+        return flick.contentHeight > flick.height + 1
+    }
+
+    // Discrete wheel helper for fields that must consume the event (e.g. editor text).
+    function applyWheel(flick, event) {
+        if (!flick || !event) {
+            return
+        }
+        var pixel = event.pixelDelta ? event.pixelDelta.y : 0
+        var angle = event.angleDelta ? event.angleDelta.y : 0
+        var dy = pixel !== 0 ? pixel : (angle / 120.0) * wheelNotchPx
+        if (dy === 0) {
+            return
         }
         var maxY = Math.max(0, flick.contentHeight - flick.height)
-        if (maxY <= 0) {
-            return false
-        }
-        var dy = event.pixelDelta && event.pixelDelta.y !== 0
-                ? event.pixelDelta.y
-                : event.angleDelta.y / 8
         flick.contentY = Math.max(0, Math.min(maxY, flick.contentY - dy))
-        return true
     }
 }

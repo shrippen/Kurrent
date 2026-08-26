@@ -3,6 +3,7 @@
 #include "collectionlistmodel.h"
 #include "tasklistmodel.h"
 #include "tasklogic.h"
+#include "taskstore.h"
 
 #include <Akonadi/Item>
 #include <Akonadi/Monitor>
@@ -30,6 +31,10 @@ class TaskController : public QObject
     Q_PROPERTY(int buildNumber READ buildNumber CONSTANT)
     Q_PROPERTY(bool devBuild READ devBuild CONSTANT)
     Q_PROPERTY(bool smokeTest READ smokeTest CONSTANT)
+    // Process-wide smoke progress so a recreated FullView continues instead of restarting.
+    Q_PROPERTY(int smokeStep READ smokeStep WRITE setSmokeStep NOTIFY smokeStepChanged)
+    Q_PROPERTY(bool smokeFinished READ smokeFinished NOTIFY smokeFinishedChanged)
+    Q_PROPERTY(bool smokeLeader READ smokeLeader NOTIFY smokeLeaderChanged)
     Q_PROPERTY(bool akonadiAvailable READ akonadiAvailable NOTIFY akonadiAvailableChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
@@ -51,6 +56,7 @@ class TaskController : public QObject
     Q_PROPERTY(bool searchTitleOnly READ searchTitleOnly WRITE setSearchTitleOnly NOTIFY searchSettingsChanged)
     Q_PROPERTY(bool searchCaseSensitive READ searchCaseSensitive WRITE setSearchCaseSensitive NOTIFY searchSettingsChanged)
     Q_PROPERTY(bool completeChildren READ completeChildren WRITE setCompleteChildren NOTIFY completeChildrenChanged)
+    Q_PROPERTY(bool countsExcludeCollapsed READ countsExcludeCollapsed WRITE setCountsExcludeCollapsed NOTIFY countsExcludeCollapsedChanged)
     Q_PROPERTY(bool notificationsEnabled READ notificationsEnabled WRITE setNotificationsEnabled NOTIFY notificationsEnabledChanged)
     Q_PROPERTY(int defaultReminderMinutes READ defaultReminderMinutes WRITE setDefaultReminderMinutes NOTIFY defaultReminderMinutesChanged)
     Q_PROPERTY(bool quietHoursEnabled READ quietHoursEnabled WRITE setQuietHoursEnabled NOTIFY quietHoursChanged)
@@ -76,6 +82,10 @@ public:
     int buildNumber() const;
     bool devBuild() const;
     bool smokeTest() const;
+    int smokeStep() const;
+    void setSmokeStep(int step);
+    bool smokeFinished() const;
+    bool smokeLeader();
 
     bool akonadiAvailable() const { return m_akonadiAvailable; }
     bool loading() const { return m_loading; }
@@ -98,6 +108,7 @@ public:
     bool searchTitleOnly() const { return m_searchTitleOnly; }
     bool searchCaseSensitive() const { return m_searchCaseSensitive; }
     bool completeChildren() const { return m_completeChildren; }
+    bool countsExcludeCollapsed() const { return m_countsExcludeCollapsed; }
     bool notificationsEnabled() const { return m_notificationsEnabled; }
     int defaultReminderMinutes() const { return m_defaultReminderMinutes; }
     bool quietHoursEnabled() const { return m_quietHoursEnabled; }
@@ -147,6 +158,7 @@ public:
     void setSearchTitleOnly(bool titleOnly);
     void setSearchCaseSensitive(bool sensitive);
     void setCompleteChildren(bool complete);
+    void setCountsExcludeCollapsed(bool exclude);
     void setNotificationsEnabled(bool enabled);
     void setDefaultReminderMinutes(int minutes);
     void setQuietHoursEnabled(bool enabled);
@@ -194,6 +206,20 @@ public:
     Q_INVOKABLE QString toggleToken(const QString &raw, const QString &token, const QString &separator) const;
     Q_INVOKABLE bool hydrateFromCache();
 
+    // Test hooks: swap MemoryTaskStore and seed cache without Akonadi server.
+    void setTaskStore(AbstractTaskStore *store);
+    void resetSharedStateForTest();
+    void setAkonadiAvailableForTest(bool available);
+    void installTestCollections(const QList<Akonadi::Collection> &collections);
+    qint64 installTestTask(qint64 id, const QString &summary, qint64 collectionId);
+    bool testTaskExists(qint64 id) const;
+    bool testTaskSyncing(qint64 id) const;
+    bool testTaskPendingDelete(qint64 id) const;
+    bool testTaskCompleted(qint64 id) const;
+    QString testTaskSummary(qint64 id) const;
+    qint64 testTaskCollectionId(qint64 id) const;
+    int testInflight(qint64 id) const;
+
     static void broadcastDbusShow();
     static void broadcastDbusAddTask(const QString &summary);
     static void broadcastDbusOpenView(const QString &view);
@@ -203,6 +229,9 @@ signals:
     void loadingChanged();
     void errorMessageChanged();
     void emptyKindChanged();
+    void smokeStepChanged();
+    void smokeFinishedChanged();
+    void smokeLeaderChanged();
     void currentViewChanged();
     void managementViewChanged();
     void searchQueryChanged();
@@ -215,6 +244,7 @@ signals:
     void defaultDueModeChanged();
     void searchSettingsChanged();
     void completeChildrenChanged();
+    void countsExcludeCollapsedChanged();
     void notificationsEnabledChanged();
     void defaultReminderMinutesChanged();
     void quietHoursChanged();
@@ -230,6 +260,8 @@ signals:
     void dbusOpenViewRequested(const QString &view);
 
 private:
+enum class SyncResult { Error, Ok };
+
     struct CachedTask {
         Akonadi::Item item;
         KCalendarCore::Todo::Ptr todo;
@@ -277,8 +309,10 @@ private:
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
     static void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset);
     CachedTask *prepareEdit(qint64 itemId);
-    void finishSync(qint64 itemId, bool ok, KJob *job);
+    void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {});
+    void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
+    void submitCreate(const Akonadi::Item &jobItem, const Akonadi::Collection &collection, qint64 tempId);
     Akonadi::Collection collectionById(qint64 collectionId) const;
     Akonadi::Collection firstWritableCollection() const;
     void updatePendingCount(const QList<TaskEntry> &tasks);
@@ -311,6 +345,7 @@ private:
     bool m_searchTitleOnly = false;
     bool m_searchCaseSensitive = false;
     bool m_completeChildren = false;
+    bool m_countsExcludeCollapsed = false;
     bool m_notificationsEnabled = true;
     int m_defaultReminderMinutes = -1;
     bool m_quietHoursEnabled = false;
@@ -348,6 +383,7 @@ private:
     CollectionListModel m_collectionModel;
     QHash<qint64, QString> m_collectionNames;
     QHash<Akonadi::Item::Id, CachedTask> m_tasks;
+    AbstractTaskStore *m_store = nullptr;
     QTimer m_rebuildTimer;
     QTimer m_collectionsTimer;
     QTimer m_akonadiRetryTimer;
@@ -359,4 +395,7 @@ private:
     static QStringList s_extraLabels;
     static QList<TaskController *> s_instances;
     static qint64 s_nextTempId;
+    static int s_smokeStep;
+    static bool s_smokeFinished;
+    static TaskController *s_smokeLeader;
 };

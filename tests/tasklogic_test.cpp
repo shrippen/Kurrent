@@ -81,6 +81,7 @@ private Q_SLOTS:
     void joinUrlExtraction();
     void parseQuickAddTokens();
     void parseQuickAddFuzzyLanguageAndProjects();
+    void suggestQuickAddScoresAndTypos();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -147,7 +148,8 @@ void TaskLogicTest::matchesSearch()
     task.description = description;
     task.collectionName = collection;
     task.categories = labels;
-    QCOMPARE(TaskLogic::matchesSearch(task, query), matches);
+    QCOMPARE(TaskLogic::matchesSearch(task, query, 
+        TaskLogic::SearchScope::All, TaskLogic::SearchCase::Insensitive), matches);
 }
 
 void TaskLogicTest::matchesViewTodayIncludesOverdueIncomplete()
@@ -290,27 +292,27 @@ void TaskLogicTest::firstSidebarProjectPrefersNonEmpty()
 
 void TaskLogicTest::resolveNewTaskTargetModes()
 {
-    const auto selected = TaskLogic::resolveNewTaskTarget(42, QStringLiteral("ask"), 7, true, 3);
+    const auto selected = TaskLogic::resolveNewTaskTarget(42, QStringLiteral("ask"), 7, TaskLogic::DefaultCollection::Exists, 3);
     QCOMPARE(selected.ask, false);
     QCOMPARE(selected.collectionId, qint64(42));
 
-    const auto first = TaskLogic::resolveNewTaskTarget(-1, QStringLiteral("first"), 7, true, 3);
+    const auto first = TaskLogic::resolveNewTaskTarget(-1, QStringLiteral("first"), 7, TaskLogic::DefaultCollection::Exists, 3);
     QCOMPARE(first.ask, false);
     QCOMPARE(first.collectionId, qint64(3));
 
-    const auto fixed = TaskLogic::resolveNewTaskTarget(-1, QStringLiteral("fixed"), 7, true, 3);
+    const auto fixed = TaskLogic::resolveNewTaskTarget(-1, QStringLiteral("fixed"), 7, TaskLogic::DefaultCollection::Exists, 3);
     QCOMPARE(fixed.ask, false);
     QCOMPARE(fixed.collectionId, qint64(7));
 
-    const auto ask = TaskLogic::resolveNewTaskTarget(-1, QStringLiteral("ask"), 7, true, 3);
+    const auto ask = TaskLogic::resolveNewTaskTarget(-1, QStringLiteral("ask"), 7, TaskLogic::DefaultCollection::Exists, 3);
     QVERIFY(ask.ask);
 }
 
 void TaskLogicTest::dragProxyGapAndClamp()
 {
-    const QPointF hand = TaskLogic::dragProxyGap(24, false);
+    const QPointF hand = TaskLogic::dragProxyGap(24, TaskLogic::CursorKind::Other);
     QCOMPARE(hand, QPointF(14, 14));
-    const QPointF arrow = TaskLogic::dragProxyGap(24, true);
+    const QPointF arrow = TaskLogic::dragProxyGap(24, TaskLogic::CursorKind::Arrow);
     QCOMPARE(arrow, QPointF(21, 5));
 
     const QPointF unclamped = TaskLogic::clampDragProxyOffset(100, 100, 14, 14, 180, 48, 1920, 1080);
@@ -410,25 +412,31 @@ void TaskLogicTest::flattenTreeHidesCollapsedChildren()
     QCOMPARE(collapsed.at(0).uid, QStringLiteral("root"));
     QVERIFY(collapsed.at(0).hasChildren);
     QVERIFY(collapsed.at(0).treeCollapsed);
+    QVERIFY(!collapsed.at(0).treeHidden);
     QCOMPARE(collapsed.at(1).uid, QStringLiteral("other"));
     QVERIFY(!collapsed.at(1).treeCollapsed);
+    QVERIFY(!collapsed.at(1).treeHidden);
 
     const QList<TaskEntry> open = TaskLogic::flattenTree({root, child, grand, sibling},
                                                          QStringLiteral("default"),
                                                          {});
     QCOMPARE(open.size(), 4);
     QVERIFY(!open.at(0).treeCollapsed);
+    QVERIFY(!open.at(1).treeHidden);
 }
 
 void TaskLogicTest::emptyKindStates()
 {
-    QCOMPARE(TaskLogic::emptyKind(false, true, 2, 3, false), QString());
-    QCOMPARE(TaskLogic::emptyKind(true, false, 0, 0, true), QStringLiteral("loading"));
-    QCOMPARE(TaskLogic::emptyKind(true, true, 0, 0, false), QStringLiteral("loading"));
-    QCOMPARE(TaskLogic::emptyKind(false, false, 0, 0, false), QStringLiteral("offline"));
-    QCOMPARE(TaskLogic::emptyKind(false, true, 0, 0, false), QStringLiteral("no-collections"));
-    QCOMPARE(TaskLogic::emptyKind(false, true, 2, 0, true), QStringLiteral("error"));
-    QCOMPARE(TaskLogic::emptyKind(false, true, 2, 0, false), QStringLiteral("empty"));
+    using LS = TaskLogic::LoadState;
+    using BS = TaskLogic::BackendState;
+    using EP = TaskLogic::ErrorPresence;
+    QCOMPARE(TaskLogic::emptyKind(LS::Idle, BS::Online, 2, 3, EP::None), QString());
+    QCOMPARE(TaskLogic::emptyKind(LS::Loading, BS::Offline, 0, 0, EP::Present), QStringLiteral("loading"));
+    QCOMPARE(TaskLogic::emptyKind(LS::Loading, BS::Online, 0, 0, EP::None), QStringLiteral("loading"));
+    QCOMPARE(TaskLogic::emptyKind(LS::Idle, BS::Offline, 0, 0, EP::None), QStringLiteral("offline"));
+    QCOMPARE(TaskLogic::emptyKind(LS::Idle, BS::Online, 0, 0, EP::None), QStringLiteral("no-collections"));
+    QCOMPARE(TaskLogic::emptyKind(LS::Idle, BS::Online, 2, 0, EP::Present), QStringLiteral("error"));
+    QCOMPARE(TaskLogic::emptyKind(LS::Idle, BS::Online, 2, 0, EP::None), QStringLiteral("empty"));
 }
 
 void TaskLogicTest::panelBadgeAndDefaultDue()
@@ -539,6 +547,8 @@ void TaskLogicTest::collectionCountsPendingAndLabels()
     const QHash<qint64, int> counts = TaskLogic::collectionTaskCounts({root, child, other});
     QCOMPARE(counts.value(1), 2);
     QCOMPARE(counts.value(2), 1);
+    // Collapsed list omits the child — used when countsExcludeCollapsed is on.
+    QCOMPARE(TaskLogic::collectionTaskCounts({root, other}).value(1), 1);
     QCOMPARE(TaskLogic::pendingRootCount({root, child, other}), 1);
 
     const QStringList labels = TaskLogic::collectAvailableLabels({root, other}, {QStringLiteral("extra"), QString()});
@@ -605,17 +615,17 @@ void TaskLogicTest::searchTitleOnlyIgnoresDescription()
 {
     TaskEntry task = makeTask(QStringLiteral("Errand"));
     task.description = QStringLiteral("Need oat milk");
-    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("oat"), false));
-    QVERIFY(!TaskLogic::matchesSearch(task, QStringLiteral("oat"), true));
-    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("errand"), true));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("oat"), TaskLogic::SearchScope::All, TaskLogic::SearchCase::Insensitive));
+    QVERIFY(!TaskLogic::matchesSearch(task, QStringLiteral("oat"), TaskLogic::SearchScope::TitleOnly, TaskLogic::SearchCase::Insensitive));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("errand"), TaskLogic::SearchScope::TitleOnly, TaskLogic::SearchCase::Insensitive));
 }
 
 void TaskLogicTest::searchCaseSensitiveMatch()
 {
     TaskEntry task = makeTask(QStringLiteral("Buy Milk"));
-    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("milk"), false, false));
-    QVERIFY(!TaskLogic::matchesSearch(task, QStringLiteral("milk"), false, true));
-    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("Milk"), false, true));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("milk"), TaskLogic::SearchScope::All, TaskLogic::SearchCase::Insensitive));
+    QVERIFY(!TaskLogic::matchesSearch(task, QStringLiteral("milk"), TaskLogic::SearchScope::All, TaskLogic::SearchCase::Sensitive));
+    QVERIFY(TaskLogic::matchesSearch(task, QStringLiteral("Milk"), TaskLogic::SearchScope::All, TaskLogic::SearchCase::Sensitive));
 }
 
 void TaskLogicTest::orderedKeysQuietHoursAndRelativeDue()
@@ -634,12 +644,12 @@ void TaskLogicTest::orderedKeysQuietHoursAndRelativeDue()
     QCOMPARE(TaskLogic::relativeDueKind(today.addDays(-1), today), QStringLiteral("yesterday"));
     QCOMPARE(TaskLogic::relativeDueKind(today.addDays(3), today), QStringLiteral("date"));
 
-    QVERIFY(!TaskLogic::inQuietHours(QTime(21, 0), 22, 7, true));
-    QVERIFY(TaskLogic::inQuietHours(QTime(23, 0), 22, 7, true));
-    QVERIFY(TaskLogic::inQuietHours(QTime(3, 0), 22, 7, true));
-    QVERIFY(!TaskLogic::inQuietHours(QTime(8, 0), 22, 7, true));
-    QVERIFY(!TaskLogic::inQuietHours(QTime(23, 0), 22, 7, false));
-    QVERIFY(!TaskLogic::inQuietHours(QTime(12, 0), 9, 9, true));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(21, 0), 22, 7, TaskLogic::QuietHoursMode::Enabled));
+    QVERIFY(TaskLogic::inQuietHours(QTime(23, 0), 22, 7, TaskLogic::QuietHoursMode::Enabled));
+    QVERIFY(TaskLogic::inQuietHours(QTime(3, 0), 22, 7, TaskLogic::QuietHoursMode::Enabled));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(8, 0), 22, 7, TaskLogic::QuietHoursMode::Enabled));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(23, 0), 22, 7, TaskLogic::QuietHoursMode::Disabled));
+    QVERIFY(!TaskLogic::inQuietHours(QTime(12, 0), 9, 9, TaskLogic::QuietHoursMode::Enabled));
 }
 
 void TaskLogicTest::hiddenTokensAndEnabledCsv()
@@ -674,8 +684,8 @@ void TaskLogicTest::sidebarVisibilityAndLayout()
     QCOMPARE(TaskLogic::visibleProjectCount(projects, QSet<qint64>{20}), 1);
     QCOMPARE(TaskLogic::visibleLabelCount({QStringLiteral("a"), QStringLiteral("b")}, {QStringLiteral("a")}), 1);
 
-    QCOMPARE(TaskLogic::naturalListHeight(3, true, 10, 20, 1), 10 + 60 + 3);
-    QCOMPARE(TaskLogic::naturalListHeight(0, false, 10, 20, 1), 0);
+    QCOMPARE(TaskLogic::naturalListHeight(3, TaskLogic::ListHeader::Yes, 10, 20, 1), 10 + 60 + 3);
+    QCOMPARE(TaskLogic::naturalListHeight(0, TaskLogic::ListHeader::No, 10, 20, 1), 0);
 
     const QList<int> alloc = TaskLogic::redistributeSections(400, {80, 80, 80, 80});
     QCOMPARE(alloc.size(), 4);
@@ -710,9 +720,9 @@ void TaskLogicTest::viewIconsStatusRecurrencePriority()
 
 void TaskLogicTest::cursorAndDragLimits()
 {
-    QCOMPARE(TaskLogic::resolveCursorSize(48, true, 24), 48);
-    QCOMPARE(TaskLogic::resolveCursorSize(0, true, 32), 32);
-    QCOMPARE(TaskLogic::resolveCursorSize(48, false, 0), 24);
+    QCOMPARE(TaskLogic::resolveCursorSize(48, TaskLogic::EnvCursor::Valid, 24), 48);
+    QCOMPARE(TaskLogic::resolveCursorSize(0, TaskLogic::EnvCursor::Valid, 32), 32);
+    QCOMPARE(TaskLogic::resolveCursorSize(48, TaskLogic::EnvCursor::Invalid, 0), 24);
     QCOMPARE(TaskLogic::pickLimitRight(1920, 1800, 4), 1796);
     QCOMPARE(TaskLogic::pickLimitRight(1920, 0, 4), 1916);
     QCOMPARE(TaskLogic::pickLimitBottom({1080, 1040, 2000}, 4), 1036);
@@ -827,13 +837,13 @@ void TaskLogicTest::reschedulePresets()
 {
     const QDateTime now(QDate(2026, 8, 13), QTime(10, 0));
     const QDateTime due(QDate(2026, 8, 13), QTime(15, 0));
-    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("15m")).time(), QTime(10, 15));
-    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("1h")).time(), QTime(11, 0));
-    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("4h")).time(), QTime(14, 0));
-    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
-    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("tomorrow")).time(), QTime(15, 0));
-    QCOMPARE(TaskLogic::rescheduleDue(due, true, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
-    QCOMPARE(TaskLogic::rescheduleDue(due, false, now, QStringLiteral("next-week")).date(), QDate(2026, 8, 20));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("15m")).time(), QTime(10, 15));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("1h")).time(), QTime(11, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("4h")).time(), QTime(14, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("tomorrow")).time(), QTime(15, 0));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::AllDay, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
+    QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("next-week")).date(), QDate(2026, 8, 20));
 }
 
 void TaskLogicTest::joinUrlExtraction()
@@ -923,6 +933,47 @@ void TaskLogicTest::parseQuickAddFuzzyLanguageAndProjects()
     const TaskLogic::QuickAddSuggestResult projects = TaskLogic::suggestQuickAdd(QStringLiteral("Note @W"), 7, ctx);
     QVERIFY(!projects.items.isEmpty());
     QCOMPARE(projects.items.first().collectionId, qint64(42));
+}
+
+void TaskLogicTest::suggestQuickAddScoresAndTypos()
+{
+    TaskLogic::QuickAddContext ctx;
+    ctx.uiLanguage = QStringLiteral("en");
+    TaskLogic::QuickAddProject work;
+    work.id = 7;
+    work.name = QStringLiteral("Work");
+    ctx.projects.append(work);
+    ctx.labels.append(QStringLiteral("shopping"));
+
+    // Exact date phrase outranks typo; prefix "tom" → tomorrow.
+    const auto tom = TaskLogic::suggestQuickAdd(QStringLiteral("x tom"), 4, ctx);
+    QVERIFY(!tom.items.isEmpty());
+    QCOMPARE(tom.items.first().kind, QStringLiteral("date"));
+    QCOMPARE(tom.items.first().value, QStringLiteral("tomorrow"));
+
+    // Prefixed priority: short typo "!hih" can match high (dist 1, len>=3).
+    const auto prio = TaskLogic::suggestQuickAdd(QStringLiteral("x !hih"), 6, ctx);
+    QVERIFY(!prio.items.isEmpty());
+    QCOMPARE(prio.items.first().kind, QStringLiteral("priority"));
+    QCOMPARE(prio.items.first().priority, 1);
+
+    // Bare word too short for typo without prefix: "hi" alone is not priority.
+    const auto bare = TaskLogic::suggestQuickAdd(QStringLiteral("hi"), 2, ctx);
+    for (const auto &item : bare.items) {
+        QVERIFY(item.kind != QStringLiteral("priority") || item.priority == 0);
+    }
+
+    // Label fuzzy with #: shopping typo.
+    const auto label = TaskLogic::suggestQuickAdd(QStringLiteral("#shoping"), 8, ctx);
+    QVERIFY(!label.items.isEmpty());
+    QCOMPARE(label.items.first().kind, QStringLiteral("label"));
+    QCOMPARE(label.items.first().value, QStringLiteral("shopping"));
+
+    // Exact match scores higher than prefix.
+    const auto exact = TaskLogic::suggestQuickAdd(QStringLiteral("@Work"), 5, ctx);
+    QVERIFY(!exact.items.isEmpty());
+    QCOMPARE(exact.items.first().collectionId, qint64(7));
+    QVERIFY(exact.items.first().score >= 3000);
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

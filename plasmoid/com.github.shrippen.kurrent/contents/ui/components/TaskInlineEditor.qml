@@ -69,7 +69,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 3
+        radius: Design.inputRadius
         color: Kirigami.Theme.highlightColor
         opacity: 0.12
     }
@@ -100,7 +100,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
+            spacing: Design.spaceSmall
 
             QQC2.Label {
                 text: i18n("Due")

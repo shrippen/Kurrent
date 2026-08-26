@@ -27,7 +27,10 @@ Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die 
 - **Nicht** `width`/`height` am `PlasmoidItem` binden. **Nicht** `Layout.maximumWidth: Infinity` am Plasmoid-Root.
 - Listen und Sidebar, die die Höhe füllen: `implicitHeight: 0`, `Layout.preferredHeight: 0`. `ListView.contentHeight` darf nie die maximale Desktop-Widget-Höhe werden.
 - Extra Höhe der Sidebar gleichmäßig auf alle Abschnitte verteilen (nicht bei „alles ohne Scrollbar sichtbar“ stoppen).
-- Passt die **natürliche** Höhe aller sichtbaren Abschnitte (Zeilenanzahl × Zeilenhöhe, inkl. touchfreundlich) **nicht** in die Sidebar, bleibt die Gesamthöhe begrenzt und jeder Abschnitt scrollt intern (`ThinScrollBar`, Gutter nur bei Bedarf). Die Verteilung nutzt dann nur eine Mindesthöhe (Kopfzeile + eine Zeile), nicht die volle Inhaltshöhe.
+- Passt die **natürliche** Höhe aller sichtbaren Abschnitte (Zeilenanzahl × Zeilenhöhe, inkl. touchfreundlich) **nicht** in die Sidebar: Anteile proportional zur natürlichen Höhe (nicht gleiche Viertel), jeder Abschnitt scrollt intern (`ThinScrollBar`). Bis die erste Verteilung gelaufen ist (`sectionsAllocated`), gleiche Startanteile — danach nie wieder `Alloc == -1` als „noch nicht berechnet“ missverstehen (`-1` war früher der Sentinel und wirkte wie Equal-Split bei knapper Höhe).
+- **Near-fit (eine Zeile):** Fehlt einem Abschnitt höchstens eine Zeilenhöhe (+ Gap) zur Natural-Höhe, bekommt er die volle Natural-Höhe (Pixel von Abschnitten, die sowieso mehr als eine Zeile Overflow haben). Größerer Shortfall → Squeeze + Scrollbar. `listNeedsScroll`: `contentHeight > height + 1`.
+- Sidebar-Scrollbar: bei Overflow sichtbar (`AlwaysOn` + hide wenn fit), Breite passt in die **feste** `rightMargin` (`Design.spaceSmall`) — Margin wächst/schrumpft nicht mit der Scrollbar.
+- Sidebar-Breite per Ziehen am Separator (`SplitHCursor`), 6–20 Grid-Units, speichert `sidebarWidthUnits`.
 
 ## Abstände
 
@@ -57,11 +60,11 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 
 ## Scrollbars
 
-- Dünner Balken rechts, volle Viewport-Höhe: `ThinScrollBar`, `scrollBarExtent` 6px, Overlay-Optik (Textfarbe, Opacity 0,28/0,40/0,55).
+- Dünner Balken rechts, volle Viewport-Höhe: `ThinScrollBar`, `scrollBarExtent` 6px (Sidebar: Breite = `spaceSmall`, in die Margin), Overlay-Optik (Textfarbe, Opacity 0,28/0,40/0,55). Bei Overflow immer sichtbar (kein Fade auf 0).
 - Mehrzeilige Felder: `ScrollableTextArea` (`Flickable`), **nicht** `QQC2.ScrollView` (reserviert Breite rechts, zeichnet den Balken links und zu kurz, kann das Widget schmaler machen).
 - `implicitWidth: 0` an scrollbaren Feldern, damit der Balken die Widget-Breite nicht treibt.
-- Gutter (`scrollGutter`) nur wenn wirklich gescrollt wird, Text nicht unter dem Balken.
-- `Design.applyWheel(flick, event)` für Rad-Deltas in Flickables; Hover über einem Feld mit Scrollbar konsumiert das Rad immer.
+- Aufgabenliste: feste `scrollGutter`; Sidebar-Abschnitte: feste `spaceSmall`-Margin.
+- Aufgabenliste: `Kirigami.WheelHandler` wie in Kirigami-Apps (`angleDelta` × `verticalStepSize`, Smooth-Scroll, kein Custom-Coast; Touchpad-Events werden akzeptiert). `filterMouseEvents: true` — Maus flickt die Liste nicht, Touch schon. `ThinScrollBar.stepSize` an den WheelHandler gekoppelt. `Design.applyWheel` nur für Felder, die das Rad schlucken müssen.
 
 ## Full-Editor
 
@@ -102,6 +105,8 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Widget-Load darf Akonadi nicht blockieren: Icon und Chrome zuerst, dann D-Bus/Shortcuts (`QTimer::singleShot(0)`), dann `refresh()` (`Qt.callLater`). `ServerManager::start()` ist async, nie `Control::start()`. Cache darf Badge/Liste sofort füllen. Solange der Server startet: Placeholder `loading`; wenn er down bleibt: `offline` plus 5s-Retry. Erst nach `Running` Monitor + Fetch.
 - Panel: `preloadFullRepresentation: false`, `preferredRepresentation` ist das Compact-Icon. Plasma delayed-preloadet nur eine leere Größen-Hülle; `FullView.qml` (Sidebar, Liste, Editor) wird erst beim ersten Öffnen des Flyouts geladen.
 - Zeile: Klick öffnet Inline- oder Full-Editor (KCM); Chips für Datum/Label/Priorität/Recurring/Join abschaltbar. Fälligkeitschip: optionale relative Labels (Heute/Morgen/Gestern) und Uhrzeit.
+- Subtasks: beliebige Nesting-Tiefe; Collapse hält den Parent fest. Eingeklappte Nachfahren fehlen in der flachen Liste (`flattenTree` lässt sie weg) — Scrollbar/`contentHeight` nur sichtbare Zeilen. Zeilenlayout: Hierarchie-Einrückung (`taskIndentUnit`), dann reservierte Collapse-Spalte (`taskCollapseCol`), dann Checkbox (Pfeil verschiebt die Checkbox nicht). `reuseItems: true`, `cacheBuffer` ≈ 2 Viewports. Während Wheel-Scroll: kein Hover (`wheelScrolling`). ListView-`spacing` in der Delegate-Höhe.
+- Sidebar-Counts: Standard zählt auch eingeklappte Subtasks. Option „Exclude collapsed subtasks from counts“ in Sidebar-Einstellungen.
 - Erinnerung: VALARM im Full-Editor; Plasma-Benachrichtigung mit Snooze (15 min / 1 h / morgen, schreibt nur den Alarm). Quiet Hours unterdrücken Popups.
 - Tastatur im fokussierten Widget: Suche, Neu, Undo, Complete, Delete, Full-Editor, Reschedule, Views 1–5. Global: Meta+Shift+K zeigt das Flyout, Meta+Shift+N legt an (Plasma-Shortcuts, D-Bus `org.github.shrippen.Kurrent`).
 - Wiederkehrende Aufgaben: Abhaken schiebt DTSTART/DUE auf die nächste Instanz und lässt die RRULE stehen.
@@ -113,6 +118,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Fuzzy nur dort, wo klar ein Schlüsselwort gemeint ist: Tippfehler (`tommorow`, `!hihg`) mit Damerau-Distanz, Prefix-Tokens (`!` `#` `@`) schon ab 3 Zeichen. Bare Wörter wie `high` in „The high road“ bleiben Titel. `@` matched Projektnamen (schreibbare, nicht versteckte Kalender).
 - Visuell: blasser, `BusyIndicator`, Zeile nicht erneut klickbar. Bei Fehler: Snapshot zurück.
 - Neue Aufgaben: temporäre negative Item-ID, nach Create durch die echte ersetzen.
+- Persistenz: `TaskController` macht Optimistic UI (Cache, inflight, revert); CRUD-Jobs laufen über `AbstractTaskStore` (`AkonadiTaskStore` live, `MemoryTaskStore` in Unit-Tests ohne Akonadi-Server).
 
 ## Schreibbare Kalender
 

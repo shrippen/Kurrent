@@ -10,6 +10,15 @@ namespace TaskLogic
 {
 namespace {
 
+// Quick-add tokenizer + fuzzy suggest.
+//
+//   "tomorrow 18:00 !high #work Buy milk"
+//      |due|   |time| |pri| |label| |summary--------|
+//
+// Matching: fold accents → token at cursor → score project/label/phrase.
+// Typo distance scales with token length (short tokens stricter).
+
+
 QString langCode(const QString &uiLanguage)
 {
     QString code = uiLanguage.trimmed().toLower();
