@@ -12,6 +12,7 @@ Item {
     property string hiddenSeparator: "||"
     property string orderSeparator: ","
     property var titleForKey: function(key) { return key }
+    property string visibilityTip: i18n("Show in the sidebar")
 
     signal orderChanged(string joined)
     signal visibilityToggled(string key)
@@ -26,14 +27,45 @@ Item {
         return hiddenRaw.split(hiddenSeparator).indexOf(key) < 0
     }
 
-    function reorder(from, to) {
-        if (from === to || from < 0 || to < 0 || from >= keys.length || to >= keys.length) {
+    function keysMatchModel(nextKeys) {
+        var list = nextKeys || []
+        if (orderModel.count !== list.length) {
+            return false
+        }
+        for (var i = 0; i < list.length; ++i) {
+            if (orderModel.get(i).key !== String(list[i])) {
+                return false
+            }
+        }
+        return true
+    }
+
+    function rebuildModel() {
+        // Skip reset when the binding echoes our own drag result — clearing the
+        // ListModel mid-gesture would abort a multi-step reorder.
+        if (keysMatchModel(keys)) {
             return
         }
-        var next = keys.slice()
-        var item = next.splice(from, 1)[0]
-        next.splice(to, 0, item)
+        orderModel.clear()
+        var list = keys || []
+        for (var i = 0; i < list.length; ++i) {
+            orderModel.append({ key: String(list[i]) })
+        }
+    }
+
+    function emitOrder() {
+        var next = []
+        for (var i = 0; i < orderModel.count; ++i) {
+            next.push(orderModel.get(i).key)
+        }
         orderChanged(next.join(orderSeparator))
+    }
+
+    onKeysChanged: rebuildModel()
+    Component.onCompleted: rebuildModel()
+
+    ListModel {
+        id: orderModel
     }
 
     ListView {
@@ -42,62 +74,61 @@ Item {
         anchors.right: parent.right
         height: contentHeight
         interactive: false
-        model: root.keys
-        spacing: Design.spaceSmall
+        clip: true
+        model: orderModel
+        spacing: 0
 
-        delegate: Kirigami.AbstractCard {
-            id: card
-            width: list.width
-            z: dragHandler.active ? 10 : 1
-
-            DragHandler {
-                id: dragHandler
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchScreen | PointerDevice.TouchPad
-                cursorShape: active ? Qt.ClosedHandCursor : Qt.OpenHandCursor
-                property int hoverIndex: -1
-
-                onActiveChanged: {
-                    if (!active) {
-                        if (hoverIndex >= 0 && hoverIndex !== index) {
-                            root.reorder(index, hoverIndex)
-                        }
-                        hoverIndex = -1
-                    }
-                }
-
-                onCentroidChanged: {
-                    if (!active) {
-                        return
-                    }
-                    var pos = card.mapToItem(list.contentItem, centroid.position.x, centroid.position.y)
-                    hoverIndex = list.indexAt(pos.x, pos.y)
-                }
+        moveDisplaced: Transition {
+            YAnimator {
+                duration: Kirigami.Units.longDuration
+                easing.type: Easing.InOutQuad
             }
+        }
 
-            contentItem: RowLayout {
-                spacing: Design.spaceSmall
+        delegate: Item {
+            id: wrapper
+            width: list.width
+            height: listItem.implicitHeight
 
-                Kirigami.Icon {
-                    source: "list-reorder"
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                    opacity: 0.55
-                    QQC2.ToolTip.text: i18n("Drag to reorder")
-                    QQC2.ToolTip.visible: dragHandler.hovered
-                }
+            required property int index
+            required property string key
 
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    text: root.titleForKey(modelData)
-                    wrapMode: Text.WordWrap
-                    elide: Text.ElideRight
-                }
+            QQC2.ItemDelegate {
+                id: listItem
+                width: parent.width
+                // Reorder via drag handle only — avoid press feedback fighting the handle.
+                down: false
+                highlighted: false
 
-                QQC2.Switch {
-                    checked: root.isVisible(modelData)
-                    onToggled: root.visibilityToggled(modelData)
-                    QQC2.ToolTip.text: i18n("Show in the sidebar")
-                    QQC2.ToolTip.visible: hovered
+                contentItem: RowLayout {
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Kirigami.ListItemDragHandle {
+                        listItem: listItem
+                        listView: list
+                        // Move the model during the gesture so multiple steps work;
+                        // persist order only when the item is dropped.
+                        onMoveRequested: function(oldIndex, newIndex) {
+                            orderModel.move(oldIndex, newIndex, 1)
+                        }
+                        onDropped: function(oldIndex, newIndex) {
+                            root.emitOrder()
+                        }
+                    }
+
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: root.titleForKey(wrapper.key)
+                        wrapMode: Text.WordWrap
+                        elide: Text.ElideRight
+                    }
+
+                    QQC2.Switch {
+                        checked: root.isVisible(wrapper.key)
+                        onToggled: root.visibilityToggled(wrapper.key)
+                        QQC2.ToolTip.text: root.visibilityTip
+                        QQC2.ToolTip.visible: hovered
+                    }
                 }
             }
         }

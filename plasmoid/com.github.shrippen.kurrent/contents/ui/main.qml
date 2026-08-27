@@ -54,12 +54,14 @@ PlasmoidItem {
         PlasmaCore.Types.LeftEdge
     ].includes(Plasmoid.location)
 
+    // Async so plasmashell is not blocked on libkurrentplugin.so (~Akonadi).
+    // Compact icon can paint while the plugin loads.
     Loader {
         id: pluginLoader
         width: 0
         height: 0
+        asynchronous: true
         source: Qt.resolvedUrl("PluginBackend.qml")
-        asynchronous: false
         onStatusChanged: {
             if (status === Loader.Ready) {
                 root.initPluginSettings()
@@ -115,7 +117,7 @@ PlasmoidItem {
         }
         switch (backend.currentView) {
         case "today": return "view-calendar-day"
-        case "overdue": return "appointment-missed"
+        case "overdue": return "chronometer"
         case "tomorrow": return "go-next"
         case "scheduled": return "view-calendar"
         case "anytime": return "view-calendar-tasks"
@@ -317,9 +319,6 @@ PlasmoidItem {
             root.persistSharedSettings()
         }
         function onNewTaskDefaultCollectionIdChanged() {
-            root.persistSharedSettings()
-        }
-        function onSortModeChanged() {
             root.persistSharedSettings()
         }
         function onCatchUpEnabledChanged() {
@@ -539,7 +538,8 @@ PlasmoidItem {
 
     // Plasma delayed-preloads fullRepresentation for panel popups. Keep that
     // shell a size-only stub; instantiate FullView.qml only after first expand
-    // (or immediately on the desktop).
+    // (or immediately on the desktop). Flyout chrome paints immediately with a
+    // boot loader while PluginBackend / FullView catch up asynchronously.
     function focusNewTaskField() {
         var shell = fullRepresentationItem
         var item = shell && shell.uiItem ? shell.uiItem : null
@@ -553,6 +553,11 @@ PlasmoidItem {
         clip: false
 
         readonly property Item uiItem: fullLoader.item
+        readonly property bool forceSyncUi: !!(root.backend && root.backend.smokeTest)
+        readonly property bool showBootLoading: !root.pluginMissing
+                && (fullLoader.status === Loader.Null
+                    || fullLoader.status === Loader.Loading
+                    || (fullLoader.status === Loader.Ready && !fullLoader.item))
 
         implicitWidth: Kirigami.Units.gridUnit * 52
         implicitHeight: Kirigami.Units.gridUnit * 40
@@ -580,10 +585,46 @@ PlasmoidItem {
             fullLoader.setSource(Qt.resolvedUrl("FullView.qml"), { plasmoidRoot: root })
         }
 
+        // Instant feedback: flyout opens with this shell while plugin/.so and
+        // FullView load in the background (Akonadi connect stays async too).
+        ColumnLayout {
+            anchors.centerIn: parent
+            width: Math.min(parent.width - KurrentUi.Design.spaceLarge * 2,
+                            Kirigami.Units.gridUnit * 16)
+            spacing: KurrentUi.Design.spaceMedium
+            visible: fullShell.showBootLoading
+
+            QQC2.BusyIndicator {
+                Layout.alignment: Qt.AlignHCenter
+                running: parent.visible && !KurrentUi.Design.reducedMotion
+                visible: running
+            }
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                text: root.pluginReady ? i18n("Loading tasks…") : i18n("Connecting to Akonadi…")
+            }
+
+            QQC2.ProgressBar {
+                Layout.fillWidth: true
+                indeterminate: true
+                visible: parent.visible
+            }
+        }
+
         Loader {
             id: fullLoader
             anchors.fill: parent
-            asynchronous: false
+            // Async so the flyout paints the boot loader immediately. Smoke tests
+            // keep sync so the tree exists for sizing assertions.
+            asynchronous: !fullShell.forceSyncUi
+            opacity: status === Loader.Ready && item ? 1 : 0
+            Behavior on opacity {
+                enabled: !KurrentUi.Design.reducedMotion
+                NumberAnimation { duration: Kirigami.Units.shortDuration }
+            }
         }
 
         Component.onCompleted: {

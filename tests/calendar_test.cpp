@@ -23,6 +23,7 @@ private Q_SLOTS:
     void nullTodoIsSafe();
     void reminderOffAtDueAndBefore();
     void snoozeSetsAbsoluteTime();
+    void dueAndStartFromTodo();
 };
 
 void CalendarTest::presetNoneWithoutRecurrence()
@@ -170,6 +171,30 @@ void CalendarTest::snoozeSetsAbsoluteTime()
     QCOMPARE(TaskCalendar::nextReminderTime(todo, now), now.addSecs(15 * 60));
     TaskCalendar::snoozeReminder(todo, QStringLiteral("tomorrow"), now);
     QCOMPARE(TaskCalendar::nextReminderTime(todo, now).date(), QDate(2026, 8, 18));
+}
+
+void CalendarTest::dueAndStartFromTodo()
+{
+    KCalendarCore::Todo::Ptr empty(new KCalendarCore::Todo);
+    QVERIFY(!TaskCalendar::dueDateFromTodo(empty).isValid());
+    QVERIFY(!TaskCalendar::startDateFromTodo(empty).isValid());
+    QVERIFY(!TaskCalendar::dueDateFromTodo({}).isValid());
+
+    KCalendarCore::Todo::Ptr timed(new KCalendarCore::Todo);
+    const QDateTime due(QDate(2026, 8, 27), QTime(14, 30));
+    const QDateTime start(QDate(2026, 8, 26), QTime(9, 0));
+    timed->setDtDue(due);
+    timed->setDtStart(start);
+    QVERIFY(timed->hasDueDate());
+    QVERIFY(timed->hasStartDate());
+    QCOMPARE(TaskCalendar::dueDateFromTodo(timed), due);
+    QCOMPARE(TaskCalendar::startDateFromTodo(timed), start);
+
+    KCalendarCore::Todo::Ptr allDay(new KCalendarCore::Todo);
+    allDay->setDtDue(QDateTime(QDate(2026, 8, 28), QTime(0, 0)));
+    allDay->setAllDay(true);
+    QVERIFY(allDay->hasDueDate());
+    QCOMPARE(TaskCalendar::dueDateFromTodo(allDay).date(), QDate(2026, 8, 28));
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)

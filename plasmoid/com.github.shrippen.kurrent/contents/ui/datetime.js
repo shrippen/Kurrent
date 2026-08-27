@@ -95,15 +95,37 @@ function timeTokens() {
     return _parseFormatTokens(timeFormatString())
 }
 
+/**
+ * True for a usable date from C++ QDateTime (model roles) or JS Date.
+ * Qt 6 no longer documents Date.isValid; prefer getTime(), keep isValid as fallback.
+ */
+function isValidDate(dt) {
+    if (dt === undefined || dt === null) {
+        return false
+    }
+    if (typeof dt.isValid === "boolean") {
+        return dt.isValid
+    }
+    if (typeof dt.getTime === "function") {
+        return !isNaN(dt.getTime())
+    }
+    // QML date value type without Date methods: try formatting.
+    try {
+        return Qt.formatDate(dt, "yyyy-MM-dd").length > 0
+    } catch (e) {
+        return false
+    }
+}
+
 function formatDate(dt) {
-    if (!dt || dt.isValid !== true) {
+    if (!isValidDate(dt)) {
         return ""
     }
     return Qt.formatDate(dt, dateFormatString())
 }
 
 function formatTime(dt) {
-    if (!dt || dt.isValid !== true) {
+    if (!isValidDate(dt)) {
         return ""
     }
     return Qt.formatTime(dt, timeFormatString())
@@ -249,7 +271,7 @@ function parseDate(str) {
         return null
     }
     var d = Date.fromLocaleDateString(Qt.locale(), s, dateFormatString())
-    if (d && d.isValid === true) {
+    if (isValidDate(d)) {
         return d
     }
     var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -268,7 +290,7 @@ function parseTime(str) {
         return { hours: 0, minutes: 0 }
     }
     var t = Date.fromLocaleTimeString(Qt.locale(), s, timeFormatString())
-    if (t && t.isValid === true) {
+    if (isValidDate(t)) {
         return { hours: t.getHours(), minutes: t.getMinutes() }
     }
     var m = s.match(/^(\d{1,2}):(\d{2})$/)

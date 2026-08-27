@@ -6,6 +6,7 @@ import org.kde.plasma.plasmoid 2.0
 import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import "views"
+import "components"
 import "colors.js" as Colors
 import "." as KurrentUi
 
@@ -234,59 +235,201 @@ Item {
         taskFullEditor.open()
     }
 
-    function sortModeLabel(mode) {
+    readonly property string defaultSortMode: "priority,due,title"
+
+    function parseSortKeys(mode) {
+        var raw = String(mode || "").split(",").map(function(s) {
+            return s.trim()
+        }).filter(function(s) {
+            return s.length > 0
+        })
+        // Legacy "default" / empty → Priority › Due › A–Z
+        if (raw.length === 0 || (raw.length === 1 && raw[0] === "default")) {
+            return ["priority", "due", "title"]
+        }
+        var keys = ["priority", "none", "none"]
+        for (var i = 0; i < Math.min(3, raw.length); ++i) {
+            keys[i] = raw[i] === "default" ? "priority" : raw[i]
+        }
+        for (var a = 0; a < 3; ++a) {
+            for (var b = a + 1; b < 3; ++b) {
+                if (keys[b] !== "none" && sortKeysConflict(keys[a], keys[b])) {
+                    keys[b] = "none"
+                }
+            }
+        }
+        if (keys[1] === "none") {
+            keys[2] = "none"
+        }
+        return keys
+    }
+
+    function buildSortMode(keys) {
+        var first = keys[0] && keys[0] !== "none" && keys[0] !== "default"
+                   ? keys[0] : "priority"
+        var out = [first]
+        if (keys[1] && keys[1] !== "none") {
+            out.push(keys[1])
+        }
+        if (keys[2] && keys[2] !== "none") {
+            out.push(keys[2])
+        }
+        return out.join(",")
+    }
+
+    // Shared atomic keys; compound modes like "due,priority" come from levels 1–3.
+    // Opposite directions of the same field are mutually exclusive across levels.
+    readonly property var sortOptions: [
+        { id: "due", label: i18n("Due date") },
+        { id: "dueDesc", label: i18n("Due date (latest first)") },
+        { id: "start", label: i18n("Start date") },
+        { id: "priority", label: i18n("Priority") },
+        { id: "title", label: i18n("Title A–Z") },
+        { id: "titleDesc", label: i18n("Title Z–A") },
+        { id: "reminder", label: i18n("Reminder first") },
+        { id: "reminderDesc", label: i18n("Reminder last") },
+        { id: "recurring", label: i18n("Recurring first") },
+        { id: "recurringDesc", label: i18n("Recurring last") },
+        { id: "progress", label: i18n("Progress %") },
+        { id: "progressDesc", label: i18n("Progress % (high first)") },
+        { id: "completed", label: i18n("Open first") }
+    ]
+
+    readonly property var sortKeys: parseSortKeys(backend ? backend.sortMode : defaultSortMode)
+
+    readonly property var firstSortOptions: {
+        var _ = sortKeys
+        return optionsForSortLevel(0)
+    }
+    readonly property var secondSortOptions: {
+        var _ = sortKeys
+        return optionsForSortLevel(1)
+    }
+    readonly property var thirdSortOptions: {
+        var _ = sortKeys
+        return optionsForSortLevel(2)
+    }
+
+    function sortFieldFamily(id) {
+        if (id === "title" || id === "titleDesc") {
+            return "title"
+        }
+        if (id === "due" || id === "dueDesc") {
+            return "due"
+        }
+        if (id === "start" || id === "startDesc") {
+            return "start"
+        }
+        if (id === "reminder" || id === "reminderDesc") {
+            return "reminder"
+        }
+        if (id === "recurring" || id === "recurringDesc") {
+            return "recurring"
+        }
+        if (id === "progress" || id === "progressDesc") {
+            return "progress"
+        }
+        return id
+    }
+
+    function sortKeysConflict(a, b) {
+        if (!a || !b || a === "none" || b === "none") {
+            return false
+        }
+        return sortFieldFamily(a) === sortFieldFamily(b)
+    }
+
+    function sortKeyLabel(id) {
+        if (!id || id === "none") {
+            return i18n("None")
+        }
         var options = sortOptions
         for (var i = 0; i < options.length; ++i) {
-            if (options[i].id === mode) {
+            if (options[i].id === id) {
                 return options[i].label
             }
         }
-        return i18n("Default")
+        return id
     }
 
-    readonly property var sortOptions: [
-        { id: "default", label: i18n("Default") },
-        { id: "due", label: i18n("Due date") },
-        { id: "due,priority", label: i18n("Due date, then priority") },
-        { id: "due,title", label: i18n("Due date, then title") },
-        { id: "priority", label: i18n("Priority") },
-        { id: "priority,due", label: i18n("Priority, then due date") },
-        { id: "priority,title", label: i18n("Priority, then title") },
-        { id: "title", label: i18n("Title A–Z") },
-        { id: "titleDesc", label: i18n("Title Z–A") },
-        { id: "completed,due", label: i18n("Open first, then due date") },
-        { id: "completed,priority", label: i18n("Open first, then priority") }
-    ]
+    function sortModeLabel(mode) {
+        var keys = parseSortKeys(mode)
+        var parts = [sortKeyLabel(keys[0])]
+        if (keys[1] && keys[1] !== "none") {
+            parts.push(sortKeyLabel(keys[1]))
+        }
+        if (keys[2] && keys[2] !== "none") {
+            parts.push(sortKeyLabel(keys[2]))
+        }
+        return parts.join(" › ")
+    }
+
+    function optionsForSortLevel(level) {
+        var keys = sortKeys
+        var out = []
+        if (level > 0) {
+            out.push({ id: "none", label: i18n("None") })
+        }
+        var options = sortOptions
+        for (var j = 0; j < options.length; ++j) {
+            var opt = options[j]
+            var blocked = false
+            for (var i = 0; i < level; ++i) {
+                if (sortKeysConflict(keys[i], opt.id)) {
+                    blocked = true
+                    break
+                }
+            }
+            if (!blocked) {
+                out.push(opt)
+            }
+        }
+        return out
+    }
+
+    function applySortMode(mode) {
+        // Session-only: do not write Plasmoid.configuration or shared settings.
+        backend.sortMode = mode
+    }
+
+    function setSortLevel(level, id) {
+        var keys = parseSortKeys(backend.sortMode)
+        keys[level] = id
+        if (level === 1 && id === "none") {
+            keys[2] = "none"
+        }
+        if (id !== "none") {
+            for (var i = level + 1; i < 3; ++i) {
+                if (sortKeysConflict(id, keys[i])) {
+                    keys[i] = "none"
+                }
+            }
+        }
+        applySortMode(buildSortMode(keys))
+    }
 
     function openSortMenu() {
         var margin = KurrentUi.Design.spaceSmall
         var maxWidth = Math.max(Kirigami.Units.gridUnit * 8, fullRoot.width - margin * 2)
-        sortMenu.width = Math.min(Kirigami.Units.gridUnit * 18,
-                                  Math.max(Kirigami.Units.gridUnit * 12, maxWidth))
+        sortMenu.width = Math.min(Kirigami.Units.gridUnit * 16,
+                                  Math.max(Kirigami.Units.gridUnit * 11, maxWidth))
 
         var below = sortButton.mapToItem(fullRoot, 0, sortButton.height + margin)
         var buttonTop = sortButton.mapToItem(fullRoot, 0, 0)
         var buttonRight = sortButton.mapToItem(fullRoot, sortButton.width, 0).x
         var spaceBelow = fullRoot.height - below.y - margin
         var spaceAbove = buttonTop.y - margin
-        var estimatedHeight = Kirigami.Units.gridUnit
-                + fullRoot.sortOptions.length * Kirigami.Units.gridUnit * 2
-                + sortMenu.topPadding + sortMenu.bottomPadding
-        var measuredHeight = sortList.contentHeight + sortMenu.topPadding + sortMenu.bottomPadding
-        var wantedHeight = measuredHeight > Kirigami.Units.gridUnit * 4 ? measuredHeight : estimatedHeight
-
+        var wantedHeight = Math.min(Kirigami.Units.gridUnit * 22, Math.max(spaceBelow, spaceAbove))
+        sortMenu.height = wantedHeight
         var openBelow = spaceBelow >= Math.min(wantedHeight, Kirigami.Units.gridUnit * 10)
                         || spaceBelow >= spaceAbove
-        var available = Math.max(Kirigami.Units.gridUnit * 8, openBelow ? spaceBelow : spaceAbove)
-        sortMenu.height = Math.min(wantedHeight, available)
 
         if (openBelow) {
             sortMenu.y = below.y
+            sortMenu.height = Math.min(wantedHeight, spaceBelow)
         } else {
+            sortMenu.height = Math.min(wantedHeight, spaceAbove)
             sortMenu.y = Math.max(margin, buttonTop.y - margin - sortMenu.height)
-        }
-        if (sortMenu.y + sortMenu.height > fullRoot.height - margin) {
-            sortMenu.y = Math.max(margin, fullRoot.height - margin - sortMenu.height)
         }
 
         sortMenu.x = Math.max(margin, Math.min(buttonRight - sortMenu.width,
@@ -570,51 +713,140 @@ Item {
         modal: false
         dim: false
         focus: true
-        clip: true
         padding: KurrentUi.Design.spaceSmall
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
         z: 1500
 
         background: Rectangle {
-            radius: 4
             color: Kirigami.Theme.backgroundColor
-            border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.25)
+            border.color: Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.textColor,
+                                                                  Kirigami.Theme.backgroundColor, 0.85)
             border.width: 1
+            radius: KurrentUi.Design.inputRadius
         }
 
-        contentItem: ListView {
-            id: sortList
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            model: fullRoot.sortOptions
-            spacing: 0
-            header: QQC2.Label {
-                width: sortList.width
-                leftPadding: KurrentUi.Design.spaceSmall
-                rightPadding: KurrentUi.Design.spaceSmall
-                bottomPadding: KurrentUi.Design.spaceSmall
+        contentItem: ColumnLayout {
+            spacing: KurrentUi.Design.spaceSmall
+
+            QQC2.Label {
+                Layout.fillWidth: true
                 text: i18n("Sort tasks")
                 font.bold: true
-                opacity: 0.75
-            }
-            delegate: QQC2.ItemDelegate {
-                required property var modelData
-                width: sortList.width
-                text: modelData.label
-                highlighted: backend.sortMode === modelData.id
-                icon.name: backend.sortMode === modelData.id ? "checkmark" : ""
-                onClicked: {
-                    backend.sortMode = modelData.id
-                    Plasmoid.configuration.sortMode = modelData.id
-                    plasmoidRoot.persistSharedSettings()
-                    sortMenu.close()
-                }
             }
 
-            QQC2.ScrollBar.vertical: QQC2.ScrollBar {
-                policy: sortList.contentHeight > sortList.height
-                        ? QQC2.ScrollBar.AlwaysOn
-                        : QQC2.ScrollBar.AlwaysOff
+            Flickable {
+                id: sortFlick
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                contentWidth: width
+                contentHeight: sortColumn.implicitHeight
+                // Same stack as the task list: WheelHandler + overshoot rebound.
+                boundsBehavior: Flickable.OvershootBounds
+                flickableDirection: Flickable.VerticalFlick
+
+                function settleScrollBounds() {
+                    var maxY = Math.max(0, contentHeight - height)
+                    if (Math.abs(verticalOvershoot) > 0.5
+                            || contentY < -0.5
+                            || contentY > maxY + 0.5) {
+                        returnToBounds()
+                    }
+                }
+
+                onFlickEnded: settleScrollBounds()
+                onMovementEnded: settleScrollBounds()
+                onContentHeightChanged: Qt.callLater(settleScrollBounds)
+
+                Kirigami.WheelHandler {
+                    id: sortWheelHandler
+                    target: sortFlick
+                    filterMouseEvents: true
+                    onWheel: function(wheel) {
+                        sortWheelIdle.restart()
+                    }
+                }
+                Timer {
+                    id: sortWheelIdle
+                    interval: 400
+                    repeat: false
+                    onTriggered: sortFlick.settleScrollBounds()
+                }
+
+                QQC2.ScrollBar.vertical: ThinScrollBar {
+                    view: sortFlick
+                    parent: sortFlick
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.right
+                    stepSize: sortFlick.contentHeight > 0
+                            ? sortWheelHandler.verticalStepSize / sortFlick.contentHeight
+                            : 0.1
+                }
+                QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+                    policy: QQC2.ScrollBar.AlwaysOff
+                }
+
+                ColumnLayout {
+                    id: sortColumn
+                    width: sortFlick.width
+                    spacing: KurrentUi.Design.spaceMedium
+
+                    component SortLevelGroup: ColumnLayout {
+                        property string heading
+                        property var options
+                        property int level
+                        property string currentId
+                        spacing: KurrentUi.Design.spaceTiny
+
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            text: heading
+                            opacity: 0.8
+                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        }
+
+                        Repeater {
+                            model: options
+                            delegate: QQC2.RadioButton {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                text: modelData.label
+                                // Binding owns checked state; autoExclusive would prefer the
+                                // first sibling ("None" on levels 2–3) and fight the binding.
+                                autoExclusive: false
+                                checked: currentId === modelData.id
+                                onClicked: fullRoot.setSortLevel(level, modelData.id)
+                            }
+                        }
+                    }
+
+                    SortLevelGroup {
+                        Layout.fillWidth: true
+                        heading: i18n("First sort")
+                        options: fullRoot.firstSortOptions
+                        level: 0
+                        currentId: fullRoot.sortKeys[0]
+                    }
+
+                    SortLevelGroup {
+                        Layout.fillWidth: true
+                        heading: i18n("Second sort")
+                        options: fullRoot.secondSortOptions
+                        level: 1
+                        currentId: fullRoot.sortKeys[1]
+                    }
+
+                    SortLevelGroup {
+                        Layout.fillWidth: true
+                        heading: i18n("Third sort")
+                        options: fullRoot.thirdSortOptions
+                        level: 2
+                        currentId: fullRoot.sortKeys[2]
+                        enabled: fullRoot.sortKeys[1] !== "none"
+                        opacity: enabled ? 1 : 0.45
+                    }
+                }
             }
         }
     }

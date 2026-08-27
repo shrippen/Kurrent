@@ -30,9 +30,9 @@ Settings stay **shared** across desktop widget and panel flyout (`~/.config/com.
 
 - AUR `kurrent` / `kurrent-git` — still not shipped (see Easy install).
 - Honest release notes; `ctest` in CI.
-- Persist sort mode in `kurrentrc`.
+- Sort mode is session-only (not persisted in `kurrentrc`).
 - Empty/error UI when Akonadi is missing or no todo collections are enabled.
-- **Catch-up in Today:** unfinished tasks from recent days sit in a distinct *Still open* / catch-up block at the top of Today. They are not silently mixed into “due today”, and they do **not** auto-rollover onto tomorrow. Optional Overdue view in the sidebar; catch-up on/off in settings.
+- **Catch-up in Today:** all overdue incomplete tasks (same set as the Overdue view) sit in a distinct *Still open* / catch-up block at the top of Today. They are not silently mixed into “due today”, and they do **not** auto-rollover onto tomorrow. Overdue remains its own sidebar view; catch-up on/off in settings.
 - Settings shell: new KCM categories (Appearance, Sidebar, Tasks, Editor, Panel), config keys, per-page reset to defaults. `Design.qml` reads sidebar width and density overrides.
 
 ---
@@ -83,7 +83,7 @@ Each page has reset-to-defaults. Desktop and panel stay in sync.
 ### General
 
 - Start on a fixed default view **or** remember the last view.
-- Catch-up block in Today on/off; how many past days to include.
+- Catch-up block in Today on/off (includes the full Overdue set under Still open).
 - Completed tasks: hide / dim in the list / only in the Completed view.
 - New task with no sidebar project: ask / first visible / fixed project (already exists).
 - Default due date when creating: none / today / tomorrow / in N days.

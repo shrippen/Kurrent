@@ -19,7 +19,6 @@ KCM.SimpleKCM {
     property alias cfg_showLabelChips: labelChipCheck.checked
     property alias cfg_showPriorityChip: priorityChipCheck.checked
     property alias cfg_showRecurringIcon: recurringIconCheck.checked
-    property int cfg_catchUpDays
     property int cfg_morningHour
     property int cfg_afternoonHour
     property int cfg_eveningHour
@@ -34,7 +33,6 @@ KCM.SimpleKCM {
     }
 
     function syncControls() {
-        catchUpDaysBox.value = cfg_catchUpDays
         selectCombo(morningHourCombo, String(cfg_morningHour))
         selectCombo(afternoonHourCombo, String(cfg_afternoonHour))
         selectCombo(eveningHourCombo, String(cfg_eveningHour))
@@ -48,20 +46,8 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: catchUpCheck
                 Kirigami.FormData.label: i18n("Catch-up")
-                text: i18n("Show unfinished recent tasks at the top of Today")
+                text: i18n("Show overdue tasks at the top of Today")
                 Component.onCompleted: checked = plasmoid.configuration.catchUpEnabled !== false
-            }
-
-            QQC2.SpinBox {
-                id: catchUpDaysBox
-                Kirigami.FormData.label: i18n("Catch-up window")
-                Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 12
-                from: 1
-                to: 365
-                value: plasmoid.configuration.catchUpDays || 14
-                onValueChanged: root.cfg_catchUpDays = value
-                Component.onCompleted: root.cfg_catchUpDays = value
             }
 
             QQC2.ComboBox {
@@ -167,7 +153,6 @@ KCM.SimpleKCM {
                 page: root
                 defaults: ({
                     catchUpEnabled: true,
-                    catchUpDays: 14,
                     morningHour: 6,
                     afternoonHour: 12,
                     eveningHour: 18,

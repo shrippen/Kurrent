@@ -29,6 +29,9 @@ msgstr "Eingang"
 msgid "Today"
 msgstr "Heute"
 
+msgid "Overdue"
+msgstr "Überfällig"
+
 msgid "Tomorrow"
 msgstr "Morgen"
 
@@ -70,6 +73,18 @@ msgstr "Sortierung: %1"
 
 msgid "Sort tasks"
 msgstr "Aufgaben sortieren"
+
+msgid "First sort"
+msgstr "Erste Sortierung"
+
+msgid "Second sort"
+msgstr "Zweite Sortierung"
+
+msgid "Third sort"
+msgstr "Dritte Sortierung"
+
+msgid "Open first"
+msgstr "Offene zuerst"
 
 msgid "Build"
 msgstr "Build"
@@ -287,6 +302,12 @@ msgstr "Ort"
 msgid "Project:"
 msgstr "Projekt:"
 
+msgid "Parent:"
+msgstr "Übergeordnet:"
+
+msgid "Open / Join"
+msgstr "Öffnen / Beitreten"
+
 msgid "No projects available"
 msgstr "Keine Projekte verfügbar"
 
@@ -319,6 +340,15 @@ msgstr "Niedrig"
 
 msgid "Search or create label…"
 msgstr "Label suchen oder erstellen …"
+
+msgid "Search parent task…"
+msgstr "Übergeordnete Aufgabe suchen …"
+
+msgid "Clear parent"
+msgstr "Übergeordnete entfernen"
+
+msgid "No matching tasks"
+msgstr "Keine passenden Aufgaben"
 
 msgid "Remove label"
 msgstr "Label entfernen"
@@ -499,6 +529,399 @@ msgstr "Neues Label"
 
 msgid "Delete label"
 msgstr "Label löschen"
+
+msgid "%1 grid units"
+msgstr "%1 Rastereinheiten"
+
+msgid "%1:00"
+msgstr "%1:00"
+
+msgid "1 day before"
+msgstr "1 Tag vorher"
+
+msgid "1 hour"
+msgstr "1 Stunde"
+
+msgid "1 hour before"
+msgstr "1 Stunde vorher"
+
+msgid "1 line"
+msgstr "1 Zeile"
+
+msgid "15 minutes"
+msgstr "15 Minuten"
+
+msgid "15 minutes before"
+msgstr "15 Minuten vorher"
+
+msgid "2 lines"
+msgstr "2 Zeilen"
+
+msgid "A task cannot be its own parent."
+msgstr "Eine Aufgabe kann nicht ihr eigenes Elternteil sein."
+
+msgid "A task is due."
+msgstr "Eine Aufgabe ist fällig."
+
+msgid "Add Kurrent task"
+msgstr "Kurrent-Aufgabe hinzufügen"
+
+msgid "Add label"
+msgstr "Label hinzufügen"
+
+msgid "Afternoon"
+msgstr "Nachmittag"
+
+msgid "Afternoon starts"
+msgstr "Nachmittag beginnt"
+
+msgid "Akonadi is not available."
+msgstr "Akonadi ist nicht verfügbar."
+
+msgid "Akonadi is not running"
+msgstr "Akonadi läuft nicht"
+
+msgid "Connecting to Akonadi…"
+msgstr "Verbindung mit Akonadi…"
+
+msgid "Loading tasks…"
+msgstr "Aufgaben werden geladen…"
+
+msgid "The flyout is ready; tasks appear when the server answers."
+msgstr "Das Flyout ist bereit; Aufgaben erscheinen, sobald der Server antwortet."
+
+msgid "Ask before deleting a task"
+msgstr "Vor dem Löschen einer Aufgabe nachfragen"
+
+msgid "At due time"
+msgstr "Zur Fälligkeit"
+
+msgid "Background"
+msgstr "Hintergrund"
+
+msgid "Blurred wallpaper behind the widget"
+msgstr "Unscharfes Hintergrundbild hinter dem Widget"
+
+msgid "Cannot create a circular task hierarchy."
+msgstr "Es kann keine zyklische Aufgabenhierarchie erzeugt werden."
+
+msgid "Case sensitive"
+msgstr "Groß-/Kleinschreibung beachten"
+
+msgid "Catch-up"
+msgstr "Nachholen"
+
+msgid "Checkbox"
+msgstr "Kontrollkästchen"
+
+msgid "Click a task"
+msgstr "Aufgabe anklicken"
+
+msgid "Collapse subtasks"
+msgstr "Unteraufgaben einklappen"
+
+msgid "Comfortable"
+msgstr "Komfortabel"
+
+msgid "Complete only with Shift or Ctrl held"
+msgstr "Nur mit gedrückter Umschalt- oder Strg-Taste erledigen"
+
+msgid "Completing a parent also completes its children"
+msgstr "Erledigen einer Hauptaufgabe erledigt auch deren Unteraufgaben"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
+msgstr "Richte CalDAV/Nextcloud in KOrganizer oder Merkuro ein (DAV-Groupware-Ressource)."
+
+msgid "Could not load tasks"
+msgstr "Aufgaben konnten nicht geladen werden"
+
+msgid "Counts"
+msgstr "Zähler"
+
+msgid "Dates"
+msgstr "Daten"
+
+msgid "Default due date"
+msgstr "Standard-Fälligkeitsdatum"
+
+msgid "Default reminder"
+msgstr "Standard-Erinnerung"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Delete task?"
+msgstr "Aufgabe löschen?"
+
+msgid "Delete this task?"
+msgstr "Diese Aufgabe löschen?"
+
+msgid "Density"
+msgstr "Dichte"
+
+msgid "Description preview"
+msgstr "Beschreibungsvorschau"
+
+msgid "Desktop notifications"
+msgstr "Desktop-Benachrichtigungen"
+
+msgid "Due %1"
+msgstr "Fällig %1"
+
+msgid "Due date (latest first)"
+msgstr "Fälligkeitsdatum (neueste zuerst)"
+
+msgid "Editor dim"
+msgstr "Editor-Abdunklung"
+
+msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "Aktiviere einen Kalender unter Kurrent einrichten → Projekte, oder füge eine CalDAV-Ressource in Merkuro oder KOrganizer hinzu."
+
+msgid "Ends"
+msgstr "Ende"
+
+msgid "Evening"
+msgstr "Abend"
+
+msgid "Evening starts"
+msgstr "Abend beginnt"
+
+msgid "Exclude collapsed subtasks from counts"
+msgstr "Eingeklappte Unteraufgaben nicht mitzählen"
+
+msgid "Expand subtasks"
+msgstr "Unteraufgaben ausklappen"
+
+msgid "Failed to fetch collections."
+msgstr "Sammlungen konnten nicht geladen werden."
+
+msgid "Flyout height"
+msgstr "Flyout-Höhe"
+
+msgid "Flyout width"
+msgstr "Flyout-Breite"
+
+msgid "Heading on the list"
+msgstr "Überschrift in der Liste"
+
+msgid "Hidden"
+msgstr "Ausgeblendet"
+
+msgid "In 1 hour"
+msgstr "In 1 Stunde"
+
+msgid "In 15 minutes"
+msgstr "In 15 Minuten"
+
+msgid "In 4 hours"
+msgstr "In 4 Stunden"
+
+msgid "Light"
+msgstr "Leicht"
+
+msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "Lege fest, welche beschreibbaren Akonadi-Kalender als Projekte dienen. Deaktivierte Kalender werden beim Laden von Aufgaben vollständig übersprungen. Ausgeblendete Kalender werden geladen, erscheinen aber nicht in der Seitenleiste."
+
+msgid "Meetings"
+msgstr "Meetings"
+
+msgid "Morning"
+msgstr "Morgen"
+
+msgid "Morning starts"
+msgstr "Morgen beginnt"
+
+msgid "Motion"
+msgstr "Bewegung"
+
+msgid "No task lists"
+msgstr "Keine Aufgabenlisten"
+
+msgid "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."
+msgstr "Keine Aufgabenlisten in Akonadi gefunden. Richte CalDAV in KOrganizer oder Kalendar ein."
+
+msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
+msgstr "Keine beschreibbaren Akonadi-Kalender gefunden. Stelle sicher, dass Akonadi läuft und deine CalDAV-Ressource Aufgabenbearbeitung erlaubt."
+
+msgid "No writable task list selected."
+msgstr "Keine beschreibbare Aufgabenliste ausgewählt."
+
+msgid "Notify when a task reminder is due"
+msgstr "Benachrichtigen, wenn eine Aufgabenerinnerung fällig ist"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "Open root tasks"
+msgstr "Offene Hauptaufgaben"
+
+msgid "Open the full editor"
+msgstr "Vollständigen Editor öffnen"
+
+msgid "Open the inline editor"
+msgstr "Inline-Editor öffnen"
+
+msgid "Order and visibility"
+msgstr "Reihenfolge und Sichtbarkeit"
+
+msgid "Panel badge"
+msgstr "Panel-Badge"
+
+msgid "Parent task must be in the same project."
+msgstr "Die übergeordnete Aufgabe muss im selben Projekt liegen."
+
+msgid "Parent task not found."
+msgstr "Übergeordnete Aufgabe nicht gefunden."
+
+msgid "Progress %"
+msgstr "Fortschritt %"
+
+msgid "Progress % (high first)"
+msgstr "Fortschritt % (höchste zuerst)"
+
+msgid "Quiet hours"
+msgstr "Ruhezeiten"
+
+msgid "Recurring first"
+msgstr "Wiederkehrende zuerst"
+
+msgid "Recurring icon"
+msgstr "Wiederholungs-Symbol"
+
+msgid "Recurring last"
+msgstr "Wiederkehrende zuletzt"
+
+msgid "Reduced motion (no spinner, quieter hover)"
+msgstr "Reduzierte Bewegung (kein Spinner, ruhigeres Hover)"
+
+msgid "Relative dates (Today, Tomorrow)"
+msgstr "Relative Daten (Heute, Morgen)"
+
+msgid "Remember the last view instead"
+msgstr "Stattdessen die letzte Ansicht merken"
+
+msgid "Reminder first"
+msgstr "Erinnerung zuerst"
+
+msgid "Reminder last"
+msgstr "Erinnerung zuletzt"
+
+msgid "Reminder:"
+msgstr "Erinnerung:"
+
+msgid "Rename"
+msgstr "Umbenennen"
+
+msgid "Rename from"
+msgstr "Umbenennen von"
+
+msgid "Rename to"
+msgstr "Umbenennen in"
+
+msgid "Reset this page"
+msgstr "Diese Seite zurücksetzen"
+
+msgid "Row chips"
+msgstr "Zeilen-Chips"
+
+msgid "Row size"
+msgstr "Zeilenhöhe"
+
+msgid "Search"
+msgstr "Suche"
+
+msgid "Search titles only"
+msgstr "Nur Titel durchsuchen"
+
+msgid "Section:"
+msgstr "Abschnitt:"
+
+msgid "Sections"
+msgstr "Abschnitte"
+
+msgid "Select only (double-click opens the full editor)"
+msgstr "Nur auswählen (Doppelklick öffnet den vollständigen Editor)"
+
+msgid "Show Kurrent"
+msgstr "Kurrent anzeigen"
+
+msgid "Show a Join button for http(s) links"
+msgstr "Join-Schaltfläche für http(s)-Links anzeigen"
+
+msgid "Show empty projects"
+msgstr "Leere Projekte anzeigen"
+
+msgid "Show in the sidebar"
+msgstr "In der Seitenleiste anzeigen"
+
+msgid "Show task counts"
+msgstr "Aufgabenanzahl anzeigen"
+
+msgid "Show time on the due chip"
+msgstr "Uhrzeit auf dem Fälligkeits-Chip anzeigen"
+
+msgid "Show overdue tasks at the top of Today"
+msgstr "Überfällige Aufgaben oben in Heute anzeigen"
+
+msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
+msgstr "Schlummern aus der Benachrichtigung (15 Minuten, 1 Stunde, morgen) schreibt den VALARM neu. Das Fälligkeitsdatum bleibt unverändert; dafür Umplanen nutzen."
+
+msgid "Start date"
+msgstr "Startdatum"
+
+msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "Starte es mit akonadictl start und füge dann eine CalDAV-Ressource in Merkuro oder KOrganizer hinzu."
+
+msgid "Starts"
+msgstr "Beginn"
+
+msgid "Still open"
+msgstr "Noch offen"
+
+msgid "Strong"
+msgstr "Stark"
+
+msgid "Subtasks"
+msgstr "Unteraufgaben"
+
+msgid "Suppress reminder notifications in this window"
+msgstr "Erinnerungsbenachrichtigungen in diesem Zeitraum unterdrücken"
+
+msgid "Task not found."
+msgstr "Aufgabe nicht gefunden."
+
+msgid "Task reminder"
+msgstr "Aufgabenerinnerung"
+
+msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
+msgstr "Der vollständige Editor bleibt ein Overlay im Widget. Der Tagesabschnitt (LIST) ist im vollständigen Editor."
+
+msgid "This project cannot accept tasks."
+msgstr "Dieses Projekt kann keine Aufgaben annehmen."
+
+msgid "Try again"
+msgstr "Erneut versuchen"
+
+msgid "Undo"
+msgstr "Rückgängig"
+
+msgid "Undo complete"
+msgstr "Erledigung rückgängig"
+
+msgid "Undo delete"
+msgstr "Löschen rückgängig"
+
+msgid "Undo move"
+msgstr "Verschieben rückgängig"
+
+msgid "Undo reschedule"
+msgstr "Umplanen rückgängig"
+
+msgid "Views"
+msgstr "Ansichten"
+
+msgid "Width"
+msgstr "Breite"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

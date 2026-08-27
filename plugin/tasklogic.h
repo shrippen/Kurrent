@@ -150,7 +150,8 @@ bool matchesSearch(const TaskEntry &task, const QString &query, SearchScope scop
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today);
 
-bool isCatchUp(const TaskEntry &task, const QDate &today, int lookbackDays);
+/** True for incomplete tasks due before today (same set as the Overdue view). lookbackDays is unused. */
+bool isCatchUp(const TaskEntry &task, const QDate &today, int lookbackDays = -1);
 
 bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const QDate &today);
 

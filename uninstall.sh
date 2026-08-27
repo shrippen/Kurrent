@@ -180,7 +180,7 @@ main() {
         if [[ "$DRY_RUN" == true ]]; then
             echo "  [DRY-RUN] would prompt to remove: ${CONFIG_DIR}"
         else
-            echo "This stores your Kurrent settings (sort mode, sidebar layout, etc.)."
+            echo "This stores your Kurrent settings (sidebar layout, appearance, etc.)."
             read -r -p "Remove it? [y/N] " REPLY
             if [[ "$REPLY" =~ ^[yY] ]]; then
                 remove "$CONFIG_DIR"

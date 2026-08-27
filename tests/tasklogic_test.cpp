@@ -58,6 +58,7 @@ private Q_SLOTS:
 
     void filterVisibleTasksCompletedAndSearch();
     void filterVisibleTasksCompletedView();
+    void filterVisibleTasksKeepsHierarchy();
 
     void collectionCountsPendingAndLabels();
     void labelMutationsAndCreateGuard();
@@ -74,8 +75,8 @@ private Q_SLOTS:
     void cursorAndDragLimits();
     void dateTimeTokensAndIsoParse();
 
-    void todayExcludesOverdue_catchUpAndOverdueView();
-    void catchUpLookbackAndDisabled();
+    void todayCatchUpIncludesAllOverdue();
+    void catchUpMatchesOverdueAndDisabled();
     void dayPartsAndListBuckets();
     void reschedulePresets();
     void joinUrlExtraction();
@@ -230,8 +231,35 @@ void TaskLogicTest::compareTasksDescending()
     early.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
     TaskEntry late = makeTask(QStringLiteral("Late"));
     late.dueDate = QDateTime(QDate(2026, 8, 20), QTime(9, 0));
+    TaskEntry undated = makeTask(QStringLiteral("Undated"));
 
     QVERIFY(TaskLogic::compareTasks(late, early, QStringLiteral("dueDesc")) < 0);
+    // Undated stays last even for latest-first due.
+    QVERIFY(TaskLogic::compareTasks(late, undated, QStringLiteral("dueDesc")) < 0);
+
+    TaskEntry withReminder = makeTask(QStringLiteral("Alarm"));
+    withReminder.reminderMinutes = 15;
+    TaskEntry noReminder = makeTask(QStringLiteral("Quiet"));
+    QVERIFY(TaskLogic::compareTasks(withReminder, noReminder, QStringLiteral("reminder")) < 0);
+    QVERIFY(TaskLogic::compareTasks(noReminder, withReminder, QStringLiteral("reminderDesc")) < 0);
+
+    TaskEntry recur = makeTask(QStringLiteral("Weekly"));
+    recur.recurring = true;
+    TaskEntry once = makeTask(QStringLiteral("Once"));
+    QVERIFY(TaskLogic::compareTasks(recur, once, QStringLiteral("recurring")) < 0);
+    QVERIFY(TaskLogic::compareTasks(once, recur, QStringLiteral("recurringDesc")) < 0);
+
+    TaskEntry low = makeTask(QStringLiteral("Low"));
+    low.percentComplete = 10;
+    TaskEntry high = makeTask(QStringLiteral("High"));
+    high.percentComplete = 90;
+    QVERIFY(TaskLogic::compareTasks(low, high, QStringLiteral("progress")) < 0);
+    QVERIFY(TaskLogic::compareTasks(high, low, QStringLiteral("progressDesc")) < 0);
+
+    TaskEntry started = makeTask(QStringLiteral("Started"));
+    started.startDate = QDateTime(QDate(2026, 8, 1), QTime(9, 0));
+    TaskEntry notStarted = makeTask(QStringLiteral("Later"));
+    QVERIFY(TaskLogic::compareTasks(started, notStarted, QStringLiteral("start")) < 0);
 }
 
 void TaskLogicTest::parentCycleDetection()
@@ -402,11 +430,11 @@ void TaskLogicTest::flattenTreeHidesCollapsedChildren()
     TaskEntry grand = makeTask(QStringLiteral("Grand"));
     grand.uid = QStringLiteral("grand");
     grand.parentUid = QStringLiteral("child");
-    TaskEntry sibling = makeTask(QStringLiteral("Other"));
+    TaskEntry sibling = makeTask(QStringLiteral("Zebra"));
     sibling.uid = QStringLiteral("other");
 
     const QList<TaskEntry> collapsed = TaskLogic::flattenTree({root, child, grand, sibling},
-                                                              QStringLiteral("default"),
+                                                              QStringLiteral("title"),
                                                               {QStringLiteral("root")});
     QCOMPARE(collapsed.size(), 2);
     QCOMPARE(collapsed.at(0).uid, QStringLiteral("root"));
@@ -418,7 +446,7 @@ void TaskLogicTest::flattenTreeHidesCollapsedChildren()
     QVERIFY(!collapsed.at(1).treeHidden);
 
     const QList<TaskEntry> open = TaskLogic::flattenTree({root, child, grand, sibling},
-                                                         QStringLiteral("default"),
+                                                         QStringLiteral("title"),
                                                          {});
     QCOMPARE(open.size(), 4);
     QVERIFY(!open.at(0).treeCollapsed);
@@ -496,9 +524,12 @@ void TaskLogicTest::filterVisibleTasksCompletedAndSearch()
 {
     const QDate today(2026, 8, 13);
     TaskEntry openTask = makeTask(QStringLiteral("Open milk"));
+    openTask.uid = QStringLiteral("open");
     TaskEntry doneTask = makeTask(QStringLiteral("Done milk"));
+    doneTask.uid = QStringLiteral("done");
     doneTask.completed = true;
     TaskEntry other = makeTask(QStringLiteral("Call dentist"));
+    other.uid = QStringLiteral("other");
 
     TaskLogic::FilterState filters;
     filters.currentView = QStringLiteral("inbox");
@@ -509,17 +540,20 @@ void TaskLogicTest::filterVisibleTasksCompletedAndSearch()
     QCOMPARE(hiddenCompleted.filteredOutCompleted, 1);
     QCOMPARE(hiddenCompleted.filteredOutSearch, 1);
 
+    // showCompleted must not mix done tasks into non-Completed views.
     filters.showCompleted = true;
-    const auto shown = TaskLogic::filterVisibleTasks({openTask, doneTask, other}, filters, today);
-    QCOMPARE(shown.tasks.size(), 2);
-    QCOMPARE(shown.filteredOutCompleted, 0);
+    const auto stillHidden = TaskLogic::filterVisibleTasks({openTask, doneTask, other}, filters, today);
+    QCOMPARE(stillHidden.tasks.size(), 1);
+    QCOMPARE(stillHidden.filteredOutCompleted, 1);
 }
 
 void TaskLogicTest::filterVisibleTasksCompletedView()
 {
     const QDate today(2026, 8, 13);
     TaskEntry openTask = makeTask(QStringLiteral("Open"));
+    openTask.uid = QStringLiteral("open");
     TaskEntry doneTask = makeTask(QStringLiteral("Done"));
+    doneTask.uid = QStringLiteral("done");
     doneTask.completed = true;
 
     TaskLogic::FilterState filters;
@@ -529,6 +563,65 @@ void TaskLogicTest::filterVisibleTasksCompletedView()
     QCOMPARE(result.tasks.size(), 1);
     QCOMPARE(result.tasks.at(0).summary, QStringLiteral("Done"));
     QCOMPARE(result.filteredOutView, 1);
+}
+
+void TaskLogicTest::filterVisibleTasksKeepsHierarchy()
+{
+    const QDate today(2026, 8, 13);
+    TaskEntry parent = makeTask(QStringLiteral("IT für Freunde"));
+    parent.uid = QStringLiteral("parent");
+    parent.itemId = 1;
+    TaskEntry alem = makeTask(QStringLiteral("Alem"));
+    alem.uid = QStringLiteral("alem");
+    alem.itemId = 2;
+    alem.parentUid = QStringLiteral("parent");
+    alem.completed = true;
+    TaskEntry sofia = makeTask(QStringLiteral("Sofia IT"));
+    sofia.uid = QStringLiteral("sofia");
+    sofia.itemId = 3;
+    sofia.parentUid = QStringLiteral("parent");
+    TaskEntry other = makeTask(QStringLiteral("Unrelated"));
+    other.uid = QStringLiteral("other");
+    other.itemId = 4;
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("inbox");
+
+    filters.searchQuery = QStringLiteral("Freunde");
+    auto byParent = TaskLogic::filterVisibleTasks({parent, alem, sofia, other}, filters, today);
+    QCOMPARE(byParent.tasks.size(), 2);
+    QStringList byParentUids;
+    for (const TaskEntry &t : byParent.tasks) {
+        byParentUids.append(t.uid);
+    }
+    QVERIFY(byParentUids.contains(QStringLiteral("parent")));
+    QVERIFY(byParentUids.contains(QStringLiteral("sofia")));
+    QVERIFY(!byParentUids.contains(QStringLiteral("alem")));
+    QVERIFY(!byParentUids.contains(QStringLiteral("other")));
+
+    filters.searchQuery = QStringLiteral("Sofia");
+    auto byChild = TaskLogic::filterVisibleTasks({parent, alem, sofia, other}, filters, today);
+    QCOMPARE(byChild.tasks.size(), 2);
+    QStringList byChildUids;
+    for (const TaskEntry &t : byChild.tasks) {
+        byChildUids.append(t.uid);
+    }
+    QVERIFY(byChildUids.contains(QStringLiteral("parent")));
+    QVERIFY(byChildUids.contains(QStringLiteral("sofia")));
+    QVERIFY(!byChildUids.contains(QStringLiteral("alem")));
+
+    filters.currentView = QStringLiteral("completed");
+    filters.searchQuery.clear();
+    auto completed = TaskLogic::filterVisibleTasks({parent, alem, sofia, other}, filters, today);
+    QCOMPARE(completed.tasks.size(), 2);
+    QStringList completedUids;
+    for (const TaskEntry &t : completed.tasks) {
+        completedUids.append(t.uid);
+    }
+    QVERIFY(completedUids.contains(QStringLiteral("alem")));
+    QVERIFY(completedUids.contains(QStringLiteral("parent")));
+    QVERIFY(!completedUids.contains(QStringLiteral("sofia")));
+    QVERIFY(!completedUids.contains(QStringLiteral("other")));
 }
 
 void TaskLogicTest::collectionCountsPendingAndLabels()
@@ -701,7 +794,7 @@ void TaskLogicTest::sidebarVisibilityAndLayout()
 void TaskLogicTest::viewIconsStatusRecurrencePriority()
 {
     QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("today")), QStringLiteral("view-calendar-day"));
-    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("overdue")), QStringLiteral("appointment-missed"));
+    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("overdue")), QStringLiteral("chronometer"));
     QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("inbox")), QStringLiteral("mail-folder-inbox"));
     QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("completed")), QStringLiteral("checkmark"));
     QCOMPARE(TaskLogic::indexForValue({1, 5, 9, 0}, 9), 2);
@@ -761,7 +854,7 @@ void TaskLogicTest::dateTimeTokensAndIsoParse()
     QVERIFY(!TaskLogic::parseHmsTime(QStringLiteral("25:00"), &hours, &minutes));
 }
 
-void TaskLogicTest::todayExcludesOverdue_catchUpAndOverdueView()
+void TaskLogicTest::todayCatchUpIncludesAllOverdue()
 {
     const QDate today(2026, 8, 13);
     TaskEntry dueToday = makeTask(QStringLiteral("Today"));
@@ -774,19 +867,32 @@ void TaskLogicTest::todayExcludesOverdue_catchUpAndOverdueView()
     QVERIFY(TaskLogic::matchesView(dueToday, QStringLiteral("today"), today));
     QVERIFY(!TaskLogic::matchesView(overdue, QStringLiteral("today"), today));
     QVERIFY(TaskLogic::matchesView(overdue, QStringLiteral("overdue"), today));
+    QVERIFY(TaskLogic::matchesView(ancient, QStringLiteral("overdue"), today));
 
     TaskLogic::FilterState filters;
     filters.currentView = QStringLiteral("today");
     filters.catchUpEnabled = true;
-    filters.catchUpDays = 14;
+    filters.catchUpDays = 14; // ignored: catch-up = full overdue set
 
     const TaskLogic::VisibleFilterResult visible = TaskLogic::filterVisibleTasks({dueToday, overdue, ancient}, filters, today);
-    QCOMPARE(visible.tasks.size(), 2);
-    QCOMPARE(visible.tasks.at(0).bucket, QStringLiteral("morning"));
-    QCOMPARE(visible.tasks.at(1).bucket, QStringLiteral("catchup"));
+    QCOMPARE(visible.tasks.size(), 3);
+
+    TaskLogic::FilterState overdueFilters;
+    overdueFilters.currentView = QStringLiteral("overdue");
+    const TaskLogic::VisibleFilterResult overdueOnly = TaskLogic::filterVisibleTasks({dueToday, overdue, ancient}, overdueFilters, today);
+    QCOMPARE(overdueOnly.tasks.size(), 2);
+
+    int catchupCount = 0;
+    for (const TaskEntry &task : visible.tasks) {
+        if (task.bucket == QLatin1String("catchup")) {
+            ++catchupCount;
+        }
+    }
+    QCOMPARE(catchupCount, 2);
+    QCOMPARE(catchupCount, overdueOnly.tasks.size());
 }
 
-void TaskLogicTest::catchUpLookbackAndDisabled()
+void TaskLogicTest::catchUpMatchesOverdueAndDisabled()
 {
     const QDate today(2026, 8, 13);
     TaskEntry recent = makeTask(QStringLiteral("Recent"));
@@ -798,14 +904,16 @@ void TaskLogicTest::catchUpLookbackAndDisabled()
     done.completed = true;
 
     QVERIFY(TaskLogic::isCatchUp(recent, today, 14));
-    QVERIFY(!TaskLogic::isCatchUp(old, today, 14));
+    QVERIFY(TaskLogic::isCatchUp(old, today, 14));
     QVERIFY(TaskLogic::isCatchUp(old, today, -1));
     QVERIFY(!TaskLogic::isCatchUp(done, today, 14));
+    QCOMPARE(TaskLogic::isCatchUp(recent, today), TaskLogic::matchesView(recent, QStringLiteral("overdue"), today));
+    QCOMPARE(TaskLogic::isCatchUp(old, today), TaskLogic::matchesView(old, QStringLiteral("overdue"), today));
 
     TaskLogic::FilterState filters;
     filters.currentView = QStringLiteral("today");
     filters.catchUpEnabled = false;
-    QCOMPARE(TaskLogic::filterVisibleTasks({recent}, filters, today).tasks.size(), 0);
+    QCOMPARE(TaskLogic::filterVisibleTasks({recent, old}, filters, today).tasks.size(), 0);
 }
 
 void TaskLogicTest::dayPartsAndListBuckets()

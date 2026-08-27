@@ -38,6 +38,25 @@ ColumnLayout {
         && dragHost.draggingTask.parentUid
         && String(dragHost.draggingTask.parentUid).length > 0
 
+    // Close the shared inline editor when the list context changes or a drag starts.
+    onIsDraggingChanged: {
+        if (isDragging) {
+            root.collapseInline()
+        }
+    }
+
+    Connections {
+        target: root.controller
+        function onCurrentViewChanged() { root.collapseInline() }
+        function onManagementViewChanged() { root.collapseInline() }
+        function onSelectedCollectionIdChanged() { root.collapseInline() }
+        function onSelectedLabelChanged() { root.collapseInline() }
+        function onSelectedPriorityChanged() { root.collapseInline() }
+        function onSearchQueryChanged() { root.collapseInline() }
+        function onShowCompletedChanged() { root.collapseInline() }
+        function onSortModeChanged() { root.collapseInline() }
+    }
+
     function acceptDropAsParent(parentUid) {
         if (!dragHost || !dragHost.draggingTask) {
             return false
@@ -140,10 +159,21 @@ ColumnLayout {
         }
     }
 
-    QQC2.BusyIndicator {
-        Layout.alignment: Qt.AlignHCenter
-        running: controller.loading && controller.emptyKind === "loading"
-        visible: running && !Design.reducedMotion
+    QQC2.ProgressBar {
+        Layout.fillWidth: true
+        indeterminate: true
+        visible: controller.loading
+        from: 0
+        to: 1
+    }
+
+    Kirigami.PlaceholderMessage {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        visible: controller.emptyKind === "loading"
+        icon.name: "view-refresh"
+        text: i18n("Connecting to Akonadi…")
+        explanation: i18n("The flyout is ready; tasks appear when the server answers.")
     }
 
     Kirigami.PlaceholderMessage {
@@ -284,8 +314,23 @@ ColumnLayout {
         // Prefetch ~2 viewports so scroll rarely instantiates rows mid-gesture.
         cacheBuffer: Math.max(Math.round(height * 2), Math.round(Kirigami.Units.gridUnit * 24))
         spacing: 0
-        boundsBehavior: Flickable.StopAtBounds
+        // Allow flick/touchpad overshoot with rebound (StopAtBounds left the list
+        // stuck past the edge when inertia ran out without a bounce-back).
+        boundsBehavior: Flickable.OvershootBounds
         flickableDirection: Flickable.VerticalFlick
+
+        function settleScrollBounds() {
+            var maxY = Math.max(0, contentHeight - height)
+            if (Math.abs(verticalOvershoot) > 0.5
+                    || contentY < -0.5
+                    || contentY > maxY + 0.5) {
+                returnToBounds()
+            }
+        }
+
+        onFlickEnded: settleScrollBounds()
+        onMovementEnded: settleScrollBounds()
+        onContentHeightChanged: Qt.callLater(settleScrollBounds)
 
         // Narrow scrollbar + permanent gutter so edit icons never sit under it.
         readonly property int scrollBarExtent: Design.scrollBarExtent
@@ -308,7 +353,11 @@ ColumnLayout {
             id: wheelScrollIdle
             interval: 400
             repeat: false
-            onTriggered: taskList.wheelScrolling = false
+            onTriggered: {
+                taskList.wheelScrolling = false
+                // WheelHandler can leave contentY past bounds after a fast touchpad burst.
+                taskList.settleScrollBounds()
+            }
         }
 
         QQC2.ScrollBar.vertical: ThinScrollBar {
@@ -406,11 +455,22 @@ ColumnLayout {
                     geometrySettleTimer.restart()
                 }
             }
+            onHeightChanged: {
+                if (visible) {
+                    root.syncInlineGeometry()
+                }
+            }
+            onOpenRevealChanged: {
+                if (visible) {
+                    root.syncInlineGeometry()
+                    root.ensureExpandedVisible()
+                }
+            }
         }
     }
 
     readonly property real expandedEditorHeight: sharedInline.visible
-        ? Math.ceil(sharedInline.implicitHeight) + Design.spaceSmall
+        ? Math.ceil(sharedInline.height) + Design.spaceSmall
         : 0
 
     // Track the expanded row's guide so width settles after layout.
@@ -445,10 +505,17 @@ ColumnLayout {
             sharedInline.task = delegateItem.taskSnapshot()
         }
         sharedInline.loadFromTask()
+        // Start folded, then unfold (or snap open when reduced motion).
+        sharedInline.openReveal = Design.reducedMotion ? 1 : 0
         sharedInline.visible = true
         syncInlineGeometry()
         ensureExpandedVisible()
         geometrySettleTimer.restart()
+        if (!Design.reducedMotion) {
+            Qt.callLater(function() {
+                sharedInline.openReveal = 1
+            })
+        }
         Qt.callLater(function() {
             root.syncInlineGeometry()
             root.ensureExpandedVisible()
@@ -466,7 +533,28 @@ ColumnLayout {
         expandedItemId = -1
         expandedIndex = -1
         root._expandedGuide = null
+        sharedInline.openReveal = Design.reducedMotion ? 0 : sharedInline.openReveal
         sharedInline.visible = false
+        sharedInline.openReveal = 1
+    }
+
+    // After model rebuilds (filter/view/DnD), keep the editor only if the task is still listed.
+    function syncExpandedAfterModelChange() {
+        if (expandedItemId < 0 || !sharedInline.visible) {
+            return
+        }
+        var row = controller.taskModel.rowForItemId(expandedItemId)
+        if (row < 0) {
+            collapseInline()
+            return
+        }
+        if (expandedIndex !== row) {
+            expandedIndex = row
+            root._expandedGuide = null
+            var delegateItem = taskList.itemAtIndex(row)
+            root._expandedGuide = delegateItem ? delegateItem.editorGuideItem : null
+        }
+        Qt.callLater(root.syncInlineGeometry)
     }
 
     function syncInlineGeometry() {
@@ -484,15 +572,15 @@ ColumnLayout {
 
         delegateItem.editorReserveHeight = root.expandedEditorHeight
 
-        // Prefer the layout guide (checkbox.left → editButton.right); fall back to mapToItem.
+        // Full delegate width (same edges as row hover; ignore hierarchy indent).
         var left = 0
         var width = 0
         if (delegateItem.editorGuideItem && delegateItem.editorGuideItem.width > 1) {
             left = delegateItem.x + delegateItem.editorGuideItem.x
             width = delegateItem.editorGuideItem.width
         } else {
-            left = delegateItem.x + delegateItem.editorContentX
-            width = delegateItem.editorContentWidth
+            left = delegateItem.x
+            width = delegateItem.width
         }
 
         if (width < 1) {
@@ -557,10 +645,26 @@ ColumnLayout {
             }
         }
         function onCountChanged() {
-            // Model reset while editing — close to avoid stale geometry.
-            if (sharedInline.visible && root.expandedIndex >= taskList.count) {
-                root.collapseInline()
-            }
+            root.syncExpandedAfterModelChange()
+        }
+        function onModelChanged() {
+            root.syncExpandedAfterModelChange()
+        }
+    }
+
+    Connections {
+        target: controller.taskModel
+        function onModelReset() {
+            root.syncExpandedAfterModelChange()
+        }
+        function onRowsInserted() {
+            root.syncExpandedAfterModelChange()
+        }
+        function onRowsRemoved() {
+            root.syncExpandedAfterModelChange()
+        }
+        function onRowsMoved() {
+            root.syncExpandedAfterModelChange()
         }
     }
 

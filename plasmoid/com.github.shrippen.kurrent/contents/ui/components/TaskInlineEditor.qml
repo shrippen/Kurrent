@@ -19,8 +19,22 @@ Item {
     signal openFullEditor
 
     readonly property int innerPad: Design.padInner
-    implicitHeight: editorColumn.implicitHeight + innerPad * 2
-    height: implicitHeight
+    // Natural height of the editor contents; animated height opens/closes via openReveal.
+    readonly property real naturalHeight: editorColumn.implicitHeight + innerPad * 2
+    implicitHeight: naturalHeight
+    height: Math.max(0, Math.round(naturalHeight * openReveal))
+    clip: true
+    opacity: 0.35 + 0.65 * openReveal
+
+    // 0 → 1 unfold when opening; reduced motion snaps to 1.
+    property real openReveal: 1
+    Behavior on openReveal {
+        enabled: !Design.reducedMotion
+        NumberAnimation {
+            duration: Kirigami.Units.shortDuration
+            easing.type: Easing.OutCubic
+        }
+    }
 
     property bool clearDueRequested: false
 

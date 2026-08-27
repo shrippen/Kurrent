@@ -56,6 +56,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 ## Icons
 
 - Projektordner überall gleich: `Kirigami.Icon { source: "folder"; color: colorForKey(id) }` mit expliziter Icon-Größe. Nicht `QQC2` `icon.name` + `icon.color` (färbt Breeze-Icons unzuverlässig).
+- Projekt-Radios (`ProjectPicker`, wenige Projekte): Radio-Indikator, Ordner-Icon und Name als **Geschwister** in einer `RowLayout` — kein `RadioButton.contentItem`-Override (Plasma legt das Icon sonst unter den Kreis). Priorität darf `icon.name` nutzen (Flaggen); Projekte nicht.
 - Labels: `tag` in derselben Farbfunktion.
 
 ## Scrollbars
@@ -64,7 +65,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Mehrzeilige Felder: `ScrollableTextArea` (`Flickable`), **nicht** `QQC2.ScrollView` (reserviert Breite rechts, zeichnet den Balken links und zu kurz, kann das Widget schmaler machen).
 - `implicitWidth: 0` an scrollbaren Feldern, damit der Balken die Widget-Breite nicht treibt.
 - Aufgabenliste: feste `scrollGutter`; Sidebar-Abschnitte: feste `spaceSmall`-Margin.
-- Aufgabenliste: `Kirigami.WheelHandler` wie in Kirigami-Apps (`angleDelta` × `verticalStepSize`, Smooth-Scroll, kein Custom-Coast; Touchpad-Events werden akzeptiert). `filterMouseEvents: true` — Maus flickt die Liste nicht, Touch schon. `ThinScrollBar.stepSize` an den WheelHandler gekoppelt. `Design.applyWheel` nur für Felder, die das Rad schlucken müssen.
+- Aufgabenliste und Sort-Popup: `Kirigami.WheelHandler` wie in Kirigami-Apps (`angleDelta` × `verticalStepSize`, Smooth-Scroll, kein Custom-Coast; Touchpad-Events werden akzeptiert). `filterMouseEvents: true` — Maus flickt nicht, Touch schon. `boundsBehavior: OvershootBounds` plus `returnToBounds()` nach Wheel/Flick/`contentHeight`-Änderung, damit schneller Touchpad-Scroll am Rand zurückfedert statt hängen zu bleiben. `ThinScrollBar.stepSize` an den WheelHandler gekoppelt. `Design.applyWheel` nur für Felder, die das Rad schlucken müssen.
 
 ## Full-Editor
 
@@ -76,6 +77,9 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Escape und Klick auf die Abdunklung schließen. Datums-Popups bleiben im Widget.
 - Mausrad über der Editorkarte: nur die Karte (bzw. das Beschreibungsfeld) scrollt, nie Aufgabenliste oder Sidebar. Auch am Ende des Scrollbereichs kein Durchreichen.
 - Footer: Titel | Löschen | Speichern | Abbrechen. Löschen links neben Speichern, ohne Extra-Bestätigung (wie in der Zeile).
+- Parent: beliebige andere Aufgabe **im gleichen Projekt** als Übergeordnete (`ParentPicker` als Suchfeld wie Labels); keine Selbst-/Nachfahren-Auswahl; Speichern schreibt `RELATED-TO` (wie DnD-Subtask).
+  - Suchfeld behält den Fokus zum Tippen (Popup `focus: false`, kein Focus-Steal auf die Liste; kein `TapHandler` über dem Feld). Label „Parent:“ vertikal zentriert zur Feldzeile (`AlignVCenter`, nicht `AlignTop`).
+  - Vorschläge öffnen **nach oben**; `maxHeight` = Abstand Feldoberkante → Widget-/Overlay-Oberkante (`boundsItem`). Zeile: Prioritäts-Flag und Tag-Chips **vor** dem Aufgabennamen (Farben wie TaskDelegate / `colors.js`).
 
 ## Widget-Hintergrund
 
@@ -87,6 +91,9 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 ## Inline-Editor
 
 - Kein extra Fenster. Hover-Fläche dauerhaft mit `highlightColor` bei Opacity 0,12.
+- Hintergrund und Breite: volle Delegate-Breite (gleiche linke/rechte Kante wie Zeilen-Hover), **ohne** Hierarchie-Einrückung.
+- Öffnen: kurze Aufklappanimation (`openReveal` 0→1, `shortDuration`, OutCubic); bei Reduced Motion sofort voll.
+- Schließen (sofort, ohne Speicher): View-/Filter-/Such-/Sortierwechsel, Management-View, DnD-Start, Aufgabe verschwindet aus der gefilterten Liste, Speichern/Abbrechen/Full-Editor.
 - Beschreibung über `ScrollableTextArea`.
 - Hat das Beschreibungsfeld eine Scrollbar und die Maus steht darüber: nur dieses Feld scrollt, nicht die Aufgabenliste und nicht der Full-Editor-Körper. Ohne Scrollbar darf das Rad nach außen.
 - Zeilenhöhe nur über `implicitHeight` der Delegate (keine `height ↔ implicitHeight`-Schleife).
@@ -104,16 +111,20 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - **KDE Store / `.plasmoid`:** nur Widget-UI. Das Akonadi-Backend ist ein kompiliertes QML-Modul (`com.github.shrippen.kurrent`). `main.qml` importiert es nicht statisch — fehlt das Plugin, bleibt das Widget stehen und zeigt `PluginMissingView` statt „module is not installed“: Placeholder, danach der Release-Einzeiler `https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh` in einem wählbaren Feld (`padInner`, `inputRadius`, Rahmen wie Editor-Felder) plus **Copy command** und GitHub. Vollständig: One-Liner (Binary aus dem Release) oder `./install.sh`.
 - Widget-Load darf Akonadi nicht blockieren: Icon und Chrome zuerst, dann D-Bus/Shortcuts (`QTimer::singleShot(0)`), dann `refresh()` (`Qt.callLater`). `ServerManager::start()` ist async, nie `Control::start()`. Cache darf Badge/Liste sofort füllen. Solange der Server startet: Placeholder `loading`; wenn er down bleibt: `offline` plus 5s-Retry. Erst nach `Running` Monitor + Fetch.
 - Panel: `preloadFullRepresentation: false`, `preferredRepresentation` ist das Compact-Icon. Plasma delayed-preloadet nur eine leere Größen-Hülle; `FullView.qml` (Sidebar, Liste, Editor) wird erst beim ersten Öffnen des Flyouts geladen.
-- Zeile: Klick öffnet Inline- oder Full-Editor (KCM); Chips für Datum/Label/Priorität/Recurring/Join abschaltbar. Fälligkeitschip: optionale relative Labels (Heute/Morgen/Gestern) und Uhrzeit.
+- **Startup / Flyout:** `PluginBackend.qml` mit `Loader.asynchronous: true`. Flyout-Shell öffnet sofort mit Boot-Loader („Connecting to Akonadi…“ / „Loading tasks…“ + indeterminate `ProgressBar`); `FullView` lädt asynchron nach (Smoke-Test weiter synchron). Während `controller.loading`: Leiste oben in der Aufgabenliste + Placeholder wenn noch keine Tasks.
+- Zeile: Klick öffnet Inline- oder Full-Editor (KCM); Chips für Label/Priorität/Recurring/Join abschaltbar. Fälligkeit in der Chip-Zeile **ganz rechts** als Text in Akzentfarbe (`highlightColor`; überfällig: `negativeTextColor`), inkl. optionaler relativer Labels und Uhrzeit — kein Hintergrund-Pill.
+- Sortierung: gemeinsames Optionen-Set ohne „Standard“; Default **Priorität › Fälligkeit › A–Z**. Menü als Popup (bleibt nach Klick offen) mit drei Stufen Radios; Scrollbereich wie die Aufgabenliste (`Kirigami.WheelHandler`, `OvershootBounds`, `ThinScrollBar`). Gegenläufige Paare desselben Felds (A–Z/Z–A, Fälligkeit auf/ab, Erinnerung/Wiederkehrend zuerst/zuletzt, Fortschritt niedrig/hoch) sind über Stufen hinweg exklusiv; Kollision setzt tiefere Stufe auf „Keine“. Weitere Keys: Startdatum, Open first. Sort ist **nur session-weit** (`backend.sortMode`); kein KCM-/Shared-Setting, kein Persist in `kurrentrc` / `Plasmoid.configuration` — jeder Start setzt `priority,due,title`.
 - Subtasks: beliebige Nesting-Tiefe; Collapse hält den Parent fest. Eingeklappte Nachfahren fehlen in der flachen Liste (`flattenTree` lässt sie weg) — Scrollbar/`contentHeight` nur sichtbare Zeilen. Zeilenlayout: Hierarchie-Einrückung (`taskIndentUnit`), dann reservierte Collapse-Spalte (`taskCollapseCol`), dann Checkbox (Pfeil verschiebt die Checkbox nicht). `reuseItems: true`, `cacheBuffer` ≈ 2 Viewports. Während Wheel-Scroll: kein Hover (`wheelScrolling`). ListView-`spacing` in der Delegate-Höhe.
+- Suche / Sidebar-Filter (Projekt, Label, Priorität): Treffer ziehen den **ganzen offenen** Baum der Wurzel mit (Vorfahren + nicht erledigte Nachfahren). Erledigte Subtasks erscheinen dort nicht. **Erledigt-Ansicht:** nur erledigte Aufgaben plus ihre Parent-Kette (auch wenn Parents noch offen sind); offene Geschwister bleiben aus. Während Hierarchie-Filtern ist Collapse ausgesetzt.
 - Sidebar-Counts: Standard zählt auch eingeklappte Subtasks. Option „Exclude collapsed subtasks from counts“ in Sidebar-Einstellungen.
 - Erinnerung: VALARM im Full-Editor; Plasma-Benachrichtigung mit Snooze (15 min / 1 h / morgen, schreibt nur den Alarm). Quiet Hours unterdrücken Popups.
 - Tastatur im fokussierten Widget: Suche, Neu, Undo, Complete, Delete, Full-Editor, Reschedule, Views 1–5. Global: Meta+Shift+K zeigt das Flyout, Meta+Shift+N legt an (Plasma-Shortcuts, D-Bus `org.github.shrippen.Kurrent`).
 - Wiederkehrende Aufgaben: Abhaken schiebt DTSTART/DUE auf die nächste Instanz und lässt die RRULE stehen.
-- Today: fällig heute, gruppiert nach Morning/Afternoon/Evening (`Design` + Stunden im KCM). Unerledigtes der letzten N Tage als Abschnitt **Still open** (Catch-up), kein Auto-Rollover. Overdue ist eine eigene Sidebar-View.
-- Meeting-URL in Beschreibung/Ort: kompakter Join-Knopf in der Zeile (`internet-services`).
+- Today: fällig heute, gruppiert nach Morning/Afternoon/Evening (`Design` + Stunden im KCM). Unerledigte überfällige Aufgaben (dieselbe Menge wie die Overdue-View) erscheinen oben als **Still open** (Catch-up), wenn Catch-up an ist — kein N-Tage-Lookback, kein Auto-Rollover. Overdue bleibt eine eigene Sidebar-View.
+- Meeting-URL in Beschreibung/Ort: kompakter Join-Knopf als **erstes** Element in der Chip-Zeile (vor Labels/Priorität/Recurring; Datum rechts; `internet-services`).
 - Rechtsklick: Reschedule (15 min / 1 h / 4 h / morgen / nächste Woche).
 - Quick Add im Anlegefeld: Natural Language auf **Englisch plus der UI-Sprache**. Bare Datums-Wörter (`tomorrow` / `morgen`, `next week` / `nächste woche`, Wochentage), Uhrzeit (`18:00`, `6pm`, `18 Uhr`), Präfixe `!priority`, `#label`, `@projekt`.
+- Quick Add ist ein **mehrzeiliges** Feld (`TextArea` + `Flickable`, nicht einzeiliges `TextField`): Text wrappt, die Höhe wächst mit (`textLinePx` × Zeilen) bis `quickAddMaxLines` (5), danach interner Scroll mit `ThinScrollBar` / `Design.applyWheel` wie `ScrollableTextArea`. Enter legt an (bzw. übernimmt Vorschlag); Shift+Enter fügt eine Soft-Zeile ein.
 - Erkannte Schlüsselwörter werden im Feld farbig und fett hervorgehoben — sie gehören nicht zum Aufgabentitel. Vorschläge (unvollständige oder vertippten Tokens) per ↑/↓, Tab übernimmt, Enter übernimmt wenn der Token noch nicht vollständig ist, sonst legt an. Escape schließt die Liste.
 - Fuzzy nur dort, wo klar ein Schlüsselwort gemeint ist: Tippfehler (`tommorow`, `!hihg`) mit Damerau-Distanz, Prefix-Tokens (`!` `#` `@`) schon ab 3 Zeichen. Bare Wörter wie `high` in „The high road“ bleiben Titel. `@` matched Projektnamen (schreibbare, nicht versteckte Kalender).
 - Visuell: blasser, `BusyIndicator`, Zeile nicht erneut klickbar. Bei Fehler: Snapshot zurück.
@@ -134,7 +145,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 
 - Alle KCM-Seiten (General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels) gelten **gemeinsam** für Desktop-Widget und Panel-Flyout. Jede Seite hat „Reset this page“. Widget-Tastenkürzel und globale Shortcuts werden in Plasma System Settings konfiguriert, nicht in einer eigenen KCM-Seite.
 - Formularseiten nutzen `ConfigFormShell`: zentrierte Spalte, begrenzte Breite. `SimpleKCM` scrollt selbst — keine innere `Flickable`. Schmale Fenster stapeln Labels/Steuerelemente über `Kirigami.FormLayout`. Listen-artige Optionen (Dichte, Vorschauzeilen, Stunden) als Dropdown, nicht SpinBox mit Pfeilen.
-- Sidebar-Reihenfolge (Sektionen/Views) in der Sidebar-KCM per Drag-and-drop (`ConfigOrderList`), nicht als lose FormLayout-Repeater.
+- Sidebar-Reihenfolge (Sektionen/Views) in der Sidebar-KCM per Drag-and-drop (`ConfigOrderList` + `Kirigami.ListItemDragHandle`); Mehrfachschritte in einem Griff — Persistenz erst beim Drop.
 - Quelle: `~/.config/com.github.shrippen.kurrent/kurrentrc` (Gruppe `General`), im Prozess ein Singleton `SharedSettings`. Instanz-Config in `appletsrc` ist nur ein Cache. Ältere `~/.config/plasma_com.github.shrippen.kurrentrc` wird einmalig dorthin verschoben.
 - `Design.qml` liest Sidebar-Breite, Dichte, Overlay-Dim und Reduced Motion aus dieser Config (über `main.qml`).
 - Transienter UI-Zustand (aktuelle View sofern nicht „remember last“, Suche, Selektion, eingeklappte Bäume) bleibt pro Instanz.

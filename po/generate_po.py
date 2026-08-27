@@ -36,6 +36,9 @@ add("Task manager powered by Akonadi and Nextcloud CalDAV",
 add("Inbox", zh_CN="收件箱", hi="इनबॉक्स", es="Bandeja de entrada", ar="الوارد",
     fr="Boîte de réception", bn="ইনবক্স", pt_BR="Caixa de entrada", ru="Входящие", ur="ان باکس")
 add("Today", zh_CN="今天", hi="आज", es="Hoy", ar="اليوم", fr="Aujourd’hui", bn="আজ", pt_BR="Hoje", ru="Сегодня", ur="آج")
+add("Overdue",
+    zh_CN="已逾期", hi="अतिदेय", es="Atrasadas", ar="متأخرة", fr="En retard",
+    bn="বকেয়া", pt_BR="Atrasadas", ru="Просрочено", ur="واجب الادا", ja="期限切れ")
 add("Tomorrow", zh_CN="明天", hi="कल", es="Mañana", ar="غدًا", fr="Demain", bn="আগামীকাল", pt_BR="Amanhã", ru="Завтра", ur="کل")
 add("Scheduled", zh_CN="已安排", hi="निर्धारित", es="Programadas", ar="مجدولة", fr="Planifiées", bn="নির্ধারিত", pt_BR="Agendadas", ru="Запланировано", ur="شیڈول شدہ")
 add("Anytime", zh_CN="随时", hi="कभी भी", es="En cualquier momento", ar="في أي وقت", fr="À tout moment", bn="যেকোনো সময়", pt_BR="Quando quiser", ru="Когда угодно", ur="کسی بھی وقت")
@@ -52,6 +55,10 @@ add("Title Z–A", zh_CN="标题 Z–A", hi="शीर्षक Z–A", es="Tít
 add("Default", zh_CN="默认", hi="डिफ़ॉल्ट", es="Predeterminado", ar="افتراضي", fr="Par défaut", bn="ডিফল্ট", pt_BR="Padrão", ru="По умолчанию", ur="طے شدہ")
 add("Sort: %1", zh_CN="排序：%1", hi="क्रम: %1", es="Orden: %1", ar="الترتيب: %1", fr="Tri : %1", bn="সাজানো: %1", pt_BR="Ordenar: %1", ru="Сортировка: %1", ur="ترتیب: %1")
 add("Sort tasks", zh_CN="排序任务", hi="कार्य क्रमबद्ध करें", es="Ordenar tareas", ar="ترتيب المهام", fr="Trier les tâches", bn="কাজ সাজান", pt_BR="Ordenar tarefas", ru="Сортировать задачи", ur="کام ترتیب دیں")
+add("First sort", zh_CN="第一排序", es="Primera ordenación", fr="Premier tri", ja="第1ソート")
+add("Second sort", zh_CN="第二排序", es="Segunda ordenación", fr="Deuxième tri", ja="第2ソート")
+add("Third sort", zh_CN="第三排序", es="Tercera ordenación", fr="Troisième tri", ja="第3ソート")
+add("Open first", zh_CN="未完成优先", es="Abiertas primero", fr="Ouvertes d’abord", ja="未完了優先")
 add("Build", zh_CN="构建", hi="बिल्ड", es="Compilación", ar="الإصدار", fr="Build", bn="বিল্ড", pt_BR="Build", ru="Сборка", ur="بلڈ")
 add("Akonadi offline", zh_CN="Akonadi 离线", hi="Akonadi ऑफ़लाइन", es="Akonadi desconectado", ar="Akonadi غير متصل",
     fr="Akonadi hors ligne", bn="Akonadi অফলাইন", pt_BR="Akonadi offline", ru="Akonadi не в сети", ur="Akonadi آف لائن")
@@ -159,6 +166,8 @@ add("Confidential", zh_CN="机密", hi="गोपनीय", es="Confidencial", 
 add("Location:", zh_CN="地点：", hi="स्थान:", es="Ubicación:", ar="الموقع:", fr="Lieu :", bn="অবস্থান:", pt_BR="Local:", ru="Место:", ur="مقام:")
 add("Location", zh_CN="地点", hi="स्थान", es="Ubicación", ar="الموقع", fr="Lieu", bn="অবস্থান", pt_BR="Local", ru="Место", ur="مقام")
 add("Project:", zh_CN="项目：", hi="प्रोजेक्ट:", es="Proyecto:", ar="المشروع:", fr="Projet :", bn="প্রকল্প:", pt_BR="Projeto:", ru="Проект:", ur="پروجیکٹ:")
+add("Parent:", zh_CN="父任务：", es="Padre:", fr="Parent :", ja="親:")
+add("Open / Join", zh_CN="打开 / 加入", es="Abrir / Unirse", fr="Ouvrir / Rejoindre", ja="開く / 参加")
 add("No projects available", zh_CN="没有可用项目", hi="कोई प्रोजेक्ट उपलब्ध नहीं", es="No hay proyectos disponibles",
     ar="لا مشاريع متاحة", fr="Aucun projet disponible", bn="কোনো প্রকল্প নেই", pt_BR="Nenhum projeto disponível",
     ru="Нет доступных проектов", ur="کوئی پروجیکٹ دستیاب نہیں")
@@ -174,6 +183,9 @@ add("Low", zh_CN="低", hi="निम्न", es="Baja", ar="منخفضة", fr="
 add("Search or create label…", zh_CN="搜索或创建标签…", hi="लेबल खोजें या बनाएँ…", es="Buscar o crear etiqueta…",
     ar="البحث عن وسم أو إنشاؤه…", fr="Rechercher ou créer une étiquette…", bn="লেবেল খুঁজুন বা তৈরি করুন…",
     pt_BR="Pesquisar ou criar etiqueta…", ru="Найти или создать метку…", ur="لیبل تلاش یا بنائیں…")
+add("Search parent task…", zh_CN="搜索父任务…", es="Buscar tarea padre…", fr="Rechercher une tâche parente…", ja="親タスクを検索…")
+add("Clear parent", zh_CN="清除父任务", es="Quitar padre", fr="Effacer le parent", ja="親をクリア")
+add("No matching tasks", zh_CN="没有匹配的任务", es="No hay tareas coincidentes", fr="Aucune tâche correspondante", ja="一致するタスクがありません")
 add("Remove label", zh_CN="移除标签", hi="लेबल हटाएँ", es="Quitar etiqueta", ar="إزالة الوسم", fr="Retirer l’étiquette", bn="লেবেল সরান", pt_BR="Remover etiqueta", ru="Убрать метку", ur="لیبل ہٹائیں")
 add("Create label “%1”", zh_CN="创建标签“%1”", hi="लेबल “%1” बनाएँ", es="Crear etiqueta “%1”", ar="إنشاء الوسم “%1”",
     fr="Créer l’étiquette « %1 »", bn="লেবেল “%1” তৈরি করুন", pt_BR="Criar etiqueta “%1”", ru="Создать метку «%1»", ur="لیبل “%1” بنائیں")
@@ -379,6 +391,169 @@ add("Open first, then due date", zh_CN="先未完成，再截止日期", es="Abi
 add("Open first, then priority", zh_CN="先未完成，再优先级", es="Abiertas primero, luego prioridad", fr="Ouvertes d’abord, puis priorité", ja="未完了優先、次に優先度")
 add("New label", zh_CN="新标签", es="Nueva etiqueta", fr="Nouvelle étiquette", ja="新しいラベル")
 add("Delete label", zh_CN="删除标签", es="Eliminar etiqueta", fr="Supprimer l’étiquette", ja="ラベルを削除")
+
+# --- Gap fill (config/sort/parent/C++ user-facing) ---
+add("%1 grid units", zh_CN="%1 网格单位", es="%1 unidades de cuadrícula", fr="%1 unités de grille", ja="%1 グリッド単位")
+add("%1:00", zh_CN="%1:00", es="%1:00", fr="%1:00", ja="%1:00")
+add("1 day before", zh_CN="提前 1 天", es="1 día antes", fr="1 jour avant", ja="1日前")
+add("1 hour", zh_CN="1 小时", es="1 hora", fr="1 heure", ja="1時間")
+add("1 hour before", zh_CN="提前 1 小时", es="1 hora antes", fr="1 heure avant", ja="1時間前")
+add("1 line", zh_CN="1 行", es="1 línea", fr="1 ligne", ja="1行")
+add("15 minutes", zh_CN="15 分钟", es="15 minutos", fr="15 minutes", ja="15分")
+add("15 minutes before", zh_CN="提前 15 分钟", es="15 minutos antes", fr="15 minutes avant", ja="15分前")
+add("2 lines", zh_CN="2 行", es="2 líneas", fr="2 lignes", ja="2行")
+add("A task cannot be its own parent.", zh_CN="任务不能作为自己的父任务。", es="Una tarea no puede ser su propio padre.", fr="Une tâche ne peut pas être son propre parent.", ja="タスクを自身の親にはできません。")
+add("A task is due.", zh_CN="有任务到期。", es="Hay una tarea vencida.", fr="Une tâche est due.", ja="タスクの期限です。")
+add("Add Kurrent task", zh_CN="添加 Kurrent 任务", es="Añadir tarea de Kurrent", fr="Ajouter une tâche Kurrent", ja="Kurrent タスクを追加")
+add("Add label", zh_CN="添加标签", es="Añadir etiqueta", fr="Ajouter une étiquette", ja="ラベルを追加")
+add("Afternoon", zh_CN="下午", es="Tarde", fr="Après-midi", ja="午後")
+add("Afternoon starts", zh_CN="下午开始于", es="Inicio de la tarde", fr="Début de l’après-midi", ja="午後の開始")
+add("Akonadi is not available.", zh_CN="Akonadi 不可用。", es="Akonadi no está disponible.", fr="Akonadi n’est pas disponible.", ja="Akonadi を利用できません。")
+add("Akonadi is not running", zh_CN="Akonadi 未运行", es="Akonadi no está en ejecución", fr="Akonadi n’est pas lancé", ja="Akonadi が起動していません")
+add("Connecting to Akonadi…",
+    zh_CN="正在连接 Akonadi…", es="Conectando con Akonadi…", fr="Connexion à Akonadi…", ja="Akonadi に接続中…")
+add("Loading tasks…",
+    zh_CN="正在加载任务…", es="Cargando tareas…", fr="Chargement des tâches…", ja="タスクを読み込み中…")
+add("The flyout is ready; tasks appear when the server answers.",
+    zh_CN="弹出层已就绪；服务器响应后将显示任务。",
+    es="El panel ya está listo; las tareas aparecen cuando responde el servidor.",
+    fr="Le panneau est prêt ; les tâches apparaissent dès que le serveur répond.",
+    ja="フライアウトは準備済みです。サーバー応答後にタスクが表示されます。")
+add("Ask before deleting a task", zh_CN="删除任务前询问", es="Preguntar antes de eliminar una tarea", fr="Demander avant de supprimer une tâche", ja="タスク削除前に確認する")
+add("At due time", zh_CN="截止时", es="A la hora de vencimiento", fr="À l’échéance", ja="期限時刻")
+add("Background", zh_CN="背景", es="Fondo", fr="Arrière-plan", ja="背景")
+add("Blurred wallpaper behind the widget", zh_CN="部件后方的模糊壁纸", es="Fondo de pantalla desenfocado detrás del widget", fr="Fond d’écran flou derrière le widget", ja="ウィジェット後ろのぼかした壁紙")
+add("Cannot create a circular task hierarchy.", zh_CN="无法创建循环的任务层级。", es="No se puede crear una jerarquía circular de tareas.", fr="Impossible de créer une hiérarchie de tâches circulaire.", ja="循環するタスク階層は作れません。")
+add("Case sensitive", zh_CN="区分大小写", es="Distinguir mayúsculas/minúsculas", fr="Sensible à la casse", ja="大文字小文字を区別")
+add("Catch-up", zh_CN="补做", es="Ponerse al día", fr="Rattrapage", ja="キャッチアップ")
+add("Checkbox", zh_CN="复选框", es="Casilla", fr="Case à cocher", ja="チェックボックス")
+add("Click a task", zh_CN="点击任务", es="Clic en una tarea", fr="Clic sur une tâche", ja="タスクをクリック")
+add("Collapse subtasks", zh_CN="折叠子任务", es="Contraer subtareas", fr="Replier les sous-tâches", ja="サブタスクを折りたたむ")
+add("Comfortable", zh_CN="舒适", es="Cómodo", fr="Confortable", ja="ゆったり")
+add("Complete only with Shift or Ctrl held", zh_CN="仅在按住 Shift 或 Ctrl 时完成", es="Completar solo con Mayús o Ctrl pulsadas", fr="Terminer seulement avec Maj ou Ctrl enfoncée", ja="Shift または Ctrl を押しながら完了")
+add("Completing a parent also completes its children", zh_CN="完成父任务时也完成其子任务", es="Completar un padre también completa sus hijos", fr="Terminer une tâche parente termine aussi ses enfants", ja="親を完了すると子も完了する")
+add("Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource).",    zh_CN="在 KOrganizer 或 Merkuro 中配置 CalDAV/Nextcloud（DAV 群件资源）。",
+    es="Configura CalDAV/Nextcloud en KOrganizer o Merkuro (recurso DAV groupware).",
+    fr="Configurez CalDAV/Nextcloud dans KOrganizer ou Merkuro (ressource DAV).",
+    ja="KOrganizer または Merkuro で CalDAV/Nextcloud を設定してください（DAV グループウェアリソース）。")
+add("Could not load tasks", zh_CN="无法加载任务", es="No se pudieron cargar las tareas", fr="Impossible de charger les tâches", ja="タスクを読み込めませんでした")
+add("Counts", zh_CN="计数", es="Contadores", fr="Compteurs", ja="件数")
+add("Dates", zh_CN="日期", es="Fechas", fr="Dates", ja="日付")
+add("Default due date", zh_CN="默认截止日期", es="Fecha de vencimiento predeterminada", fr="Date d’échéance par défaut", ja="デフォルトの期限")
+add("Default reminder", zh_CN="默认提醒", es="Recordatorio predeterminado", fr="Rappel par défaut", ja="デフォルトのリマインダー")
+add("Delete", zh_CN="删除", es="Eliminar", fr="Supprimer", ja="削除")
+add("Delete task?", zh_CN="删除任务？", es="¿Eliminar tarea?", fr="Supprimer la tâche ?", ja="タスクを削除しますか？")
+add("Delete this task?", zh_CN="删除此任务？", es="¿Eliminar esta tarea?", fr="Supprimer cette tâche ?", ja="このタスクを削除しますか？")
+add("Density", zh_CN="密度", es="Densidad", fr="Densité", ja="密度")
+add("Description preview", zh_CN="描述预览", es="Vista previa de la descripción", fr="Aperçu de la description", ja="説明のプレビュー")
+add("Desktop notifications", zh_CN="桌面通知", es="Notificaciones de escritorio", fr="Notifications de bureau", ja="デスクトップ通知")
+add("Due %1", zh_CN="截止 %1", es="Vence %1", fr="Échéance %1", ja="期限 %1")
+add("Due date (latest first)", zh_CN="截止日期（最新优先）", es="Fecha de vencimiento (más reciente primero)", fr="Date d’échéance (plus récente d’abord)", ja="期限（新しい順）")
+add("Editor dim", zh_CN="编辑器遮罩", es="Oscurecimiento del editor", fr="Assombrissement de l’éditeur", ja="エディタの暗さ")
+add("Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer.",    zh_CN="在“配置 Kurrent → 项目”中启用日历，或在 Merkuro / KOrganizer 中添加 CalDAV 资源。",
+    es="Activa un calendario en Configurar Kurrent → Proyectos, o añade un recurso CalDAV en Merkuro o KOrganizer.",
+    fr="Activez un calendrier dans Configurer Kurrent → Projets, ou ajoutez une ressource CalDAV dans Merkuro ou KOrganizer.",
+    ja="Kurrent の設定 → プロジェクトでカレンダーを有効にするか、Merkuro または KOrganizer で CalDAV リソースを追加してください。")
+add("Ends", zh_CN="结束", es="Fin", fr="Fin", ja="終了")
+add("Evening", zh_CN="晚上", es="Noche", fr="Soir", ja="夜")
+add("Evening starts", zh_CN="晚上开始于", es="Inicio de la noche", fr="Début de la soirée", ja="夜の開始")
+add("Exclude collapsed subtasks from counts", zh_CN="计数时排除已折叠的子任务", es="Excluir subtareas contraídas del recuento", fr="Exclure les sous-tâches repliées des compteurs", ja="折りたたんだサブタスクを件数から除外")
+add("Expand subtasks", zh_CN="展开子任务", es="Expandir subtareas", fr="Déplier les sous-tâches", ja="サブタスクを展開")
+add("Failed to fetch collections.", zh_CN="获取集合失败。", es="No se pudieron obtener las colecciones.", fr="Échec du chargement des collections.", ja="コレクションの取得に失敗しました。")
+add("Flyout height", zh_CN="弹出高度", es="Alto del desplegable", fr="Hauteur du menu déroulant", ja="フライアウトの高さ")
+add("Flyout width", zh_CN="弹出宽度", es="Ancho del desplegable", fr="Largeur du menu déroulant", ja="フライアウトの幅")
+add("Heading on the list", zh_CN="列表中的标题", es="Encabezado en la lista", fr="Titre dans la liste", ja="リスト上の見出し")
+add("Hidden", zh_CN="隐藏", es="Oculto", fr="Masqué", ja="非表示")
+add("In 1 hour", zh_CN="1 小时后", es="En 1 hora", fr="Dans 1 heure", ja="1時間後")
+add("In 15 minutes", zh_CN="15 分钟后", es="En 15 minutos", fr="Dans 15 minutes", ja="15分後")
+add("In 4 hours", zh_CN="4 小时后", es="En 4 horas", fr="Dans 4 heures", ja="4時間後")
+add("Light", zh_CN="浅", es="Ligero", fr="Léger", ja="弱い")
+add("Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar.",    zh_CN="管理哪些可写的 Akonadi 日历用作项目。禁用的日历完全不获取任务。隐藏的日历仍会获取，但不在侧栏显示。",
+    es="Elige qué calendarios Akonadi escribibles se usan como proyectos. Los desactivados no se consultan. Los ocultos se consultan pero no aparecen en la barra lateral.",
+    fr="Choisissez les calendriers Akonadi modifiables utilisés comme projets. Les calendriers désactivés sont exclus. Les calendriers masqués sont chargés mais absents de la barre latérale.",
+    ja="プロジェクトとして使う書き込み可能な Akonadi カレンダーを管理します。無効なカレンダーはタスク取得から除外されます。非表示のカレンダーは取得されますが、サイドバーには表示されません。")
+add("Meetings", zh_CN="会议", es="Reuniones", fr="Réunions", ja="会議")
+add("Morning", zh_CN="上午", es="Mañana", fr="Matin", ja="午前")
+add("Morning starts", zh_CN="上午开始于", es="Inicio de la mañana", fr="Début du matin", ja="午前の開始")
+add("Motion", zh_CN="动画", es="Movimiento", fr="Mouvement", ja="モーション")
+add("No task lists", zh_CN="没有任务列表", es="No hay listas de tareas", fr="Aucune liste de tâches", ja="タスクリストがありません")
+add("No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar.",    zh_CN="在 Akonadi 中未找到任务列表。请在 KOrganizer 或 Kalendar 中配置 CalDAV。",
+    es="No se encontraron listas de tareas en Akonadi. Configura CalDAV en KOrganizer o Kalendar.",
+    fr="Aucune liste de tâches trouvée dans Akonadi. Configurez CalDAV dans KOrganizer ou Kalendar.",
+    ja="Akonadi にタスクリストが見つかりません。KOrganizer または Kalendar で CalDAV を設定してください。")
+add("No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits.",    zh_CN="未找到可写的 Akonadi 日历。请确认 Akonadi 正在运行，且 CalDAV 资源允许编辑任务。",
+    es="No se encontraron calendarios Akonadi escribibles. Comprueba que Akonadi esté en ejecución y que tu recurso CalDAV permita editar tareas.",
+    fr="Aucun calendrier Akonadi modifiable trouvé. Vérifiez qu’Akonadi est lancé et que votre ressource CalDAV autorise l’édition des tâches.",
+    ja="書き込み可能な Akonadi カレンダーが見つかりません。Akonadi が起動しており、CalDAV リソースがタスク編集を許可しているか確認してください。")
+add("No writable task list selected.", zh_CN="未选择可写的任务列表。", es="No hay una lista de tareas escribible seleccionada.", fr="Aucune liste de tâches modifiable sélectionnée.", ja="書き込み可能なタスクリストが選択されていません。")
+add("Notify when a task reminder is due", zh_CN="任务提醒到期时通知", es="Notificar cuando venza un recordatorio de tarea", fr="Notifier lorsqu’un rappel de tâche est dû", ja="タスクのリマインダーが来たら通知")
+add("Off", zh_CN="关闭", es="Desactivado", fr="Désactivé", ja="オフ")
+add("Open root tasks", zh_CN="未完成的根任务", es="Tareas raíz abiertas", fr="Tâches racines ouvertes", ja="未完了のルートタスク")
+add("Open the full editor", zh_CN="打开完整编辑器", es="Abrir el editor completo", fr="Ouvrir l’éditeur complet", ja="フルエディタを開く")
+add("Open the inline editor", zh_CN="打开行内编辑器", es="Abrir el editor en línea", fr="Ouvrir l’éditeur en ligne", ja="インライン編集を開く")
+add("Order and visibility", zh_CN="顺序与可见性", es="Orden y visibilidad", fr="Ordre et visibilité", ja="順序と表示")
+add("Panel badge", zh_CN="面板角标", es="Insignia del panel", fr="Badge du panneau", ja="パネルバッジ")
+add("Parent task must be in the same project.", zh_CN="父任务必须在同一项目中。", es="La tarea padre debe estar en el mismo proyecto.", fr="La tâche parente doit être dans le même projet.", ja="親タスクは同じプロジェクト内である必要があります。")
+add("Parent task not found.", zh_CN="未找到父任务。", es="Tarea padre no encontrada.", fr="Tâche parente introuvable.", ja="親タスクが見つかりません。")
+add("Progress %", zh_CN="进度 %", es="Progreso %", fr="Progression %", ja="進捗 %")
+add("Progress % (high first)", zh_CN="进度 %（高优先）", es="Progreso % (mayor primero)", fr="Progression % (plus élevée d’abord)", ja="進捗 %（高い順）")
+add("Quiet hours", zh_CN="免打扰时段", es="Horas tranquilas", fr="Heures calmes", ja="おやすみ時間")
+add("Recurring first", zh_CN="重复优先", es="Recurrentes primero", fr="Récurrentes d’abord", ja="繰り返し優先")
+add("Recurring icon", zh_CN="重复图标", es="Icono de recurrencia", fr="Icône de récurrence", ja="繰り返しアイコン")
+add("Recurring last", zh_CN="重复靠后", es="Recurrentes al final", fr="Récurrentes en dernier", ja="繰り返し最後")
+add("Reduced motion (no spinner, quieter hover)", zh_CN="减少动效（无旋转指示、更安静的悬停）", es="Movimiento reducido (sin spinner, hover más suave)", fr="Mouvement réduit (pas de spinner, survol plus discret)", ja="動きを減らす（スピナーなし、ホバー控えめ）")
+add("Relative dates (Today, Tomorrow)", zh_CN="相对日期（今天、明天）", es="Fechas relativas (Hoy, Mañana)", fr="Dates relatives (Aujourd’hui, Demain)", ja="相対日付（今日、明日）")
+add("Remember the last view instead", zh_CN="改为记住上次视图", es="Recordar la última vista en su lugar", fr="Mémoriser la dernière vue à la place", ja="代わりに最後のビューを記憶")
+add("Reminder first", zh_CN="提醒优先", es="Recordatorio primero", fr="Rappel d’abord", ja="リマインダー優先")
+add("Reminder last", zh_CN="提醒靠后", es="Recordatorio al final", fr="Rappel en dernier", ja="リマインダー最後")
+add("Reminder:", zh_CN="提醒：", es="Recordatorio:", fr="Rappel :", ja="リマインダー:")
+add("Rename", zh_CN="重命名", es="Renombrar", fr="Renommer", ja="名前を変更")
+add("Rename from", zh_CN="原名称", es="Renombrar de", fr="Renommer depuis", ja="変更元")
+add("Rename to", zh_CN="新名称", es="Renombrar a", fr="Renommer en", ja="変更先")
+add("Reset this page", zh_CN="重置此页", es="Restablecer esta página", fr="Réinitialiser cette page", ja="このページをリセット")
+add("Row chips", zh_CN="行内芯片", es="Chips de fila", fr="Puces de ligne", ja="行のチップ")
+add("Row size", zh_CN="行高", es="Tamaño de fila", fr="Taille des lignes", ja="行の高さ")
+add("Search", zh_CN="搜索", es="Buscar", fr="Recherche", ja="検索")
+add("Search titles only", zh_CN="仅搜索标题", es="Buscar solo en títulos", fr="Rechercher uniquement dans les titres", ja="タイトルのみ検索")
+add("Section:", zh_CN="分区：", es="Sección:", fr="Section :", ja="セクション:")
+add("Sections", zh_CN="分区", es="Secciones", fr="Sections", ja="セクション")
+add("Select only (double-click opens the full editor)", zh_CN="仅选择（双击打开完整编辑器）", es="Solo seleccionar (doble clic abre el editor completo)", fr="Sélection seule (double-clic ouvre l’éditeur complet)", ja="選択のみ（ダブルクリックでフルエディタ）")
+add("Show Kurrent", zh_CN="显示 Kurrent", es="Mostrar Kurrent", fr="Afficher Kurrent", ja="Kurrent を表示")
+add("Show a Join button for http(s) links", zh_CN="为 http(s) 链接显示“加入”按钮", es="Mostrar un botón Unirse para enlaces http(s)", fr="Afficher un bouton Rejoindre pour les liens http(s)", ja="http(s) リンクに参加ボタンを表示")
+add("Show empty projects", zh_CN="显示空项目", es="Mostrar proyectos vacíos", fr="Afficher les projets vides", ja="空のプロジェクトを表示")
+add("Show in the sidebar", zh_CN="在侧栏中显示", es="Mostrar en la barra lateral", fr="Afficher dans la barre latérale", ja="サイドバーに表示")
+add("Show task counts", zh_CN="显示任务数量", es="Mostrar recuento de tareas", fr="Afficher le nombre de tâches", ja="タスク数を表示")
+add("Show time on the due chip", zh_CN="在截止日期芯片上显示时间", es="Mostrar la hora en el chip de vencimiento", fr="Afficher l’heure sur la puce d’échéance", ja="期限チップに時刻を表示")
+add("Show overdue tasks at the top of Today", zh_CN="在“今天”顶部显示过期任务", es="Mostrar tareas vencidas al inicio de Hoy", fr="Afficher les tâches en retard en haut de Aujourd’hui", ja="期限切れのタスクを今日の先頭に表示")
+add("Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that.",    zh_CN="从通知推迟（15 分钟、1 小时、明天）会改写 VALARM。截止日期不变；改期请用“重新安排”。",
+    es="Posponer desde la notificación (15 minutos, 1 hora, mañana) reescribe el VALARM. La fecha de vencimiento no cambia; usa Reprogramar para eso.",
+    fr="Reporter depuis la notification (15 minutes, 1 heure, demain) réécrit le VALARM. La date d’échéance ne change pas ; utilisez Reporter pour cela.",
+    ja="通知からのスヌーズ（15分、1時間、明日）は VALARM を書き換えます。期限は変わりません。期限変更にはリスケジュールを使います。")
+add("Start date", zh_CN="开始日期", es="Fecha de inicio", fr="Date de début", ja="開始日")
+add("Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer.",    zh_CN="请用 akonadictl start 启动，然后在 Merkuro 或 KOrganizer 中添加 CalDAV 资源。",
+    es="Inícialo con akonadictl start y luego añade un recurso CalDAV en Merkuro o KOrganizer.",
+    fr="Démarrez-le avec akonadictl start, puis ajoutez une ressource CalDAV dans Merkuro ou KOrganizer.",
+    ja="akonadictl start で起動し、Merkuro または KOrganizer で CalDAV リソースを追加してください。")
+add("Starts", zh_CN="开始", es="Inicio", fr="Début", ja="開始")
+add("Still open", zh_CN="仍未完成", es="Aún abiertas", fr="Encore ouvertes", ja="未完了のまま")
+add("Strong", zh_CN="强", es="Fuerte", fr="Fort", ja="強い")
+add("Subtasks", zh_CN="子任务", es="Subtareas", fr="Sous-tâches", ja="サブタスク")
+add("Suppress reminder notifications in this window", zh_CN="在此时间段内抑制提醒通知", es="Suprimir notificaciones de recordatorio en este intervalo", fr="Supprimer les notifications de rappel dans cette plage", ja="この時間帯はリマインダー通知を抑制")
+add("Task not found.", zh_CN="未找到任务。", es="Tarea no encontrada.", fr="Tâche introuvable.", ja="タスクが見つかりません。")
+add("Task reminder", zh_CN="任务提醒", es="Recordatorio de tarea", fr="Rappel de tâche", ja="タスクのリマインダー")
+add("The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor.",    zh_CN="完整编辑器仍是部件内的覆盖层。日分区（LIST）在完整编辑器中。",
+    es="El editor completo sigue siendo una superposición dentro del widget. La sección del día (LIST) está en el editor completo.",
+    fr="L’éditeur complet reste une superposition dans le widget. La section du jour (LIST) est dans l’éditeur complet.",
+    ja="フルエディタはウィジェット内のオーバーレイのままです。日セクション（LIST）はフルエディタにあります。")
+add("This project cannot accept tasks.", zh_CN="此项目无法接受任务。", es="Este proyecto no puede aceptar tareas.", fr="Ce projet ne peut pas accepter de tâches.", ja="このプロジェクトにはタスクを追加できません。")
+add("Try again", zh_CN="重试", es="Reintentar", fr="Réessayer", ja="再試行")
+add("Undo", zh_CN="撤销", es="Deshacer", fr="Annuler", ja="元に戻す")
+add("Undo complete", zh_CN="撤销完成", es="Deshacer completar", fr="Annuler la terminaison", ja="完了を取り消す")
+add("Undo delete", zh_CN="撤销删除", es="Deshacer eliminación", fr="Annuler la suppression", ja="削除を取り消す")
+add("Undo move", zh_CN="撤销移动", es="Deshacer movimiento", fr="Annuler le déplacement", ja="移動を取り消す")
+add("Undo reschedule", zh_CN="撤销改期", es="Deshacer reprogramación", fr="Annuler le report", ja="スケジュール変更を取り消す")
+add("Views", zh_CN="视图", es="Vistas", fr="Vues", ja="ビュー")
+add("Width", zh_CN="宽度", es="Ancho", fr="Largeur", ja="幅")
 
 PLURALS = {
     "%1 open task": {

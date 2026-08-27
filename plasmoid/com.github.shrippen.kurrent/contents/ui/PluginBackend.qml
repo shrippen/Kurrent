@@ -39,7 +39,8 @@ Item {
                 view = Plasmoid.configuration.lastView
             }
             currentView = view
-            sortMode = Plasmoid.configuration.sortMode || "default"
+            // Sort is session-only; always start Priority › Due › Title A–Z.
+            sortMode = "priority,due,title"
 
             selectedCollectionId = -1
             selectedLabel = ""

@@ -2,9 +2,34 @@
 
 ## Unreleased
 
+### Added
+
+- Search/sidebar filters keep the full *open* task tree; completed tasks only in Completed view (with open parents rescued)
+- Sort popup stays open for multi-level edits; default Priority › Due › A–Z; opposite directions mutually exclusive; removed opaque “Default”
+- Sort keys: due latest-first, start date, reminder/recurring first|last, progress % low|high
+- Overdue view: `chronometer` icon (replaces missing `appointment-missed`); “Overdue” translated
+- Due date/time in task row chip line: right-aligned accent text (overdue stays negative)
+- Full editor: pick any same-project task as parent (`ParentPicker` search field like labels)
+- i18n catalog gap fill: ~129 UI/C++ strings (sort keys, ParentPicker, settings pages, notifications, parent errors) for de/es/fr/ja/zh_CN
+
 ### Fixed
 
+- Sort is session-only: no longer persisted in `Plasmoid.configuration` / shared `kurrentrc`; cold start always Priority › Due › Title A–Z (`priority,due,title`); leftover `sortMode` keys are dropped
+- Panel startup: load `PluginBackend` asynchronously so the compact icon is not blocked on `libkurrentplugin.so`; keep task cache during Akonadi fetch (no empty badge flash)
+- Flyout opens immediately with boot loader; FullView loads async; indeterminate progress while Akonadi connects / tasks load
+- Today Catch-up (“Still open”) includes all overdue incomplete tasks (same set as the Overdue view), not only those within the former catch-up lookback window
+- Sort menu radios no longer stick on “None” for levels 2–3
+- Due dates missing in list chip and editor: Qt 6 Date has no `isValid`; use `DateTime.isValidDate()` (`getTime()` / format fallback)
+- Full editor project radios: folder icon sits beside the name (not under the radio circle)
+- Quick Add: long text wraps and the field grows (capped at `quickAddMaxLines`); scrolls internally beyond that; Enter still adds, Shift+Enter inserts a newline
+- Parent picker: TextField stays focusable for typing; label vertically centered; suggestions open upward (height clamped to space above); priority/tag chips before task name
+- Sidebar KCM reorder: keep dragging across multiple positions; persist order on drop
+- Inline editor: closes on view/filter/search/sort change, drag start, or when the task leaves the list
+- Inline editor: full delegate width flush with row hover; short unfold animation on open
 - Task list scroll: `Kirigami.WheelHandler` (same as Kirigami apps); removed custom `KineticScrollHandler`
+- Sort popup scroll: same `Kirigami.WheelHandler` + `OvershootBounds` / `returnToBounds` as the task list
+- Join button: first chip in the status row (before date/labels/priority); tooltip „Open / Join“ (+ translations)
+- Task list: touchpad overshoot rebounds (`OvershootBounds` + `returnToBounds` after wheel/flick)
 - Collapse: omit descendants from flat list so scrollbar matches visible rows; reserved collapse-arrow column + indent hierarchy
 - Task list: `reuseItems`, larger `cacheBuffer`; hover suppressed via `wheelScrolling`
 - Smoke test: process-wide step/leader so recreated FullView continues; faster ticks; 30s timeout; lib64 QML path

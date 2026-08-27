@@ -84,19 +84,12 @@ bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &toda
     return true;
 }
 
-bool isCatchUp(const TaskEntry &task, const QDate &today, int lookbackDays)
+bool isCatchUp(const TaskEntry &task, const QDate &today, int /*lookbackDays*/)
 {
-    if (task.completed || !task.dueDate.isValid()) {
-        return false;
-    }
-    const QDate due = task.dueDate.date();
-    if (due >= today) {
-        return false;
-    }
-    if (lookbackDays < 0) {
-        return true;
-    }
-    return due >= today.addDays(-lookbackDays);
+    // Still open / catch-up matches the Overdue view: incomplete with due before today.
+    // lookbackDays is unused (kept for API compatibility); a former N-day window hid older
+    // overdue from Today while Overdue still listed them.
+    return matchesView(task, ViewId::Overdue, today);
 }
 
 bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const QDate &today)
@@ -104,6 +97,7 @@ bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const Q
     if (matchesView(task, QStringLiteral("today"), today)) {
         return true;
     }
+    // When catch-up is on, Today includes the full Overdue set under Still open.
     return filters.catchUpEnabled && isCatchUp(task, today, filters.catchUpDays);
 }
 
@@ -231,15 +225,31 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
         }
 
         int cmp = 0;
+        // When true, "has value" vs empty stays dated/started-before-empty even if Desc.
+        bool flipHasEmpty = true;
         if (field == QLatin1String("due")) {
             const bool leftHasDue = left.dueDate.isValid();
             const bool rightHasDue = right.dueDate.isValid();
             if (leftHasDue != rightHasDue) {
                 cmp = leftHasDue ? -1 : 1;
+                flipHasEmpty = false;
             } else if (leftHasDue && rightHasDue) {
                 if (left.dueDate < right.dueDate) {
                     cmp = -1;
                 } else if (left.dueDate > right.dueDate) {
+                    cmp = 1;
+                }
+            }
+        } else if (field == QLatin1String("start")) {
+            const bool leftHas = left.startDate.isValid();
+            const bool rightHas = right.startDate.isValid();
+            if (leftHas != rightHas) {
+                cmp = leftHas ? -1 : 1;
+                flipHasEmpty = false;
+            } else if (leftHas && rightHas) {
+                if (left.startDate < right.startDate) {
+                    cmp = -1;
+                } else if (left.startDate > right.startDate) {
                     cmp = 1;
                 }
             }
@@ -262,10 +272,32 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
             if (left.completed != right.completed) {
                 cmp = left.completed ? 1 : -1;
             }
+        } else if (field == QLatin1String("reminder")) {
+            const bool leftHas = left.reminderMinutes >= 0;
+            const bool rightHas = right.reminderMinutes >= 0;
+            if (leftHas != rightHas) {
+                cmp = leftHas ? -1 : 1;
+            } else if (leftHas && rightHas) {
+                if (left.reminderMinutes < right.reminderMinutes) {
+                    cmp = -1;
+                } else if (left.reminderMinutes > right.reminderMinutes) {
+                    cmp = 1;
+                }
+            }
+        } else if (field == QLatin1String("recurring")) {
+            if (left.recurring != right.recurring) {
+                cmp = left.recurring ? -1 : 1;
+            }
+        } else if (field == QLatin1String("progress")) {
+            if (left.percentComplete < right.percentComplete) {
+                cmp = -1;
+            } else if (left.percentComplete > right.percentComplete) {
+                cmp = 1;
+            }
         }
 
         if (cmp != 0) {
-            return descending ? -cmp : cmp;
+            return (descending && flipHasEmpty) ? -cmp : cmp;
         }
     }
 
@@ -477,11 +509,15 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
     }
 
     const auto sortKids = [&](QList<int> &kids) {
-        if (kids.size() < 2 || sortMode == QLatin1String("default") || sortMode.isEmpty()) {
+        QString mode = sortMode;
+        if (mode.isEmpty() || mode == QLatin1String("default")) {
+            mode = QStringLiteral("priority,due,title");
+        }
+        if (kids.size() < 2) {
             return;
         }
         std::sort(kids.begin(), kids.end(), [&](int left, int right) {
-            const int cmp = compareTasks(input.at(left), input.at(right), sortMode);
+            const int cmp = compareTasks(input.at(left), input.at(right), mode);
             if (cmp != 0) {
                 return cmp < 0;
             }
@@ -641,34 +677,156 @@ void UndoStack::clear()
 VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const FilterState &filters, const QDate &today)
 {
     VisibleFilterResult out;
-    for (const TaskEntry &task : tasks) {
-        if (filters.currentView == QLatin1String("completed")) {
-            if (!task.completed) {
-                ++out.filteredOutView;
+
+    const bool completedView = filters.currentView == QLatin1String("completed");
+    // Completed view always rescues ancestors of done tasks. Other views rescue the
+    // open tree around search/sidebar hits (completed descendants stay hidden).
+    const bool hierarchyAware = completedView
+            || !filters.searchQuery.trimmed().isEmpty()
+            || filters.selectedCollectionId >= 0
+            || !filters.selectedLabel.isEmpty()
+            || filters.selectedPriority >= 0;
+
+    QHash<QString, QString> parentByUid;
+    QHash<QString, int> indexByUid;
+    parentByUid.reserve(tasks.size());
+    indexByUid.reserve(tasks.size());
+    for (int i = 0; i < tasks.size(); ++i) {
+        const TaskEntry &task = tasks.at(i);
+        parentByUid.insert(task.uid, task.parentUid);
+        indexByUid.insert(task.uid, i);
+    }
+
+    // Completed tasks appear only in the Completed view. Elsewhere they never seed
+    // or ride along via hierarchy.
+    const auto passesCompleted = [&](const TaskEntry &task) -> bool {
+        return completedView ? task.completed : !task.completed;
+    };
+
+    const auto passesViewAndSidebar = [&](const TaskEntry &task) -> bool {
+        if (filters.currentView == QLatin1String("today")) {
+            return matchesTodayList(task, filters, today)
+                    && matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority);
+        }
+        return matchesView(task, filters.currentView, today)
+                && matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority);
+    };
+
+    const auto isDirectMatch = [&](const TaskEntry &task) -> bool {
+        if (!passesCompleted(task)) {
+            return false;
+        }
+        if (!passesViewAndSidebar(task)) {
+            return false;
+        }
+        if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
+            return false;
+        }
+        return true;
+    };
+
+    QSet<QString> keep;
+    if (hierarchyAware) {
+        for (const TaskEntry &task : tasks) {
+            if (task.uid.isEmpty() || !isDirectMatch(task)) {
                 continue;
             }
-        } else if (!filters.showCompleted && task.completed) {
-            ++out.filteredOutCompleted;
+            if (completedView) {
+                // Done task + ancestors only (open siblings stay out).
+                keep.insert(task.uid);
+                QString walk = task.parentUid;
+                QSet<QString> seen;
+                while (!walk.isEmpty() && indexByUid.contains(walk) && !seen.contains(walk)) {
+                    seen.insert(walk);
+                    keep.insert(walk);
+                    walk = parentByUid.value(walk);
+                }
+            } else {
+                // Whole open tree from the topmost available ancestor.
+                QString rootUid = task.uid;
+                while (true) {
+                    const QString parent = parentByUid.value(rootUid);
+                    if (parent.isEmpty() || !indexByUid.contains(parent)) {
+                        break;
+                    }
+                    rootUid = parent;
+                }
+                keep.insert(rootUid);
+                const QStringList descendants = descendantUids(rootUid, parentByUid);
+                for (const QString &uid : descendants) {
+                    if (!uid.isEmpty()) {
+                        keep.insert(uid);
+                    }
+                }
+            }
+        }
+    }
+
+    QHash<QString, QString> matchBucket;
+    if (hierarchyAware) {
+        for (const TaskEntry &task : tasks) {
+            if (isDirectMatch(task)) {
+                matchBucket.insert(task.uid, listBucket(task, filters, today));
+            }
+        }
+    }
+
+    const auto bucketForKept = [&](const TaskEntry &task) -> QString {
+        if (!hierarchyAware) {
+            return listBucket(task, filters, today);
+        }
+        // Prefer a direct match's bucket so rescued parents/children stay in the
+        // same Today section as the hit that pulled the tree in.
+        if (matchBucket.contains(task.uid)) {
+            return matchBucket.value(task.uid);
+        }
+        QString walk = task.uid;
+        while (!walk.isEmpty()) {
+            if (matchBucket.contains(walk)) {
+                return matchBucket.value(walk);
+            }
+            walk = parentByUid.value(walk);
+        }
+        const QStringList descendants = descendantUids(task.uid, parentByUid);
+        for (const QString &uid : descendants) {
+            if (matchBucket.contains(uid)) {
+                return matchBucket.value(uid);
+            }
+        }
+        return listBucket(task, filters, today);
+    };
+
+    for (const TaskEntry &task : tasks) {
+        const bool direct = isDirectMatch(task);
+        const bool inKeep = hierarchyAware && !task.uid.isEmpty() && keep.contains(task.uid);
+        // Outside Completed: hierarchy never resurrects done tasks.
+        // In Completed: incomplete ancestors of done hits are allowed.
+        const bool viaTree = inKeep && (completedView ? !direct : !task.completed);
+        if (!direct && !viaTree) {
+            if (completedView) {
+                if (!task.completed) {
+                    ++out.filteredOutView;
+                }
+            } else if (task.completed) {
+                ++out.filteredOutCompleted;
+            } else if (filters.currentView == QLatin1String("today")) {
+                if (!matchesTodayList(task, filters, today)
+                        || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
+                    ++out.filteredOutView;
+                } else if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
+                    ++out.filteredOutSearch;
+                }
+            } else if (!matchesView(task, filters.currentView, today)
+                       || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
+                ++out.filteredOutView;
+            } else if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
+                ++out.filteredOutSearch;
+            }
             continue;
         }
 
-        if (filters.currentView == QLatin1String("today")) {
-            if (!matchesTodayList(task, filters, today)
-                || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
-                ++out.filteredOutView;
-                continue;
-            }
-        } else if (!matchesView(task, filters.currentView, today)
-                   || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
-            ++out.filteredOutView;
-            continue;
-        }
-        if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
-            ++out.filteredOutSearch;
-            continue;
-        }
         TaskEntry visible = task;
-        visible.bucket = listBucket(task, filters, today);
+        visible.bucket = bucketForKept(task);
         out.tasks.append(visible);
     }
 
@@ -1174,7 +1332,7 @@ QString viewIconSource(const QString &viewId)
         return QStringLiteral("view-calendar-day");
     }
     if (viewId == ViewId::Overdue) {
-        return QStringLiteral("appointment-missed");
+        return QStringLiteral("chronometer");
     }
     if (viewId == ViewId::Tomorrow) {
         return QStringLiteral("go-next");

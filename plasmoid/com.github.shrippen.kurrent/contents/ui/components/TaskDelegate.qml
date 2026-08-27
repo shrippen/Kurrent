@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.plasma.plasmoid 2.0
 import "../colors.js" as Colors
+import "../datetime.js" as DateTime
 import ".."
 
 Item {
@@ -38,6 +39,9 @@ Item {
     readonly property bool isDragSource: !!(dragHost && dragHost.draggingTask
                                             && dragHost.draggingTask.itemId === task.itemId)
     readonly property bool dropHighlight: taskDrop.containsDrag && !isDragSource
+    // Keep statusRow.visible off dateChip.visible — Layout.width ↔ visible loops otherwise.
+    readonly property bool showDueChip: Plasmoid.configuration.showDateChip !== false
+            && DateTime.isValidDate(task.dueDate)
 
     readonly property var visibleCategories: {
         var cats = task.categories || []
@@ -146,8 +150,8 @@ Item {
     readonly property real collapsedHeight: pad + contentLayout.implicitHeight
             + (expanded && editorReserveHeight > 0 ? pad : 0)
 
-    // Invisible guide spanning checkbox left → edit-button right (layout-accurate).
-    // Must not use anchors to nested layout children (not siblings of this item).
+    // Invisible guide for the shared inline editor: full delegate width (same as
+    // row hover), ignoring hierarchy indent.
     Item {
         id: editorGuide
         height: 1
@@ -157,13 +161,8 @@ Item {
     }
 
     function syncEditorGuide() {
-        if (!completedCheck || !editButton) {
-            return
-        }
-        var left = completedCheck.mapToItem(root, 0, 0)
-        var right = editButton.mapToItem(root, editButton.width, 0)
-        editorGuide.x = left.x
-        editorGuide.width = Math.max(1, right.x - left.x)
+        editorGuide.x = 0
+        editorGuide.width = Math.max(1, root.width)
     }
 
     readonly property real editorContentX: editorGuide.x
@@ -171,19 +170,9 @@ Item {
     readonly property Item editorGuideItem: editorGuide
 
     Connections {
-        target: contentLayout
+        target: contentColumn
         function onWidthChanged() { root.syncEditorGuide() }
-        function onHeightChanged() { root.syncEditorGuide() }
-    }
-    Connections {
-        target: completedCheck
         function onXChanged() { root.syncEditorGuide() }
-        function onWidthChanged() { root.syncEditorGuide() }
-    }
-    Connections {
-        target: editButton
-        function onXChanged() { root.syncEditorGuide() }
-        function onWidthChanged() { root.syncEditorGuide() }
     }
     Component.onCompleted: {
         // First paint / model load: no collapse animation.
@@ -421,86 +410,23 @@ Item {
                     id: statusRow
                     Layout.fillWidth: true
                     spacing: 2
-                    visible: dateChip.visible
+                    visible: root.showDueChip
                              || (Plasmoid.configuration.showLabelChips !== false && (root.visibleCategories ? root.visibleCategories.length > 0 : false))
                              || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0)
                              || (Plasmoid.configuration.showRecurringIcon !== false && task.recurring)
                              || (Plasmoid.configuration.showJoinButton !== false && (task.joinUrl ? task.joinUrl.length > 0 : false))
 
-                    Rectangle {
-                        id: dateChip
-                        visible: Plasmoid.configuration.showDateChip !== false
-                                 && task.dueDate !== undefined && task.dueDate !== null && task.dueDate.isValid === true
-                        radius: Design.inputRadius
-                        Layout.preferredHeight: dateChipLabel.implicitHeight + 2
-                        Layout.preferredWidth: dateChipLabel.implicitWidth + Design.spaceMedium
-                        color: {
-                            if (!visible) {
-                                return "transparent"
-                            }
-                            var due = task.dueDate
-                            var dueDay = Qt.formatDate(due, "yyyy-MM-dd")
-                            var today = Qt.formatDate(new Date(), "yyyy-MM-dd")
-                            if (dueDay < today) {
-                                return Qt.rgba(Kirigami.Theme.negativeTextColor.r,
-                                               Kirigami.Theme.negativeTextColor.g,
-                                               Kirigami.Theme.negativeTextColor.b,
-                                               0.22)
-                            }
-                            return Qt.rgba(Kirigami.Theme.highlightColor.r,
-                                           Kirigami.Theme.highlightColor.g,
-                                           Kirigami.Theme.highlightColor.b,
-                                           dueDay === today ? 0.28 : 0.14)
-                        }
-
-                        QQC2.Label {
-                            id: dateChipLabel
-                            anchors.centerIn: parent
-                            text: {
-                                if (!dateChip.visible) {
-                                    return ""
-                                }
-                                var due = task.dueDate
-                                var dueDay = Qt.formatDate(due, "yyyy-MM-dd")
-                                var todayDate = new Date()
-                                var today = Qt.formatDate(todayDate, "yyyy-MM-dd")
-                                var label = Qt.formatDate(due, Qt.DefaultLocaleShortDate)
-                                if (Plasmoid.configuration.relativeDates === true) {
-                                    if (dueDay === today) {
-                                        label = i18n("Today")
-                                    } else {
-                                        var tomorrow = new Date(todayDate)
-                                        tomorrow.setDate(tomorrow.getDate() + 1)
-                                        var yesterday = new Date(todayDate)
-                                        yesterday.setDate(yesterday.getDate() - 1)
-                                        if (dueDay === Qt.formatDate(tomorrow, "yyyy-MM-dd")) {
-                                            label = i18n("Tomorrow")
-                                        } else if (dueDay === Qt.formatDate(yesterday, "yyyy-MM-dd")) {
-                                            label = i18n("Yesterday")
-                                        }
-                                    }
-                                }
-                                if (Plasmoid.configuration.showTimeOnRow !== false && task.allDay !== true) {
-                                    var timeText = Qt.formatTime(due, Qt.DefaultLocaleShortDate)
-                                    if (timeText && timeText.length) {
-                                        label += " " + timeText
-                                    }
-                                }
-                                return label
-                            }
-                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                            color: {
-                                if (!dateChip.visible) {
-                                    return Kirigami.Theme.textColor
-                                }
-                                var dueDay = Qt.formatDate(task.dueDate, "yyyy-MM-dd")
-                                var today = Qt.formatDate(new Date(), "yyyy-MM-dd")
-                                if (dueDay < today) {
-                                    return Kirigami.Theme.negativeTextColor
-                                }
-                                return Kirigami.Theme.textColor
-                            }
-                        }
+                    QQC2.ToolButton {
+                        visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
+                        icon.name: "internet-services"
+                        display: QQC2.AbstractButton.IconOnly
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        Layout.alignment: Qt.AlignVCenter
+                        onClicked: Qt.openUrlExternally(task.joinUrl)
+                        QQC2.ToolTip.text: i18n("Open / Join")
+                        QQC2.ToolTip.visible: joinHover.hovered && !root.listMoving
+                        HoverHandler { id: joinHover }
                     }
 
                     Repeater {
@@ -573,18 +499,64 @@ Item {
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                    }
 
-                    QQC2.ToolButton {
-                        visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
-                        icon.name: "internet-services"
-                        display: QQC2.AbstractButton.IconOnly
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                        onClicked: Qt.openUrlExternally(task.joinUrl)
-                        QQC2.ToolTip.text: i18n("Join")
-                        QQC2.ToolTip.visible: joinHover.hovered && !root.listMoving
-                        HoverHandler { id: joinHover }
+                    // Due date/time: flush right, accent (overdue stays negative).
+                    QQC2.Label {
+                        id: dateChip
+                        visible: root.showDueChip
+                        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                        Layout.maximumWidth: Math.max(Kirigami.Units.gridUnit * 6,
+                                                      statusRow.width * 0.45)
+                        elide: Text.ElideLeft
+                        horizontalAlignment: Text.AlignRight
+                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        text: {
+                            if (!root.showDueChip) {
+                                return ""
+                            }
+                            var due = task.dueDate
+                            var dueDay = Qt.formatDate(due, "yyyy-MM-dd")
+                            var todayDate = new Date()
+                            var today = Qt.formatDate(todayDate, "yyyy-MM-dd")
+                            var label = Qt.formatDate(due, Qt.DefaultLocaleShortDate)
+                            if (Plasmoid.configuration.relativeDates === true) {
+                                if (dueDay === today) {
+                                    label = i18n("Today")
+                                } else {
+                                    var tomorrow = new Date(todayDate)
+                                    tomorrow.setDate(tomorrow.getDate() + 1)
+                                    var yesterday = new Date(todayDate)
+                                    yesterday.setDate(yesterday.getDate() - 1)
+                                    if (dueDay === Qt.formatDate(tomorrow, "yyyy-MM-dd")) {
+                                        label = i18n("Tomorrow")
+                                    } else if (dueDay === Qt.formatDate(yesterday, "yyyy-MM-dd")) {
+                                        label = i18n("Yesterday")
+                                    }
+                                }
+                            }
+                            if (Plasmoid.configuration.showTimeOnRow !== false && task.allDay !== true) {
+                                var timeText = Qt.formatTime(due, Qt.DefaultLocaleShortDate)
+                                if (timeText && timeText.length) {
+                                    label += " " + timeText
+                                }
+                            }
+                            return label
+                        }
+                        color: {
+                            if (!visible) {
+                                return Kirigami.Theme.textColor
+                            }
+                            var dueDay = Qt.formatDate(task.dueDate, "yyyy-MM-dd")
+                            var today = Qt.formatDate(new Date(), "yyyy-MM-dd")
+                            if (dueDay < today) {
+                                return Kirigami.Theme.negativeTextColor
+                            }
+                            return Kirigami.Theme.highlightColor
+                        }
                     }
                 }
 

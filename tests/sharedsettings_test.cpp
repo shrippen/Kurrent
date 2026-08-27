@@ -1,5 +1,8 @@
 #include "sharedsettings.h"
 
+#include <KConfig>
+#include <KConfigGroup>
+
 #include <QDir>
 #include <QFile>
 #include <QQmlPropertyMap>
@@ -20,6 +23,7 @@ private Q_SLOTS:
     void persistsNewPlannerKeys();
     void persistsKcmCatalogAndReset();
     void persistsReminderSearchAndColors();
+    void dropsLegacySortModeKey();
 
 private:
     QTemporaryDir m_dir;
@@ -127,7 +131,6 @@ void SharedSettingsTest::persistsNewPlannerKeys()
     SharedSettings store(fileName);
 
     QQmlPropertyMap source;
-    source.insert(QStringLiteral("sortMode"), QStringLiteral("due,priority"));
     source.insert(QStringLiteral("catchUpEnabled"), false);
     source.insert(QStringLiteral("catchUpDays"), 7);
     source.insert(QStringLiteral("morningHour"), 8);
@@ -140,15 +143,34 @@ void SharedSettingsTest::persistsNewPlannerKeys()
     QQmlPropertyMap target;
     other.applyTo(&target);
 
-    QCOMPARE(target.value(QStringLiteral("sortMode")).toString(), QStringLiteral("due,priority"));
     QCOMPARE(target.value(QStringLiteral("catchUpEnabled")).toBool(), false);
     QCOMPARE(target.value(QStringLiteral("catchUpDays")).toInt(), 7);
     QCOMPARE(target.value(QStringLiteral("morningHour")).toInt(), 8);
     QCOMPARE(target.value(QStringLiteral("afternoonHour")).toInt(), 13);
     QCOMPARE(target.value(QStringLiteral("eveningHour")).toInt(), 19);
     QCOMPARE(target.value(QStringLiteral("showJoinButton")).toBool(), false);
-    QVERIFY(store.keys().contains(QStringLiteral("sortMode")));
+    QVERIFY(!store.keys().contains(QStringLiteral("sortMode")));
     QVERIFY(store.keys().contains(QStringLiteral("catchUpDays")));
+}
+
+void SharedSettingsTest::dropsLegacySortModeKey()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-sort-legacy"));
+    {
+        KConfig config(fileName);
+        KConfigGroup group(&config, QStringLiteral("General"));
+        group.writeEntry(QStringLiteral("sortMode"), QStringLiteral("due"));
+        group.writeEntry(QStringLiteral("catchUpDays"), 7);
+        config.sync();
+    }
+
+    SharedSettings store(fileName);
+    QVERIFY(!store.keys().contains(QStringLiteral("sortMode")));
+    QCOMPARE(store.values().value(QStringLiteral("catchUpDays")).toInt(), 7);
+
+    KConfig config(fileName);
+    KConfigGroup group(&config, QStringLiteral("General"));
+    QVERIFY(!group.hasKey(QStringLiteral("sortMode")));
 }
 
 void SharedSettingsTest::persistsKcmCatalogAndReset()

@@ -85,6 +85,7 @@ public:
     TaskEntry taskAt(int row) const;
     Q_INVOKABLE QString uidAt(int row) const;
     Q_INVOKABLE int rowForUid(const QString &uid) const;
+    Q_INVOKABLE int rowForItemId(qint64 itemId) const;
     int count() const { return m_tasks.size(); }
 
 signals:

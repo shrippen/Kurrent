@@ -23,4 +23,8 @@ void setReminderMinutes(const KCalendarCore::Todo::Ptr &todo, int minutes);
 QDateTime nextReminderTime(const KCalendarCore::Todo::Ptr &todo, const QDateTime &now);
 void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDateTime &now);
 
+/** Due/start for list/editor: empty when unset; local midnight for date-only values. */
+QDateTime dueDateFromTodo(const KCalendarCore::Todo::Ptr &todo);
+QDateTime startDateFromTodo(const KCalendarCore::Todo::Ptr &todo);
+
 } // namespace TaskCalendar

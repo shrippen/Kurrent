@@ -186,6 +186,8 @@ public:
                                 const QStringList &categories);
     Q_INVOKABLE void updateTaskFull(qint64 itemId, const QVariantMap &fields);
     Q_INVOKABLE void setTaskParent(qint64 itemId, const QString &parentUid);
+    /** Same-project parent options for the full editor (excludes self and descendants). */
+    Q_INVOKABLE QVariantList parentCandidates(qint64 itemId, qint64 collectionId) const;
     Q_INVOKABLE void addTaskCategory(qint64 itemId, const QString &category);
     Q_INVOKABLE void setTaskPriority(qint64 itemId, int priority);
     Q_INVOKABLE void moveTaskToCollection(qint64 itemId, qint64 collectionId);
@@ -294,6 +296,8 @@ enum class SyncResult { Error, Ok };
     void scheduleRebuild();
     void rebuildTaskList();
     bool wouldCreateParentCycle(qint64 itemId, const QString &parentUid) const;
+    /** Validate and apply RELATED-TO; returns false if rejected (error already emitted). */
+    bool applyParentUid(CachedTask *cache, const QString &parentUid, qint64 collectionId);
     bool taskMatchesView(const TaskEntry &task) const;
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
@@ -335,7 +339,7 @@ enum class SyncResult { Error, Ok };
     qint64 m_selectedCollectionId = -1;
     QString m_selectedLabel;
     int m_selectedPriority = -1;
-    QString m_sortMode = QStringLiteral("default");
+    QString m_sortMode = QStringLiteral("priority,due,title");
     bool m_catchUpEnabled = true;
     int m_catchUpDays = 14;
     int m_morningHour = 6;
@@ -371,6 +375,9 @@ enum class SyncResult { Error, Ok };
     Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
     bool m_collectionsReloadPending = false;
     int m_pendingFetchJobs = 0;
+    // IDs / collections seen during the in-flight loadTasks wave (cache-preserving fetch).
+    QSet<Akonadi::Item::Id> m_fetchSeenIds;
+    QSet<qint64> m_fetchOkCollections;
 
     int m_lastFetchItemCount = 0;
     int m_lastFetchAccepted = 0;

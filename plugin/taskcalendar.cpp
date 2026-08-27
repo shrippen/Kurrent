@@ -252,4 +252,22 @@ void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset,
     alarm->setTime(when);
 }
 
+QDateTime dueDateFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo || !todo->hasDueDate()) {
+        return {};
+    }
+    const QDateTime due = todo->dtDue();
+    return due.isValid() ? due : QDateTime();
+}
+
+QDateTime startDateFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo || !todo->hasStartDate()) {
+        return {};
+    }
+    const QDateTime start = todo->dtStart();
+    return start.isValid() ? start : QDateTime();
+}
+
 } // namespace TaskCalendar

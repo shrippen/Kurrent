@@ -109,28 +109,53 @@ Item {
 
         Repeater {
             model: root.projects
-            delegate: QQC2.RadioButton {
+            // Radio + folder icon + name as siblings — do not override RadioButton
+            // contentItem (that stacks the icon under the indicator in Plasma style).
+            // Keep Kirigami.Icon (not QQC2 icon.*) per Design.md project-folder rule.
+            delegate: RowLayout {
                 required property var modelData
-                text: modelData.name
-                checked: root.collectionId === modelData.collectionId
-                QQC2.ButtonGroup.group: projectGroup
-                onClicked: root.collectionId = modelData.collectionId
+                spacing: Design.spaceSmall
+                Layout.alignment: Qt.AlignVCenter
 
-                contentItem: RowLayout {
-                    spacing: Design.spaceSmall
-                    Kirigami.Icon {
-                        source: "folder"
-                        color: Design.colorForKey(String(modelData.collectionId))
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                        Layout.alignment: Qt.AlignVCenter
-                        width: Kirigami.Units.iconSizes.small
-                        height: Kirigami.Units.iconSizes.small
+                QQC2.RadioButton {
+                    id: projectRadio
+                    Layout.alignment: Qt.AlignVCenter
+                    checked: root.collectionId === modelData.collectionId
+                    QQC2.ButtonGroup.group: projectGroup
+                    Accessible.name: modelData.name
+                    onClicked: root.collectionId = modelData.collectionId
+                }
+
+                Kirigami.Icon {
+                    source: "folder"
+                    color: Design.colorForKey(String(modelData.collectionId))
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                    Layout.alignment: Qt.AlignVCenter
+                    width: Kirigami.Units.iconSizes.small
+                    height: Kirigami.Units.iconSizes.small
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            projectRadio.checked = true
+                            root.collectionId = modelData.collectionId
+                        }
                     }
-                    QQC2.Label {
-                        text: modelData.name
-                        elide: Text.ElideRight
-                        verticalAlignment: Text.AlignVCenter
+                }
+
+                QQC2.Label {
+                    text: modelData.name
+                    elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
+                    Layout.alignment: Qt.AlignVCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            projectRadio.checked = true
+                            root.collectionId = modelData.collectionId
+                        }
                     }
                 }
             }

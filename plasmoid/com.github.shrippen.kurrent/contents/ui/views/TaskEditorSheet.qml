@@ -75,6 +75,11 @@ FocusScope {
         projectPicker.hiddenProjects = Plasmoid.configuration.hiddenProjects || ""
         projectPicker.collectionModel = controller.collectionModel
         projectPicker.rebuild()
+        parentPicker.controller = controller
+        parentPicker.itemId = task.itemId || -1
+        parentPicker.collectionId = projectPicker.collectionId
+        parentPicker.parentUid = task.parentUid || ""
+        parentPicker.rebuild()
     }
 
     function normalizeStatus(status) {
@@ -171,7 +176,8 @@ FocusScope {
             "reminderMinutes": reminderValueFor(reminderBox.currentIndex),
             "clearDue": clearDue,
             "clearStart": clearStart,
-            "collectionId": projectPicker.collectionId
+            "collectionId": projectPicker.collectionId,
+            "parentUid": parentPicker.parentUid
         }
 
         if (!clearDue && due) {
@@ -588,6 +594,17 @@ FocusScope {
             ProjectPicker {
                 id: projectPicker
                 Layout.fillWidth: true
+                onCollectionIdChanged: {
+                    parentPicker.collectionId = collectionId
+                    parentPicker.rebuild()
+                }
+            }
+
+            FieldLabel { text: i18n("Parent:") }
+            ParentPicker {
+                id: parentPicker
+                Layout.fillWidth: true
+                boundsItem: root
             }
             }
         }

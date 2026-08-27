@@ -33,9 +33,6 @@
         <entry name="newTaskDefaultCollectionId" type="String">
             <default></default>
         </entry>
-        <entry name="sortMode" type="String">
-            <default>default</default>
-        </entry>
         <entry name="catchUpEnabled" type="Bool">
             <default>true</default>
         </entry>

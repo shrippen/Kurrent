@@ -504,7 +504,10 @@ void TaskController::setSelectedPriority(int priority)
 
 void TaskController::setSortMode(const QString &mode)
 {
-    const QString normalized = mode.isEmpty() ? QStringLiteral("default") : mode;
+    QString normalized = mode.trimmed();
+    if (normalized.isEmpty() || normalized == QLatin1String("default")) {
+        normalized = QStringLiteral("priority,due,title");
+    }
     if (m_sortMode == normalized) {
         return;
     }
@@ -1074,8 +1077,8 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.parentUid = todo->relatedTo();
     entry.summary = todo->summary();
     entry.description = todo->description();
-    entry.dueDate = (todo->hasDueDate() && todo->dtDue().isValid()) ? todo->dtDue() : QDateTime();
-    entry.startDate = (todo->hasStartDate() && todo->dtStart().isValid()) ? todo->dtStart() : QDateTime();
+    entry.dueDate = TaskCalendar::dueDateFromTodo(todo);
+    entry.startDate = TaskCalendar::startDateFromTodo(todo);
     entry.priority = todo->priority();
     entry.completed = todo->isCompleted();
     entry.recurring = todo->recurs();
@@ -1223,6 +1226,13 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         }
     }
 
+    if (fields.contains(QStringLiteral("parentUid"))) {
+        const qint64 effectiveCollectionId = moveToCollectionId > 0
+            ? moveToCollectionId
+            : cache->item.parentCollection().id();
+        applyParentUid(cache, fields.value(QStringLiteral("parentUid")).toString(), effectiveCollectionId);
+    }
+
     persistTodo(originalItem, todo, moveToCollectionId);
 }
 
@@ -1235,40 +1245,136 @@ void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)
         return;
     }
 
-    KCalendarCore::Todo::Ptr todo = cache->todo;
-    const QString trimmedParent = parentUid.trimmed();
-    if (!trimmedParent.isEmpty()) {
-        if (trimmedParent == todo->uid()) {
-            setErrorMessage(tr("A task cannot be its own parent."));
-            Q_EMIT error(m_errorMessage);
-            return;
-        }
-        if (wouldCreateParentCycle(itemId, trimmedParent)) {
-            setErrorMessage(tr("Cannot create a circular task hierarchy."));
-            Q_EMIT error(m_errorMessage);
-            return;
-        }
-
-        bool parentFound = false;
-        for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
-            if (it->todo && it->todo->uid() == trimmedParent) {
-                parentFound = true;
-                break;
-            }
-        }
-        if (!parentFound) {
-            setErrorMessage(tr("Parent task not found."));
-            Q_EMIT error(m_errorMessage);
-            return;
-        }
-    }
-
-    if (todo->relatedTo() == trimmedParent) {
+    if (!applyParentUid(cache, parentUid, cache->item.parentCollection().id())) {
         return;
     }
 
+    persistTodo(cache->item, cache->todo);
+}
+
+QVariantList TaskController::parentCandidates(qint64 itemId, qint64 collectionId) const
+{
+    QVariantList out;
+    if (collectionId <= 0) {
+        return out;
+    }
+
+    QString selfUid;
+    const auto selfIt = s_tasks.constFind(itemId);
+    if (selfIt != s_tasks.cend() && selfIt->todo) {
+        selfUid = selfIt->todo->uid();
+    }
+
+    QHash<QString, QString> parentByUid;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (it->todo) {
+            parentByUid.insert(it->todo->uid(), it->todo->relatedTo());
+        }
+    }
+
+    QSet<QString> forbidden;
+    if (!selfUid.isEmpty()) {
+        forbidden.insert(selfUid);
+        const QStringList descendants = TaskLogic::descendantUids(selfUid, parentByUid);
+        for (const QString &uid : descendants) {
+            forbidden.insert(uid);
+        }
+    }
+
+    struct ParentRow {
+        QString summary;
+        QString uid;
+        int priority = 0;
+        QStringList categories;
+    };
+    QList<ParentRow> rows;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (!it->todo || it->pendingDelete) {
+            continue;
+        }
+        if (it->item.parentCollection().id() != collectionId) {
+            continue;
+        }
+        const QString uid = it->todo->uid();
+        if (forbidden.contains(uid)) {
+            continue;
+        }
+        ParentRow row;
+        row.uid = uid;
+        row.summary = it->todo->summary().trimmed();
+        if (row.summary.isEmpty()) {
+            row.summary = tr("(Untitled)");
+        }
+        row.priority = it->todo->priority();
+        row.categories = it->todo->categories();
+        rows.append(row);
+    }
+
+    std::sort(rows.begin(), rows.end(), [](const ParentRow &a, const ParentRow &b) {
+        return QString::compare(a.summary, b.summary, Qt::CaseInsensitive) < 0;
+    });
+
+    for (const auto &row : rows) {
+        out.append(QVariantMap{
+            {QStringLiteral("uid"), row.uid},
+            {QStringLiteral("summary"), row.summary},
+            {QStringLiteral("priority"), row.priority},
+            {QStringLiteral("categories"), row.categories},
+        });
+    }
+    return out;
+}
+
+bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid, qint64 collectionId)
+{
+    if (!cache || !cache->todo) {
+        return false;
+    }
+
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+    const QString trimmedParent = parentUid.trimmed();
+    if (trimmedParent.isEmpty()) {
+        if (todo->relatedTo().isEmpty()) {
+            return true;
+        }
+        todo->setRelatedTo(QString());
+        return true;
+    }
+
+    if (trimmedParent == todo->uid()) {
+        setErrorMessage(tr("A task cannot be its own parent."));
+        Q_EMIT error(m_errorMessage);
+        return false;
+    }
+    if (wouldCreateParentCycle(cache->item.id(), trimmedParent)) {
+        setErrorMessage(tr("Cannot create a circular task hierarchy."));
+        Q_EMIT error(m_errorMessage);
+        return false;
+    }
+
+    const CachedTask *parentCache = nullptr;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (it->todo && it->todo->uid() == trimmedParent) {
+            parentCache = &(*it);
+            break;
+        }
+    }
+    if (!parentCache) {
+        setErrorMessage(tr("Parent task not found."));
+        Q_EMIT error(m_errorMessage);
+        return false;
+    }
+    if (collectionId > 0 && parentCache->item.parentCollection().id() != collectionId) {
+        setErrorMessage(tr("Parent task must be in the same project."));
+        Q_EMIT error(m_errorMessage);
+        return false;
+    }
+
+    if (todo->relatedTo() == trimmedParent) {
+        return true;
+    }
     todo->setRelatedTo(trimmedParent);
-    persistTodo(cache->item, todo);
+    return true;
 }
 
 void TaskController::addTaskCategory(qint64 itemId, const QString &category)
@@ -1914,7 +2020,10 @@ void TaskController::loadTasks()
     }
 
     const QList<Akonadi::Collection> collections = enabledCollections();
-    s_tasks.clear();
+
+    // Keep the in-process cache visible until fetches finish (badge / list stay filled).
+    m_fetchSeenIds.clear();
+    m_fetchOkCollections.clear();
 
     m_lastFetchItemCount = 0;
     m_lastFetchAccepted = 0;
@@ -1929,6 +2038,14 @@ void TaskController::loadTasks()
     }
 
     if (collections.isEmpty()) {
+        // Nothing enabled: drop settled tasks, keep optimistic/temp rows.
+        for (auto it = s_tasks.begin(); it != s_tasks.end();) {
+            if (it.key() < 0 || it->syncing || it->pendingDelete || it->inflight > 0) {
+                ++it;
+                continue;
+            }
+            it = s_tasks.erase(it);
+        }
         setLoading(false);
         logDebug(QStringLiteral("loadTasks: no enabled collections"));
         scheduleRebuild();
@@ -1961,7 +2078,11 @@ void TaskController::onItemsFetched(KJob *job, qint64 collectionId)
                      .arg(job->error() ? job->errorString() : QStringLiteral("none")));
 
         if (!job->error()) {
+            m_fetchOkCollections.insert(collectionId);
             for (const Akonadi::Item &item : fetchJob->items()) {
+                if (item.id() > 0) {
+                    m_fetchSeenIds.insert(item.id());
+                }
                 upsertTask(item, collectionId);
             }
         } else if (m_errorMessage.isEmpty()) {
@@ -1971,6 +2092,30 @@ void TaskController::onItemsFetched(KJob *job, qint64 collectionId)
 
     if (m_pendingFetchJobs <= 0) {
         m_pendingFetchJobs = 0;
+
+        // Prune settled tasks that vanished from successfully fetched collections,
+        // or whose collection is no longer enabled. Failed collections keep their cache.
+        QSet<qint64> enabledIds;
+        for (const Akonadi::Collection &collection : enabledCollections()) {
+            enabledIds.insert(collection.id());
+        }
+        for (auto it = s_tasks.begin(); it != s_tasks.end();) {
+            if (it.key() < 0 || it->syncing || it->pendingDelete || it->inflight > 0) {
+                ++it;
+                continue;
+            }
+            const qint64 col = it->item.parentCollection().id();
+            const bool goneFromOkFetch = m_fetchOkCollections.contains(col) && !m_fetchSeenIds.contains(it.key());
+            const bool collectionDisabled = !enabledIds.contains(col);
+            if (goneFromOkFetch || collectionDisabled) {
+                it = s_tasks.erase(it);
+            } else {
+                ++it;
+            }
+        }
+        m_fetchSeenIds.clear();
+        m_fetchOkCollections.clear();
+
         setLoading(false);
         logDebug(QStringLiteral("loadTasks complete: cache=%1 accepted=%2 rejected(payload=%3,todo=%4,disabled=%5,noCol=%6)")
                      .arg(s_tasks.size())
@@ -2089,9 +2234,9 @@ void TaskController::rebuildTaskList()
         allTasks.append(makeTaskEntry(it.value(), 0, false));
     }
 
-    // Flat list omits descendants of collapsed parents so scrollbar/contentHeight
-    // always match the rows on screen.
-    QList<TaskEntry> tasks = TaskLogic::flattenTree(allTasks, m_sortMode, m_collapsedUids);
+    // Filter first (hierarchy-aware for search/sidebar), then flatten. Collapse is
+    // skipped while those filters are active so a matching child under a collapsed
+    // parent still appears with its ancestors.
 
     TaskLogic::FilterState filters;
     filters.currentView = m_currentView;
@@ -2108,21 +2253,30 @@ void TaskController::rebuildTaskList()
     filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
     filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
 
-    const TaskLogic::VisibleFilterResult filtered = TaskLogic::filterVisibleTasks(tasks, filters, QDate::currentDate());
+    const bool hierarchyAware = m_currentView == QLatin1String("completed")
+            || !m_searchQuery.trimmed().isEmpty()
+            || m_selectedCollectionId >= 0
+            || !m_selectedLabel.isEmpty()
+            || m_selectedPriority >= 0;
+
+    const TaskLogic::VisibleFilterResult filtered = TaskLogic::filterVisibleTasks(allTasks, filters, QDate::currentDate());
+    const QSet<QString> collapseForList = hierarchyAware ? QSet<QString>() : m_collapsedUids;
+    QList<TaskEntry> tasks = TaskLogic::flattenTree(filtered.tasks, m_sortMode, collapseForList);
 
     // Sidebar/badge counts: default includes collapsed subtasks so collapsing does not
     // change numbers. Optional: count only visible (non-collapsed / non-hidden) rows.
-    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? tasks : allTasks;
+    const QList<TaskEntry> flatForCounts = TaskLogic::flattenTree(allTasks, m_sortMode, m_collapsedUids);
+    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? flatForCounts : allTasks;
     m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(countSource));
-    m_taskModel.setTasks(filtered.tasks);
+    m_taskModel.setTasks(tasks);
     updatePendingCount(countSource);
     updateAvailableLabels(allTasks);
     updateCounts(countSource);
     publishSharedCache();
     updateEmptyKind();
 
-    updateDebugInfo(tasks.size(),
-                    filtered.tasks.size(),
+    updateDebugInfo(flatForCounts.size(),
+                    tasks.size(),
                     filtered.filteredOutCompleted,
                     filtered.filteredOutView,
                     filtered.filteredOutSearch);

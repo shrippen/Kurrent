@@ -29,6 +29,9 @@ msgstr "收件箱"
 msgid "Today"
 msgstr "今天"
 
+msgid "Overdue"
+msgstr "已逾期"
+
 msgid "Tomorrow"
 msgstr "明天"
 
@@ -70,6 +73,18 @@ msgstr "排序：%1"
 
 msgid "Sort tasks"
 msgstr "排序任务"
+
+msgid "First sort"
+msgstr "第一排序"
+
+msgid "Second sort"
+msgstr "第二排序"
+
+msgid "Third sort"
+msgstr "第三排序"
+
+msgid "Open first"
+msgstr "未完成优先"
 
 msgid "Build"
 msgstr "构建"
@@ -287,6 +302,12 @@ msgstr "地点"
 msgid "Project:"
 msgstr "项目："
 
+msgid "Parent:"
+msgstr "父任务："
+
+msgid "Open / Join"
+msgstr "打开 / 加入"
+
 msgid "No projects available"
 msgstr "没有可用项目"
 
@@ -319,6 +340,15 @@ msgstr "低"
 
 msgid "Search or create label…"
 msgstr "搜索或创建标签…"
+
+msgid "Search parent task…"
+msgstr "搜索父任务…"
+
+msgid "Clear parent"
+msgstr "清除父任务"
+
+msgid "No matching tasks"
+msgstr "没有匹配的任务"
 
 msgid "Remove label"
 msgstr "移除标签"
@@ -499,6 +529,399 @@ msgstr "新标签"
 
 msgid "Delete label"
 msgstr "删除标签"
+
+msgid "%1 grid units"
+msgstr "%1 网格单位"
+
+msgid "%1:00"
+msgstr "%1:00"
+
+msgid "1 day before"
+msgstr "提前 1 天"
+
+msgid "1 hour"
+msgstr "1 小时"
+
+msgid "1 hour before"
+msgstr "提前 1 小时"
+
+msgid "1 line"
+msgstr "1 行"
+
+msgid "15 minutes"
+msgstr "15 分钟"
+
+msgid "15 minutes before"
+msgstr "提前 15 分钟"
+
+msgid "2 lines"
+msgstr "2 行"
+
+msgid "A task cannot be its own parent."
+msgstr "任务不能作为自己的父任务。"
+
+msgid "A task is due."
+msgstr "有任务到期。"
+
+msgid "Add Kurrent task"
+msgstr "添加 Kurrent 任务"
+
+msgid "Add label"
+msgstr "添加标签"
+
+msgid "Afternoon"
+msgstr "下午"
+
+msgid "Afternoon starts"
+msgstr "下午开始于"
+
+msgid "Akonadi is not available."
+msgstr "Akonadi 不可用。"
+
+msgid "Akonadi is not running"
+msgstr "Akonadi 未运行"
+
+msgid "Connecting to Akonadi…"
+msgstr "正在连接 Akonadi…"
+
+msgid "Loading tasks…"
+msgstr "正在加载任务…"
+
+msgid "The flyout is ready; tasks appear when the server answers."
+msgstr "弹出层已就绪；服务器响应后将显示任务。"
+
+msgid "Ask before deleting a task"
+msgstr "删除任务前询问"
+
+msgid "At due time"
+msgstr "截止时"
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Blurred wallpaper behind the widget"
+msgstr "部件后方的模糊壁纸"
+
+msgid "Cannot create a circular task hierarchy."
+msgstr "无法创建循环的任务层级。"
+
+msgid "Case sensitive"
+msgstr "区分大小写"
+
+msgid "Catch-up"
+msgstr "补做"
+
+msgid "Checkbox"
+msgstr "复选框"
+
+msgid "Click a task"
+msgstr "点击任务"
+
+msgid "Collapse subtasks"
+msgstr "折叠子任务"
+
+msgid "Comfortable"
+msgstr "舒适"
+
+msgid "Complete only with Shift or Ctrl held"
+msgstr "仅在按住 Shift 或 Ctrl 时完成"
+
+msgid "Completing a parent also completes its children"
+msgstr "完成父任务时也完成其子任务"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
+msgstr "在 KOrganizer 或 Merkuro 中配置 CalDAV/Nextcloud（DAV 群件资源）。"
+
+msgid "Could not load tasks"
+msgstr "无法加载任务"
+
+msgid "Counts"
+msgstr "计数"
+
+msgid "Dates"
+msgstr "日期"
+
+msgid "Default due date"
+msgstr "默认截止日期"
+
+msgid "Default reminder"
+msgstr "默认提醒"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete task?"
+msgstr "删除任务？"
+
+msgid "Delete this task?"
+msgstr "删除此任务？"
+
+msgid "Density"
+msgstr "密度"
+
+msgid "Description preview"
+msgstr "描述预览"
+
+msgid "Desktop notifications"
+msgstr "桌面通知"
+
+msgid "Due %1"
+msgstr "截止 %1"
+
+msgid "Due date (latest first)"
+msgstr "截止日期（最新优先）"
+
+msgid "Editor dim"
+msgstr "编辑器遮罩"
+
+msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "在“配置 Kurrent → 项目”中启用日历，或在 Merkuro / KOrganizer 中添加 CalDAV 资源。"
+
+msgid "Ends"
+msgstr "结束"
+
+msgid "Evening"
+msgstr "晚上"
+
+msgid "Evening starts"
+msgstr "晚上开始于"
+
+msgid "Exclude collapsed subtasks from counts"
+msgstr "计数时排除已折叠的子任务"
+
+msgid "Expand subtasks"
+msgstr "展开子任务"
+
+msgid "Failed to fetch collections."
+msgstr "获取集合失败。"
+
+msgid "Flyout height"
+msgstr "弹出高度"
+
+msgid "Flyout width"
+msgstr "弹出宽度"
+
+msgid "Heading on the list"
+msgstr "列表中的标题"
+
+msgid "Hidden"
+msgstr "隐藏"
+
+msgid "In 1 hour"
+msgstr "1 小时后"
+
+msgid "In 15 minutes"
+msgstr "15 分钟后"
+
+msgid "In 4 hours"
+msgstr "4 小时后"
+
+msgid "Light"
+msgstr "浅"
+
+msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "管理哪些可写的 Akonadi 日历用作项目。禁用的日历完全不获取任务。隐藏的日历仍会获取，但不在侧栏显示。"
+
+msgid "Meetings"
+msgstr "会议"
+
+msgid "Morning"
+msgstr "上午"
+
+msgid "Morning starts"
+msgstr "上午开始于"
+
+msgid "Motion"
+msgstr "动画"
+
+msgid "No task lists"
+msgstr "没有任务列表"
+
+msgid "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."
+msgstr "在 Akonadi 中未找到任务列表。请在 KOrganizer 或 Kalendar 中配置 CalDAV。"
+
+msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
+msgstr "未找到可写的 Akonadi 日历。请确认 Akonadi 正在运行，且 CalDAV 资源允许编辑任务。"
+
+msgid "No writable task list selected."
+msgstr "未选择可写的任务列表。"
+
+msgid "Notify when a task reminder is due"
+msgstr "任务提醒到期时通知"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "Open root tasks"
+msgstr "未完成的根任务"
+
+msgid "Open the full editor"
+msgstr "打开完整编辑器"
+
+msgid "Open the inline editor"
+msgstr "打开行内编辑器"
+
+msgid "Order and visibility"
+msgstr "顺序与可见性"
+
+msgid "Panel badge"
+msgstr "面板角标"
+
+msgid "Parent task must be in the same project."
+msgstr "父任务必须在同一项目中。"
+
+msgid "Parent task not found."
+msgstr "未找到父任务。"
+
+msgid "Progress %"
+msgstr "进度 %"
+
+msgid "Progress % (high first)"
+msgstr "进度 %（高优先）"
+
+msgid "Quiet hours"
+msgstr "免打扰时段"
+
+msgid "Recurring first"
+msgstr "重复优先"
+
+msgid "Recurring icon"
+msgstr "重复图标"
+
+msgid "Recurring last"
+msgstr "重复靠后"
+
+msgid "Reduced motion (no spinner, quieter hover)"
+msgstr "减少动效（无旋转指示、更安静的悬停）"
+
+msgid "Relative dates (Today, Tomorrow)"
+msgstr "相对日期（今天、明天）"
+
+msgid "Remember the last view instead"
+msgstr "改为记住上次视图"
+
+msgid "Reminder first"
+msgstr "提醒优先"
+
+msgid "Reminder last"
+msgstr "提醒靠后"
+
+msgid "Reminder:"
+msgstr "提醒："
+
+msgid "Rename"
+msgstr "重命名"
+
+msgid "Rename from"
+msgstr "原名称"
+
+msgid "Rename to"
+msgstr "新名称"
+
+msgid "Reset this page"
+msgstr "重置此页"
+
+msgid "Row chips"
+msgstr "行内芯片"
+
+msgid "Row size"
+msgstr "行高"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "Search titles only"
+msgstr "仅搜索标题"
+
+msgid "Section:"
+msgstr "分区："
+
+msgid "Sections"
+msgstr "分区"
+
+msgid "Select only (double-click opens the full editor)"
+msgstr "仅选择（双击打开完整编辑器）"
+
+msgid "Show Kurrent"
+msgstr "显示 Kurrent"
+
+msgid "Show a Join button for http(s) links"
+msgstr "为 http(s) 链接显示“加入”按钮"
+
+msgid "Show empty projects"
+msgstr "显示空项目"
+
+msgid "Show in the sidebar"
+msgstr "在侧栏中显示"
+
+msgid "Show task counts"
+msgstr "显示任务数量"
+
+msgid "Show time on the due chip"
+msgstr "在截止日期芯片上显示时间"
+
+msgid "Show overdue tasks at the top of Today"
+msgstr "在“今天”顶部显示过期任务"
+
+msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
+msgstr "从通知推迟（15 分钟、1 小时、明天）会改写 VALARM。截止日期不变；改期请用“重新安排”。"
+
+msgid "Start date"
+msgstr "开始日期"
+
+msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "请用 akonadictl start 启动，然后在 Merkuro 或 KOrganizer 中添加 CalDAV 资源。"
+
+msgid "Starts"
+msgstr "开始"
+
+msgid "Still open"
+msgstr "仍未完成"
+
+msgid "Strong"
+msgstr "强"
+
+msgid "Subtasks"
+msgstr "子任务"
+
+msgid "Suppress reminder notifications in this window"
+msgstr "在此时间段内抑制提醒通知"
+
+msgid "Task not found."
+msgstr "未找到任务。"
+
+msgid "Task reminder"
+msgstr "任务提醒"
+
+msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
+msgstr "完整编辑器仍是部件内的覆盖层。日分区（LIST）在完整编辑器中。"
+
+msgid "This project cannot accept tasks."
+msgstr "此项目无法接受任务。"
+
+msgid "Try again"
+msgstr "重试"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Undo complete"
+msgstr "撤销完成"
+
+msgid "Undo delete"
+msgstr "撤销删除"
+
+msgid "Undo move"
+msgstr "撤销移动"
+
+msgid "Undo reschedule"
+msgstr "撤销改期"
+
+msgid "Views"
+msgstr "视图"
+
+msgid "Width"
+msgstr "宽度"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

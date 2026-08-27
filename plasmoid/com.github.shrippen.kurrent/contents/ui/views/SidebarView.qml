@@ -426,7 +426,7 @@ Item {
     readonly property var viewItems: [
         { viewId: "inbox", label: i18n("Inbox"), icon: "mail-folder-inbox" },
         { viewId: "today", label: i18n("Today"), icon: "view-calendar-day" },
-        { viewId: "overdue", label: i18n("Overdue"), icon: "appointment-missed" },
+        { viewId: "overdue", label: i18n("Overdue"), icon: "chronometer" },
         { viewId: "tomorrow", label: i18n("Tomorrow"), icon: "go-next" },
         { viewId: "scheduled", label: i18n("Scheduled"), icon: "view-calendar" },
         { viewId: "anytime", label: i18n("Anytime"), icon: "view-calendar-tasks" },

@@ -148,7 +148,7 @@ RowLayout {
         icon.name: "view-calendar"
         onClicked: {
             var current = DateTime.parseDate(field.text)
-            datePopup.value = current && current.isValid === true ? current : new Date()
+            datePopup.value = DateTime.isValidDate(current) ? current : new Date()
             datePopup.open()
         }
         QQC2.ToolTip.text: i18n("Pick date")

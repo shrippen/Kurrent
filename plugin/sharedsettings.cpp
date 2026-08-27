@@ -27,7 +27,6 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"sidebarRowSize", ValueType::String, QStringLiteral("auto")},
         {"newTaskProjectMode", ValueType::String, QStringLiteral("ask")},
         {"newTaskDefaultCollectionId", ValueType::String, QString()},
-        {"sortMode", ValueType::String, QStringLiteral("default")},
         {"catchUpEnabled", ValueType::Bool, true},
         {"catchUpDays", ValueType::Int, 14},
         {"morningHour", ValueType::Int, 6},
@@ -157,6 +156,11 @@ void SharedSettings::reloadFromDisk()
 {
     m_cache.clear();
     const KeySpec *keys = specs();
+    // Sort is session-only; drop any leftover sortMode from older installs.
+    if (m_group.hasKey(QLatin1String("sortMode"))) {
+        m_group.deleteEntry(QLatin1String("sortMode"));
+        m_config->sync();
+    }
     for (int i = 0; i < specCount(); ++i) {
         m_cache.insert(QLatin1String(keys[i].name), readStored(keys[i]));
     }

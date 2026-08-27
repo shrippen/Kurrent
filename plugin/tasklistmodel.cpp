@@ -356,3 +356,16 @@ int TaskListModel::rowForUid(const QString &uid) const
     }
     return -1;
 }
+
+int TaskListModel::rowForItemId(qint64 itemId) const
+{
+    if (itemId == 0) {
+        return -1;
+    }
+    for (int row = 0; row < m_tasks.size(); ++row) {
+        if (m_tasks.at(row).itemId == itemId) {
+            return row;
+        }
+    }
+    return -1;
+}

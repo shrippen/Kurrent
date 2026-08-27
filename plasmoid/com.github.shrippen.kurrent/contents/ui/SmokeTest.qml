@@ -72,7 +72,7 @@ Item {
             backend.sortMode = "priority,title"
             return
         case 6:
-            backend.sortMode = "default"
+            backend.sortMode = "priority,due,title"
             return
         case 7:
             backend.selectedPriority = 1

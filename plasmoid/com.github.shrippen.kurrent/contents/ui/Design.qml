@@ -106,6 +106,12 @@ QtObject {
     // 0–100; reserved for config / field helpers (task list follows Kirigami defaults).
     property int scrollSpeed: 50
 
+    // Line box for wrapped multiline fields (Quick Add, ScrollableTextArea).
+    readonly property int textLinePx: Math.max(Kirigami.Units.gridUnit,
+                                               Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.45))
+    // Quick Add grows with wrapped lines up to this many, then scrolls inside.
+    readonly property int quickAddMaxLines: 5
+
     // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
     readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small
     readonly property int taskIndentUnit: Math.round(Kirigami.Units.gridUnit * 1.25)

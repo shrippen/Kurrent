@@ -18,9 +18,22 @@ Item {
 
     signal accepted()
 
-    implicitHeight: field.implicitHeight
-    implicitWidth: field.implicitWidth
+    readonly property int linePx: Design.textLinePx
+    readonly property int maxContentHeight: Design.quickAddMaxLines * linePx
+    readonly property int framePad: 1
+    readonly property int fieldPadV: field.topPadding + field.bottomPadding
+    readonly property int contentH: Math.max(linePx, Math.ceil(field.contentHeight))
+    readonly property int desiredInnerHeight: contentH + fieldPadV
+    readonly property int maxInnerHeight: maxContentHeight + fieldPadV
+    readonly property int innerHeight: Math.min(maxInnerHeight, desiredInnerHeight)
+    readonly property bool needsScroll: desiredInnerHeight > maxInnerHeight + 1
+
+    implicitHeight: innerHeight + framePad * 2
+    implicitWidth: 0
     Layout.fillWidth: true
+    Layout.preferredHeight: implicitHeight
+    Layout.minimumHeight: linePx + fieldPadV + framePad * 2
+    clip: true
 
     property var parsed: ({})
     property var suggestions: []
@@ -48,6 +61,7 @@ Item {
 
     function esc(s) {
         return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/\n/g, "<br/>")
     }
 
     function colorForSpan(span) {
@@ -188,15 +202,15 @@ Item {
         if (!host) {
             return
         }
-        var p = field.mapToItem(host, 0, 0)
-        suggestPopup.width = field.width
+        var p = fieldChrome.mapToItem(host, 0, 0)
+        suggestPopup.width = fieldChrome.width
         var above = p.y - suggestPopup.implicitHeight - Design.spaceTiny
         if (above >= 0) {
             suggestPopup.x = p.x
             suggestPopup.y = above
         } else {
             suggestPopup.x = p.x
-            suggestPopup.y = p.y + field.height + Design.spaceTiny
+            suggestPopup.y = p.y + fieldChrome.height + Design.spaceTiny
         }
     }
 
@@ -236,76 +250,145 @@ Item {
         }
     }
 
-    QQC2.TextField {
-        id: field
-        width: root.width
-        height: implicitHeight
-        readonly property bool hasSelection: selectionStart !== selectionEnd
-        color: (highlightLabel.visible && !hasSelection) ? "transparent" : Kirigami.Theme.textColor
-        selectedTextColor: Kirigami.Theme.highlightedTextColor
-        selectionColor: Kirigami.Theme.highlightColor
-        Keys.priority: Keys.BeforeItem
-
-        onTextChanged: root.refresh()
-        onCursorPositionChanged: {
-            if (activeFocus) {
-                root.refresh()
-            }
+    function ensureCursorVisible() {
+        if (!root.needsScroll) {
+            flick.contentY = 0
+            return
         }
-
-        Keys.onPressed: function (event) {
-            if (suggestPopup.visible && suggestions.length) {
-                if (event.key === Qt.Key_Down) {
-                    selectedIndex = Math.min(suggestions.length - 1, selectedIndex + 1)
-                    event.accepted = true
-                    return
-                }
-                if (event.key === Qt.Key_Up) {
-                    selectedIndex = Math.max(0, selectedIndex - 1)
-                    event.accepted = true
-                    return
-                }
-                if (event.key === Qt.Key_Tab) {
-                    root.applySelected()
-                    event.accepted = true
-                    return
-                }
-                if (event.key === Qt.Key_Escape) {
-                    suggestPopup.close()
-                    event.accepted = true
-                    return
-                }
-            }
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                var token = root.currentToken()
-                var item = suggestions.length ? suggestions[selectedIndex] : null
-                if (suggestPopup.visible && item && String(item.insertText).toLowerCase() !== token.toLowerCase()) {
-                    root.applySelected()
-                    event.accepted = true
-                    return
-                }
-                suggestPopup.close()
-                root.accepted()
-                event.accepted = true
-            }
+        var rect = field.cursorRectangle
+        var top = rect.y
+        var bottom = rect.y + rect.height
+        if (top < flick.contentY) {
+            flick.contentY = Math.max(0, top)
+        } else if (bottom > flick.contentY + flick.height) {
+            flick.contentY = Math.min(Math.max(0, flick.contentHeight - flick.height), bottom - flick.height)
         }
     }
 
-    Text {
-        id: highlightLabel
-        x: field.leftPadding
-        y: field.topPadding
-        width: field.width - field.leftPadding - field.rightPadding
-        height: field.height - field.topPadding - field.bottomPadding
-        font: field.font
-        verticalAlignment: Text.AlignVCenter
-        textFormat: Text.StyledText
-        text: root.highlightHtml()
-        color: Kirigami.Theme.textColor
-        elide: Text.ElideRight
+    Rectangle {
+        id: fieldChrome
+        anchors.fill: parent
+        radius: Design.inputRadius
+        color: Kirigami.Theme.backgroundColor
+        border.width: 1
+        border.color: field.activeFocus ? Kirigami.Theme.highlightColor : Design.windowBorderColor()
+    }
+
+    Flickable {
+        id: flick
+        anchors.fill: parent
+        anchors.margins: root.framePad
         clip: true
-        renderType: field.renderType
-        visible: field.text.length > 0 && !field.hasSelection
+        boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.VerticalFlick
+        interactive: false
+        rightMargin: root.needsScroll ? Design.scrollGutter : 0
+        contentWidth: Math.max(0, width - leftMargin - rightMargin)
+        contentHeight: Math.max(height, field.implicitHeight)
+
+        QQC2.TextArea {
+            id: field
+            width: flick.contentWidth
+            height: Math.max(flick.height, contentHeight + topPadding + bottomPadding)
+            wrapMode: TextEdit.Wrap
+            selectByMouse: true
+            background: Item {}
+            leftPadding: Design.spaceSmall
+            rightPadding: Design.spaceSmall
+            topPadding: Design.spaceTiny
+            bottomPadding: Design.spaceTiny
+            readonly property bool hasSelection: selectionStart !== selectionEnd
+            color: (highlightLabel.visible && !hasSelection) ? "transparent" : Kirigami.Theme.textColor
+            selectedTextColor: Kirigami.Theme.highlightedTextColor
+            selectionColor: Kirigami.Theme.highlightColor
+            Keys.priority: Keys.BeforeItem
+
+            onTextChanged: root.refresh()
+            onCursorPositionChanged: {
+                if (activeFocus) {
+                    root.refresh()
+                }
+                Qt.callLater(root.ensureCursorVisible)
+            }
+            onContentHeightChanged: Qt.callLater(root.ensureCursorVisible)
+
+            Keys.onPressed: function (event) {
+                if (suggestPopup.visible && suggestions.length) {
+                    if (event.key === Qt.Key_Down) {
+                        selectedIndex = Math.min(suggestions.length - 1, selectedIndex + 1)
+                        event.accepted = true
+                        return
+                    }
+                    if (event.key === Qt.Key_Up) {
+                        selectedIndex = Math.max(0, selectedIndex - 1)
+                        event.accepted = true
+                        return
+                    }
+                    if (event.key === Qt.Key_Tab) {
+                        root.applySelected()
+                        event.accepted = true
+                        return
+                    }
+                    if (event.key === Qt.Key_Escape) {
+                        suggestPopup.close()
+                        event.accepted = true
+                        return
+                    }
+                }
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    if (event.modifiers & Qt.ShiftModifier) {
+                        // Soft newline; let TextArea insert it.
+                        return
+                    }
+                    var token = root.currentToken()
+                    var item = suggestions.length ? suggestions[selectedIndex] : null
+                    if (suggestPopup.visible && item && String(item.insertText).toLowerCase() !== token.toLowerCase()) {
+                        root.applySelected()
+                        event.accepted = true
+                        return
+                    }
+                    suggestPopup.close()
+                    root.accepted()
+                    event.accepted = true
+                }
+            }
+        }
+
+        Text {
+            id: highlightLabel
+            x: field.leftPadding
+            y: field.topPadding
+            width: field.width - field.leftPadding - field.rightPadding
+            font: field.font
+            verticalAlignment: Text.AlignTop
+            wrapMode: Text.Wrap
+            textFormat: Text.StyledText
+            text: root.highlightHtml()
+            color: Kirigami.Theme.textColor
+            clip: true
+            renderType: field.renderType
+            visible: field.text.length > 0 && !field.hasSelection
+        }
+
+        QQC2.ScrollBar.vertical: ThinScrollBar {
+            view: flick
+            parent: flick
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+        }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+            policy: QQC2.ScrollBar.AlwaysOff
+        }
+
+        WheelHandler {
+            enabled: root.needsScroll
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: function (event) {
+                Design.applyWheel(flick, event)
+                event.accepted = true
+            }
+        }
     }
 
     QQC2.Popup {
@@ -327,7 +410,7 @@ Item {
 
         contentItem: ListView {
             id: suggestList
-            implicitWidth: field.width
+            implicitWidth: fieldChrome.width
             implicitHeight: Math.min(contentHeight, Kirigami.Units.gridUnit * 8)
             clip: true
             boundsBehavior: Flickable.StopAtBounds
