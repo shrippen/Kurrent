@@ -33,6 +33,8 @@ import "colors.js" as Colors
 // - TaskDelegate height comes only from implicitHeight (never height ↔ implicitHeight).
 // - Density (auto/compact/comfortable) sets taskRowPad. sidebarWidthUnits (6–20) sets sidebarWidth.
 // - overlayDimStep 0/1/2 maps to 0.25 / 0.40 / 0.55. reducedMotion skips spinner and hover flash.
+// - Main-pane view modes (FullView header): list | kanban | swimlane | plan | heatmap | calendar.
+//   Persist per sidebar view id in kurrentrc (viewModeByView). Kanban column/card min widths below.
 
 QtObject {
     id: d
@@ -111,6 +113,19 @@ QtObject {
                                                Math.round(Kirigami.Theme.defaultFont.pixelSize * 1.45))
     // Quick Add grows with wrapped lines up to this many, then scrolls inside.
     readonly property int quickAddMaxLines: 5
+
+    // Main-pane presentation modes (see Design.md § Hauptfläche).
+    readonly property string viewModeList: "list"
+    readonly property string viewModeKanban: "kanban"
+    readonly property string viewModeSwimlane: "swimlane"
+    readonly property string viewModePlan: "plan"
+    readonly property string viewModeHeatmap: "heatmap"
+    readonly property string viewModeCalendar: "calendar"
+
+    readonly property int kanbanColumnMinWidth: Kirigami.Units.gridUnit * 14
+    readonly property int kanbanCardGap: spaceSmall
+    readonly property int heatmapCellSize: Math.max(Kirigami.Units.gridUnit * 2,
+                                                    Math.round(Kirigami.Units.iconSizes.smallMedium))
 
     // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
     readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small

@@ -32,6 +32,89 @@ Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die 
 - Sidebar-Scrollbar: bei Overflow sichtbar (`AlwaysOn` + hide wenn fit), Breite passt in die **feste** `rightMargin` (`Design.spaceSmall`) — Margin wächst/schrumpft nicht mit der Scrollbar.
 - Sidebar-Breite per Ziehen am Separator (`SplitHCursor`), 6–20 Grid-Units, speichert `sidebarWidthUnits`.
 
+## Datenmodell
+
+- **Akonadi ist Source of Truth.** Alle Task-Mutationen laufen als Akonadi-Jobs über `AkonadiTaskStore`; das Plasmoid hält einen optimistischen Cache (`syncing`, `pendingDelete`, Revert bei Fehler). Keine parallele Task-Datenbank im Widget.
+- Unbekannte **`X-*`- und fremde Vendor-Properties** auf VTODO beim Lesen/Schreiben **durchreichen** (nicht verwerfen), damit andere CalDAV-Clients Metadaten erhalten.
+
+## Hauptfläche
+
+- Rechts der Sidebar liegt **eine** Hauptfläche (`mainPane` in `FullView`). Sidebar-Einträge (Built-in-Views und **Smart Views**) liefern nur **Filter + Sort**; die Darstellung wählt der **Ansichtsmodus**.
+- **Kopfzeile** (Titel, aktive Filter, dann Controls): **`QQC2.ToolButton` Sort** · **Ansichtsmodus** (`view-mode` / segmentiert: Liste · Kanban · Swimlanes · Plan · Heatmap · Kalender+Aufgaben) · optional **Undo** · Status (Akonadi offline, Build nur Dev). Reihenfolge: Icon/Titel/Filter · Spacer · Undo (wenn `canUndo`) · Sort · View-Mode · Offline-Label. Abstand wie andere Control-Reihen (`Design.spaceSmall`).
+- **Sort** gilt in **Liste** und optional für Karten-Reihenfolge innerhalb Kanban-Spalten. Kanban/Swimlanes/Plan/Heatmap/Kalender nutzen eigene Layout-Regeln, respektieren aber denselben **Task-Filter** der aktiven Sidebar-View.
+- Letzter Modus **pro View-ID** in `kurrentrc` (`viewModeByView`), Default `Design.viewModeList`.
+- Modus-Wechsel lädt dieselbe gefilterte Task-Menge; kein zweites Datenmodell pro Ansicht.
+
+### Liste
+
+- Bestehende `TaskListView` / Delegates; unveränderte Zeilen-, Editor- und DnD-Regeln.
+
+### Kanban
+
+- **Phase A (1.0):** Spalten **berechnet** — Quelle wählbar in Tasks-KCM: Status, Offen/Erledigt, Projekt, Fälligkeits-Buckets (überfällig/heute/morgen/Woche/später/ohne Datum), Priorität, Label, Tagesabschnitt (`KURRENT/LIST`). Mehrfach-Label: erste passende Spalte (Policy in KCM dokumentieren).
+- **Phase B (optional):** persistierte Spalte **`KURRENT/COLUMN`** (Slug, z. B. `doing`); Karten-Rang **`X-APPLE-SORT-ORDER`** wenn vorhanden, sonst **`KURRENT/COLUMN-ORDER`**. Drag zwischen Spalten schreibt entweder Standard-VTODO-Felder (Status, Due, Collection, …) und/oder `KURRENT/COLUMN` — Einstellung „Kanban schreibt: Felder / Custom-Spalte / beides“. Ein Schritt Undo wie in der Liste.
+- Spaltenbreite mindestens `Design.kanbanColumnMinWidth`; Kartenabstand `Design.kanbanCardGap`. Horizontal scrollen wenn nötig (`ThinScrollBar` unten oder WheelHandler).
+- Kein Deck/Planix-Board-Sync — Spalten sind Kurrent-eigen oder abgeleitet.
+
+### Swimlanes
+
+- **Zeilen** = Achse (Projekt, Label, Priorität oder Wurzel-Parent); **Spalten** = Zeit (Tag/Woche/Monat) aus `DTSTART`/`DUE`.
+- Kompakter **Busy-Day-Streifen** in der Kopfzeile; Tipp auf Datum → Sidebar **Today** (oder Smart View) mit Datumsfilter.
+- Gleiche Task-Karten/Delegates wie Kanban, enger.
+
+### Projektplan
+
+- Matrix: Zeilen = Projekte (Kalender), Spalten = ISO-Wochen (oder Monat). Zelle = Anzahl offener Tasks in der Woche (optional später Summe `DURATION` / `KURRENT/ESTIMATE`).
+- Klick auf Zelle → gefilterte Liste (temporär oder Smart-View-Vorschau).
+
+### Heatmap
+
+- Monats- oder Jahresgitter; Zellengröße mindestens `Design.heatmapCellSize`.
+- Modus umschaltbar: offene Fälligkeiten pro Tag vs. Erledigungen pro Tag (aus STATUS/`COMPLETED`, nicht gespeicherter „Streak“-Zähler).
+
+### Kalender + Aufgaben
+
+- **Tages-Ansicht:** Event-Streifen (bestehender Event-Cache, opaque/busy wie Notifications) plus VTODO-Liste für denselben Tag — **kein** Zusammenführen von VEVENT und VTODO in 1.0.
+- „Block time“ (Task → verknüpftes VEVENT) bewusst **nach 1.0**.
+
+### Smart Views
+
+- Eigener Sidebar-Block **Smart Views** (neben Built-in Views); Reihenfolge in Sidebar-KCM.
+- Definition in KCM **Views**: Name, Icon, Filterregeln (Projekt, Labels, Priorität, Text, Due-Fenster, Status, recurring, `KURRENT/LIST`, optional `KURRENT/COLUMN`), optional Sort-Override, Default-**Hauptansichtsmodus**.
+- JSON in `kurrentrc` (`smartViews`); Filter materialisiert Tasks nicht in VTODO, außer der User ändert Felder manuell.
+
+### Mehrfachauswahl und Bulk
+
+- Shift/Ctrl+Klick, optional Rubberband in der Liste; Checkbox-Spalte optional (Tasks-KCM).
+- Bulk: erledigen, löschen, Projekt, Label ±, Priorität, Reschedule — dieselben Akonadi-Jobs wie Einzelaktionen. Undo: ein Schritt pro Bulk wo möglich, sonst pro Task (in KCM/Design dokumentieren).
+
+### Undo (Kopfzeile)
+
+- Sichtbarer **`QQC2.ToolButton` Undo** in der Hauptflächen-Kopfzeile für **alle** Ansichtsmodi (nicht nur Liste), wenn `backend.canUndo`; Tooltip mit `undoKind`. Standard-Shortcut unverändert.
+- Ergänzt Toolbar/Shortcut, ersetzt sie nicht.
+
+### Offline und Pending
+
+- Akonadi down: bestehendes „Akonadi offline“ + Retry; **`controller.loading`**: Placeholder/Boot-Loader.
+- Zeilen **`syncing` / pending** in jeder Ansicht; keine lokale Queue über Prozessende hinaus — Fehler → Meldung + Retry. Details unter **Diagnostics**.
+
+### Diagnostics
+
+- KCM **Diagnostics**: Server-Status, Anzahl Todo-Collections, letzter Fetch/Fehler, Plugin-/Widget-Version (Link zu Version-Mismatch-Banner), Alter Event-Cache, „Debug kopieren“ (redigierte Config + Log-Auszug).
+
+### Kollaboration (CalDAV)
+
+- Geteilte Kalender = Projekte; Schreibregeln wie heute.
+- **ATTENDEE / ORGANIZER:** read-only anzeigen wenn im VTODO; Editor nur wenn Server schreibt.
+- **COMMENT:** anzeigen/anhängen wenn Roundtrip; sonst **DESCRIPTION**.
+- **CLASS**, **PERCENT-COMPLETE**, **URL/LOCATION/GEO** wie Editor/Join; Konflikt bei Job-Fehler → Item neu laden, kein 3-Wege-Merge in 1.0.
+- Anhänge, volles Kommentar-Threading, Einladungs-Workflow **nach 1.0**.
+
+### Custom Properties (Kanban)
+
+- Bereits **`KURRENT/LIST`** (Tagesabschnitt) via `Todo::setCustomProperty("KURRENT", "LIST", …)`.
+- Geplant **`KURRENT/COLUMN`**, optional **`KURRENT/COLUMN-ORDER`**; Interop: **`X-APPLE-SORT-ORDER`** (Tasks.org, Nextcloud Tasks) bevorzugt für Sortierung innerhalb Spalte. Fremde `X-*` nie löschen. Siehe `ROADMAP.md` Recherche-Tabelle.
+
 ## Abstände
 
 Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
@@ -105,7 +188,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 ## Aufgaben-Zustand
 
 - Mutationen (anlegen, erledigen, speichern, verschieben, löschen, **reschedule**) sofort in der Liste; bis Akonadi bestätigt: `syncing` / `pendingDelete`.
-- Ein Schritt **Undo** (Complete / Reschedule / Move / Delete) in der Toolbar und per Standard-Undo-Shortcut.
+- Ein Schritt **Undo** (Complete / Reschedule / Move / Delete): **Undo-Button in der Hauptflächen-Kopfzeile** (alle Ansichtsmodi) plus Toolbar/Shortcut — siehe § Hauptfläche.
 - Unteraufgaben: Pfeil klappt den Teilbaum ein (`flattenTree` lässt Kinder weg).
 - Akonadi aus / keine Kalender / leere View: `Kirigami.PlaceholderMessage`, kein nackter Fehlerstring.
 - **KDE Store / `.plasmoid`:** nur Widget-UI. Das Akonadi-Backend ist ein kompiliertes QML-Modul (`com.github.shrippen.kurrent`). `main.qml` importiert es nicht statisch — fehlt das Plugin, bleibt das Widget stehen und zeigt `PluginMissingView` statt „module is not installed“: Placeholder, danach der Release-Einzeiler `https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh` in einem wählbaren Feld (`padInner`, `inputRadius`, Rahmen wie Editor-Felder) plus **Copy command** und GitHub. Vollständig: One-Liner (Binary aus dem Release) oder `./install.sh`.
@@ -144,7 +227,8 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 
 ## Konfiguration
 
-- Alle KCM-Seiten (General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels) gelten **gemeinsam** für Desktop-Widget und Panel-Flyout. Jede Seite hat „Reset this page“. Widget-Tastenkürzel und globale Shortcuts werden in Plasma System Settings konfiguriert, nicht in einer eigenen KCM-Seite.
+- Alle KCM-Seiten (General, Appearance, Sidebar, **Views**, Tasks, Editor, Panel, Notifications, Projects, Labels, **Diagnostics**) gelten **gemeinsam** für Desktop-Widget und Panel-Flyout. Jede Seite hat „Reset this page“. Widget-Tastenkürzel und globale Shortcuts werden in Plasma System Settings konfiguriert, nicht in einer eigenen KCM-Seite.
+- **Views:** Smart Views anlegen/bearbeiten (Filter, Default-Hauptansichtsmodus, Icon). **Tasks:** Kanban-Spaltenquelle, Multi-Select-Defaults. **Diagnostics:** siehe § Hauptfläche.
 - KCM-Kategorie-Icons in `contents/config/config.qml` müssen existierende Breeze-Namen sein (z. B. Panel → `plasmashell`, nicht `panel`).
 - Panel-Flyout-Größe: Plasma merkt sich Resize per Drag; keine KCM-Spinboxen für Breite/Höhe. Startgröße über `implicitWidth`/`implicitHeight` der FullView-Hülle.
 - Formularseiten nutzen `ConfigFormShell`: zentrierte Spalte, begrenzte Breite. `SimpleKCM` scrollt selbst — keine innere `Flickable`. Schmale Fenster stapeln Labels/Steuerelemente über `Kirigami.FormLayout`. Listen-artige Optionen (Dichte, Vorschauzeilen, Stunden) als Dropdown, nicht SpinBox mit Pfeilen.

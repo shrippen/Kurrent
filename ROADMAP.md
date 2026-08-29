@@ -1,77 +1,184 @@
 # Kurrent roadmap
 
-Path from **0.1.0** to **1.0**: a daily-driver Plasma widget that installs without compiling from git, behaves like Nextcloud/KOrganizer for VTODO, is usable from the keyboard, and has a power-user settings dialog.
+Path from **0.1.0** to **1.0**: a daily-driver Plasma widget that installs without compiling from git, reads and writes **VTODO through Akonadi** (CalDAV/Nextcloud/Merkuro as the user already configured), supports **multiple main-pane views** (list, Kanban, swimlanes, project plan, heatmap, calendar+tasks), **saved Smart Views**, keyboard use, and a complete settings dialog.
 
-Out of scope for 1.0: Kanban, swimlanes / calendar grid, habit streaks, merging tasks with calendar events, Markdown notes, attachments, a login of its own, a theme engine besides Plasma, or free-form pixel padding.
+**Principle:** **Akonadi remains the source of truth.** All task mutations go through Akonadi jobs; the plasmoid keeps an optimistic cache and shows pending/offline state — no parallel task database.
+
+Still out of scope for 1.0: Markdown notes, binary attachments, a login of its own, a theme engine besides Plasma, free-form pixel padding, CalDAV without Akonadi, Flatpak.
 
 ```mermaid
 flowchart LR
   v010[0.1.0]
   v02[0.2 shipped]
   v03[0.3 shipped]
-  v04[0.4 Plasma integration]
+  v04[0.4 Plasma citizen]
+  v05[0.5 Views and Smart Views]
   v10[1.0]
-  v010 --> v02 --> v03 --> v04 --> v10
+  v010 --> v02 --> v03 --> v04 --> v05 --> v10
 ```
 
 ## 0.1.0 today
 
 Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled, Completed. Projects, labels, priorities. Create, edit, complete, delete. Subtasks via drag-and-drop. Full editor overlay and inline editor. Shared config between desktop and panel. Translations (de, es, fr, ja, zh_CN). A `.plasmoid` asset on GitHub Releases.
 
-Configure Kurrent currently has three pages: **General** (default view, completed tasks, blur, sidebar row size, new-task project), **Projects** (enable/hide), **Labels** (hide). Almost everything else is fixed in `Design.qml` and `colors.js`.
-
-Settings stay **shared** across desktop widget and panel flyout (`~/.config/com.github.shrippen.kurrent/kurrentrc`). Spacing still comes from `Design.qml` tokens; user overrides (sidebar width in grid units, density) are read there. Project/label colors default to the hash in `colors.js` unless overridden.
+Configure Kurrent has KCM pages for General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels. Spacing comes from `Design.qml` tokens; user overrides (sidebar width, density, colors) live in `~/.config/com.github.shrippen.kurrent/kurrentrc`.
 
 ---
 
 ## 0.2 — shipped 2026-08-18
 
-**0.2.0** shipped the settings foundation, catch-up, and honest release notes. Distro packages are **not** in this repo yet; until AUR/COPR exist, install with `install-linux.sh` from GitHub Releases (prebuilt `kurrent-linux-x86_64.tar.gz`, or `--from-source`). The Store `.plasmoid` is widget UI only — it does not replace `libkurrentplugin.so`. Several 0.3/0.4 items also landed in 0.2.0; see [CHANGELOG.md](CHANGELOG.md).
-
-- AUR `kurrent` / `kurrent-git` — still not shipped (see Easy install).
-- Honest release notes; `ctest` in CI.
-- Sort mode was session-only in 0.2 (persisted in 0.3).
-- Empty/error UI when Akonadi is missing or no todo collections are enabled.
-- **Catch-up in Today:** all overdue incomplete tasks (same set as the Overdue view) sit in a distinct *Still open* / catch-up block at the top of Today. They are not silently mixed into “due today”, and they do **not** auto-rollover onto tomorrow. Overdue remains its own sidebar view; catch-up on/off in settings.
-- Settings shell: new KCM categories (Appearance, Sidebar, Tasks, Editor, Panel), config keys, per-page reset to defaults. `Design.qml` reads sidebar width and density overrides.
+**0.2.0** shipped the settings foundation, catch-up, and honest release notes. Distro packages are **not** in this repo yet; until AUR/COPR exist, install with `install-linux.sh` from GitHub Releases. The Store `.plasmoid` is widget UI only — it does not replace `libkurrentplugin.so`. See [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
 ## 0.3 — shipped 2026-08-29
 
-CalDAV semantics, editor/settings depth, panel and notification polish. See [CHANGELOG.md](CHANGELOG.md) for the full list.
+CalDAV semantics, editor/settings depth, panel and notification polish, backend version mismatch banner, i18n catalog (0.3.1). See [CHANGELOG.md](CHANGELOG.md).
 
-**Shipped in 0.3:** recurring complete advances series; `VALARM` + Plasma notifications with snooze; reschedule presets + one-step undo; day sections (Morning/Afternoon/Evening); Quick Add NLP; collapse subtasks + optional complete-children; label rename; KCM row chips / click action / editor defaults / catch-up / day-part hours; sort persistence; event-aware reminder suppression; panel badge/tooltip modes; async panel startup + flyout preload; installer Plasma 6 gate and distro hints.
-
-**Deferred from the original 0.3 sketch:** creating Akonadi calendars from the widget, attachments, attendees (still out of scope).
-
----
-
-## 0.3 catalog (reference)
-
-Original 0.3 planning items — most shipped; see changelog for details.
-
-- Completing a recurring task advances the series (or records an exception) without wiping a custom `RRULE`.
-- `VALARM` in the editor, Plasma notifications when due. Snooze from the notification (15 min / 1 h / tomorrow) rewrites the alarm and optionally the due date.
-- **Reschedule (punt):** context menu or row action — +15 min … +4 h, tomorrow, pick a day — writes `due` (and start if needed). Complements catch-up: overdue is a prompt to decide, not only a red chip. Covered by the one-step undo.
-- **Day sections:** set `KURRENT/LIST` (or equivalent) from the editor; Today / Scheduled group by heading. Configurable Morning / Afternoon / Evening hour bounds in settings so timed tasks fall into day parts without a full calendar.
-- Quick add, e.g. `Milk tomorrow 18:00 !high #errands`.
-- Collapse/expand subtask trees; optional “complete parent completes children”.
-- Rename labels (rewrite `CATEGORIES` on all matching todos).
-- One-step undo for delete / complete / move / reschedule.
-- KCM: row chips, click vs double-click, editor defaults, default reminder, catch-up, day-part hours.
-
-Not in 0.3: creating Akonadi calendars from the widget, attachments, attendees.
+**Deferred to later milestones:** creating Akonadi calendars from the widget, binary attachments (post-1.0 research).
 
 ---
 
 ## 0.4 — Plasma citizen + chrome settings
 
-- Keyboard: focus search, new task, complete, delete, full editor, view switching, reschedule shortcuts.
-- Global shortcut / D-Bus to open the flyout or add a task.
-- KRunner (`task tomorrow invoice`) — nice to have, not a 1.0 blocker.
-- **Join button:** a `http(s)` meeting URL in the description (or location) shows as a compact Join control on the row and in the editor, not a full-width link.
+- Keyboard: focus search, new task, complete, delete, full editor, sidebar view switching, reschedule shortcuts.
+- Global shortcut / D-Bus to open the flyout or add a task (`org.github.shrippen.Kurrent`).
+- KRunner (`task tomorrow invoice`) — ship with 1.0 if cheap; not a hard blocker.
+- Join button polish for `http(s)` meeting URLs on row and editor.
 - Sidebar width, section/view order and visibility; per-project and per-label colors; panel badge; overlay dim steps.
+- **Undo control in the main pane header** (all views): visible **Undo** button beside Sort / view switch; same one-step undo stack as today (complete / reschedule / move / delete); keyboard shortcut unchanged.
+
+---
+
+## 0.5 — Main-pane views + Smart Views (1.0 core UX)
+
+The **large area right of the sidebar** is one **main pane**. Built-in sidebar entries (Inbox, Today, …) and **user Smart Views** all feed the same filtered task set. What changes is **presentation**:
+
+| Mode | Role |
+| --- | --- |
+| **List** | Current task list (default). |
+| **Kanban** | Columns + cards; drag moves task state (see below). |
+| **Swimlanes** | Rows = lanes (project, label, priority, or saved dimension); columns = time buckets (day/week). |
+| **Project plan** | Matrix: projects × calendar weeks; cell = open-task load; drill-down opens list filter. |
+| **Heatmap** | Completion / due-density calendar (day cells colored by open or completed count). |
+| **Calendar + tasks** | Split or overlay: day’s **VEVENT** strip + **VTODO** list for the same day (shared Akonadi cache). |
+
+### View switcher (main pane header)
+
+- In `FullView`, the header row (view title, filters, **Sort**, build label) gains a **View mode** control (`view-mode` icon or segmented control): List · Kanban · Swimlanes · Plan · Heatmap · Calendar.
+- **Sort** applies where meaningful (List; optionally card order inside Kanban columns). Kanban/Swimlanes/Plan/Heatmap use their own layout rules but respect the same **filter** as the active sidebar selection (built-in view or Smart View).
+- Persist last mode **per sidebar view id** in `kurrentrc` (`viewModeByView`), default List.
+
+### Kanban (1.0)
+
+**Phase A — computed columns (no new VTODO fields):** user picks column source in Tasks KCM or Kanban toolbar:
+
+- **Status** — `NEEDS-ACTION` / `IN-PROCESS` / `COMPLETED` (and optional Cancelled bucket).
+- **Completion** — Open vs done (respect “hide completed” setting).
+- **Project** — one column per visible writable calendar (or single “Inbox” column for tasks without collection).
+- **Due** — Overdue · Today · Tomorrow · This week · Later · No date.
+- **Priority** — bands High / Medium / Low / None.
+- **Label** — one column per selected label (multi-label tasks appear in first matching column or duplicate policy documented in KCM).
+- **Day section** — Morning / Afternoon / Evening / Unscheduled (`KURRENT/LIST` + bounds).
+
+Drag card across column **writes the backing field** (STATUS, collection move, due reschedule preset, priority, category add/remove, etc.) — same Akonadi jobs as list actions; undo applies.
+
+**Phase B — optional persisted column (`KURRENT/COLUMN`):** when computed columns are not enough, store a stable column id on the VTODO (see schema research below). Drag updates `KURRENT/COLUMN` (+ optional order). Round-trip tests against Nextcloud Tasks and Merkuro; document what other clients preserve.
+
+**Card order within column:** prefer **`X-APPLE-SORT-ORDER`** (Tasks.org, Nextcloud Tasks, elementary Tasks) for interoperability; Kurrent may mirror with **`KURRENT/COLUMN-ORDER`** integer if Apple field is absent. Never drop unknown `X-*` properties on read/write (pass-through in `AkonadiTaskStore`).
+
+### Swimlanes (1.0)
+
+- **Lane axis** (rows): project, label, priority, or parent root task.
+- **Time axis** (columns): configurable day / week / month buckets from `DTSTART`/`DUE`.
+- Compact **busy-day strip** in header; tap date → jump sidebar to Today (or Smart View) with that date filter.
+- Same task model; lane headers show counts.
+
+### Project plan (1.0)
+
+- Rows = enabled projects (calendars); columns = ISO weeks (or user month).
+- Cell = number of open tasks with due/start in that week (optional sum of `DURATION` / future `KURRENT/ESTIMATE`).
+- Click cell → temporary filter or Smart View preview.
+
+### Heatmap (1.0)
+
+- Month or year grid; color = open tasks due that day, or completions that day (toggle in header).
+- Recurring habits: optional “expected vs done” shading (computed from RRULE + `COMPLETED` / STATUS, not a stored streak counter).
+
+### Calendar + tasks (1.0)
+
+- **Day agenda:** opaque/busy events (existing event cache) as chips or timeline; tasks due that day below or beside.
+- No merge of VTODO and VEVENT into one object in 1.0; optional **“Block time”** (post-1.0): create linked VEVENT from task (UID reference), still two MIME types.
+
+### Smart Views (sidebar + KCM)
+
+- **Smart Views** section in sidebar (reorderable like Views): user-named saved filters.
+- Definition in KCM **Views** page: match rules (project, labels, priority, text, due window, status, recurring, custom `KURRENT/LIST`, optional `KURRENT/COLUMN`), sort override, default **main-pane mode** (List/Kanban/…).
+- Stored in `kurrentrc` (JSON array); not written into each VTODO unless the filter is materialized (export as label optional later).
+- Pin Smart Views on/off; duplicate built-in view as starting point.
+
+### Multi-select and bulk (1.0)
+
+- Selection mode: Shift/Ctrl+click, rubber-band in list; checkbox column optional in KCM.
+- Bulk actions: complete, delete, move project, add/remove label, set priority, reschedule (+1d, tomorrow, pick date), export UIDs.
+- Single undo step for bulk where feasible (or one undo per task — document in Design.md).
+
+### Offline / pending Akonadi (1.0)
+
+- When Akonadi is down or item job pending: banner **“Akonadi offline”** / **“Syncing…”** (existing copy extended).
+- Rows show **pending** / **syncing** state (already partially there); queue visible in **Diagnostics** (below).
+- No offline queue that outlives process except what Akonadi retains; failed jobs surface error + retry.
+
+### Diagnostics (1.0)
+
+New KCM page **Diagnostics** (or General subsection):
+
+- Akonadi server state, enabled todo collections count, last fetch/error, plugin and widget version (mismatch banner link).
+- Event calendar cache age (notifications / calendar+tasks view).
+- Smoke-test log path when `KURRENT_SMOKE` set.
+- Copy debug bundle (versions, config redacted, last 20 log lines).
+
+### Collaboration (1.0 — CalDAV-honest)
+
+Goal: everything the stack already stores on VTODO, surfaced consistently — not a proprietary issue tracker.
+
+| Area | 1.0 scope |
+| --- | --- |
+| **Shared calendars** | Projects = shared Akonadi collections; same read/write rules as today. |
+| **ATTENDEE / ORGANIZER** | Read-only display when present on VTODO; editor shows assignee list if server sends it. |
+| **COMMENT** | Append-only thread in `COMMENT` property if server round-trips; else show server `DESCRIPTION` only. |
+| **CLASS / secrecy** | Already in editor; respect in shared views. |
+| **PERCENT-COMPLETE** | Edit + show on row/Kanban card. |
+| **URL / LOCATION / GEO** | URL + Join; location text; optional map link for GEO. |
+| **Categories as tags** | Label rename already syncs `CATEGORIES`. |
+| **Concurrent edit** | Show conflict when Akonadi job fails with conflict; offer reload item (no three-way merge in 1.0). |
+| **Deck / Planix / Tasks.org** | See Kanban schema — do not assume board columns sync from other products; document limits. |
+
+Attachments, full comment threading, and invite workflow remain **post-1.0**.
+
+---
+
+## `KURRENT/COLUMN` — schema research (Kanban Phase B)
+
+Existing Kurrent custom data: **`KURRENT/LIST`** (day section) via `Todo::setCustomProperty("KURRENT", "LIST", …)` — same vendor namespace for **`KURRENT/COLUMN`** and **`KURRENT/COLUMN-ORDER`**.
+
+| Product | How “column” / order is stored | Kurrent takeaway |
+| --- | --- | --- |
+| **Nextcloud Tasks** | Standard VTODO only; **`X-OC-HIDESUBTASKS`**; no board columns in Tasks app. Unknown `X-*` often stored in raw calendar object if not stripped by app. | Prefer **`KURRENT/COLUMN`** over overloading `CATEGORIES`. |
+| **Nextcloud Deck** | Separate CalDAV model; card stacks **not** in Tasks VTODO; Deck CalDAV PUT ignores unsupported fields. | Kanban columns are **not** Deck stacks; do not expect Deck sync. |
+| **Tasks.org** | **`X-APPLE-SORT-ORDER`** for manual list order; generic **`X-*` pass-through**. | Use Apple sort order for card rank; add **`KURRENT/COLUMN`** for column id. |
+| **elementary / ownCloud Tasks** | Same **`X-APPLE-SORT-ORDER`** pattern (see owncloud/tasks #86, #358). | Align column order with Apple field when no Kurrent column set. |
+| **Planix** | Column in **app database**; optional **`calendarEventUid`** link to VTODO — columns do not round-trip through Tasks app. | Confirms: custom column id on VTODO is optional; computed columns stay default. |
+| **Apple Reminders** | Proprietary; limited VTODO via CalDAV. | Do not rely on Reminders-specific fields. |
+
+**Proposed `KURRENT/COLUMN` value:** lowercase slug (`backlog`, `doing`, `done`, or user-defined ids from KCM Kanban presets). **Empty** = fall back to Phase A computed column only.
+
+**Interop rules (document in Design.md + user-facing wiki):**
+
+1. Always **preserve unknown `X-*` and other vendor properties** on read/write.
+2. **`KURRENT/COLUMN`** is optional; other clients ignore it safely.
+3. Moving a card in Kanban **either** updates standard fields (status/due/…) **or** `KURRENT/COLUMN`, per user setting “Kanban writes: standard fields / custom column / both”.
+4. Before 1.0: manual round-trip test Merkuro + Nextcloud Tasks web/mobile; record which fields survive.
 
 ---
 
@@ -79,16 +186,18 @@ Not in 0.3: creating Akonadi calendars from the widget, attachments, attendees.
 
 Target KCM pages:
 
-1. **General** — startup, completed tasks, new tasks, confirmations, clicks
+1. **General** — startup, completed tasks, new tasks, confirmations, clicks, diagnostics link
 2. **Appearance** — blur, density, overlay, reduced motion
-3. **Sidebar** — width, sections, views on/off and order, row size
-4. **Tasks** — sort, row chips, date format, tree
-5. **Editor** — inline vs full, default fields, reminder offset
-6. **Panel** — badge, tooltip
-7. **Projects** — enable/hide + color
-8. **Labels** — hide + color (rename once 0.3 exists)
-9. **Notifications** — once alarms exist
-10. **Shortcuts** — documented bindings; remap through Plasma where possible
+3. **Sidebar** — width, sections, built-in views on/off and order, **Smart Views** list (edit opens Views page)
+4. **Views** — **Smart View** editor (rules, default main-pane mode, icon); built-in view overrides
+5. **Tasks** — sort, row chips, date format, tree, **default Kanban column source**, multi-select defaults
+6. **Editor** — inline vs full, default fields, reminder offset
+7. **Panel** — badge, tooltip
+8. **Projects** — enable/hide + color
+9. **Labels** — hide + color, rename
+10. **Notifications** — alarms, quiet hours, during events
+11. **Shortcuts** — documented bindings
+12. **Diagnostics** — status, versions, logs, offline hint
 
 Each page has reset-to-defaults. Desktop and panel stay in sync.
 
@@ -97,126 +206,114 @@ Each page has reset-to-defaults. Desktop and panel stay in sync.
 - Start on a fixed default view **or** remember the last view.
 - Catch-up block in Today on/off (includes the full Overdue set under Still open).
 - Completed tasks: hide / dim in the list / only in the Completed view.
-- New task with no sidebar project: ask / first visible / fixed project (already exists).
+- New task with no sidebar project: ask / first visible / fixed project.
 - Default due date when creating: none / today / tomorrow / in N days.
-- Delete immediately (today) or confirm.
+- Delete immediately or confirm.
 - Click: inline editor / full editor / select only; double-click does the other.
 - Checkbox: complete immediately, or only with a modifier.
-- Search: title+description+labels (today) or title only; case sensitivity.
-- Sync: manual (today) or interval in minutes (`syncNow`; Akonadi remains the live source).
+- Search: title+description+labels or title only; case sensitivity.
+- Sync: manual (`syncNow`) or interval; Akonadi remains the live source.
 
 ### Appearance
 
-- Blur on/off (already exists).
-- Density compact / comfortable / touch-auto for **sidebar and task rows**.
-- Overlay dim and card inset as a few steps, not unbounded sliders.
-- Reduced motion (no spinner, no hover flash).
-- Optional 0/1/2-line description preview on the row.
+- Blur on/off; density compact / comfortable / touch-auto for sidebar and task rows.
+- Overlay dim and card inset in steps; reduced motion; optional description preview lines on row.
 
 ### Sidebar
 
-- Width in grid units (currently fixed at 10).
-- Show/hide and reorder: Views, Projects, Labels, Priorities.
-- Show/hide and reorder individual views (including optional Overdue after 0.2; Catch-up is a Today block, not a separate view unless enabled).
-- Row size auto / compact / comfortable (already exists).
-- Show empty projects; show/hide counts.
+- Width in grid units; show/hide and reorder Views, Projects, Labels, Priorities.
+- **Smart Views** section: user filters alongside built-in views; reorder together or in separate block (KCM).
+- Show/hide individual built-in views; show empty projects; show/hide counts.
+
+### Views (Smart Views)
+
+- Create / edit / delete Smart Views: name, icon, filter rules (project, labels, priority, text, due range, status, recurring, `KURRENT/LIST`, optional `KURRENT/COLUMN`).
+- Per Smart View: default **main-pane mode** (List, Kanban, Swimlanes, Plan, Heatmap, Calendar+tasks).
+- Optional sort override; duplicate from built-in view as template.
 
 ### Tasks
 
-- Persistent sort (global or per-view; Tasks KCM).
-- Per-chip toggles: date, labels, priority, percent complete, location, recurring icon, Join button.
-- Relative dates vs locale date; time on the row on/off.
-- Overdue emphasis via the due chip, not a second palette. Reschedule presets (tomorrow / +1 day / pick date / snooze offsets).
-- Subtask indent in grid units; default collapsed/expanded.
-- Section headers when a `KURRENT/LIST` property is set; Morning / Afternoon / Evening hour bounds.
+- Persistent sort (global or per-view).
+- Row chips; date format; subtask tree defaults.
+- **Kanban:** default column source (status, project, due buckets, priority, label, day section); multi-select defaults.
+- Bulk action confirmations.
 
 ### Editor
 
-- Always inline, always full, or compact first with a full-editor button.
-- Which inline fields (description, due, priority, labels).
-- Fold status / secrecy / location / percent / recurrence / day-section (`LIST`) in the full editor.
-- Default all-day when a date has no time.
-- Default reminder: off / at due / N minutes before (needs 0.3).
-- Default recurrence preset.
+- Inline vs full; default fields; reminder; recurrence; day-section (`KURRENT/LIST`).
 
 ### Panel
 
-- Badge: off / open roots / today only / overdue only / unread reminders.
-- Tooltip: count / next due title.
-- Flyout preferred size (currently about 32×24 grid units).
-- Icon: mask (today) vs color app icon.
+- Badge modes; tooltip; icon mask vs color.
 
 ### Colors
 
-- Color button per project id and label name; empty means hash as today.
-- Reset one color or all.
-- Priority stays the 1–3 / 4–6 / 7–9 bands; no nine separate pickers in 1.0.
+- Project and label color overrides; priority bands unchanged.
 
-### Notifications (after 0.3)
+### Notifications
 
-- Desktop notifications on/off, quiet hours.
-- Reminder vs overdue vs morning digest.
-- Snooze actions on the notification (15 min / 1 h / tomorrow).
-- Click opens flyout or full editor.
+- Desktop on/off; quiet hours; during events; snooze actions.
 
 ### Shortcuts
 
-- Search, new, complete, delete, editor, reschedule, views 1–9 listed in the KCM.
-- Remap via Plasma shortcuts where possible; otherwise widget defaults.
+- Widget and global shortcuts documented; Plasma remapping where possible.
+
+### Diagnostics
+
+- Akonadi state, collection counts, last error, plugin/widget versions, event-cache age, copy debug info.
 
 ---
 
 ## Easy install (1.0 packaging)
 
-Compiling from a git clone is the fallback, not the product. The bar for 1.0 is: add the widget, get a working Akonadi plugin, no CMake in the user’s face.
-
-**Now (until packages exist):** one-liner that installs the **GitHub Release binary** (`kurrent-linux-x86_64.tar.gz`, plugin + plasmoid) into `~/.local`. Compiling is the fallback (`--from-source`) when the `.so` does not match the distro. Prefer AUR/COPR once they exist.
+Unchanged goal: AUR + COPR minimum; `install-linux.sh` until then. Store `.plasmoid` UI-only + plugin note.
 
 ```bash
 curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash
 ```
 
-`sudo` is for packages only. The script installs the widget as `$SUDO_USER` (do not log in as root). Without sudo: `bash <(curl -fsSL …/install-linux.sh)` so a password prompt can use the terminal. Pin a release: `| bash -s -- --tag v0.3`. Every `v*` tag publishes `.plasmoid` + Linux plugin tarball + this script.
-
-**Must have for 1.0**
-
-- **AUR:** `kurrent` (release tarball / tag, plugin + plasmoid) and `kurrent-git` (tracking `1.0` / `main`). Arch is the primary desktop for this project; this is the first channel.
-- **COPR:** Fedora RPM with the same layout (`~` or `/usr` — prefer a proper `/usr` prefix so QML import paths do not need `plasma-workspace/env`). Enable with `dnf copr enable …` then `dnf install kurrent`.
-
-**Should have (same 1.0 window if the spec ports cheaply)**
-
-- **OBS** (openSUSE Tumbleweed, Leap if KF6 PIM is there): one RPM spec can feed OBS and stay close to COPR.
-- **Debian / Ubuntu / KDE neon:** `.deb` or a PPA. Neon is the obvious Ubuntu-family target. Only ship if KPim6 Akonadi devel is installable on the suite we claim.
-
-**Nice, not a 1.0 gate**
-
-- Nixpkgs overlay / flake (user profile, not a substitute for AUR/COPR).
-- Do **not** chase Flatpak or a Store-only native plugin for 1.0: KPackage/GHNS cannot ship `libkurrentplugin.so`; Flatpak + Akonadi is a later research item.
-
-Packaging work lives outside this application repo (AUR `PKGBUILD`, COPR spec) so release tags stay small. Link those repos from the README once they exist.
-
 ---
 
 ## 1.0 ship criteria
 
-1. **Easy install without compiling from a git clone:** AUR (`kurrent` from tags + `kurrent-git`) and Fedora COPR at minimum. Stretch: OBS (openSUSE Tumbleweed/Leap) and a Debian/Ubuntu package or PPA. Until those exist, the `install-linux.sh` one-liner. Store `.plasmoid` stays UI-only with a plugin note.
-2. Nextcloud round-trip: create, due, label, subtask, recur, complete the series, reminder — visible in Merkuro/Nextcloud and back.
-3. Keyboard-only daily use in the widget.
-4. All KCM pages above, with reset; desktop and panel identical.
-5. Translations, changelog, settings screenshots.
-6. Tests: recurrence complete, alarm round-trip, quick-add parser, catch-up / overdue, reschedule undo, `SharedSettings` round-trip.
+1. **Easy install** without compiling from git: AUR (`kurrent` + `kurrent-git`) and Fedora COPR at minimum; stretch OBS + Debian/PPA; until then `install-linux.sh`.
+2. **Main-pane views:** List, Kanban (Phase A column sources + drag), Swimlanes, Project plan, Heatmap, Calendar+tasks — switcher in header; mode persisted per view.
+3. **Smart Views** in sidebar + KCM; built-in views still available.
+4. **Multi-select and bulk** actions with undo policy documented.
+5. **Undo** button in main pane header for all views.
+6. **Diagnostics** KCM; **offline/pending** Akonadi messaging.
+7. **Collaboration** fields listed above (ATTENDEE read-only, conflict reload, etc.).
+8. **`KURRENT/COLUMN`** spec documented; Phase B behind setting after Phase A ships; unknown `X-*` preserved.
+9. Keyboard-first daily use; all KCM pages with reset; desktop ≡ panel.
+10. Translations, changelog, settings screenshots.
+11. **Tests:** recurrence complete, alarm round-trip, quick-add parser, catch-up/overdue, reschedule undo, `SharedSettings` round-trip, Smart View filter JSON, Kanban column mapping unit tests (no manual Nextcloud round-trip gate).
+
+**Removed from 1.0 gate:** manual Nextcloud/Merkuro round-trip checklist as release blocker (replace with automated tests + documented interop limits).
+
+---
 
 ## After 1.0
 
-- **Swimlanes:** a dated source (tag, project, saved filter) unfolds into parallel lanes; columns adapt from days to weeks to months. Compact heat strip of busy days; tap a date header to jump to that day in Today. Needs a real time axis, not the 1.0 list widget.
-- **Streak / heatmap:** habit-style recurring todos with a completion calendar (year/month), snooze a day, optional “skip doesn’t break the streak”.
-- **Task ↔ event:** convert a VTODO into an Akonadi calendar event (and back), or show the day’s events beside tasks without leaving the widget. Two MIME types; keep CalDAV round-trip honest.
-- Kanban, Markdown notes, attachments, comments
-- Saved smart filters, pins, multi-select
-- Per-instance settings (desktop different from panel)
-- Nine custom priority colors, padding in raw pixels
-- CalDAV without Akonadi, Flatpak
+- **Kanban Phase B** default-on after interop matrix is green.
+- **Block time** (VTODO → linked VEVENT).
+- **Streak semantics** (skip / EXDATE UI) beyond heatmap coloring.
+- Binary **attachments** on VTODO.
+- Full **comment** threading and assignee workflow.
+- **Markdown** description mode (display-only or stored in DESCRIPTION).
+- Per-instance settings (desktop ≠ panel).
+- Nine custom priority colors; raw pixel padding.
+- CalDAV without Akonadi; Flatpak research.
+
+---
 
 ## Build order
 
-0.2 packaging (except AUR/COPR) and Today catch-up shipped in 0.2.0. **0.3** (CalDAV semantics, settings, panel/notifications) shipped 2026-08-29. One-liner installer is the bridge to distro packages. Remaining **0.4** catalog, then KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.
+1. **0.4** — keyboard, global shortcuts, undo header button, join polish.
+2. **0.5a** — view switcher shell + List unchanged + Smart Views (filter only) + multi-select/bulk.
+3. **0.5b** — Kanban Phase A + `KURRENT/COLUMN` write path behind flag + preservation tests.
+4. **0.5c** — Swimlanes, Project plan, Heatmap.
+5. **0.5d** — Calendar+tasks day view + Diagnostics KCM + offline banner polish.
+6. **0.5e** — Collaboration UI (ATTENDEE, conflict, GEO) + KCM Views page.
+7. **1.0** — packaging AUR/COPR, KRunner if ready, translation/docs pass, ship.
+
+**0.3** shipped 2026-08-29; **0.3.1** i18n complete. One-liner installer remains the bridge until distro packages exist.
