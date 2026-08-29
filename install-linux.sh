@@ -300,7 +300,7 @@ install_build_deps() {
                 build-essential cmake extra-cmake-modules gettext git curl tar
                 qt6-base-dev qt6-declarative-dev
                 libkf6calendarcore-dev libkf6i18n-dev libkf6config-dev
-                libkf6notifications-dev libkf6globalaccel-dev libkf6kirigami-dev
+                libkf6notifications-dev libkf6globalaccel-dev libkirigami-dev
                 libkf6package-dev kpackagetool6 plasma-workspace
             )
             local extra

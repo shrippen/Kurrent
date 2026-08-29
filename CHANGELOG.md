@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3 — 2026-08-29
 
 ### Added
 
@@ -19,7 +19,8 @@
 - Flyout opens immediately with boot loader; FullView loads async; indeterminate progress while Akonadi connects / tasks load
 - Today Catch-up (“Still open”) includes all overdue incomplete tasks (same set as the Overdue view), not only those within the former catch-up lookback window
 - Sort menu radios no longer stick on “None” for levels 2–3
-- Due dates missing in list chip and editor: Qt 6 Date has no `isValid`; use `DateTime.isValidDate()` (`getTime()` / format fallback)
+- Due dates missing in list chip and editor (#2): Qt 6 Date has no `isValid`; use `DateTime.isValidDate()` (`getTime()` / format fallback) instead of `task.dueDate.isValid === true`
+- `install-linux.sh` Debian/Ubuntu build deps (#1): `libkirigami-dev` (not `libkf6kirigami-dev`)
 - Full editor project radios: folder icon sits beside the name (not under the radio circle)
 - Quick Add: long text wraps and the field grows (capped at `quickAddMaxLines`); scrolls internally beyond that; Enter still adds, Shift+Enter inserts a newline
 - Parent picker: TextField stays focusable for typing; label vertically centered; suggestions open upward (height clamped to space above); priority/tag chips before task name
