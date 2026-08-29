@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 — 2026-08-29
+
+### Fixed
+
+- i18n catalog completion: all 304 QML strings now translated for de, es, fr, ja, zh_CN (was ~166; ~158 fell back to English at runtime)
+- `generate_po.py` auto-extracts msgids from QML and fails on missing per-locale translations
+
 ## 0.3 — 2026-08-29
 
 ### Added

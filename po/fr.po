@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.3.0\n"
+"Project-Id-Version: kurrent 0.3.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -17,428 +17,146 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 
-msgid "Kurrent"
-msgstr "Kurrent"
+msgid "%1 grid units"
+msgstr "%1 unités de grille"
 
-msgid "Task manager powered by Akonadi and Nextcloud CalDAV"
-msgstr "Gestionnaire de tâches basé sur Akonadi et Nextcloud CalDAV"
-
-msgid "Inbox"
-msgstr "Boîte de réception"
-
-msgid "Today"
-msgstr "Aujourd’hui"
-
-msgid "Tomorrow"
-msgstr "Demain"
-
-msgid "Scheduled"
-msgstr "Planifiées"
-
-msgid "Anytime"
-msgstr "À tout moment"
-
-msgid "Recurring"
-msgstr "Récurrentes"
-
-msgid "Unlabeled"
-msgstr "Sans étiquette"
-
-msgid "Completed"
-msgstr "Terminées"
-
-msgid "No open tasks"
-msgstr "Aucune tâche ouverte"
-
-msgid "Due date"
-msgstr "Date d’échéance"
-
-msgid "Priority"
-msgstr "Priorité"
-
-msgid "Title A–Z"
-msgstr "Titre A–Z"
-
-msgid "Title Z–A"
-msgstr "Titre Z–A"
-
-msgid "Default"
-msgstr "Par défaut"
-
-msgid "Sort: %1"
-msgstr "Tri : %1"
-
-msgid "Sort tasks"
-msgstr "Trier les tâches"
-
-msgid "Build"
-msgstr "Build"
-
-msgid "Akonadi offline"
-msgstr "Akonadi hors ligne"
+msgid "%1:00"
+msgstr "%1:00"
 
 msgid "(Untitled)"
 msgstr "(Sans titre)"
 
-msgid "Projects"
-msgstr "Projets"
+msgid "1 day before"
+msgstr "1 jour avant"
 
-msgid "All"
-msgstr "Tous"
+msgid "1 hour before"
+msgstr "1 heure avant"
 
-msgid "Already in project “%1”"
-msgstr "Déjà dans le projet « %1 »"
+msgid "1 line"
+msgstr "1 ligne"
 
-msgid "Move to project “%1”"
-msgstr "Déplacer vers le projet « %1 »"
+msgid "15 minutes before"
+msgstr "15 minutes avant"
 
-msgid "Labels"
-msgstr "Étiquettes"
+msgid "2 lines"
+msgstr "2 lignes"
 
-msgid "Add label “%1”"
-msgstr "Ajouter l’étiquette « %1 »"
-
-msgid "Search tasks…"
-msgstr "Rechercher des tâches…"
-
-msgid "Clear search"
-msgstr "Effacer la recherche"
-
-msgid "Exit delete mode"
-msgstr "Quitter le mode suppression"
-
-msgid "Delete mode"
-msgstr "Mode suppression"
-
-msgid "Sync now"
-msgstr "Synchroniser maintenant"
-
-msgid "No tasks in this view."
-msgstr "Aucune tâche dans cette vue."
-
-msgid "Make top-level task"
-msgstr "En faire une tâche principale"
-
-msgid "Drop here to make a top-level task"
-msgstr "Déposez ici pour en faire une tâche principale"
-
-msgid "Add a task…"
-msgstr "Ajouter une tâche…"
+msgid "Accent (highlight)"
+msgstr "Accent (surbrillance)"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "Ajouter une tâche…  tomorrow 18:00 !high #tag @project"
 
-msgid "Yesterday"
-msgstr "Hier"
+msgid "Add label"
+msgstr "Ajouter une étiquette"
 
-msgid "Next week"
-msgstr "Semaine prochaine"
-
-msgid "Tonight"
-msgstr "Ce soir"
-
-msgid "No priority"
-msgstr "Sans priorité"
-
-msgid "Backend not installed"
-msgstr "Moteur non installé"
-
-msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
-msgstr "Le paquet KDE Store n’est que le widget. Exécutez ceci dans un terminal pour installer le greffon :"
-
-msgid "Copy command"
-msgstr "Copier la commande"
-
-msgid "Open GitHub"
-msgstr "Ouvrir GitHub"
-
-msgid "Backend version mismatch"
-msgstr "Version du moteur incompatible"
-
-msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
-msgstr "Ce widget est en version %1 mais le moteur installé est %2. Réinstallez le moteur pour les faire correspondre."
-
-msgid "unknown"
-msgstr "inconnu"
+msgid "Add label “%1”"
+msgstr "Ajouter l’étiquette « %1 »"
 
 msgid "Add task"
 msgstr "Ajouter une tâche"
 
-msgid "Make subtask of “%1”"
-msgstr "En faire une sous-tâche de « %1 »"
-
-msgid "High priority (%1)"
-msgstr "Priorité haute (%1)"
-
-msgid "Medium priority (%1)"
-msgstr "Priorité moyenne (%1)"
-
-msgid "Low priority (%1)"
-msgstr "Priorité basse (%1)"
-
-msgid "Priority %1"
-msgstr "Priorité %1"
-
-msgid "Edit task"
-msgstr "Modifier la tâche"
-
-msgid "Delete task"
-msgstr "Supprimer la tâche"
-
-msgid "Waiting for Akonadi…"
-msgstr "En attente d’Akonadi…"
-
-msgid "Basics"
-msgstr "Général"
-
-msgid "Title:"
-msgstr "Titre :"
-
-msgid "Title"
-msgstr "Titre"
-
-msgid "Description:"
-msgstr "Description :"
-
-msgid "Description"
-msgstr "Description"
-
-msgid "Schedule"
-msgstr "Planning"
-
-msgid "All day:"
-msgstr "Journée entière :"
-
-msgid "All-day task"
-msgstr "Tâche sur toute la journée"
-
-msgid "Start:"
-msgstr "Début :"
-
-msgid "Clear start"
-msgstr "Effacer le début"
-
-msgid "Due:"
-msgstr "Échéance :"
-
-msgid "Clear due date"
-msgstr "Effacer la date d’échéance"
-
-msgid "Repeat:"
-msgstr "Répéter :"
-
-msgid "None"
-msgstr "Aucun"
-
-msgid "Daily"
-msgstr "Quotidien"
-
-msgid "Weekly"
-msgstr "Hebdomadaire"
-
-msgid "Monthly"
-msgstr "Mensuel"
-
-msgid "Yearly"
-msgstr "Annuel"
-
-msgid "Status"
-msgstr "Statut"
-
-msgid "Completed:"
-msgstr "Terminée :"
-
-msgid "Mark as done"
-msgstr "Marquer comme terminée"
-
-msgid "Progress:"
-msgstr "Progression :"
-
-msgid "Status:"
-msgstr "Statut :"
-
-msgid "Needs action"
-msgstr "Action requise"
-
-msgid "In process"
-msgstr "En cours"
-
-msgid "Canceled"
-msgstr "Annulée"
-
-msgid "Classification"
-msgstr "Classification"
-
-msgid "Priority:"
-msgstr "Priorité :"
-
-msgid "Labels:"
-msgstr "Étiquettes :"
-
-msgid "Secrecy:"
-msgstr "Confidentialité :"
-
-msgid "Public"
-msgstr "Public"
-
-msgid "Private"
-msgstr "Privé"
-
-msgid "Confidential"
-msgstr "Confidentiel"
-
-msgid "Location:"
-msgstr "Lieu :"
-
-msgid "Location"
-msgstr "Lieu"
-
-msgid "Project:"
-msgstr "Projet :"
-
-msgid "No projects available"
-msgstr "Aucun projet disponible"
-
-msgid "Pick date"
-msgstr "Choisir une date"
-
-msgid "Due"
-msgstr "Échéance"
-
-msgid "All day"
-msgstr "Journée entière"
-
-msgid "Cancel"
-msgstr "Annuler"
-
-msgid "More…"
-msgstr "Plus…"
-
-msgid "Save"
-msgstr "Enregistrer"
-
-msgid "High"
-msgstr "Haute"
-
-msgid "Medium"
-msgstr "Moyenne"
-
-msgid "Low"
-msgstr "Basse"
-
-msgid "Search or create label…"
-msgstr "Rechercher ou créer une étiquette…"
-
-msgid "Remove label"
-msgstr "Retirer l’étiquette"
-
-msgid "Create label “%1”"
-msgstr "Créer l’étiquette « %1 »"
-
-msgid "No matching labels"
-msgstr "Aucune étiquette correspondante"
-
-msgid "Select a label to filter tasks."
-msgstr "Sélectionnez une étiquette pour filtrer les tâches."
-
-msgid "Clear label filter"
-msgstr "Effacer le filtre d’étiquette"
-
-msgid "Projects (Akonadi Calendars)"
-msgstr "Projets (calendriers Akonadi)"
-
-msgid "Manage which Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
-msgstr "Choisissez les calendriers Akonadi utilisés comme projets. Les calendriers désactivés sont exclus. Les calendriers masqués sont chargés mais absents de la barre latérale."
-
-msgid "No Akonadi calendars found. Make sure Akonadi is running."
-msgstr "Aucun calendrier Akonadi trouvé. Vérifiez qu’Akonadi est lancé."
-
-msgid "Collection ID: %1"
-msgstr "ID de collection : %1"
-
-msgid "Enabled"
-msgstr "Activé"
-
-msgid "Include this calendar when fetching tasks"
-msgstr "Inclure ce calendrier lors du chargement des tâches"
-
-msgid "Visible"
-msgstr "Visible"
-
-msgid "Show this project in the sidebar"
-msgstr "Afficher ce projet dans la barre latérale"
-
-msgid "Enable All"
-msgstr "Tout activer"
-
-msgid "Show All"
-msgstr "Tout afficher"
-
-msgid "Refresh"
-msgstr "Actualiser"
+msgid "Afternoon"
+msgstr "Après-midi"
+
+msgid "Afternoon starts"
+msgstr "L’après-midi commence"
 
 msgid "Akonadi"
 msgstr "Akonadi"
 
-msgid "Tasks are loaded from your existing Akonadi setup."
-msgstr "Les tâches sont chargées depuis votre configuration Akonadi."
+msgid "Akonadi is not running"
+msgstr "Akonadi n’est pas lancé"
 
-msgid "Setup"
-msgstr "Configuration"
+msgid "Akonadi offline"
+msgstr "Akonadi hors ligne"
 
-msgid "Configure CalDAV/Nextcloud in KOrganizer or Kalendar (DAV groupware resource)."
-msgstr "Configurez CalDAV/Nextcloud dans KOrganizer ou Kalendar (ressource DAV)."
+msgid "All"
+msgstr "Tous"
 
-msgid "Default view"
-msgstr "Vue par défaut"
+msgid "All day"
+msgstr "Journée entière"
 
-msgid "Completed tasks"
-msgstr "Tâches terminées"
+msgid "All day:"
+msgstr "Journée entière :"
 
-msgid "Show completed tasks"
-msgstr "Afficher les tâches terminées"
+msgid "All views"
+msgstr "Toutes les vues"
+
+msgid "All-day task"
+msgstr "Tâche sur toute la journée"
+
+msgid "Already has no priority"
+msgstr "Déjà sans priorité"
+
+msgid "Already in project “%1”"
+msgstr "Déjà dans le projet « %1 »"
+
+msgid "Already priority “%1”"
+msgstr "Déjà priorité « %1 »"
+
+msgid "Anytime"
+msgstr "À tout moment"
 
 msgid "Appearance"
 msgstr "Apparence"
 
-msgid "Blurred background"
-msgstr "Arrière-plan flou"
+msgid "Applies when the badge shows the overdue count."
+msgstr "S’applique lorsque le badge affiche le nombre de tâches en retard."
 
-msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
-msgstr "Utilise le fond translucide de Plasma pour que KWin floute le fond d’écran. S’applique aussi au menu du panneau."
+msgid "Applies when the badge shows today and there are overdue tasks."
+msgstr "S’applique lorsque le badge affiche Aujourd’hui et qu’il y a des tâches en retard."
 
-msgid "Sidebar row size"
-msgstr "Taille des lignes de la barre latérale"
-
-msgid "Auto (compact, larger with touch)"
-msgstr "Auto (compact, plus grand au tactile)"
-
-msgid "Compact"
-msgstr "Compact"
-
-msgid "Comfortable (touch-friendly)"
-msgstr "Confortable (tactile)"
-
-msgid "Auto uses compact rows on mouse/desktop and comfortable rows when Plasma detects tablet or touch input."
-msgstr "Auto utilise des lignes compactes à la souris et des lignes confortables si Plasma détecte une tablette ou un écran tactile."
-
-msgid "New tasks"
-msgstr "Nouvelles tâches"
+msgid "Ask before deleting a task"
+msgstr "Demander avant de supprimer une tâche"
 
 msgid "Ask which project to use"
 msgstr "Demander quel projet utiliser"
 
-msgid "Use the top project in the sidebar"
-msgstr "Utiliser le premier projet de la barre latérale"
+msgid "At due time"
+msgstr "À l’échéance"
 
-msgid "Use a specific project"
-msgstr "Utiliser un projet précis"
+msgid "Auto (compact, larger with touch)"
+msgstr "Auto (compact, plus grand au tactile)"
 
-msgid "When no project is selected in the sidebar, new tasks follow this setting."
-msgstr "Si aucun projet n’est sélectionné dans la barre latérale, les nouvelles tâches suivent ce réglage."
+msgid "Backend not installed"
+msgstr "Moteur non installé"
 
-msgid "Default project"
-msgstr "Projet par défaut"
+msgid "Backend version mismatch"
+msgstr "Version du moteur incompatible"
+
+msgid "Background"
+msgstr "Arrière-plan"
+
+msgid "Badge display"
+msgstr "Affichage du badge"
+
+msgid "Basics"
+msgstr "Général"
+
+msgid "Blurred wallpaper behind the widget"
+msgstr "Fond d’écran flouté derrière le widget"
+
+msgid "Build"
+msgstr "Build"
+
+msgid "Calendars for event suppression"
+msgstr "Calendriers pour la suppression d’événements"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Canceled"
+msgstr "Annulée"
+
+msgid "Case sensitive"
+msgstr "Sensible à la casse"
+
+msgid "Catch-up"
+msgstr "Rattrapage"
+
+msgid "Checkbox"
+msgstr "Case à cocher"
 
 msgid "Choose a project"
 msgstr "Choisir un projet"
@@ -446,68 +164,770 @@ msgstr "Choisir un projet"
 msgid "Choose a project for “%1”"
 msgstr "Choisir un projet pour « %1 »"
 
+msgid "Choose which Akonadi event calendars block reminders. Disabled entries are ignored when checking for ongoing events."
+msgstr "Choisissez quels calendriers d’événements Akonadi bloquent les rappels. Les entrées désactivées sont ignorées lors de la vérification des événements en cours."
+
+msgid "Classification"
+msgstr "Classification"
+
+msgid "Clear due date"
+msgstr "Effacer la date d’échéance"
+
+msgid "Clear label filter"
+msgstr "Effacer le filtre d’étiquette"
+
+msgid "Clear parent"
+msgstr "Retirer la tâche parente"
+
+msgid "Clear priority"
+msgstr "Effacer la priorité"
+
+msgid "Clear project filter"
+msgstr "Effacer le filtre de projet"
+
+msgid "Clear search"
+msgstr "Effacer la recherche"
+
+msgid "Clear start"
+msgstr "Effacer le début"
+
+msgid "Click a task"
+msgstr "Cliquer sur une tâche"
+
+msgid "Collapse subtasks"
+msgstr "Réduire les sous-tâches"
+
+msgid "Comfortable"
+msgstr "Confortable"
+
+msgid "Comfortable (touch-friendly)"
+msgstr "Confortable (tactile)"
+
+msgid "Compact"
+msgstr "Compact"
+
+msgid "Complete only with Shift or Ctrl held"
+msgstr "Terminer uniquement avec Maj ou Ctrl enfoncé"
+
+msgid "Completed"
+msgstr "Terminées"
+
+msgid "Completed tasks"
+msgstr "Tâches terminées"
+
+msgid "Completed:"
+msgstr "Terminée :"
+
+msgid "Completing a parent also completes its children"
+msgstr "Terminer une tâche parente termine aussi ses sous-tâches"
+
+msgid "Confidential"
+msgstr "Confidentiel"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
+msgstr "Configurez CalDAV/Nextcloud dans KOrganizer ou Merkuro (ressource DAV groupware)."
+
+msgid "Connecting to Akonadi…"
+msgstr "Connexion à Akonadi…"
+
+msgid "Copy command"
+msgstr "Copier la commande"
+
+msgid "Could not load tasks"
+msgstr "Impossible de charger les tâches"
+
+msgid "Counts"
+msgstr "Compteurs"
+
+msgid "Create label “%1”"
+msgstr "Créer l’étiquette « %1 »"
+
+msgid "Daily"
+msgstr "Quotidien"
+
+msgid "Dates"
+msgstr "Dates"
+
+msgid "Default due date"
+msgstr "Date d’échéance par défaut"
+
+msgid "Default project"
+msgstr "Projet par défaut"
+
+msgid "Default reminder"
+msgstr "Rappel par défaut"
+
+msgid "Default view"
+msgstr "Vue par défaut"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Delete label"
+msgstr "Supprimer l’étiquette"
+
+msgid "Delete mode"
+msgstr "Mode suppression"
+
+msgid "Delete task"
+msgstr "Supprimer la tâche"
+
+msgid "Delete task?"
+msgstr "Supprimer la tâche ?"
+
+msgid "Delete this task?"
+msgstr "Supprimer cette tâche ?"
+
+msgid "Density"
+msgstr "Densité"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Description preview"
+msgstr "Aperçu de la description"
+
+msgid "Description:"
+msgstr "Description :"
+
+msgid "Desktop notifications"
+msgstr "Notifications de bureau"
+
+msgid "Dot"
+msgstr "Point"
+
+msgid "Drop here to make a top-level task"
+msgstr "Déposez ici pour en faire une tâche principale"
+
+msgid "Due"
+msgstr "Échéance"
+
+msgid "Due date"
+msgstr "Date d’échéance"
+
+msgid "Due date (latest first)"
+msgstr "Date d’échéance (plus récente d’abord)"
+
+msgid "Due:"
+msgstr "Échéance :"
+
+msgid "During events"
+msgstr "Pendant les événements"
+
+msgid "Each sidebar view keeps its own sort. Views you have not changed start with Priority › Due › Title A–Z."
+msgstr "Chaque vue de la barre latérale conserve son propre tri. Les vues non modifiées commencent par Priorité › Échéance › Titre A–Z."
+
+msgid "Edit task"
+msgstr "Modifier la tâche"
+
+msgid "Editor"
+msgstr "Éditeur"
+
+msgid "Editor dim"
+msgstr "Assombrissement de l’éditeur"
+
+msgid "Enable All"
+msgstr "Tout activer"
+
+msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "Activez un calendrier dans Configurer Kurrent → Projets, ou ajoutez une ressource CalDAV dans Merkuro ou KOrganizer."
+
+msgid "Enabled"
+msgstr "Activé"
+
+msgid "Ends"
+msgstr "Se termine"
+
+msgid "Evening"
+msgstr "Soir"
+
+msgid "Evening starts"
+msgstr "Le soir commence"
+
+msgid "Exclude collapsed subtasks from counts"
+msgstr "Exclure les sous-tâches réduites des compteurs"
+
+msgid "Exit delete mode"
+msgstr "Quitter le mode suppression"
+
+msgid "Expand subtasks"
+msgstr "Développer les sous-tâches"
+
+msgid "First sort"
+msgstr "Premier tri"
+
+msgid "General"
+msgstr "Général"
+
+msgid "Heading on the list"
+msgstr "En-tête dans la liste"
+
+msgid "Hidden"
+msgstr "Masqué"
+
+msgid "High"
+msgstr "Haute"
+
+msgid "High priority"
+msgstr "Priorité haute"
+
+msgid "High priority (%1)"
+msgstr "Priorité haute (%1)"
+
+msgid "In 1 hour"
+msgstr "Dans 1 heure"
+
+msgid "In 15 minutes"
+msgstr "Dans 15 minutes"
+
+msgid "In 4 hours"
+msgstr "Dans 4 heures"
+
+msgid "In process"
+msgstr "En cours"
+
+msgid "Inbox"
+msgstr "Boîte de réception"
+
+msgid "Include All"
+msgstr "Tout inclure"
+
+msgid "Include this calendar when checking for ongoing events"
+msgstr "Inclure ce calendrier lors de la vérification des événements en cours"
+
+msgid "Include this calendar when fetching tasks"
+msgstr "Inclure ce calendrier lors du chargement des tâches"
+
+msgid "Kurrent"
+msgstr "Kurrent"
+
+msgid "Labels"
+msgstr "Étiquettes"
+
 msgid "Labels (Categories)"
 msgstr "Étiquettes (catégories)"
 
 msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
 msgstr "Les étiquettes proviennent des catégories Akonadi. Les étiquettes masquées n’apparaissent pas dans la barre latérale mais restent sur les tâches."
 
-msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
-msgstr "Aucune étiquette trouvée. Elles sont découvertes automatiquement depuis les catégories Akonadi."
+msgid "Labels:"
+msgstr "Étiquettes :"
 
-msgid "Auto-generated color for '%1'"
-msgstr "Couleur générée automatiquement pour « %1 »"
+msgid "Light"
+msgstr "Clair"
 
-msgid "Show this label in the sidebar filter"
-msgstr "Afficher cette étiquette dans le filtre de la barre latérale"
+msgid "Loading tasks…"
+msgstr "Chargement des tâches…"
 
-msgid "General"
-msgstr "Général"
+msgid "Loading…"
+msgstr "Chargement…"
 
-msgid "Select a project to filter tasks."
-msgstr "Sélectionnez un projet pour filtrer les tâches."
+msgid "Location"
+msgstr "Lieu"
 
-msgid "Clear project filter"
-msgstr "Effacer le filtre de projet"
+msgid "Location:"
+msgstr "Lieu :"
 
-msgid "Priorities"
-msgstr "Priorités"
+msgid "Low"
+msgstr "Basse"
 
-msgid "Set priority “%1”"
-msgstr "Définir la priorité « %1 »"
+msgid "Low priority (%1)"
+msgstr "Priorité basse (%1)"
 
-msgid "Already priority “%1”"
-msgstr "Déjà priorité « %1 »"
+msgid "Make subtask of “%1”"
+msgstr "En faire une sous-tâche de « %1 »"
 
-msgid "Clear priority"
-msgstr "Effacer la priorité"
+msgid "Make top-level task"
+msgstr "En faire une tâche principale"
 
-msgid "Already has no priority"
-msgstr "Déjà sans priorité"
+msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "Gérez quels calendriers Akonadi modifiables sont utilisés comme projets. Les calendriers désactivés sont exclus. Les calendriers masqués sont chargés mais absents de la barre latérale."
 
-msgid "Due date, then priority"
-msgstr "Date d’échéance, puis priorité"
+msgid "Mark as done"
+msgstr "Marquer comme terminée"
 
-msgid "Due date, then title"
-msgstr "Date d’échéance, puis titre"
+msgid "Medium"
+msgstr "Moyenne"
 
-msgid "Priority, then due date"
-msgstr "Priorité, puis date d’échéance"
+msgid "Medium priority (%1)"
+msgstr "Priorité moyenne (%1)"
 
-msgid "Priority, then title"
-msgstr "Priorité, puis titre"
+msgid "Meetings"
+msgstr "Réunions"
 
-msgid "Open first, then due date"
-msgstr "Ouvertes d’abord, puis échéance"
+msgid "Monthly"
+msgstr "Mensuel"
 
-msgid "Open first, then priority"
-msgstr "Ouvertes d’abord, puis priorité"
+msgid "More…"
+msgstr "Plus…"
+
+msgid "Morning"
+msgstr "Matin"
+
+msgid "Morning starts"
+msgstr "Le matin commence"
+
+msgid "Motion"
+msgstr "Mouvement"
+
+msgid "Move to project “%1”"
+msgstr "Déplacer vers le projet « %1 »"
+
+msgid "Needs action"
+msgstr "Action requise"
 
 msgid "New label"
 msgstr "Nouvelle étiquette"
 
-msgid "Delete label"
-msgstr "Supprimer l’étiquette"
+msgid "New tasks"
+msgstr "Nouvelles tâches"
+
+msgid "Next week"
+msgstr "Semaine prochaine"
+
+msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
+msgstr "Aucun calendrier d’événements trouvé. Vérifiez qu’Akonadi est lancé et que les calendriers CalDAV sont configurés."
+
+msgid "No high priority tasks"
+msgstr "Aucune tâche à priorité haute"
+
+msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
+msgstr "Aucune étiquette trouvée. Elles sont découvertes automatiquement depuis les catégories Akonadi."
+
+msgid "No matching labels"
+msgstr "Aucune étiquette correspondante"
+
+msgid "No matching tasks"
+msgstr "Aucune tâche correspondante"
+
+msgid "No open tasks"
+msgstr "Aucune tâche ouverte"
+
+msgid "No overdue tasks"
+msgstr "Aucune tâche en retard"
+
+msgid "No priority"
+msgstr "Sans priorité"
+
+msgid "No projects available"
+msgstr "Aucun projet disponible"
+
+msgid "No task lists"
+msgstr "Aucune liste de tâches"
+
+msgid "No tasks in this view."
+msgstr "Aucune tâche dans cette vue."
+
+msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
+msgstr "Aucun calendrier Akonadi modifiable trouvé. Vérifiez qu’Akonadi est lancé et que votre ressource CalDAV autorise la modification des tâches."
+
+msgid "None"
+msgstr "Aucun"
+
+msgid "Nothing due today"
+msgstr "Rien à échéance aujourd’hui"
+
+msgid "Notifications"
+msgstr "Notifications"
+
+msgid "Notify when a task reminder is due"
+msgstr "Notifier lorsqu’un rappel de tâche est dû"
+
+msgid "Number"
+msgstr "Nombre"
+
+msgid "Off"
+msgstr "Désactivé"
+
+msgid "One sort order for every view. The default is Priority › Due › Title A–Z until you change it in the task list."
+msgstr "Un ordre de tri pour toutes les vues. Par défaut : Priorité › Échéance › Titre A–Z jusqu’à modification dans la liste des tâches."
+
+msgid "Only opaque (busy) events count. Transparent events are ignored."
+msgstr "Seuls les événements opaques (occupés) comptent. Les événements transparents sont ignorés."
+
+msgid "Open / Join"
+msgstr "Ouvrir / Rejoindre"
+
+msgid "Open GitHub"
+msgstr "Ouvrir GitHub"
+
+msgid "Open first"
+msgstr "Ouvertes d’abord"
+
+msgid "Open root tasks"
+msgstr "Tâches principales ouvertes"
+
+msgid "Open tasks"
+msgstr "Tâches ouvertes"
+
+msgid "Open the full editor"
+msgstr "Ouvrir l’éditeur complet"
+
+msgid "Open the inline editor"
+msgstr "Ouvrir l’éditeur en ligne"
+
+msgid "Order and visibility"
+msgstr "Ordre et visibilité"
+
+msgid "Overdue"
+msgstr "En retard"
+
+msgid "Overdue (negative)"
+msgstr "En retard (négatif)"
+
+msgid "Overdue badge color"
+msgstr "Couleur du badge de retard"
+
+msgid "Overdue only"
+msgstr "Retard uniquement"
+
+msgid "Panel"
+msgstr "Panneau"
+
+msgid "Panel badge"
+msgstr "Badge du panneau"
+
+msgid "Panel tooltip"
+msgstr "Infobulle du panneau"
+
+msgid "Pick date"
+msgstr "Choisir une date"
+
+msgid "Priorities"
+msgstr "Priorités"
+
+msgid "Priority"
+msgstr "Priorité"
+
+msgid "Priority %1"
+msgstr "Priorité %1"
+
+msgid "Priority:"
+msgstr "Priorité :"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Progress %"
+msgstr "Progression %"
+
+msgid "Progress % (high first)"
+msgstr "Progression % (élevée d’abord)"
+
+msgid "Progress:"
+msgstr "Progression :"
+
+msgid "Project:"
+msgstr "Projet :"
+
+msgid "Projects"
+msgstr "Projets"
+
+msgid "Projects (Akonadi Calendars)"
+msgstr "Projets (calendriers Akonadi)"
+
+msgid "Public"
+msgstr "Public"
+
+msgid "Quiet hours"
+msgstr "Heures calmes"
+
+msgid "Recurring"
+msgstr "Récurrentes"
+
+msgid "Recurring first"
+msgstr "Récurrentes d’abord"
+
+msgid "Recurring icon"
+msgstr "Icône de récurrence"
+
+msgid "Recurring last"
+msgstr "Récurrentes en dernier"
+
+msgid "Reduced motion (no spinner, quieter hover)"
+msgstr "Mouvement réduit (pas d’indicateur, survol plus discret)"
+
+msgid "Refresh"
+msgstr "Actualiser"
+
+msgid "Relative dates (Today, Tomorrow)"
+msgstr "Dates relatives (Aujourd’hui, Demain)"
+
+msgid "Remember globally (all views)"
+msgstr "Mémoriser globalement (toutes les vues)"
+
+msgid "Remember per view"
+msgstr "Mémoriser par vue"
+
+msgid "Remember the last view instead"
+msgstr "Mémoriser la dernière vue à la place"
+
+msgid "Reminder first"
+msgstr "Rappel d’abord"
+
+msgid "Reminder last"
+msgstr "Rappel en dernier"
+
+msgid "Reminder:"
+msgstr "Rappel :"
+
+msgid "Remove label"
+msgstr "Retirer l’étiquette"
+
+msgid "Rename"
+msgstr "Renommer"
+
+msgid "Rename from"
+msgstr "Renommer depuis"
+
+msgid "Rename to"
+msgstr "Renommer en"
+
+msgid "Repeat:"
+msgstr "Répéter :"
+
+msgid "Reset this page"
+msgstr "Réinitialiser cette page"
+
+msgid "Row chips"
+msgstr "Pastilles de ligne"
+
+msgid "Row size"
+msgstr "Taille des lignes"
+
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Schedule"
+msgstr "Planning"
+
+msgid "Scheduled"
+msgstr "Planifiées"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Search or create label…"
+msgstr "Rechercher ou créer une étiquette…"
+
+msgid "Search parent task…"
+msgstr "Rechercher une tâche parente…"
+
+msgid "Search tasks…"
+msgstr "Rechercher des tâches…"
+
+msgid "Search titles only"
+msgstr "Rechercher uniquement les titres"
+
+msgid "Second sort"
+msgstr "Deuxième tri"
+
+msgid "Secrecy:"
+msgstr "Confidentialité :"
+
+msgid "Section:"
+msgstr "Section :"
+
+msgid "Sections"
+msgstr "Sections"
+
+msgid "Select a label to filter tasks."
+msgstr "Sélectionnez une étiquette pour filtrer les tâches."
+
+msgid "Select a project to filter tasks."
+msgstr "Sélectionnez un projet pour filtrer les tâches."
+
+msgid "Select only (double-click opens the full editor)"
+msgstr "Sélectionner uniquement (double-clic ouvre l’éditeur complet)"
+
+msgid "Set priority “%1”"
+msgstr "Définir la priorité « %1 »"
+
+msgid "Setup"
+msgstr "Configuration"
+
+msgid "Show All"
+msgstr "Tout afficher"
+
+msgid "Show a Join button for http(s) links"
+msgstr "Afficher un bouton Rejoindre pour les liens http(s)"
+
+msgid "Show completed tasks"
+msgstr "Afficher les tâches terminées"
+
+msgid "Show empty projects"
+msgstr "Afficher les projets vides"
+
+msgid "Show in the sidebar"
+msgstr "Afficher dans la barre latérale"
+
+msgid "Show overdue tasks at the top of Today"
+msgstr "Afficher les tâches en retard en haut d’Aujourd’hui"
+
+msgid "Show task counts"
+msgstr "Afficher les compteurs de tâches"
+
+msgid "Show this label in the sidebar filter"
+msgstr "Afficher cette étiquette dans le filtre de la barre latérale"
+
+msgid "Show this project in the sidebar"
+msgstr "Afficher ce projet dans la barre latérale"
+
+msgid "Show time on the due chip"
+msgstr "Afficher l’heure sur la pastille d’échéance"
+
+msgid "Sidebar"
+msgstr "Barre latérale"
+
+msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
+msgstr "Reporter depuis la notification (15 minutes, 1 heure, demain) réécrit le VALARM. La date d’échéance reste inchangée ; utilisez Replanifier pour cela."
+
+msgid "Sort order"
+msgstr "Ordre de tri"
+
+msgid "Sort tasks"
+msgstr "Trier les tâches"
+
+msgid "Sort: %1"
+msgstr "Tri : %1"
+
+msgid "Start date"
+msgstr "Date de début"
+
+msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "Lancez-le avec akonadictl start, puis ajoutez une ressource CalDAV dans Merkuro ou KOrganizer."
+
+msgid "Start:"
+msgstr "Début :"
+
+msgid "Starts"
+msgstr "Commence"
+
+msgid "Status"
+msgstr "Statut"
+
+msgid "Status:"
+msgstr "Statut :"
+
+msgid "Still open"
+msgstr "Encore ouvertes"
+
+msgid "Strong"
+msgstr "Fort"
+
+msgid "Subtasks"
+msgstr "Sous-tâches"
+
+msgid "Suppress reminder notifications in this window"
+msgstr "Supprimer les rappels dans cette plage horaire"
+
+msgid "Suppress reminders while a calendar event is in progress"
+msgstr "Supprimer les rappels pendant un événement de calendrier en cours"
+
+msgid "Sync now"
+msgstr "Synchroniser maintenant"
+
+msgid "Tasks"
+msgstr "Tâches"
+
+msgid "Tasks are loaded from your existing Akonadi setup."
+msgstr "Les tâches sont chargées depuis votre configuration Akonadi."
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "Le paquet KDE Store n’est que le widget. Exécutez ceci dans un terminal pour installer le greffon :"
+
+msgid "The flyout is ready; tasks appear when the server answers."
+msgstr "Le menu est prêt ; les tâches apparaissent lorsque le serveur répond."
+
+msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
+msgstr "L’éditeur complet reste une superposition dans le widget. La section du jour (LIST) est dans l’éditeur complet."
+
+msgid "Third sort"
+msgstr "Troisième tri"
+
+msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
+msgstr "Ce widget est en version %1 mais le moteur installé est %2. Réinstallez le moteur pour les faire correspondre."
+
+msgid "Title"
+msgstr "Titre"
+
+msgid "Title A–Z"
+msgstr "Titre A–Z"
+
+msgid "Title Z–A"
+msgstr "Titre Z–A"
+
+msgid "Title:"
+msgstr "Titre :"
+
+msgid "Today"
+msgstr "Aujourd’hui"
+
+msgid "Today and overdue"
+msgstr "Aujourd’hui et en retard"
+
+msgid "Today: %1 · Overdue: %2"
+msgstr "Aujourd’hui : %1 · En retard : %2"
+
+msgid "Tomorrow"
+msgstr "Demain"
+
+msgid "Tonight"
+msgstr "Ce soir"
+
+msgid "Try again"
+msgstr "Réessayer"
+
+msgid "Undo"
+msgstr "Annuler"
+
+msgid "Undo complete"
+msgstr "Annuler la complétion"
+
+msgid "Undo delete"
+msgstr "Annuler la suppression"
+
+msgid "Undo move"
+msgstr "Annuler le déplacement"
+
+msgid "Undo reschedule"
+msgstr "Annuler la replanification"
+
+msgid "Unlabeled"
+msgstr "Sans étiquette"
+
+msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
+msgstr "Utilise le fond translucide de Plasma pour que KWin floute le fond d’écran. S’applique aussi au menu du panneau."
+
+msgid "Use a specific project"
+msgstr "Utiliser un projet précis"
+
+msgid "Use the top project in the sidebar"
+msgstr "Utiliser le premier projet de la barre latérale"
+
+msgid "Views"
+msgstr "Vues"
+
+msgid "Visible"
+msgstr "Visible"
+
+msgid "Waiting for Akonadi…"
+msgstr "En attente d’Akonadi…"
+
+msgid "Weekly"
+msgstr "Hebdomadaire"
+
+msgid "Width"
+msgstr "Largeur"
+
+msgid "Yearly"
+msgstr "Annuel"
+
+msgid "Yesterday"
+msgstr "Hier"
+
+msgid "unknown"
+msgstr "inconnu"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

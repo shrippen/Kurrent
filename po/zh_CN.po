@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.3.0\n"
+"Project-Id-Version: kurrent 0.3.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -17,428 +17,146 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 
-msgid "Kurrent"
-msgstr "Kurrent"
+msgid "%1 grid units"
+msgstr "%1 格单位"
 
-msgid "Task manager powered by Akonadi and Nextcloud CalDAV"
-msgstr "基于 Akonadi 和 Nextcloud CalDAV 的任务管理器"
-
-msgid "Inbox"
-msgstr "收件箱"
-
-msgid "Today"
-msgstr "今天"
-
-msgid "Tomorrow"
-msgstr "明天"
-
-msgid "Scheduled"
-msgstr "已安排"
-
-msgid "Anytime"
-msgstr "随时"
-
-msgid "Recurring"
-msgstr "重复"
-
-msgid "Unlabeled"
-msgstr "无标签"
-
-msgid "Completed"
-msgstr "已完成"
-
-msgid "No open tasks"
-msgstr "没有未完成任务"
-
-msgid "Due date"
-msgstr "截止日期"
-
-msgid "Priority"
-msgstr "优先级"
-
-msgid "Title A–Z"
-msgstr "标题 A–Z"
-
-msgid "Title Z–A"
-msgstr "标题 Z–A"
-
-msgid "Default"
-msgstr "默认"
-
-msgid "Sort: %1"
-msgstr "排序：%1"
-
-msgid "Sort tasks"
-msgstr "排序任务"
-
-msgid "Build"
-msgstr "构建"
-
-msgid "Akonadi offline"
-msgstr "Akonadi 离线"
+msgid "%1:00"
+msgstr "%1:00"
 
 msgid "(Untitled)"
 msgstr "（无标题）"
 
-msgid "Projects"
-msgstr "项目"
+msgid "1 day before"
+msgstr "提前 1 天"
 
-msgid "All"
-msgstr "全部"
+msgid "1 hour before"
+msgstr "提前 1 小时"
 
-msgid "Already in project “%1”"
-msgstr "已在项目“%1”中"
+msgid "1 line"
+msgstr "1 行"
 
-msgid "Move to project “%1”"
-msgstr "移动到项目“%1”"
+msgid "15 minutes before"
+msgstr "提前 15 分钟"
 
-msgid "Labels"
-msgstr "标签"
+msgid "2 lines"
+msgstr "2 行"
 
-msgid "Add label “%1”"
-msgstr "添加标签“%1”"
-
-msgid "Search tasks…"
-msgstr "搜索任务…"
-
-msgid "Clear search"
-msgstr "清除搜索"
-
-msgid "Exit delete mode"
-msgstr "退出删除模式"
-
-msgid "Delete mode"
-msgstr "删除模式"
-
-msgid "Sync now"
-msgstr "立即同步"
-
-msgid "No tasks in this view."
-msgstr "此视图中没有任务。"
-
-msgid "Make top-level task"
-msgstr "设为顶级任务"
-
-msgid "Drop here to make a top-level task"
-msgstr "拖到此处设为顶级任务"
-
-msgid "Add a task…"
-msgstr "添加任务…"
+msgid "Accent (highlight)"
+msgstr "强调色（高亮）"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "添加任务…  tomorrow 18:00 !high #tag @project"
 
-msgid "Yesterday"
-msgstr "昨天"
+msgid "Add label"
+msgstr "添加标签"
 
-msgid "Next week"
-msgstr "下周"
-
-msgid "Tonight"
-msgstr "今晚"
-
-msgid "No priority"
-msgstr "无优先级"
-
-msgid "Backend not installed"
-msgstr "未安装后端"
-
-msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
-msgstr "KDE 商店安装包只有部件界面。在终端运行下面的命令以安装插件："
-
-msgid "Copy command"
-msgstr "复制命令"
-
-msgid "Open GitHub"
-msgstr "打开 GitHub"
-
-msgid "Backend version mismatch"
-msgstr "后端版本不匹配"
-
-msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
-msgstr "此部件版本为 %1，但已安装的后端为 %2。请重新安装后端以匹配。"
-
-msgid "unknown"
-msgstr "未知"
+msgid "Add label “%1”"
+msgstr "添加标签“%1”"
 
 msgid "Add task"
 msgstr "添加任务"
 
-msgid "Make subtask of “%1”"
-msgstr "设为“%1”的子任务"
-
-msgid "High priority (%1)"
-msgstr "高优先级 (%1)"
-
-msgid "Medium priority (%1)"
-msgstr "中优先级 (%1)"
-
-msgid "Low priority (%1)"
-msgstr "低优先级 (%1)"
-
-msgid "Priority %1"
-msgstr "优先级 %1"
-
-msgid "Edit task"
-msgstr "编辑任务"
-
-msgid "Delete task"
-msgstr "删除任务"
-
-msgid "Waiting for Akonadi…"
-msgstr "正在等待 Akonadi…"
-
-msgid "Basics"
-msgstr "基本信息"
-
-msgid "Title:"
-msgstr "标题："
-
-msgid "Title"
-msgstr "标题"
-
-msgid "Description:"
-msgstr "描述："
-
-msgid "Description"
-msgstr "描述"
-
-msgid "Schedule"
-msgstr "日程"
-
-msgid "All day:"
-msgstr "全天："
-
-msgid "All-day task"
-msgstr "全天任务"
-
-msgid "Start:"
-msgstr "开始："
-
-msgid "Clear start"
-msgstr "清除开始时间"
-
-msgid "Due:"
-msgstr "截止："
-
-msgid "Clear due date"
-msgstr "清除截止日期"
-
-msgid "Repeat:"
-msgstr "重复："
-
-msgid "None"
-msgstr "无"
-
-msgid "Daily"
-msgstr "每天"
-
-msgid "Weekly"
-msgstr "每周"
-
-msgid "Monthly"
-msgstr "每月"
-
-msgid "Yearly"
-msgstr "每年"
-
-msgid "Status"
-msgstr "状态"
-
-msgid "Completed:"
-msgstr "已完成："
-
-msgid "Mark as done"
-msgstr "标记为完成"
-
-msgid "Progress:"
-msgstr "进度："
-
-msgid "Status:"
-msgstr "状态："
-
-msgid "Needs action"
-msgstr "需要处理"
-
-msgid "In process"
-msgstr "进行中"
-
-msgid "Canceled"
-msgstr "已取消"
-
-msgid "Classification"
-msgstr "分类"
-
-msgid "Priority:"
-msgstr "优先级："
-
-msgid "Labels:"
-msgstr "标签："
-
-msgid "Secrecy:"
-msgstr "保密："
-
-msgid "Public"
-msgstr "公开"
-
-msgid "Private"
-msgstr "私密"
-
-msgid "Confidential"
-msgstr "机密"
-
-msgid "Location:"
-msgstr "地点："
-
-msgid "Location"
-msgstr "地点"
-
-msgid "Project:"
-msgstr "项目："
-
-msgid "No projects available"
-msgstr "没有可用项目"
-
-msgid "Pick date"
-msgstr "选择日期"
-
-msgid "Due"
-msgstr "截止"
-
-msgid "All day"
-msgstr "全天"
-
-msgid "Cancel"
-msgstr "取消"
-
-msgid "More…"
-msgstr "更多…"
-
-msgid "Save"
-msgstr "保存"
-
-msgid "High"
-msgstr "高"
-
-msgid "Medium"
-msgstr "中"
-
-msgid "Low"
-msgstr "低"
-
-msgid "Search or create label…"
-msgstr "搜索或创建标签…"
-
-msgid "Remove label"
-msgstr "移除标签"
-
-msgid "Create label “%1”"
-msgstr "创建标签“%1”"
-
-msgid "No matching labels"
-msgstr "没有匹配的标签"
-
-msgid "Select a label to filter tasks."
-msgstr "选择标签以筛选任务。"
-
-msgid "Clear label filter"
-msgstr "清除标签筛选"
-
-msgid "Projects (Akonadi Calendars)"
-msgstr "项目（Akonadi 日历）"
-
-msgid "Manage which Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
-msgstr "管理哪些 Akonadi 日历用作项目。禁用的日历完全不获取任务。隐藏的日历仍会获取，但不在侧栏显示。"
-
-msgid "No Akonadi calendars found. Make sure Akonadi is running."
-msgstr "未找到 Akonadi 日历。请确认 Akonadi 正在运行。"
-
-msgid "Collection ID: %1"
-msgstr "集合 ID：%1"
-
-msgid "Enabled"
-msgstr "已启用"
-
-msgid "Include this calendar when fetching tasks"
-msgstr "获取任务时包含此日历"
-
-msgid "Visible"
-msgstr "可见"
-
-msgid "Show this project in the sidebar"
-msgstr "在侧栏显示此项目"
-
-msgid "Enable All"
-msgstr "全部启用"
-
-msgid "Show All"
-msgstr "全部显示"
-
-msgid "Refresh"
-msgstr "刷新"
+msgid "Afternoon"
+msgstr "下午"
+
+msgid "Afternoon starts"
+msgstr "下午开始"
 
 msgid "Akonadi"
 msgstr "Akonadi"
 
-msgid "Tasks are loaded from your existing Akonadi setup."
-msgstr "任务来自您现有的 Akonadi 配置。"
+msgid "Akonadi is not running"
+msgstr "Akonadi 未运行"
 
-msgid "Setup"
-msgstr "设置"
+msgid "Akonadi offline"
+msgstr "Akonadi 离线"
 
-msgid "Configure CalDAV/Nextcloud in KOrganizer or Kalendar (DAV groupware resource)."
-msgstr "在 KOrganizer 或 Kalendar 中配置 CalDAV/Nextcloud（DAV 群件资源）。"
+msgid "All"
+msgstr "全部"
 
-msgid "Default view"
-msgstr "默认视图"
+msgid "All day"
+msgstr "全天"
 
-msgid "Completed tasks"
-msgstr "已完成任务"
+msgid "All day:"
+msgstr "全天："
 
-msgid "Show completed tasks"
-msgstr "显示已完成任务"
+msgid "All views"
+msgstr "所有视图"
+
+msgid "All-day task"
+msgstr "全天任务"
+
+msgid "Already has no priority"
+msgstr "已无优先级"
+
+msgid "Already in project “%1”"
+msgstr "已在项目“%1”中"
+
+msgid "Already priority “%1”"
+msgstr "已是优先级“%1”"
+
+msgid "Anytime"
+msgstr "随时"
 
 msgid "Appearance"
 msgstr "外观"
 
-msgid "Blurred background"
-msgstr "模糊背景"
+msgid "Applies when the badge shows the overdue count."
+msgstr "适用于徽章显示逾期数量时。"
 
-msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
-msgstr "使用 Plasma 半透明背景，让 KWin 模糊壁纸。同样作用于面板弹出窗口。"
+msgid "Applies when the badge shows today and there are overdue tasks."
+msgstr "适用于徽章显示今天且存在逾期任务时。"
 
-msgid "Sidebar row size"
-msgstr "侧栏行高"
-
-msgid "Auto (compact, larger with touch)"
-msgstr "自动（紧凑，触摸时更大）"
-
-msgid "Compact"
-msgstr "紧凑"
-
-msgid "Comfortable (touch-friendly)"
-msgstr "舒适（适合触摸）"
-
-msgid "Auto uses compact rows on mouse/desktop and comfortable rows when Plasma detects tablet or touch input."
-msgstr "自动：鼠标/桌面用紧凑行，检测到平板或触摸时用舒适行。"
-
-msgid "New tasks"
-msgstr "新任务"
+msgid "Ask before deleting a task"
+msgstr "删除任务前询问"
 
 msgid "Ask which project to use"
 msgstr "询问使用哪个项目"
 
-msgid "Use the top project in the sidebar"
-msgstr "使用侧栏中的第一个项目"
+msgid "At due time"
+msgstr "到期时"
 
-msgid "Use a specific project"
-msgstr "使用指定项目"
+msgid "Auto (compact, larger with touch)"
+msgstr "自动（紧凑，触摸时更大）"
 
-msgid "When no project is selected in the sidebar, new tasks follow this setting."
-msgstr "未在侧栏选择项目时，新任务按此设置处理。"
+msgid "Backend not installed"
+msgstr "未安装后端"
 
-msgid "Default project"
-msgstr "默认项目"
+msgid "Backend version mismatch"
+msgstr "后端版本不匹配"
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Badge display"
+msgstr "徽章显示"
+
+msgid "Basics"
+msgstr "基本信息"
+
+msgid "Blurred wallpaper behind the widget"
+msgstr "部件背后的模糊壁纸"
+
+msgid "Build"
+msgstr "构建"
+
+msgid "Calendars for event suppression"
+msgstr "用于抑制事件的日历"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Canceled"
+msgstr "已取消"
+
+msgid "Case sensitive"
+msgstr "区分大小写"
+
+msgid "Catch-up"
+msgstr "补做"
+
+msgid "Checkbox"
+msgstr "复选框"
 
 msgid "Choose a project"
 msgstr "选择项目"
@@ -446,68 +164,770 @@ msgstr "选择项目"
 msgid "Choose a project for “%1”"
 msgstr "为“%1”选择项目"
 
+msgid "Choose which Akonadi event calendars block reminders. Disabled entries are ignored when checking for ongoing events."
+msgstr "选择哪些 Akonadi 事件日历会阻止提醒。检查进行中的事件时会忽略已禁用的条目。"
+
+msgid "Classification"
+msgstr "分类"
+
+msgid "Clear due date"
+msgstr "清除截止日期"
+
+msgid "Clear label filter"
+msgstr "清除标签筛选"
+
+msgid "Clear parent"
+msgstr "清除父任务"
+
+msgid "Clear priority"
+msgstr "清除优先级"
+
+msgid "Clear project filter"
+msgstr "清除项目筛选"
+
+msgid "Clear search"
+msgstr "清除搜索"
+
+msgid "Clear start"
+msgstr "清除开始时间"
+
+msgid "Click a task"
+msgstr "点击任务"
+
+msgid "Collapse subtasks"
+msgstr "折叠子任务"
+
+msgid "Comfortable"
+msgstr "舒适"
+
+msgid "Comfortable (touch-friendly)"
+msgstr "舒适（适合触摸）"
+
+msgid "Compact"
+msgstr "紧凑"
+
+msgid "Complete only with Shift or Ctrl held"
+msgstr "仅按住 Shift 或 Ctrl 时完成"
+
+msgid "Completed"
+msgstr "已完成"
+
+msgid "Completed tasks"
+msgstr "已完成任务"
+
+msgid "Completed:"
+msgstr "已完成："
+
+msgid "Completing a parent also completes its children"
+msgstr "完成父任务也会完成其子任务"
+
+msgid "Confidential"
+msgstr "机密"
+
+msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
+msgstr "在 KOrganizer 或 Merkuro 中配置 CalDAV/Nextcloud（DAV 群件资源）。"
+
+msgid "Connecting to Akonadi…"
+msgstr "正在连接 Akonadi…"
+
+msgid "Copy command"
+msgstr "复制命令"
+
+msgid "Could not load tasks"
+msgstr "无法加载任务"
+
+msgid "Counts"
+msgstr "计数"
+
+msgid "Create label “%1”"
+msgstr "创建标签“%1”"
+
+msgid "Daily"
+msgstr "每天"
+
+msgid "Dates"
+msgstr "日期"
+
+msgid "Default due date"
+msgstr "默认截止日期"
+
+msgid "Default project"
+msgstr "默认项目"
+
+msgid "Default reminder"
+msgstr "默认提醒"
+
+msgid "Default view"
+msgstr "默认视图"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete label"
+msgstr "删除标签"
+
+msgid "Delete mode"
+msgstr "删除模式"
+
+msgid "Delete task"
+msgstr "删除任务"
+
+msgid "Delete task?"
+msgstr "删除任务？"
+
+msgid "Delete this task?"
+msgstr "删除此任务？"
+
+msgid "Density"
+msgstr "密度"
+
+msgid "Description"
+msgstr "描述"
+
+msgid "Description preview"
+msgstr "描述预览"
+
+msgid "Description:"
+msgstr "描述："
+
+msgid "Desktop notifications"
+msgstr "桌面通知"
+
+msgid "Dot"
+msgstr "圆点"
+
+msgid "Drop here to make a top-level task"
+msgstr "拖到此处设为顶级任务"
+
+msgid "Due"
+msgstr "截止"
+
+msgid "Due date"
+msgstr "截止日期"
+
+msgid "Due date (latest first)"
+msgstr "截止日期（最新优先）"
+
+msgid "Due:"
+msgstr "截止："
+
+msgid "During events"
+msgstr "事件期间"
+
+msgid "Each sidebar view keeps its own sort. Views you have not changed start with Priority › Due › Title A–Z."
+msgstr "每个侧栏视图保留各自的排序。未更改的视图默认以优先级 › 截止 › 标题 A–Z 开始。"
+
+msgid "Edit task"
+msgstr "编辑任务"
+
+msgid "Editor"
+msgstr "编辑器"
+
+msgid "Editor dim"
+msgstr "编辑器遮罩"
+
+msgid "Enable All"
+msgstr "全部启用"
+
+msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "在配置 Kurrent → 项目中启用日历，或在 Merkuro 或 KOrganizer 中添加 CalDAV 资源。"
+
+msgid "Enabled"
+msgstr "已启用"
+
+msgid "Ends"
+msgstr "结束"
+
+msgid "Evening"
+msgstr "晚上"
+
+msgid "Evening starts"
+msgstr "晚上开始"
+
+msgid "Exclude collapsed subtasks from counts"
+msgstr "计数时排除已折叠的子任务"
+
+msgid "Exit delete mode"
+msgstr "退出删除模式"
+
+msgid "Expand subtasks"
+msgstr "展开子任务"
+
+msgid "First sort"
+msgstr "第一排序"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Heading on the list"
+msgstr "列表标题"
+
+msgid "Hidden"
+msgstr "隐藏"
+
+msgid "High"
+msgstr "高"
+
+msgid "High priority"
+msgstr "高优先级"
+
+msgid "High priority (%1)"
+msgstr "高优先级 (%1)"
+
+msgid "In 1 hour"
+msgstr "1 小时后"
+
+msgid "In 15 minutes"
+msgstr "15 分钟后"
+
+msgid "In 4 hours"
+msgstr "4 小时后"
+
+msgid "In process"
+msgstr "进行中"
+
+msgid "Inbox"
+msgstr "收件箱"
+
+msgid "Include All"
+msgstr "全部包含"
+
+msgid "Include this calendar when checking for ongoing events"
+msgstr "检查进行中的事件时包含此日历"
+
+msgid "Include this calendar when fetching tasks"
+msgstr "获取任务时包含此日历"
+
+msgid "Kurrent"
+msgstr "Kurrent"
+
+msgid "Labels"
+msgstr "标签"
+
 msgid "Labels (Categories)"
 msgstr "标签（类别）"
 
 msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
 msgstr "标签来自 Akonadi 任务类别。隐藏的标签不出现在侧栏筛选中，但仍保留在任务上。"
 
-msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
-msgstr "未找到标签。标签会从 Akonadi 任务类别自动发现。"
+msgid "Labels:"
+msgstr "标签："
 
-msgid "Auto-generated color for '%1'"
-msgstr "“%1”的自动颜色"
+msgid "Light"
+msgstr "浅色"
 
-msgid "Show this label in the sidebar filter"
-msgstr "在侧栏筛选中显示此标签"
+msgid "Loading tasks…"
+msgstr "正在加载任务…"
 
-msgid "General"
-msgstr "常规"
+msgid "Loading…"
+msgstr "正在加载…"
 
-msgid "Select a project to filter tasks."
-msgstr "选择项目以筛选任务。"
+msgid "Location"
+msgstr "地点"
 
-msgid "Clear project filter"
-msgstr "清除项目筛选"
+msgid "Location:"
+msgstr "地点："
 
-msgid "Priorities"
-msgstr "优先级"
+msgid "Low"
+msgstr "低"
 
-msgid "Set priority “%1”"
-msgstr "将优先级设为“%1”"
+msgid "Low priority (%1)"
+msgstr "低优先级 (%1)"
 
-msgid "Already priority “%1”"
-msgstr "已是优先级“%1”"
+msgid "Make subtask of “%1”"
+msgstr "设为“%1”的子任务"
 
-msgid "Clear priority"
-msgstr "清除优先级"
+msgid "Make top-level task"
+msgstr "设为顶级任务"
 
-msgid "Already has no priority"
-msgstr "已无优先级"
+msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
+msgstr "管理哪些可写的 Akonadi 日历用作项目。禁用的日历完全不获取任务。隐藏的日历仍会获取，但不在侧栏显示。"
 
-msgid "Due date, then priority"
-msgstr "先截止日期，再优先级"
+msgid "Mark as done"
+msgstr "标记为完成"
 
-msgid "Due date, then title"
-msgstr "先截止日期，再标题"
+msgid "Medium"
+msgstr "中"
 
-msgid "Priority, then due date"
-msgstr "先优先级，再截止日期"
+msgid "Medium priority (%1)"
+msgstr "中优先级 (%1)"
 
-msgid "Priority, then title"
-msgstr "先优先级，再标题"
+msgid "Meetings"
+msgstr "会议"
 
-msgid "Open first, then due date"
-msgstr "先未完成，再截止日期"
+msgid "Monthly"
+msgstr "每月"
 
-msgid "Open first, then priority"
-msgstr "先未完成，再优先级"
+msgid "More…"
+msgstr "更多…"
+
+msgid "Morning"
+msgstr "上午"
+
+msgid "Morning starts"
+msgstr "上午开始"
+
+msgid "Motion"
+msgstr "动效"
+
+msgid "Move to project “%1”"
+msgstr "移动到项目“%1”"
+
+msgid "Needs action"
+msgstr "需要处理"
 
 msgid "New label"
 msgstr "新标签"
 
-msgid "Delete label"
-msgstr "删除标签"
+msgid "New tasks"
+msgstr "新任务"
+
+msgid "Next week"
+msgstr "下周"
+
+msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
+msgstr "未找到事件日历。请确认 Akonadi 正在运行且已配置 CalDAV 日历。"
+
+msgid "No high priority tasks"
+msgstr "没有高优先级任务"
+
+msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
+msgstr "未找到标签。标签会从 Akonadi 任务类别自动发现。"
+
+msgid "No matching labels"
+msgstr "没有匹配的标签"
+
+msgid "No matching tasks"
+msgstr "没有匹配的任务"
+
+msgid "No open tasks"
+msgstr "没有未完成任务"
+
+msgid "No overdue tasks"
+msgstr "没有逾期任务"
+
+msgid "No priority"
+msgstr "无优先级"
+
+msgid "No projects available"
+msgstr "没有可用项目"
+
+msgid "No task lists"
+msgstr "没有任务列表"
+
+msgid "No tasks in this view."
+msgstr "此视图中没有任务。"
+
+msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
+msgstr "未找到可写的 Akonadi 日历。请确认 Akonadi 正在运行且 CalDAV 资源允许编辑任务。"
+
+msgid "None"
+msgstr "无"
+
+msgid "Nothing due today"
+msgstr "今天无到期任务"
+
+msgid "Notifications"
+msgstr "通知"
+
+msgid "Notify when a task reminder is due"
+msgstr "任务提醒到期时通知"
+
+msgid "Number"
+msgstr "数字"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "One sort order for every view. The default is Priority › Due › Title A–Z until you change it in the task list."
+msgstr "所有视图使用同一排序。在任务列表中更改前，默认为优先级 › 截止 › 标题 A–Z。"
+
+msgid "Only opaque (busy) events count. Transparent events are ignored."
+msgstr "仅不透明（忙碌）事件计入。透明事件会被忽略。"
+
+msgid "Open / Join"
+msgstr "打开 / 加入"
+
+msgid "Open GitHub"
+msgstr "打开 GitHub"
+
+msgid "Open first"
+msgstr "未完成优先"
+
+msgid "Open root tasks"
+msgstr "未完成的根任务"
+
+msgid "Open tasks"
+msgstr "未完成任务"
+
+msgid "Open the full editor"
+msgstr "打开完整编辑器"
+
+msgid "Open the inline editor"
+msgstr "打开内联编辑器"
+
+msgid "Order and visibility"
+msgstr "顺序和可见性"
+
+msgid "Overdue"
+msgstr "逾期"
+
+msgid "Overdue (negative)"
+msgstr "逾期（负色）"
+
+msgid "Overdue badge color"
+msgstr "逾期徽章颜色"
+
+msgid "Overdue only"
+msgstr "仅逾期"
+
+msgid "Panel"
+msgstr "面板"
+
+msgid "Panel badge"
+msgstr "面板徽章"
+
+msgid "Panel tooltip"
+msgstr "面板提示"
+
+msgid "Pick date"
+msgstr "选择日期"
+
+msgid "Priorities"
+msgstr "优先级"
+
+msgid "Priority"
+msgstr "优先级"
+
+msgid "Priority %1"
+msgstr "优先级 %1"
+
+msgid "Priority:"
+msgstr "优先级："
+
+msgid "Private"
+msgstr "私密"
+
+msgid "Progress %"
+msgstr "进度 %"
+
+msgid "Progress % (high first)"
+msgstr "进度 %（高优先）"
+
+msgid "Progress:"
+msgstr "进度："
+
+msgid "Project:"
+msgstr "项目："
+
+msgid "Projects"
+msgstr "项目"
+
+msgid "Projects (Akonadi Calendars)"
+msgstr "项目（Akonadi 日历）"
+
+msgid "Public"
+msgstr "公开"
+
+msgid "Quiet hours"
+msgstr "免打扰时段"
+
+msgid "Recurring"
+msgstr "重复"
+
+msgid "Recurring first"
+msgstr "重复优先"
+
+msgid "Recurring icon"
+msgstr "重复图标"
+
+msgid "Recurring last"
+msgstr "重复最后"
+
+msgid "Reduced motion (no spinner, quieter hover)"
+msgstr "减少动效（无加载动画，更安静的悬停）"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Relative dates (Today, Tomorrow)"
+msgstr "相对日期（今天、明天）"
+
+msgid "Remember globally (all views)"
+msgstr "全局记住（所有视图）"
+
+msgid "Remember per view"
+msgstr "按视图记住"
+
+msgid "Remember the last view instead"
+msgstr "改为记住上次视图"
+
+msgid "Reminder first"
+msgstr "提醒优先"
+
+msgid "Reminder last"
+msgstr "提醒最后"
+
+msgid "Reminder:"
+msgstr "提醒："
+
+msgid "Remove label"
+msgstr "移除标签"
+
+msgid "Rename"
+msgstr "重命名"
+
+msgid "Rename from"
+msgstr "原名称"
+
+msgid "Rename to"
+msgstr "新名称"
+
+msgid "Repeat:"
+msgstr "重复："
+
+msgid "Reset this page"
+msgstr "重置此页"
+
+msgid "Row chips"
+msgstr "行标签"
+
+msgid "Row size"
+msgstr "行高"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Schedule"
+msgstr "日程"
+
+msgid "Scheduled"
+msgstr "已安排"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "Search or create label…"
+msgstr "搜索或创建标签…"
+
+msgid "Search parent task…"
+msgstr "搜索父任务…"
+
+msgid "Search tasks…"
+msgstr "搜索任务…"
+
+msgid "Search titles only"
+msgstr "仅搜索标题"
+
+msgid "Second sort"
+msgstr "第二排序"
+
+msgid "Secrecy:"
+msgstr "保密："
+
+msgid "Section:"
+msgstr "分区："
+
+msgid "Sections"
+msgstr "分区"
+
+msgid "Select a label to filter tasks."
+msgstr "选择标签以筛选任务。"
+
+msgid "Select a project to filter tasks."
+msgstr "选择项目以筛选任务。"
+
+msgid "Select only (double-click opens the full editor)"
+msgstr "仅选择（双击打开完整编辑器）"
+
+msgid "Set priority “%1”"
+msgstr "将优先级设为“%1”"
+
+msgid "Setup"
+msgstr "设置"
+
+msgid "Show All"
+msgstr "全部显示"
+
+msgid "Show a Join button for http(s) links"
+msgstr "为 http(s) 链接显示加入按钮"
+
+msgid "Show completed tasks"
+msgstr "显示已完成任务"
+
+msgid "Show empty projects"
+msgstr "显示空项目"
+
+msgid "Show in the sidebar"
+msgstr "在侧栏显示"
+
+msgid "Show overdue tasks at the top of Today"
+msgstr "在今天视图顶部显示逾期任务"
+
+msgid "Show task counts"
+msgstr "显示任务计数"
+
+msgid "Show this label in the sidebar filter"
+msgstr "在侧栏筛选中显示此标签"
+
+msgid "Show this project in the sidebar"
+msgstr "在侧栏显示此项目"
+
+msgid "Show time on the due chip"
+msgstr "在截止标签上显示时间"
+
+msgid "Sidebar"
+msgstr "侧栏"
+
+msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
+msgstr "从通知推迟（15 分钟、1 小时、明天）会重写 VALARM。截止日期不变；请使用重新安排。"
+
+msgid "Sort order"
+msgstr "排序方式"
+
+msgid "Sort tasks"
+msgstr "排序任务"
+
+msgid "Sort: %1"
+msgstr "排序：%1"
+
+msgid "Start date"
+msgstr "开始日期"
+
+msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
+msgstr "使用 akonadictl start 启动，然后在 Merkuro 或 KOrganizer 中添加 CalDAV 资源。"
+
+msgid "Start:"
+msgstr "开始："
+
+msgid "Starts"
+msgstr "开始"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Status:"
+msgstr "状态："
+
+msgid "Still open"
+msgstr "仍未完成"
+
+msgid "Strong"
+msgstr "醒目"
+
+msgid "Subtasks"
+msgstr "子任务"
+
+msgid "Suppress reminder notifications in this window"
+msgstr "在此时间段内抑制提醒通知"
+
+msgid "Suppress reminders while a calendar event is in progress"
+msgstr "日历事件进行中时抑制提醒"
+
+msgid "Sync now"
+msgstr "立即同步"
+
+msgid "Tasks"
+msgstr "任务"
+
+msgid "Tasks are loaded from your existing Akonadi setup."
+msgstr "任务来自您现有的 Akonadi 配置。"
+
+msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
+msgstr "KDE 商店安装包只有部件界面。在终端运行下面的命令以安装插件："
+
+msgid "The flyout is ready; tasks appear when the server answers."
+msgstr "弹出窗口已就绪；服务器响应后显示任务。"
+
+msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
+msgstr "完整编辑器仍为部件内的叠加层。日分区（LIST）在完整编辑器中。"
+
+msgid "Third sort"
+msgstr "第三排序"
+
+msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
+msgstr "此部件版本为 %1，但已安装的后端为 %2。请重新安装后端以匹配。"
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Title A–Z"
+msgstr "标题 A–Z"
+
+msgid "Title Z–A"
+msgstr "标题 Z–A"
+
+msgid "Title:"
+msgstr "标题："
+
+msgid "Today"
+msgstr "今天"
+
+msgid "Today and overdue"
+msgstr "今天和逾期"
+
+msgid "Today: %1 · Overdue: %2"
+msgstr "今天：%1 · 逾期：%2"
+
+msgid "Tomorrow"
+msgstr "明天"
+
+msgid "Tonight"
+msgstr "今晚"
+
+msgid "Try again"
+msgstr "重试"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Undo complete"
+msgstr "撤销完成"
+
+msgid "Undo delete"
+msgstr "撤销删除"
+
+msgid "Undo move"
+msgstr "撤销移动"
+
+msgid "Undo reschedule"
+msgstr "撤销重新安排"
+
+msgid "Unlabeled"
+msgstr "无标签"
+
+msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
+msgstr "使用 Plasma 半透明背景，让 KWin 模糊壁纸。同样作用于面板弹出窗口。"
+
+msgid "Use a specific project"
+msgstr "使用指定项目"
+
+msgid "Use the top project in the sidebar"
+msgstr "使用侧栏中的第一个项目"
+
+msgid "Views"
+msgstr "视图"
+
+msgid "Visible"
+msgstr "可见"
+
+msgid "Waiting for Akonadi…"
+msgstr "正在等待 Akonadi…"
+
+msgid "Weekly"
+msgstr "每周"
+
+msgid "Width"
+msgstr "宽度"
+
+msgid "Yearly"
+msgstr "每年"
+
+msgid "Yesterday"
+msgstr "昨天"
+
+msgid "unknown"
+msgstr "未知"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
