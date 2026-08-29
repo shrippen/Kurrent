@@ -29,7 +29,7 @@ ConfigModel {
     }
     ConfigCategory {
         name: i18n("Panel")
-        icon: "panel"
+        icon: "plasmashell"
         source: "configPanel.qml"
     }
     ConfigCategory {

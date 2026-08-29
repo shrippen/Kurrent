@@ -31,6 +31,29 @@ KCM.SimpleKCM {
         selectCombo(defaultDueCombo, cfg_defaultDueMode || "none")
     }
 
+    function normalizeReleaseVersion(v) {
+        if (!v) {
+            return ""
+        }
+        var trimmed = String(v).trim()
+        if (trimmed === "") {
+            return ""
+        }
+        var parts = trimmed.split(".")
+        if (parts.length >= 2) {
+            return parts[0] + "." + parts[1]
+        }
+        return parts[0]
+    }
+
+    readonly property string configWidgetVersion: normalizeReleaseVersion(
+        (typeof Plasmoid !== "undefined" && Plasmoid.metaData) ? Plasmoid.metaData.version : "")
+    readonly property string configBackendVersion: settingsControllerLoader.status === Loader.Ready && settingsController
+        ? normalizeReleaseVersion(settingsController.pluginVersion) : ""
+    readonly property bool configBackendVersionMismatch: settingsControllerLoader.status === Loader.Ready
+        && configWidgetVersion !== ""
+        && (configBackendVersion === "" || configBackendVersion !== configWidgetVersion)
+
     ConfigFormShell {
         Kirigami.FormLayout {
             Layout.fillWidth: true
@@ -39,6 +62,13 @@ KCM.SimpleKCM {
                 visible: settingsControllerLoader.status === Loader.Error
                 Layout.fillWidth: true
                 Layout.preferredHeight: visible ? implicitHeight : 0
+            }
+
+            VersionMismatchBanner {
+                visible: root.configBackendVersionMismatch
+                Layout.fillWidth: true
+                widgetVersion: root.configWidgetVersion
+                backendVersion: root.configBackendVersion
             }
 
             Kirigami.Heading {

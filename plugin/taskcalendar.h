@@ -1,10 +1,12 @@
 #pragma once
 
+#include <KCalendarCore/Incidence>
 #include <KCalendarCore/Todo>
 
 #include <QDate>
 #include <QDateTime>
 #include <QString>
+#include <QVector>
 
 namespace TaskCalendar
 {
@@ -26,5 +28,18 @@ void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset,
 /** Due/start for list/editor: empty when unset; local midnight for date-only values. */
 QDateTime dueDateFromTodo(const KCalendarCore::Todo::Ptr &todo);
 QDateTime startDateFromTodo(const KCalendarCore::Todo::Ptr &todo);
+
+struct BusyInterval {
+    QDateTime start;
+    QDateTime end;
+};
+
+/** Expand opaque (busy) occurrences of an incidence into [start, end) intervals. */
+void appendBusyIntervals(const KCalendarCore::Incidence::Ptr &incidence,
+                         const QDateTime &rangeStart,
+                         const QDateTime &rangeEnd,
+                         QVector<BusyInterval> *out);
+
+bool isBusyAt(const QDateTime &when, const QVector<BusyInterval> &intervals);
 
 } // namespace TaskCalendar

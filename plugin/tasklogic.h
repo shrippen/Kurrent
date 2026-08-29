@@ -209,7 +209,7 @@ QString emptyKind(LoadState loading,
                   int visibleCount,
                   ErrorPresence error);
 
-int panelBadgeCount(const QString &mode, int openRoots, int todayCount, int overdueCount);
+int panelBadgeCount(const QString &mode, int openRoots, const QVariantMap &viewCounts);
 
 QDateTime defaultDueForMode(const QString &mode, const QDate &today);
 

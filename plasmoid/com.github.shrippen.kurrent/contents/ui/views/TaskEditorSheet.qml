@@ -75,11 +75,6 @@ FocusScope {
         projectPicker.hiddenProjects = Plasmoid.configuration.hiddenProjects || ""
         projectPicker.collectionModel = controller.collectionModel
         projectPicker.rebuild()
-        parentPicker.controller = controller
-        parentPicker.itemId = task.itemId || -1
-        parentPicker.collectionId = projectPicker.collectionId
-        parentPicker.parentUid = task.parentUid || ""
-        parentPicker.rebuild()
     }
 
     function normalizeStatus(status) {
@@ -142,22 +137,13 @@ FocusScope {
     }
 
     function accept() {
-        var due = null
-        var clearDue = clearDueRequested || dueDateField.text.trim().length === 0
-        if (!clearDue) {
-            due = DateTime.combineDateTime(dueDateField.text, dueTimeField.text, allDayCheck.checked)
-            if (!due) {
-                return
-            }
+        var dueResult = DateTime.resolveDateFields(dueDateField.text, dueTimeField.text, allDayCheck.checked, clearDueRequested)
+        if (!dueResult) {
+            return
         }
-
-        var start = null
-        var clearStart = clearStartRequested || startDateField.text.trim().length === 0
-        if (!clearStart) {
-            start = DateTime.combineDateTime(startDateField.text, startTimeField.text, allDayCheck.checked)
-            if (!start) {
-                return
-            }
+        var startResult = DateTime.resolveDateFields(startDateField.text, startTimeField.text, allDayCheck.checked, clearStartRequested)
+        if (!startResult) {
+            return
         }
 
         var fields = {
@@ -174,17 +160,16 @@ FocusScope {
             "secrecy": secrecyValue,
             "recurrencePreset": recurrenceValueFor(recurrenceBox.currentIndex),
             "reminderMinutes": reminderValueFor(reminderBox.currentIndex),
-            "clearDue": clearDue,
-            "clearStart": clearStart,
-            "collectionId": projectPicker.collectionId,
-            "parentUid": parentPicker.parentUid
+            "clearDue": dueResult.clear,
+            "clearStart": startResult.clear,
+            "collectionId": projectPicker.collectionId
         }
 
-        if (!clearDue && due) {
-            fields.dueDate = due
+        if (!dueResult.clear && dueResult.date) {
+            fields.dueDate = dueResult.date
         }
-        if (!clearStart && start) {
-            fields.startDate = start
+        if (!startResult.clear && startResult.date) {
+            fields.startDate = startResult.date
         }
 
         controller.updateTaskFull(task.itemId, fields)
@@ -317,7 +302,7 @@ FocusScope {
             Kirigami.Heading {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
-                Layout.topMargin: Design.spaceSmall
+                Layout.topMargin: Kirigami.Units.smallSpacing
                 level: 3
                 text: i18n("Schedule")
             }
@@ -331,7 +316,7 @@ FocusScope {
             FieldLabel { text: i18n("Start:") }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Design.spaceSmall
+                spacing: Kirigami.Units.smallSpacing
 
                 DateTimeInput {
                     id: startDateField
@@ -363,7 +348,7 @@ FocusScope {
             FieldLabel { text: i18n("Due:") }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Design.spaceSmall
+                spacing: Kirigami.Units.smallSpacing
 
                 DateTimeInput {
                     id: dueDateField
@@ -421,7 +406,7 @@ FocusScope {
             Kirigami.Heading {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
-                Layout.topMargin: Design.spaceSmall
+                Layout.topMargin: Kirigami.Units.smallSpacing
                 level: 3
                 text: i18n("Status")
             }
@@ -442,11 +427,11 @@ FocusScope {
             FieldLabel { text: i18n("Progress:") }
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: Design.spaceTiny
+                spacing: Kirigami.Units.smallSpacing / 2
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: Design.spaceSmall
+                    spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Slider {
                         id: percentSlider
@@ -471,7 +456,7 @@ FocusScope {
 
                 Item {
                     Layout.fillWidth: true
-                    Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Design.spaceSmall
+                    Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Kirigami.Units.smallSpacing
                     Layout.preferredHeight: Kirigami.Theme.smallFont.pixelSize + 2
 
                     Repeater {
@@ -496,7 +481,7 @@ FocusScope {
             }
             Flow {
                 Layout.fillWidth: true
-                spacing: Design.spaceMedium
+                spacing: Kirigami.Units.largeSpacing
 
                 QQC2.ButtonGroup {
                     id: statusGroup
@@ -523,7 +508,7 @@ FocusScope {
             Kirigami.Heading {
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
-                Layout.topMargin: Design.spaceSmall
+                Layout.topMargin: Kirigami.Units.smallSpacing
                 level: 3
                 text: i18n("Classification")
             }
@@ -551,7 +536,7 @@ FocusScope {
             }
             Flow {
                 Layout.fillWidth: true
-                spacing: Design.spaceMedium
+                spacing: Kirigami.Units.largeSpacing
 
                 QQC2.ButtonGroup {
                     id: secrecyGroup
@@ -594,17 +579,6 @@ FocusScope {
             ProjectPicker {
                 id: projectPicker
                 Layout.fillWidth: true
-                onCollectionIdChanged: {
-                    parentPicker.collectionId = collectionId
-                    parentPicker.rebuild()
-                }
-            }
-
-            FieldLabel { text: i18n("Parent:") }
-            ParentPicker {
-                id: parentPicker
-                Layout.fillWidth: true
-                boundsItem: root
             }
             }
         }

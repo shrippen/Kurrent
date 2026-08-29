@@ -3,6 +3,8 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kcmutils as KCM
+import "."
+
 import "components"
 
 KCM.SimpleKCM {
@@ -10,8 +12,78 @@ KCM.SimpleKCM {
 
     property alias cfg_notificationsEnabled: notifyCheck.checked
     property alias cfg_quietHoursEnabled: quietCheck.checked
+    property alias cfg_suppressRemindersDuringEvents: eventBusyCheck.checked
     property int cfg_quietHoursStart
     property int cfg_quietHoursEnd
+    property string cfg_busyCalendarIds
+
+    Loader {
+        id: configControllerLoader
+        source: Qt.resolvedUrl("PluginController.qml")
+    }
+    readonly property var configController: configControllerLoader.item
+
+    readonly property int eventCalendarCount: {
+        var model = configController ? configController.eventCalendarModel : null
+        return model ? model.count : 0
+    }
+
+    function busyCalendarSet() {
+        var raw = cfg_busyCalendarIds || ""
+        if (!raw.trim()) return {}
+        var parts = raw.split(",")
+        var s = {}
+        for (var i = 0; i < parts.length; ++i) {
+            var v = parts[i].trim()
+            if (v !== "") s[v] = true
+        }
+        return s
+    }
+
+    function eventCalendarIds() {
+        var model = configController ? configController.eventCalendarModel : null
+        var ids = []
+        if (!model) {
+            return ids
+        }
+        for (var i = 0; i < model.count; ++i) {
+            ids.push(String(model.collectionIdAt(i)))
+        }
+        return ids
+    }
+
+    function toggleBusyCalendar(collectionId) {
+        var current = busyCalendarSet()
+        var key = String(collectionId)
+        var allIds = eventCalendarIds()
+
+        var isEmpty = Object.keys(current).length === 0
+        if (isEmpty) {
+            var result = []
+            for (var j = 0; j < allIds.length; ++j) {
+                if (allIds[j] !== key) result.push(allIds[j])
+            }
+            cfg_busyCalendarIds = result.join(",")
+        } else if (current[key]) {
+            delete current[key]
+            var arr = Object.keys(current)
+            cfg_busyCalendarIds = arr.length > 0 ? arr.join(",") : ""
+        } else {
+            current[key] = true
+            var arr2 = Object.keys(current)
+            if (arr2.length >= allIds.length) {
+                cfg_busyCalendarIds = ""
+            } else {
+                cfg_busyCalendarIds = arr2.join(",")
+            }
+        }
+    }
+
+    function isBusyCalendarEnabled(collectionId) {
+        var s = busyCalendarSet()
+        if (Object.keys(s).length === 0) return true
+        return !!s[String(collectionId)]
+    }
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {
@@ -28,6 +100,13 @@ KCM.SimpleKCM {
     }
 
     ConfigFormShell {
+        id: shell
+
+        PluginMissingView {
+            visible: configControllerLoader.status === Loader.Error
+            Layout.fillWidth: true
+            Layout.preferredHeight: visible ? implicitHeight : 0
+        }
 
         Kirigami.FormLayout {
             Layout.fillWidth: true
@@ -77,6 +156,22 @@ KCM.SimpleKCM {
                 Component.onCompleted: selectCombo(quietEndCombo, String(plasmoid.configuration.quietHoursEnd !== undefined ? plasmoid.configuration.quietHoursEnd : 7))
             }
 
+            QQC2.CheckBox {
+                id: eventBusyCheck
+                Kirigami.FormData.label: i18n("During events")
+                text: i18n("Suppress reminders while a calendar event is in progress")
+                Component.onCompleted: checked = plasmoid.configuration.suppressRemindersDuringEvents === true
+            }
+
+            QQC2.Label {
+                Kirigami.FormData.label: ""
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                opacity: 0.7
+                visible: eventBusyCheck.checked
+                text: i18n("Only opaque (busy) events count. Transparent events are ignored.")
+            }
+
             ConfigResetButton {
                 Kirigami.FormData.label: ""
                 page: root
@@ -84,8 +179,90 @@ KCM.SimpleKCM {
                     notificationsEnabled: true,
                     quietHoursEnabled: false,
                     quietHoursStart: 22,
-                    quietHoursEnd: 7
+                    quietHoursEnd: 7,
+                    suppressRemindersDuringEvents: false,
+                    busyCalendarIds: ""
                 })
+            }
+        }
+
+        Kirigami.Heading {
+            visible: eventBusyCheck.checked
+            text: i18n("Calendars for event suppression")
+            level: 3
+            Layout.fillWidth: true
+        }
+
+        QQC2.Label {
+            visible: eventBusyCheck.checked
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            opacity: 0.75
+            text: i18n("Choose which Akonadi event calendars block reminders. Disabled entries are ignored when checking for ongoing events.")
+        }
+
+        ColumnLayout {
+            visible: eventBusyCheck.checked
+            Layout.fillWidth: true
+            spacing: Design.spaceSmall
+
+            QQC2.Label {
+                visible: root.eventCalendarCount === 0
+                text: i18n("No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured.")
+                opacity: 0.6
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            Repeater {
+                model: configController ? configController.eventCalendarModel : 0
+
+                delegate: Kirigami.AbstractCard {
+                    Layout.fillWidth: true
+
+                    contentItem: RowLayout {
+                        spacing: Design.spaceSmall
+
+                        Kirigami.Icon {
+                            source: "view-calendar"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                        }
+
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            text: model.name
+                            wrapMode: Text.WordWrap
+                            elide: Text.ElideRight
+                        }
+
+                        QQC2.Switch {
+                            checked: root.isBusyCalendarEnabled(model.collectionId)
+                            onToggled: root.toggleBusyCalendar(model.collectionId)
+                            QQC2.ToolTip.text: i18n("Include this calendar when checking for ongoing events")
+                            QQC2.ToolTip.visible: hovered
+                        }
+                    }
+                }
+            }
+        }
+
+        RowLayout {
+            visible: eventBusyCheck.checked && root.eventCalendarCount > 0
+            Layout.fillWidth: true
+
+            QQC2.Button {
+                text: i18n("Include All")
+                icon.name: "checkbox"
+                onClicked: cfg_busyCalendarIds = ""
+            }
+
+            Item { Layout.fillWidth: true }
+
+            QQC2.Button {
+                text: i18n("Refresh")
+                icon.name: "view-refresh"
+                onClicked: if (configController) configController.refresh()
             }
         }
     }

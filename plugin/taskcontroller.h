@@ -1,6 +1,7 @@
 #pragma once
 
 #include "collectionlistmodel.h"
+#include "taskcalendar.h"
 #include "tasklistmodel.h"
 #include "tasklogic.h"
 #include "taskstore.h"
@@ -17,10 +18,12 @@
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QVector>
 
 namespace Akonadi
 {
 class CollectionFetchJob;
+class ItemFetchJob;
 }
 
 class KJob;
@@ -29,6 +32,7 @@ class TaskController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int buildNumber READ buildNumber CONSTANT)
+    Q_PROPERTY(QString pluginVersion READ pluginVersion CONSTANT)
     Q_PROPERTY(bool devBuild READ devBuild CONSTANT)
     Q_PROPERTY(bool smokeTest READ smokeTest CONSTANT)
     // Process-wide smoke progress so a recreated FullView continues instead of restarting.
@@ -62,6 +66,8 @@ class TaskController : public QObject
     Q_PROPERTY(bool quietHoursEnabled READ quietHoursEnabled WRITE setQuietHoursEnabled NOTIFY quietHoursChanged)
     Q_PROPERTY(int quietHoursStart READ quietHoursStart WRITE setQuietHoursStart NOTIFY quietHoursChanged)
     Q_PROPERTY(int quietHoursEnd READ quietHoursEnd WRITE setQuietHoursEnd NOTIFY quietHoursChanged)
+    Q_PROPERTY(bool suppressRemindersDuringEvents READ suppressRemindersDuringEvents WRITE setSuppressRemindersDuringEvents NOTIFY eventBusySettingsChanged)
+    Q_PROPERTY(QString busyCalendarIds READ busyCalendarIds WRITE setBusyCalendarIds NOTIFY eventBusySettingsChanged)
     Q_PROPERTY(bool canUndo READ canUndo NOTIFY undoChanged)
     Q_PROPERTY(QString undoKind READ undoKind NOTIFY undoChanged)
     Q_PROPERTY(int pendingCount READ pendingCount NOTIFY pendingCountChanged)
@@ -73,6 +79,7 @@ class TaskController : public QObject
     Q_PROPERTY(QVariantMap sidebarPriorityCounts READ sidebarPriorityCounts NOTIFY sidebarCountsChanged)
     Q_PROPERTY(TaskListModel *taskModel READ taskModel CONSTANT)
     Q_PROPERTY(CollectionListModel *collectionModel READ collectionModel CONSTANT)
+    Q_PROPERTY(CollectionListModel *eventCalendarModel READ eventCalendarModel CONSTANT)
     Q_PROPERTY(QString debugInfo READ debugInfo NOTIFY debugInfoChanged)
 
 public:
@@ -80,6 +87,7 @@ public:
     ~TaskController() override;
 
     int buildNumber() const;
+    QString pluginVersion() const;
     bool devBuild() const;
     bool smokeTest() const;
     int smokeStep() const;
@@ -114,6 +122,8 @@ public:
     bool quietHoursEnabled() const { return m_quietHoursEnabled; }
     int quietHoursStart() const { return m_quietHoursStart; }
     int quietHoursEnd() const { return m_quietHoursEnd; }
+    bool suppressRemindersDuringEvents() const { return m_suppressRemindersDuringEvents; }
+    QString busyCalendarIds() const { return m_busyCalendarIds; }
     bool canUndo() const { return m_undo.canUndo(); }
     QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
     int pendingCount() const { return m_pendingCount; }
@@ -125,6 +135,7 @@ public:
     QVariantMap sidebarPriorityCounts() const { return m_sidebarPriorityCounts; }
     TaskListModel *taskModel() { return &m_taskModel; }
     CollectionListModel *collectionModel() { return &m_collectionModel; }
+    CollectionListModel *eventCalendarModel() { return &m_eventCalendarModel; }
     QString debugInfo() const { return m_debugInfo; }
 
     Q_INVOKABLE QString collectionNameForId(qint64 collectionId) const;
@@ -164,6 +175,8 @@ public:
     void setQuietHoursEnabled(bool enabled);
     void setQuietHoursStart(int hour);
     void setQuietHoursEnd(int hour);
+    void setSuppressRemindersDuringEvents(bool enabled);
+    void setBusyCalendarIds(const QString &ids);
     Q_INVOKABLE void setEnabledCollectionIds(const QVariantList &ids);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void syncNow();
@@ -250,6 +263,7 @@ signals:
     void notificationsEnabledChanged();
     void defaultReminderMinutesChanged();
     void quietHoursChanged();
+    void eventBusySettingsChanged();
     void undoChanged();
     void pendingCountChanged();
     void availableLabelsChanged();
@@ -284,6 +298,11 @@ enum class SyncResult { Error, Ok };
     void recreateTask(const TaskLogic::UndoRecord &record);
     void checkReminders();
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
+    void refreshBusyEvents();
+    void scheduleRefreshBusyEvents();
+    bool isInBusyEvent(const QDateTime &when) const;
+    QList<Akonadi::Collection> busyEventCollections() const;
+    void onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd);
     void registerSessionInterface();
     void registerGlobalShortcuts();
     void ensureServerWatch();
@@ -355,6 +374,8 @@ enum class SyncResult { Error, Ok };
     bool m_quietHoursEnabled = false;
     int m_quietHoursStart = 22;
     int m_quietHoursEnd = 7;
+    bool m_suppressRemindersDuringEvents = false;
+    QString m_busyCalendarIds;
     QDateTime m_lastReminderScan;
     QHash<qint64, QDateTime> m_lastNotifiedReminder;
     QString m_emptyKind;
@@ -388,6 +409,8 @@ enum class SyncResult { Error, Ok };
 
     TaskListModel m_taskModel;
     CollectionListModel m_collectionModel;
+    CollectionListModel m_eventCalendarModel;
+    QVector<TaskCalendar::BusyInterval> m_busyIntervals;
     QHash<qint64, QString> m_collectionNames;
     QHash<Akonadi::Item::Id, CachedTask> m_tasks;
     AbstractTaskStore *m_store = nullptr;
@@ -395,9 +418,13 @@ enum class SyncResult { Error, Ok };
     QTimer m_collectionsTimer;
     QTimer m_akonadiRetryTimer;
     QTimer m_reminderTimer;
+    QTimer m_busyEventTimer;
+    int m_pendingBusyFetchJobs = 0;
+    QVector<TaskCalendar::BusyInterval> m_busyFetchIntervals;
 
     static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
     static QList<Akonadi::Collection> s_collections;
+    static QList<Akonadi::Collection> s_eventCollections;
     static QHash<qint64, QString> s_collectionNames;
     static QStringList s_extraLabels;
     static QList<TaskController *> s_instances;

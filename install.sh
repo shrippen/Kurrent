@@ -27,8 +27,8 @@ restart_plasmashell() {
         return 0
     fi
 
-    export QML_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
-    export QML2_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
+    export QML_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
+    export QML2_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
 
     echo "Restarting plasmashell..."
     kquitapp6 plasmashell 2>/dev/null || true
@@ -102,8 +102,8 @@ fi
 ENV_DIR="${HOME}/.config/plasma-workspace/env"
 mkdir -p "${ENV_DIR}"
 cat > "${ENV_DIR}/kurrent-qml.sh" <<EOF
-export QML_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml\${QML_IMPORT_PATH:+:\$QML_IMPORT_PATH}"
-export QML2_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml\${QML2_IMPORT_PATH:+:\$QML2_IMPORT_PATH}"
+export QML_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml\${QML_IMPORT_PATH:+:\$QML_IMPORT_PATH}"
+export QML2_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml\${QML2_IMPORT_PATH:+:\$QML2_IMPORT_PATH}"
 EOF
 echo "Wrote QML import path helper: ${ENV_DIR}/kurrent-qml.sh"
 

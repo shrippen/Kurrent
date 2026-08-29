@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.2.2"><img alt="Version" src="https://img.shields.io/badge/version-0.2.2-e8dcc4?labelColor=1c1c20"></a>
+  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.3"><img alt="Version" src="https://img.shields.io/badge/version-0.3-e8dcc4?labelColor=1c1c20"></a>
   <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
   <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey?labelColor=1c1c20">
 </p>
@@ -51,7 +51,26 @@ Until AUR and COPR packages exist, the supported install is this one-liner. It d
 curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash
 ```
 
-`sudo` is only for distro packages. The widget is installed as your user (`SUDO_USER`). Without sudo, use `bash <(curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh)` so a password prompt can use the terminal. Pin a release with `| bash -s -- --tag v0.2.2`. Compile instead of using the Arch-built `.so`: `| bash -s -- --from-source`.
+`sudo` is only for distro packages. The widget is installed as your user (`SUDO_USER`). Without sudo, use `bash <(curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh)` so a password prompt can use the terminal. Pin a release with `| bash -s -- --tag v0.3`. Compile instead of using the Arch-built `.so`: `| bash -s -- --from-source`.
+
+The installer checks for **Plasma 6 / Qt 6 / KF6** before proceeding and exits if the desktop stack is too old. Package lists cover Arch, Fedora/RHEL, Debian/Ubuntu, and openSUSE; on other distros you get a warning and an interactive **Continue anyway?** prompt (skipped in CI or without a TTY).
+
+### Immutable / atomic distros (Silverblue, Kinoite, MicroOS, …)
+
+The one-liner uses the host package manager (`dnf`, `apt`, …). On **rpm-ostree** (Fedora Silverblue, Kinoite, Universal Blue, …) and **transactional** systems (openSUSE MicroOS, Aeon), that does not modify the running root — plain `sudo dnf install` inside the script will usually fail.
+
+**Fedora Atomic:** layer dependencies with `rpm-ostree install …`, reboot, then re-run with `--no-deps` (add `--from-source` for a local build). Or run the installer inside **Toolbx/Distrobox**. Example runtime layer:
+
+```bash
+rpm-ostree install plasma-workspace kf6-kcalendarcore kf6-ki18n kf6-kconfig \
+  kf6-knotifications kf6-kglobalaccel kf6-kirigami akonadi-server akonadi-calendar
+# reboot, then:
+curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | bash -s -- --no-deps
+```
+
+**openSUSE MicroOS:** use `transactional-update pkg install …`, reboot, then `--no-deps` — or build inside Distrobox/Podman.
+
+Kurrent itself installs under `~/.local`, which persists across reboots and container workflows. The installer detects immutable systems and prints these hints before asking **Continue on this immutable system anyway?**
 
 From a git checkout (widget + Akonadi QML plugin):
 
@@ -68,7 +87,7 @@ Each GitHub Release includes:
 - `install-linux.sh` — the one-liner above
 
 ```bash
-kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.2.0.plasmoid
+kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.3.plasmoid
 ```
 
 The Akonadi backend is a compiled QML plugin. The `.plasmoid` from the KDE Store is only the widget UI — if you install that alone, Kurrent shows how to get the plugin instead of a QML error. Full task access needs the one-liner, `./install.sh`, or a distro package so `libkurrentplugin.so` is on the QML import path. The prebuilt tarball is linked against Arch’s Plasma 6 / KDE PIM; on other distros the installer falls back to compiling from source.

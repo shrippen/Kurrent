@@ -19,15 +19,15 @@ Item {
     signal openFullEditor
 
     readonly property int innerPad: Design.padInner
-    // Natural height of the editor contents; animated height opens/closes via openReveal.
-    readonly property real naturalHeight: editorColumn.implicitHeight + innerPad * 2
-    implicitHeight: naturalHeight
-    height: Math.max(0, Math.round(naturalHeight * openReveal))
-    clip: true
-    opacity: 0.35 + 0.65 * openReveal
 
-    // 0 → 1 unfold when opening; reduced motion snaps to 1.
+    property bool clearDueRequested: false
     property real openReveal: 1
+
+    readonly property real fullHeight: editorColumn.implicitHeight + innerPad * 2
+    implicitHeight: fullHeight
+    height: fullHeight * openReveal
+    clip: true
+
     Behavior on openReveal {
         enabled: !Design.reducedMotion
         NumberAnimation {
@@ -35,8 +35,6 @@ Item {
             easing.type: Easing.OutCubic
         }
     }
-
-    property bool clearDueRequested: false
 
     Component.onCompleted: loadFromTask()
     onVisibleChanged: {
@@ -57,13 +55,9 @@ Item {
     }
 
     function save() {
-        var due = null
-        var clearDue = clearDueRequested || dueDateField.text.trim().length === 0
-        if (!clearDue) {
-            due = DateTime.combineDateTime(dueDateField.text, dueTimeField.text, allDayCheck.checked)
-            if (!due) {
-                return
-            }
+        var dueResult = DateTime.resolveDateFields(dueDateField.text, dueTimeField.text, allDayCheck.checked, clearDueRequested)
+        if (!dueResult) {
+            return
         }
 
         var fields = {
@@ -72,10 +66,10 @@ Item {
             "priority": Colors.normalizePriority(priorityPicker.priority),
             "categories": labelPicker.selectedLabels.slice(),
             "allDay": allDayCheck.checked,
-            "clearDue": clearDue
+            "clearDue": dueResult.clear
         }
-        if (!clearDue && due) {
-            fields.dueDate = due
+        if (!dueResult.clear && dueResult.date) {
+            fields.dueDate = dueResult.date
         }
         controller.updateTaskFull(task.itemId, fields)
         root.saved()
@@ -83,7 +77,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Design.inputRadius
+        radius: 3
         color: Kirigami.Theme.highlightColor
         opacity: 0.12
     }
@@ -114,7 +108,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: Design.spaceSmall
+            spacing: Kirigami.Units.smallSpacing
 
             QQC2.Label {
                 text: i18n("Due")

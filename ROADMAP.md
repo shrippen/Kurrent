@@ -8,7 +8,7 @@ Out of scope for 1.0: Kanban, swimlanes / calendar grid, habit streaks, merging 
 flowchart LR
   v010[0.1.0]
   v02[0.2 shipped]
-  v03[0.3 Task semantics]
+  v03[0.3 shipped]
   v04[0.4 Plasma integration]
   v10[1.0]
   v010 --> v02 --> v03 --> v04 --> v10
@@ -30,14 +30,26 @@ Settings stay **shared** across desktop widget and panel flyout (`~/.config/com.
 
 - AUR `kurrent` / `kurrent-git` — still not shipped (see Easy install).
 - Honest release notes; `ctest` in CI.
-- Sort mode is session-only (not persisted in `kurrentrc`).
+- Sort mode was session-only in 0.2 (persisted in 0.3).
 - Empty/error UI when Akonadi is missing or no todo collections are enabled.
 - **Catch-up in Today:** all overdue incomplete tasks (same set as the Overdue view) sit in a distinct *Still open* / catch-up block at the top of Today. They are not silently mixed into “due today”, and they do **not** auto-rollover onto tomorrow. Overdue remains its own sidebar view; catch-up on/off in settings.
 - Settings shell: new KCM categories (Appearance, Sidebar, Tasks, Editor, Panel), config keys, per-page reset to defaults. `Design.qml` reads sidebar width and density overrides.
 
 ---
 
-## 0.3 — CalDAV semantics + task/editor settings
+## 0.3 — shipped 2026-08-29
+
+CalDAV semantics, editor/settings depth, panel and notification polish. See [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+**Shipped in 0.3:** recurring complete advances series; `VALARM` + Plasma notifications with snooze; reschedule presets + one-step undo; day sections (Morning/Afternoon/Evening); Quick Add NLP; collapse subtasks + optional complete-children; label rename; KCM row chips / click action / editor defaults / catch-up / day-part hours; sort persistence; event-aware reminder suppression; panel badge/tooltip modes; async panel startup + flyout preload; installer Plasma 6 gate and distro hints.
+
+**Deferred from the original 0.3 sketch:** creating Akonadi calendars from the widget, attachments, attendees (still out of scope).
+
+---
+
+## 0.3 catalog (reference)
+
+Original 0.3 planning items — most shipped; see changelog for details.
 
 - Completing a recurring task advances the series (or records an exception) without wiping a custom `RRULE`.
 - `VALARM` in the editor, Plasma notifications when due. Snooze from the notification (15 min / 1 h / tomorrow) rewrites the alarm and optionally the due date.
@@ -59,7 +71,7 @@ Not in 0.3: creating Akonadi calendars from the widget, attachments, attendees.
 - Global shortcut / D-Bus to open the flyout or add a task.
 - KRunner (`task tomorrow invoice`) — nice to have, not a 1.0 blocker.
 - **Join button:** a `http(s)` meeting URL in the description (or location) shows as a compact Join control on the row and in the editor, not a full-width link.
-- Sidebar width, section/view order and visibility; per-project and per-label colors; panel badge and flyout size; overlay dim steps.
+- Sidebar width, section/view order and visibility; per-project and per-label colors; panel badge; overlay dim steps.
 
 ---
 
@@ -72,7 +84,7 @@ Target KCM pages:
 3. **Sidebar** — width, sections, views on/off and order, row size
 4. **Tasks** — sort, row chips, date format, tree
 5. **Editor** — inline vs full, default fields, reminder offset
-6. **Panel** — badge, tooltip, flyout size
+6. **Panel** — badge, tooltip
 7. **Projects** — enable/hide + color
 8. **Labels** — hide + color (rename once 0.3 exists)
 9. **Notifications** — once alarms exist
@@ -111,7 +123,7 @@ Each page has reset-to-defaults. Desktop and panel stay in sync.
 
 ### Tasks
 
-- Persistent sort (currently RAM-only).
+- Persistent sort (global or per-view; Tasks KCM).
 - Per-chip toggles: date, labels, priority, percent complete, location, recurring icon, Join button.
 - Relative dates vs locale date; time on the row on/off.
 - Overdue emphasis via the due chip, not a second palette. Reschedule presets (tomorrow / +1 day / pick date / snooze offsets).
@@ -164,7 +176,7 @@ Compiling from a git clone is the fallback, not the product. The bar for 1.0 is:
 curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash
 ```
 
-`sudo` is for packages only. The script installs the widget as `$SUDO_USER` (do not log in as root). Without sudo: `bash <(curl -fsSL …/install-linux.sh)` so a password prompt can use the terminal. Pin 0.2: `| bash -s -- --tag v0.2.0`. Every `v*` tag publishes `.plasmoid` + Linux plugin tarball + this script.
+`sudo` is for packages only. The script installs the widget as `$SUDO_USER` (do not log in as root). Without sudo: `bash <(curl -fsSL …/install-linux.sh)` so a password prompt can use the terminal. Pin a release: `| bash -s -- --tag v0.3`. Every `v*` tag publishes `.plasmoid` + Linux plugin tarball + this script.
 
 **Must have for 1.0**
 
@@ -207,4 +219,4 @@ Packaging work lives outside this application repo (AUR `PKGBUILD`, COPR spec) s
 
 ## Build order
 
-0.2 packaging (except AUR/COPR) and Today catch-up shipped in 0.2.0. One-liner installer is the bridge to distro packages. Remaining 0.3/0.4 catalog, then KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.
+0.2 packaging (except AUR/COPR) and Today catch-up shipped in 0.2.0. **0.3** (CalDAV semantics, settings, panel/notifications) shipped 2026-08-29. One-liner installer is the bridge to distro packages. Remaining **0.4** catalog, then KRunner last. Swimlanes, streaks, and task/event conversion after 1.0.

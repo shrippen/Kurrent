@@ -4,7 +4,6 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kirigamiaddons.dateandtime as KDateTime
 import "../datetime.js" as DateTime
-import ".."
 
 RowLayout {
     id: root
@@ -18,7 +17,7 @@ RowLayout {
 
     signal textEdited()
 
-    spacing: Design.spaceSmall
+    spacing: Kirigami.Units.smallSpacing
 
     readonly property var tokens: mode === "time" ? DateTime.timeTokens() : DateTime.dateTokens()
     readonly property int maxDigits: DateTime.maxDigitsFor(tokens)
@@ -91,14 +90,10 @@ RowLayout {
         }
 
         // Click on a segment selects that year/month/day/hour/minute.
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.LeftButton
-            propagateComposedEvents: true
-            cursorShape: Qt.IBeamCursor
-            onClicked: function(mouse) {
-                var pos = field.positionAt(mouse.x, mouse.y)
-                mouse.accepted = false
+        TapHandler {
+            onTapped: function(eventPoint) {
+                var pos = field.positionAt(eventPoint.position.x, eventPoint.position.y)
+                field.forceActiveFocus()
                 Qt.callLater(function() {
                     root._selectSegmentAt(pos)
                 })
@@ -148,7 +143,7 @@ RowLayout {
         icon.name: "view-calendar"
         onClicked: {
             var current = DateTime.parseDate(field.text)
-            datePopup.value = DateTime.isValidDate(current) ? current : new Date()
+            datePopup.value = current && current.isValid === true ? current : new Date()
             datePopup.open()
         }
         QQC2.ToolTip.text: i18n("Pick date")

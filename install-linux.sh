@@ -50,14 +50,14 @@ Options:
   --from-source      Compile from the GitHub source tarball instead of the binary
   --from-git         Clone git and compile (implies --from-source)
   --branch NAME      Git branch or tag to clone (implies --from-git; default: ${DEFAULT_GIT_REF})
-  --tag TAG          Use a specific release (binary or source), e.g. v0.2.0
+  --tag TAG          Use a specific release (binary or source), e.g. v0.3
   --no-deps          Do not install distro packages
   --no-restart       Do not restart plasmashell
   -h, --help         Show this help
 
 Examples:
   curl -fsSL ${INSTALLER_URL} | sudo bash
-  curl -fsSL ${INSTALLER_URL} | bash -s -- --tag v0.2.0
+  curl -fsSL ${INSTALLER_URL} | bash -s -- --tag v0.3
   curl -fsSL ${INSTALLER_URL} | bash -s -- --from-source
 EOF
 }
@@ -122,6 +122,201 @@ host_arch() {
         aarch64|arm64) echo aarch64 ;;
         *) echo "$m" ;;
     esac
+}
+
+is_interactive() {
+    if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
+        return 1
+    fi
+    if [[ -t 0 || -r /dev/tty ]]; then
+        return 0
+    fi
+    return 1
+}
+
+check_plasma6_env() {
+    local ver major="" hint=""
+
+    if command -v plasmashell >/dev/null 2>&1; then
+        ver="$(plasmashell --version 2>&1 || true)"
+        if [[ "$ver" =~ (^|[^0-9])6\. ]] || [[ "$ver" =~ [Pp]lasma[^0-9]*6 ]]; then
+            info "Plasma environment: ${ver}"
+            return 0
+        fi
+        if [[ "$ver" =~ (^|[^0-9])([0-9]+)\. ]]; then
+            major="${BASH_REMATCH[2]}"
+            if [[ "$major" -ge 6 ]]; then
+                info "Plasma environment: ${ver}"
+                return 0
+            fi
+        fi
+        hint="plasmashell reports: ${ver}"
+    fi
+
+    if command -v kpackagetool6 >/dev/null 2>&1; then
+        info "Plasma 6 tooling found (kpackagetool6)."
+        return 0
+    fi
+    local qml_dir
+    for qml_dir in /usr/lib/qt6/qml /usr/lib64/qt6/qml; do
+        if [[ -d "$qml_dir" ]]; then
+            info "Qt 6 QML path found: ${qml_dir}"
+            return 0
+        fi
+    done
+    if compgen -G '/usr/lib/libKF6*.so' >/dev/null \
+        || compgen -G '/usr/lib64/libKF6*.so' >/dev/null \
+        || compgen -G '/usr/lib/x86_64-linux-gnu/libKF6*.so' >/dev/null; then
+        info "KF6 libraries found."
+        return 0
+    fi
+
+    error "Kurrent requires KDE Plasma 6 with Qt 6 and KDE Frameworks 6 (KF6)."
+    if [[ -n "$hint" ]]; then
+        error "${hint}"
+    else
+        error "plasmashell was not found on PATH."
+    fi
+    error "Debian stable and Ubuntu LTS may need Plasma 6 backports or a newer release."
+    error "Fedora/RHEL/CentOS users may need packages from COPR or EPEL."
+    error "See build-from-source instructions: https://github.com/${REPO}#development"
+    exit 1
+}
+
+UNKNOWN_DISTRO_CONFIRMED=false
+
+confirm_unknown_distro() {
+    if [[ "$UNKNOWN_DISTRO_CONFIRMED" == true ]]; then
+        return 0
+    fi
+
+    warn "Unsupported or unrecognized Linux distribution."
+    warn "The installer has explicit package lists only for:"
+    warn "  Arch Linux (and derivatives)"
+    warn "  Fedora / RHEL / Rocky / Alma"
+    warn "  Debian / Ubuntu / Mint"
+    warn "  openSUSE"
+    warn "Install Plasma 6, Qt 6, KF6, and Akonadi packages yourself if you continue."
+
+    if ! is_interactive; then
+        warn "Non-interactive session (no TTY or CI=true): continuing without confirmation."
+        UNKNOWN_DISTRO_CONFIRMED=true
+        return 0
+    fi
+
+    local reply=""
+    if [[ -r /dev/tty ]]; then
+        read -r -p "Continue anyway? [y/N] " reply </dev/tty
+    else
+        read -r -p "Continue anyway? [y/N] " reply
+    fi
+    if [[ "$reply" =~ ^[yY]([eE][sS])?$ ]]; then
+        UNKNOWN_DISTRO_CONFIRMED=true
+        return 0
+    fi
+    error "Installation cancelled."
+    exit 1
+}
+
+IMMUTABLE_KIND=""
+IMMUTABLE_LABEL=""
+IMMUTABLE_CONFIRMED=false
+
+detect_immutable_distro() {
+    IMMUTABLE_KIND=""
+    IMMUTABLE_LABEL=""
+    local id="" variant="" variant_id="" pretty=""
+
+    if [[ -f /etc/os-release ]]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        id="${ID:-}"
+        variant="${VARIANT:-}"
+        variant_id="${VARIANT_ID:-}"
+        pretty="${PRETTY_NAME:-$id}"
+    fi
+    IMMUTABLE_LABEL="${pretty:-Linux}"
+
+    local blob
+    blob="$(printf '%s %s %s' "$id" "$variant" "$variant_id" | tr '[:upper:]' '[:lower:]')"
+
+    if [[ -f /run/ostree-booted ]] \
+        || [[ "$blob" =~ silverblue|kinoite|sericea|fedora-coreos|coreos|bazzite|bluefin|aurora|u-blue|ublue ]]; then
+        IMMUTABLE_KIND="ostree"
+        return 0
+    fi
+    if [[ "$blob" =~ microos|aeon|kalpa|transactional ]] \
+        || command -v transactional-update >/dev/null 2>&1; then
+        IMMUTABLE_KIND="transactional"
+        return 0
+    fi
+    if [[ "$blob" =~ immutable|vanilla ]]; then
+        IMMUTABLE_KIND="immutable"
+    fi
+}
+
+warn_immutable_distro() {
+    detect_immutable_distro
+    if [[ -z "$IMMUTABLE_KIND" ]]; then
+        return 0
+    fi
+    if [[ "$IMMUTABLE_CONFIRMED" == true ]]; then
+        return 0
+    fi
+
+    warn "Immutable / atomic system detected: ${IMMUTABLE_LABEL}"
+    warn "This installer normally runs dnf/apt/pacman/zypper on the live root — that often fails or is ignored on immutable distros."
+
+    case "$IMMUTABLE_KIND" in
+        ostree)
+            warn "Fedora Atomic / rpm-ostree — suggested approaches:"
+            warn "  A) Layer packages on the host, reboot, then re-run with --no-deps:"
+            warn "       rpm-ostree install plasma-workspace kf6-kcalendarcore kf6-ki18n kf6-kconfig \\"
+            warn "         kf6-knotifications kf6-kglobalaccel kf6-kirigami akonadi-server akonadi-calendar"
+            warn "     For a source build, also layer: cmake extra-cmake-modules gcc-c++ git gettext \\"
+            warn "       qt6-qtbase-devel qt6-qtdeclarative-devel kf6-*-devel akonadi-devel"
+            warn "     Then: curl … | bash -s -- --no-deps --from-source"
+            warn "  B) Run the normal installer inside Toolbx/Distrobox (mutable container)."
+            warn "     Kurrent still installs to ~/.local on your user account."
+            warn "  C) Wait for COPR packages (see ROADMAP.md)."
+            ;;
+        transactional)
+            warn "openSUSE transactional / MicroOS — suggested approaches:"
+            warn "  A) Layer packages, reboot, then re-run with --no-deps:"
+            warn "       transactional-update pkg install plasma6-workspace libKF6CalendarCore6 \\"
+            warn "         libKF6I18n6 libKF6ConfigCore6 akonadi-server akonadi-calendar"
+            warn "     For source builds add -devel packages, cmake, and gcc-c++."
+            warn "     Then: curl … | bash -s -- --no-deps --from-source"
+            warn "  B) Use Distrobox/Podman with a mutable image and run the installer inside."
+            warn "  C) Install build deps in a toolbox, compile there; ~/.local persists on the host."
+            ;;
+        immutable)
+            warn "Generic immutable root — install Plasma 6 + Akonadi via your distro's layering tool,"
+            warn "or use a mutable container (Toolbx, Distrobox, nix-shell, …), then re-run with --no-deps."
+            ;;
+    esac
+
+    warn "Tip: pass --no-deps when runtime/build packages are already installed."
+    warn "Docs: https://github.com/${REPO}#install"
+
+    if ! is_interactive; then
+        warn "Non-interactive session (no TTY or CI=true): continuing; package steps may fail — use --no-deps if deps are pre-installed."
+        IMMUTABLE_CONFIRMED=true
+        return 0
+    fi
+
+    local reply=""
+    if [[ -r /dev/tty ]]; then
+        read -r -p "Continue on this immutable system anyway? [y/N] " reply </dev/tty
+    else
+        read -r -p "Continue on this immutable system anyway? [y/N] " reply
+    fi
+    if [[ "$reply" =~ ^[yY]([eE][sS])?$ ]]; then
+        IMMUTABLE_CONFIRMED=true
+        return 0
+    fi
+    error "Installation cancelled."
+    exit 1
 }
 
 resolve_install_user() {
@@ -244,15 +439,35 @@ install_runtime_deps() {
             run_root dnf install -y \
                 curl tar plasma-workspace kf6-kpackage \
                 kf6-kcalendarcore kf6-ki18n kf6-kconfig \
-                kf6-knotifications kf6-kglobalaccel kf6-kirigami
-            run_root dnf install -y akonadi-server || true
+                kf6-knotifications kf6-kglobalaccel kf6-kirigami \
+                akonadi-server akonadi-calendar
             ;;
         debian)
             run_root apt-get update
-            run_root env DEBIAN_FRONTEND=noninteractive apt-get install -y \
-                curl tar plasma-workspace kpackagetool6 \
-                libkf6calendarcore6 libkf6i18n6 libkf6configcore6 \
+            local deb_pkgs=(
+                curl tar plasma-workspace kpackagetool6
+                libkf6calendarcore6 libkf6i18n6 libkf6configcore6
                 libkf6notifications6 libkf6globalaccel6
+            )
+            local extra
+            for extra in libkpim6akonadicore6 libkpim6akonadi6 libakonadicore1; do
+                if apt-cache show "$extra" >/dev/null 2>&1; then
+                    deb_pkgs+=("$extra")
+                    break
+                fi
+            done
+            for extra in akonadi-server; do
+                if apt-cache show "$extra" >/dev/null 2>&1; then
+                    deb_pkgs+=("$extra")
+                fi
+            done
+            for extra in akonadi-calendar libkpim6akonadicalendar6 libkpim6akonadicalendarcore6; do
+                if apt-cache show "$extra" >/dev/null 2>&1; then
+                    deb_pkgs+=("$extra")
+                    break
+                fi
+            done
+            run_root env DEBIAN_FRONTEND=noninteractive apt-get install -y "${deb_pkgs[@]}"
             ;;
         suse)
             run_root zypper --non-interactive install \
@@ -260,6 +475,7 @@ install_runtime_deps() {
                 libKF6CalendarCore6 libKF6I18n6 libKF6ConfigCore6
             ;;
         *)
+            confirm_unknown_distro
             warn "Unknown distro; hoping curl, tar, and kpackagetool6 are already installed."
             ;;
     esac
@@ -322,6 +538,7 @@ install_build_deps() {
                 libKPim6Akonadi-devel akonadi-calendar-devel
             ;;
         *)
+            confirm_unknown_distro
             warn "Unknown distro. Install Plasma 6, Akonadi, extra-cmake-modules, Qt6/KF6 devel, cmake, and g++ yourself."
             ;;
     esac
@@ -374,8 +591,8 @@ write_qml_env() {
     tmp="${WORKDIR}/kurrent-qml.sh"
     as_user mkdir -p "$env_dir"
     cat > "$tmp" <<EOF
-export QML_IMPORT_PATH="${INSTALL_PREFIX}/lib/qml:${INSTALL_PREFIX}/share/qt6/qml\${QML_IMPORT_PATH:+:\$QML_IMPORT_PATH}"
-export QML2_IMPORT_PATH="${INSTALL_PREFIX}/lib/qml:${INSTALL_PREFIX}/share/qt6/qml\${QML2_IMPORT_PATH:+:\$QML2_IMPORT_PATH}"
+export QML_IMPORT_PATH="${INSTALL_PREFIX}/lib64/qml:${INSTALL_PREFIX}/lib/qml:${INSTALL_PREFIX}/share/qt6/qml\${QML_IMPORT_PATH:+:\$QML_IMPORT_PATH}"
+export QML2_IMPORT_PATH="${INSTALL_PREFIX}/lib64/qml:${INSTALL_PREFIX}/lib/qml:${INSTALL_PREFIX}/share/qt6/qml\${QML2_IMPORT_PATH:+:\$QML2_IMPORT_PATH}"
 EOF
     if [[ "${EUID}" -eq 0 ]]; then
         chown "$INSTALL_USER:$INSTALL_USER" "$tmp"
@@ -402,8 +619,8 @@ restart_plasmashell() {
                 echo "plasmashell is not running; skipping restart."
                 exit 0
             fi
-            export QML_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
-            export QML2_IMPORT_PATH="${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
+            export QML_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
+            export QML2_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
             echo "Restarting plasmashell..."
             kquitapp6 plasmashell 2>/dev/null || true
             sleep 1
@@ -622,6 +839,8 @@ main() {
     parse_args "$@"
     info "Kurrent installer"
     resolve_install_user
+    check_plasma6_env
+    warn_immutable_distro
     warn_if_not_sudo
     check_install_prefix_writable
     detect_local_src

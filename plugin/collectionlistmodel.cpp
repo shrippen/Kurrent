@@ -3,6 +3,7 @@
 namespace
 {
 const QLatin1String todoMimeType("application/x-vnd.akonadi.calendar.todo");
+const QLatin1String eventMimeType("application/x-vnd.akonadi.calendar.event");
 }
 
 CollectionListModel::CollectionListModel(QObject *parent)
@@ -141,6 +142,14 @@ bool CollectionListModel::isTaskCollection(const Akonadi::Collection &collection
         return false;
     }
     return collection.contentMimeTypes().contains(todoMimeType);
+}
+
+bool CollectionListModel::isEventCollection(const Akonadi::Collection &collection)
+{
+    if (!collection.isValid() || collection.isVirtual()) {
+        return false;
+    }
+    return collection.contentMimeTypes().contains(eventMimeType);
 }
 
 bool CollectionListModel::isTaskWritable(const Akonadi::Collection &collection)

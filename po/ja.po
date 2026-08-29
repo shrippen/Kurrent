@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.2.0\n"
+"Project-Id-Version: kurrent 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -28,9 +28,6 @@ msgstr "受信箱"
 
 msgid "Today"
 msgstr "今日"
-
-msgid "Overdue"
-msgstr "期限切れ"
 
 msgid "Tomorrow"
 msgstr "明日"
@@ -73,18 +70,6 @@ msgstr "並べ替え: %1"
 
 msgid "Sort tasks"
 msgstr "タスクを並べ替え"
-
-msgid "First sort"
-msgstr "第1ソート"
-
-msgid "Second sort"
-msgstr "第2ソート"
-
-msgid "Third sort"
-msgstr "第3ソート"
-
-msgid "Open first"
-msgstr "未完了優先"
 
 msgid "Build"
 msgstr "ビルド"
@@ -166,6 +151,15 @@ msgstr "コマンドをコピー"
 
 msgid "Open GitHub"
 msgstr "GitHub を開く"
+
+msgid "Backend version mismatch"
+msgstr "バックエンドのバージョン不一致"
+
+msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
+msgstr "ウィジェットは %1 ですが、インストール済みバックエンドは %2 です。一致するようバックエンドを再インストールしてください。"
+
+msgid "unknown"
+msgstr "不明"
 
 msgid "Add task"
 msgstr "タスクを追加"
@@ -302,12 +296,6 @@ msgstr "場所"
 msgid "Project:"
 msgstr "プロジェクト:"
 
-msgid "Parent:"
-msgstr "親タスク:"
-
-msgid "Open / Join"
-msgstr "開く / 参加"
-
 msgid "No projects available"
 msgstr "利用できるプロジェクトがありません"
 
@@ -340,15 +328,6 @@ msgstr "低"
 
 msgid "Search or create label…"
 msgstr "ラベルを検索または作成…"
-
-msgid "Search parent task…"
-msgstr "親タスクを検索…"
-
-msgid "Clear parent"
-msgstr "親をクリア"
-
-msgid "No matching tasks"
-msgstr "一致するタスクがありません"
 
 msgid "Remove label"
 msgstr "ラベルを削除"
@@ -529,399 +508,6 @@ msgstr "新しいラベル"
 
 msgid "Delete label"
 msgstr "ラベルを削除"
-
-msgid "%1 grid units"
-msgstr "%1 グリッド単位"
-
-msgid "%1:00"
-msgstr "%1:00"
-
-msgid "1 day before"
-msgstr "1日前"
-
-msgid "1 hour"
-msgstr "1時間"
-
-msgid "1 hour before"
-msgstr "1時間前"
-
-msgid "1 line"
-msgstr "1行"
-
-msgid "15 minutes"
-msgstr "15分"
-
-msgid "15 minutes before"
-msgstr "15分前"
-
-msgid "2 lines"
-msgstr "2行"
-
-msgid "A task cannot be its own parent."
-msgstr "タスクを自身の親にはできません。"
-
-msgid "A task is due."
-msgstr "タスクの期限です。"
-
-msgid "Add Kurrent task"
-msgstr "Kurrent タスクを追加"
-
-msgid "Add label"
-msgstr "ラベルを追加"
-
-msgid "Afternoon"
-msgstr "午後"
-
-msgid "Afternoon starts"
-msgstr "午後の開始"
-
-msgid "Akonadi is not available."
-msgstr "Akonadi を利用できません。"
-
-msgid "Akonadi is not running"
-msgstr "Akonadi が起動していません"
-
-msgid "Connecting to Akonadi…"
-msgstr "Akonadi に接続中…"
-
-msgid "Loading tasks…"
-msgstr "タスクを読み込み中…"
-
-msgid "The flyout is ready; tasks appear when the server answers."
-msgstr "フライアウトは準備済みです。サーバー応答後にタスクが表示されます。"
-
-msgid "Ask before deleting a task"
-msgstr "タスク削除前に確認する"
-
-msgid "At due time"
-msgstr "期限時刻"
-
-msgid "Background"
-msgstr "背景"
-
-msgid "Blurred wallpaper behind the widget"
-msgstr "ウィジェット後ろのぼかした壁紙"
-
-msgid "Cannot create a circular task hierarchy."
-msgstr "循環するタスク階層は作れません。"
-
-msgid "Case sensitive"
-msgstr "大文字小文字を区別"
-
-msgid "Catch-up"
-msgstr "キャッチアップ"
-
-msgid "Checkbox"
-msgstr "チェックボックス"
-
-msgid "Click a task"
-msgstr "タスクをクリック"
-
-msgid "Collapse subtasks"
-msgstr "サブタスクを折りたたむ"
-
-msgid "Comfortable"
-msgstr "ゆったり"
-
-msgid "Complete only with Shift or Ctrl held"
-msgstr "Shift または Ctrl を押しながら完了"
-
-msgid "Completing a parent also completes its children"
-msgstr "親を完了すると子も完了する"
-
-msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
-msgstr "KOrganizer または Merkuro で CalDAV/Nextcloud を設定してください（DAV グループウェアリソース）。"
-
-msgid "Could not load tasks"
-msgstr "タスクを読み込めませんでした"
-
-msgid "Counts"
-msgstr "件数"
-
-msgid "Dates"
-msgstr "日付"
-
-msgid "Default due date"
-msgstr "デフォルトの期限"
-
-msgid "Default reminder"
-msgstr "デフォルトのリマインダー"
-
-msgid "Delete"
-msgstr "削除"
-
-msgid "Delete task?"
-msgstr "タスクを削除しますか？"
-
-msgid "Delete this task?"
-msgstr "このタスクを削除しますか？"
-
-msgid "Density"
-msgstr "密度"
-
-msgid "Description preview"
-msgstr "説明のプレビュー"
-
-msgid "Desktop notifications"
-msgstr "デスクトップ通知"
-
-msgid "Due %1"
-msgstr "期限 %1"
-
-msgid "Due date (latest first)"
-msgstr "期限（新しい順）"
-
-msgid "Editor dim"
-msgstr "エディタの暗さ"
-
-msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
-msgstr "Kurrent の設定 → プロジェクトでカレンダーを有効にするか、Merkuro または KOrganizer で CalDAV リソースを追加してください。"
-
-msgid "Ends"
-msgstr "終了"
-
-msgid "Evening"
-msgstr "夜"
-
-msgid "Evening starts"
-msgstr "夜の開始"
-
-msgid "Exclude collapsed subtasks from counts"
-msgstr "折りたたんだサブタスクを件数から除外"
-
-msgid "Expand subtasks"
-msgstr "サブタスクを展開"
-
-msgid "Failed to fetch collections."
-msgstr "コレクションの取得に失敗しました。"
-
-msgid "Flyout height"
-msgstr "フライアウトの高さ"
-
-msgid "Flyout width"
-msgstr "フライアウトの幅"
-
-msgid "Heading on the list"
-msgstr "リスト上の見出し"
-
-msgid "Hidden"
-msgstr "非表示"
-
-msgid "In 1 hour"
-msgstr "1時間後"
-
-msgid "In 15 minutes"
-msgstr "15分後"
-
-msgid "In 4 hours"
-msgstr "4時間後"
-
-msgid "Light"
-msgstr "弱い"
-
-msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
-msgstr "プロジェクトとして使う書き込み可能な Akonadi カレンダーを管理します。無効なカレンダーはタスク取得から除外されます。非表示のカレンダーは取得されますが、サイドバーには表示されません。"
-
-msgid "Meetings"
-msgstr "会議"
-
-msgid "Morning"
-msgstr "午前"
-
-msgid "Morning starts"
-msgstr "午前の開始"
-
-msgid "Motion"
-msgstr "モーション"
-
-msgid "No task lists"
-msgstr "タスクリストがありません"
-
-msgid "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."
-msgstr "Akonadi にタスクリストが見つかりません。KOrganizer または Kalendar で CalDAV を設定してください。"
-
-msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
-msgstr "書き込み可能な Akonadi カレンダーが見つかりません。Akonadi が起動しており、CalDAV リソースがタスク編集を許可しているか確認してください。"
-
-msgid "No writable task list selected."
-msgstr "書き込み可能なタスクリストが選択されていません。"
-
-msgid "Notify when a task reminder is due"
-msgstr "タスクのリマインダーが来たら通知"
-
-msgid "Off"
-msgstr "オフ"
-
-msgid "Open root tasks"
-msgstr "未完了のルートタスク"
-
-msgid "Open the full editor"
-msgstr "フルエディタを開く"
-
-msgid "Open the inline editor"
-msgstr "インライン編集を開く"
-
-msgid "Order and visibility"
-msgstr "順序と表示"
-
-msgid "Panel badge"
-msgstr "パネルバッジ"
-
-msgid "Parent task must be in the same project."
-msgstr "親タスクは同じプロジェクト内である必要があります。"
-
-msgid "Parent task not found."
-msgstr "親タスクが見つかりません。"
-
-msgid "Progress %"
-msgstr "進捗 %"
-
-msgid "Progress % (high first)"
-msgstr "進捗 %（高い順）"
-
-msgid "Quiet hours"
-msgstr "おやすみ時間"
-
-msgid "Recurring first"
-msgstr "繰り返し優先"
-
-msgid "Recurring icon"
-msgstr "繰り返しアイコン"
-
-msgid "Recurring last"
-msgstr "繰り返し最後"
-
-msgid "Reduced motion (no spinner, quieter hover)"
-msgstr "動きを減らす（スピナーなし、ホバー控えめ）"
-
-msgid "Relative dates (Today, Tomorrow)"
-msgstr "相対日付（今日、明日）"
-
-msgid "Remember the last view instead"
-msgstr "代わりに最後のビューを記憶"
-
-msgid "Reminder first"
-msgstr "リマインダー優先"
-
-msgid "Reminder last"
-msgstr "リマインダー最後"
-
-msgid "Reminder:"
-msgstr "リマインダー:"
-
-msgid "Rename"
-msgstr "名前を変更"
-
-msgid "Rename from"
-msgstr "変更元"
-
-msgid "Rename to"
-msgstr "変更先"
-
-msgid "Reset this page"
-msgstr "このページをリセット"
-
-msgid "Row chips"
-msgstr "行のチップ"
-
-msgid "Row size"
-msgstr "行の高さ"
-
-msgid "Search"
-msgstr "検索"
-
-msgid "Search titles only"
-msgstr "タイトルのみ検索"
-
-msgid "Section:"
-msgstr "セクション:"
-
-msgid "Sections"
-msgstr "セクション"
-
-msgid "Select only (double-click opens the full editor)"
-msgstr "選択のみ（ダブルクリックでフルエディタ）"
-
-msgid "Show Kurrent"
-msgstr "Kurrent を表示"
-
-msgid "Show a Join button for http(s) links"
-msgstr "http(s) リンクに参加ボタンを表示"
-
-msgid "Show empty projects"
-msgstr "空のプロジェクトを表示"
-
-msgid "Show in the sidebar"
-msgstr "サイドバーに表示"
-
-msgid "Show task counts"
-msgstr "タスク数を表示"
-
-msgid "Show time on the due chip"
-msgstr "期限チップに時刻を表示"
-
-msgid "Show overdue tasks at the top of Today"
-msgstr "期限切れのタスクを今日の先頭に表示"
-
-msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
-msgstr "通知からのスヌーズ（15分、1時間、明日）は VALARM を書き換えます。期限は変わりません。期限変更にはリスケジュールを使います。"
-
-msgid "Start date"
-msgstr "開始日"
-
-msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
-msgstr "akonadictl start で起動し、Merkuro または KOrganizer で CalDAV リソースを追加してください。"
-
-msgid "Starts"
-msgstr "開始"
-
-msgid "Still open"
-msgstr "未完了のまま"
-
-msgid "Strong"
-msgstr "強い"
-
-msgid "Subtasks"
-msgstr "サブタスク"
-
-msgid "Suppress reminder notifications in this window"
-msgstr "この時間帯はリマインダー通知を抑制"
-
-msgid "Task not found."
-msgstr "タスクが見つかりません。"
-
-msgid "Task reminder"
-msgstr "タスクのリマインダー"
-
-msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
-msgstr "フルエディタはウィジェット内のオーバーレイのままです。日セクション（LIST）はフルエディタにあります。"
-
-msgid "This project cannot accept tasks."
-msgstr "このプロジェクトにはタスクを追加できません。"
-
-msgid "Try again"
-msgstr "再試行"
-
-msgid "Undo"
-msgstr "元に戻す"
-
-msgid "Undo complete"
-msgstr "完了を取り消す"
-
-msgid "Undo delete"
-msgstr "削除を取り消す"
-
-msgid "Undo move"
-msgstr "移動を取り消す"
-
-msgid "Undo reschedule"
-msgstr "スケジュール変更を取り消す"
-
-msgid "Views"
-msgstr "ビュー"
-
-msgid "Width"
-msgstr "幅"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

@@ -2,10 +2,14 @@
 
 #include <KCalendarCore/Alarm>
 #include <KCalendarCore/Duration>
+#include <KCalendarCore/Event>
+#include <KCalendarCore/MemoryCalendar>
+#include <KCalendarCore/OccurrenceIterator>
 #include <KCalendarCore/Recurrence>
 
 #include <QDateTime>
 #include <QTime>
+#include <QTimeZone>
 
 namespace TaskCalendar
 {
@@ -268,6 +272,60 @@ QDateTime startDateFromTodo(const KCalendarCore::Todo::Ptr &todo)
     }
     const QDateTime start = todo->dtStart();
     return start.isValid() ? start : QDateTime();
+}
+
+void appendBusyIntervals(const KCalendarCore::Incidence::Ptr &incidence,
+                         const QDateTime &rangeStart,
+                         const QDateTime &rangeEnd,
+                         QVector<BusyInterval> *out)
+{
+    if (!incidence || !out || !rangeStart.isValid() || !rangeEnd.isValid() || rangeStart >= rangeEnd) {
+        return;
+    }
+    const KCalendarCore::Event::Ptr event = incidence.dynamicCast<KCalendarCore::Event>();
+    if (!event) {
+        return;
+    }
+    if (event->transparency() == KCalendarCore::Event::Transparent) {
+        return;
+    }
+    if (incidence->status() == KCalendarCore::Incidence::StatusCanceled) {
+        return;
+    }
+
+    if (!incidence->recurs()) {
+        const QDateTime start = incidence->dtStart();
+        const QDateTime end = event->dtEnd();
+        if (start.isValid() && end.isValid() && end > rangeStart && start < rangeEnd) {
+            out->append({start, end});
+        }
+        return;
+    }
+
+    KCalendarCore::MemoryCalendar calendar(QTimeZone::systemTimeZone());
+    calendar.addIncidence(incidence);
+    KCalendarCore::OccurrenceIterator it(calendar, incidence, rangeStart, rangeEnd);
+    while (it.hasNext()) {
+        it.next();
+        const QDateTime start = it.occurrenceStartDate();
+        const QDateTime end = it.occurrenceEndDate();
+        if (start.isValid() && end.isValid() && end > rangeStart && start < rangeEnd) {
+            out->append({start, end});
+        }
+    }
+}
+
+bool isBusyAt(const QDateTime &when, const QVector<BusyInterval> &intervals)
+{
+    if (!when.isValid()) {
+        return false;
+    }
+    for (const BusyInterval &interval : intervals) {
+        if (interval.start.isValid() && interval.end.isValid() && interval.start <= when && when < interval.end) {
+            return true;
+        }
+    }
+    return false;
 }
 
 } // namespace TaskCalendar

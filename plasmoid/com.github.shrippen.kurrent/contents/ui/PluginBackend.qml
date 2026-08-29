@@ -32,6 +32,8 @@ Item {
         quietHoursEnabled: Plasmoid.configuration.quietHoursEnabled === true
         quietHoursStart: Plasmoid.configuration.quietHoursStart !== undefined ? Plasmoid.configuration.quietHoursStart : 22
         quietHoursEnd: Plasmoid.configuration.quietHoursEnd !== undefined ? Plasmoid.configuration.quietHoursEnd : 7
+        suppressRemindersDuringEvents: Plasmoid.configuration.suppressRemindersDuringEvents === true
+        busyCalendarIds: Plasmoid.configuration.busyCalendarIds || ""
 
         Component.onCompleted: {
             var view = Plasmoid.configuration.defaultView || "inbox"
@@ -39,8 +41,6 @@ Item {
                 view = Plasmoid.configuration.lastView
             }
             currentView = view
-            // Sort is session-only; always start Priority › Due › Title A–Z.
-            sortMode = "priority,due,title"
 
             selectedCollectionId = -1
             selectedLabel = ""

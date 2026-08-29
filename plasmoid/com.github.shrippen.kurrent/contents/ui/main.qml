@@ -13,7 +13,7 @@ PlasmoidItem {
 
     switchWidth: Kirigami.Units.gridUnit * 14
     switchHeight: Kirigami.Units.gridUnit * 18
-    preloadFullRepresentation: false
+    preloadFullRepresentation: true
     preferredRepresentation: inPanel ? compactRepresentation : fullRepresentation
 
     // Desktop wallpaper blur: BasicAppletContainer only blurs with StandardBackground
@@ -78,6 +78,26 @@ PlasmoidItem {
     readonly property bool pluginMissing: pluginLoader.status === Loader.Error
     readonly property var backend: pluginReady ? pluginLoader.item.controller : null
     readonly property var sharedSettings: pluginReady ? pluginLoader.item.settings : null
+
+    function normalizeReleaseVersion(v) {
+        if (!v) {
+            return ""
+        }
+        var trimmed = String(v).trim()
+        if (trimmed === "") {
+            return ""
+        }
+        var parts = trimmed.split(".")
+        if (parts.length >= 2) {
+            return parts[0] + "." + parts[1]
+        }
+        return parts[0]
+    }
+
+    readonly property string widgetVersion: normalizeReleaseVersion(Plasmoid.metaData ? Plasmoid.metaData.version : "")
+    readonly property string backendVersion: pluginReady && backend ? normalizeReleaseVersion(backend.pluginVersion) : ""
+    readonly property bool backendVersionMismatch: pluginReady && !pluginMissing && widgetVersion !== ""
+            && (backendVersion === "" || backendVersion !== widgetVersion)
 
     readonly property var activeFilters: {
         if (!backend) {
@@ -147,16 +167,85 @@ PlasmoidItem {
 
     Plasmoid.icon: "kurrent"
     toolTipMainText: i18n("Kurrent")
-    toolTipSubText: root.panelBadgeCount > 0
-        ? i18np("%1 open task", "%1 open tasks", root.panelBadgeCount)
-        : i18n("No open tasks")
+    toolTipSubText: root.panelTooltipText
+
+    readonly property var panelViewCounts: backend ? backend.viewTaskCounts : ({})
+
+    function viewCountLabel(viewId) {
+        switch (viewId) {
+        case "inbox": return i18n("Inbox")
+        case "today": return i18n("Today")
+        case "overdue": return i18n("Overdue")
+        case "tomorrow": return i18n("Tomorrow")
+        case "scheduled": return i18n("Scheduled")
+        case "anytime": return i18n("Anytime")
+        case "recurring": return i18n("Recurring")
+        case "unlabeled": return i18n("Unlabeled")
+        case "completed": return i18n("Completed")
+        default: return viewId
+        }
+    }
+
+    readonly property string panelTooltipText: {
+        if (!backend) {
+            return i18n("Loading…")
+        }
+        var mode = Plasmoid.configuration.panelTooltip || "open"
+        if (mode === "off") {
+            return ""
+        }
+        var counts = panelViewCounts
+        if (mode === "today") {
+            var todayN = counts["today"] || 0
+            return todayN > 0
+                    ? i18np("%1 due today", "%1 due today", todayN)
+                    : i18n("Nothing due today")
+        }
+        if (mode === "today-overdue") {
+            var t = counts["today"] || 0
+            var o = counts["overdue"] || 0
+            return i18n("Today: %1 · Overdue: %2", t, o)
+        }
+        if (mode === "overdue") {
+            var overdueN = counts["overdue"] || 0
+            return overdueN > 0
+                    ? i18np("%1 overdue", "%1 overdue", overdueN)
+                    : i18n("No overdue tasks")
+        }
+        if (mode === "high") {
+            var highN = counts["high"] || 0
+            return highN > 0
+                    ? i18np("%1 high priority", "%1 high priority", highN)
+                    : i18n("No high priority tasks")
+        }
+        if (mode === "views") {
+            var viewIds = ["inbox", "today", "overdue", "tomorrow", "scheduled", "anytime", "recurring", "unlabeled"]
+            var lines = []
+            for (var i = 0; i < viewIds.length; ++i) {
+                var id = viewIds[i]
+                var n = counts[id] || 0
+                if (n > 0) {
+                    lines.push(viewCountLabel(id) + ": " + n)
+                }
+            }
+            var completedN = counts["completed"] || 0
+            if (completedN > 0) {
+                lines.push(viewCountLabel("completed") + ": " + completedN)
+            }
+            return lines.length > 0 ? lines.join("\n") : i18n("No open tasks")
+        }
+        var openN = backend.pendingCount
+        return openN > 0
+                ? i18np("%1 open task", "%1 open tasks", openN)
+                : i18n("No open tasks")
+    }
 
     readonly property int panelBadgeCount: {
         if (!backend) {
             return 0
         }
         var mode = Plasmoid.configuration.panelBadge || "open"
-        var counts = backend.viewTaskCounts
+        var counts = panelViewCounts
         if (mode === "off") {
             return 0
         }
@@ -166,7 +255,77 @@ PlasmoidItem {
         if (mode === "overdue") {
             return counts["overdue"] || 0
         }
+        if (mode === "tomorrow") {
+            return counts["tomorrow"] || 0
+        }
+        if (mode === "high") {
+            return counts["high"] || 0
+        }
         return backend.pendingCount
+    }
+
+    readonly property bool panelBadgeUseDot: (Plasmoid.configuration.panelBadgeStyle || "number") === "dot"
+
+    readonly property color panelBadgeColor: {
+        var mode = Plasmoid.configuration.panelBadge || "open"
+        var colorMode = Plasmoid.configuration.panelBadgeOverdueColor || "highlight"
+        var counts = panelViewCounts
+        var useNegative = colorMode === "negative"
+                && ((mode === "overdue")
+                    || (mode === "today" && (counts["overdue"] || 0) > 0))
+        return useNegative ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.highlightColor
+    }
+
+    function defaultSortMode() {
+        return "priority,due,title"
+    }
+
+    function sortModeForView(viewId) {
+        var scope = Plasmoid.configuration.sortScope || "global"
+        if (scope === "perView") {
+            var byView = {}
+            try {
+                byView = JSON.parse(Plasmoid.configuration.sortModeByView || "{}")
+            } catch (e) {
+                byView = {}
+            }
+            var perViewMode = byView[viewId]
+            if (perViewMode && perViewMode !== "") {
+                return perViewMode
+            }
+            return defaultSortMode()
+        }
+        var stored = Plasmoid.configuration.sortMode || ""
+        return stored !== "" ? stored : defaultSortMode()
+    }
+
+    function persistSortMode(mode) {
+        var def = defaultSortMode()
+        var scope = Plasmoid.configuration.sortScope || "global"
+        if (scope === "perView") {
+            var byView = {}
+            try {
+                byView = JSON.parse(Plasmoid.configuration.sortModeByView || "{}")
+            } catch (e) {
+                byView = {}
+            }
+            var viewId = backend ? backend.currentView : ""
+            if (mode === def) {
+                delete byView[viewId]
+            } else {
+                byView[viewId] = mode
+            }
+            Plasmoid.configuration.sortModeByView = JSON.stringify(byView)
+        } else {
+            Plasmoid.configuration.sortMode = mode === def ? "" : mode
+        }
+    }
+
+    function applySortForCurrentView() {
+        if (!backend) {
+            return
+        }
+        backend.sortMode = sortModeForView(backend.currentView)
     }
 
     function persistSharedSettings() {
@@ -220,6 +379,9 @@ PlasmoidItem {
             root.expanded = true
         }
         applyPopupBackground()
+        if (backend) {
+            applySortForCurrentView()
+        }
     }
 
     Component.onCompleted: {
@@ -487,6 +649,28 @@ PlasmoidItem {
                 backend.quietHoursEnd = Plasmoid.configuration.quietHoursEnd
             }
         }
+        function onSuppressRemindersDuringEventsChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.suppressRemindersDuringEvents = Plasmoid.configuration.suppressRemindersDuringEvents === true
+            }
+        }
+        function onBusyCalendarIdsChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.busyCalendarIds = Plasmoid.configuration.busyCalendarIds || ""
+            }
+        }
+        function onSortScopeChanged() {
+            root.persistSharedSettings()
+            root.applySortForCurrentView()
+        }
+        function onSortModeChanged() {
+            root.persistSharedSettings()
+        }
+        function onSortModeByViewChanged() {
+            root.persistSharedSettings()
+        }
     }
 
     Connections {
@@ -495,6 +679,7 @@ PlasmoidItem {
             if (Plasmoid.configuration.rememberLastView && backend) {
                 Plasmoid.configuration.lastView = backend.currentView
             }
+            root.applySortForCurrentView()
         }
     }
 
@@ -525,13 +710,26 @@ PlasmoidItem {
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
                 anchors.margins: -2
-                visible: root.panelBadgeCount > 0
+                visible: root.panelBadgeCount > 0 && !root.panelBadgeUseDot
                 text: root.panelBadgeCount
                 font.pixelSize: parent.height * 0.4
                 font.bold: true
-                color: Kirigami.Theme.highlightColor
+                color: root.panelBadgeColor
                 style: Text.Outline
                 styleColor: Kirigami.Theme.backgroundColor
+            }
+
+            Rectangle {
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: 1
+                visible: root.panelBadgeCount > 0 && root.panelBadgeUseDot
+                width: Math.max(4, parent.height * 0.22)
+                height: width
+                radius: width / 2
+                color: root.panelBadgeColor
+                border.width: 1
+                border.color: Kirigami.Theme.backgroundColor
             }
         }
     }
@@ -563,8 +761,8 @@ PlasmoidItem {
         implicitHeight: Kirigami.Units.gridUnit * 40
         Layout.minimumWidth: root.inPanel ? Kirigami.Units.gridUnit * 28 : Kirigami.Units.gridUnit * 12
         Layout.minimumHeight: root.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
-        Layout.preferredWidth: root.inPanel ? Kirigami.Units.gridUnit * (Plasmoid.configuration.flyoutWidthUnits || 32) : implicitWidth
-        Layout.preferredHeight: root.inPanel ? Kirigami.Units.gridUnit * (Plasmoid.configuration.flyoutHeightUnits || 24) : implicitHeight
+        Layout.preferredWidth: implicitWidth
+        Layout.preferredHeight: implicitHeight
         Layout.maximumWidth: Infinity
         Layout.maximumHeight: Infinity
 
@@ -594,10 +792,28 @@ PlasmoidItem {
             spacing: KurrentUi.Design.spaceMedium
             visible: fullShell.showBootLoading
 
-            QQC2.BusyIndicator {
+            Item {
+                Layout.preferredWidth: Kirigami.Units.iconSizes.large
+                Layout.preferredHeight: Kirigami.Units.iconSizes.large
                 Layout.alignment: Qt.AlignHCenter
-                running: parent.visible && !KurrentUi.Design.reducedMotion
-                visible: running
+
+                Kirigami.Icon {
+                    id: bootGearIcon
+                    anchors.fill: parent
+                    source: Qt.resolvedUrl("../icons/boot-gear.svg")
+                    isMask: true
+                    color: Kirigami.Theme.textColor
+                    opacity: 0.75
+                }
+
+                RotationAnimator {
+                    target: bootGearIcon
+                    running: fullShell.showBootLoading && !KurrentUi.Design.reducedMotion
+                    from: 0
+                    to: 360
+                    duration: Kirigami.Units.longDuration * 6
+                    loops: Animation.Infinite
+                }
             }
 
             QQC2.Label {
@@ -605,12 +821,6 @@ PlasmoidItem {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 text: root.pluginReady ? i18n("Loading tasks…") : i18n("Connecting to Akonadi…")
-            }
-
-            QQC2.ProgressBar {
-                Layout.fillWidth: true
-                indeterminate: true
-                visible: parent.visible
             }
         }
 
@@ -628,9 +838,9 @@ PlasmoidItem {
         }
 
         Component.onCompleted: {
-            if (!root.inPanel || root.expanded || (backend && backend.smokeTest) || root.pluginMissing) {
-                loadUi()
-            }
+            // Panel + desktop: begin FullView load at applet startup (async loaders;
+            // Akonadi/plugin still non-blocking). First flyout open is then instant.
+            Qt.callLater(fullShell.loadUi)
         }
     }
 }

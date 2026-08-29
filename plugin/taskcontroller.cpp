@@ -12,6 +12,7 @@
 #include <Akonadi/ItemFetchScope>
 #include <Akonadi/ServerManager>
 
+#include <KCalendarCore/Event>
 #include <KCalendarCore/Todo>
 
 #include <KJob>
@@ -57,6 +58,7 @@ namespace
 constexpr int kRebuildDelayMs = 50;
 constexpr int kCollectionsReloadDelayMs = 250;
 constexpr int kAkonadiRetryIntervalMs = 5000;
+constexpr int kBusyEventRefreshMs = 5 * 60 * 1000;
 
 bool isTodoItem(const Akonadi::Item &item)
 {
@@ -100,6 +102,7 @@ QDateTime dateTimeFromVariant(const QVariant &value)
 
 QHash<Akonadi::Item::Id, TaskController::CachedTask> TaskController::s_tasks;
 QList<Akonadi::Collection> TaskController::s_collections;
+QList<Akonadi::Collection> TaskController::s_eventCollections;
 QHash<qint64, QString> TaskController::s_collectionNames;
 QStringList TaskController::s_extraLabels;
 QList<TaskController *> TaskController::s_instances;
@@ -133,6 +136,10 @@ TaskController::TaskController(QObject *parent)
     m_reminderTimer.setSingleShot(false);
     connect(&m_reminderTimer, &QTimer::timeout, this, &TaskController::checkReminders);
     m_reminderTimer.start();
+
+    m_busyEventTimer.setInterval(kBusyEventRefreshMs);
+    m_busyEventTimer.setSingleShot(false);
+    connect(&m_busyEventTimer, &QTimer::timeout, this, &TaskController::refreshBusyEvents);
 
     // Akonadi jobs go through the store; MemoryTaskStore swaps in for unit tests.
     m_store = new AkonadiTaskStore(this);
@@ -178,6 +185,7 @@ void TaskController::resetSharedStateForTest()
 {
     s_tasks.clear();
     s_collections.clear();
+    s_eventCollections.clear();
     s_collectionNames.clear();
     s_extraLabels.clear();
     m_undo.clear();
@@ -186,6 +194,8 @@ void TaskController::resetSharedStateForTest()
     m_applyingUndo = false;
     m_errorMessage.clear();
     m_collectionModel.setCollections({});
+    m_eventCalendarModel.setCollections({});
+    m_busyIntervals.clear();
     m_taskModel.setTasks({});
     m_akonadiAvailable = false;
     Q_EMIT undoChanged();
@@ -292,6 +302,15 @@ int TaskController::buildNumber() const
     return 0;
 #else
     return KURRENT_BUILD_NUMBER;
+#endif
+}
+
+QString TaskController::pluginVersion() const
+{
+#ifndef KURRENT_RELEASE_VERSION
+    return QString();
+#else
+    return QStringLiteral(KURRENT_RELEASE_VERSION);
 #endif
 }
 
@@ -667,6 +686,36 @@ void TaskController::setQuietHoursEnd(int hour)
     }
     m_quietHoursEnd = bounded;
     Q_EMIT quietHoursChanged();
+}
+
+void TaskController::setSuppressRemindersDuringEvents(bool enabled)
+{
+    if (m_suppressRemindersDuringEvents == enabled) {
+        return;
+    }
+    m_suppressRemindersDuringEvents = enabled;
+    if (enabled) {
+        m_busyEventTimer.start();
+        scheduleRefreshBusyEvents();
+    } else {
+        m_busyEventTimer.stop();
+        m_pendingBusyFetchJobs = 0;
+        m_busyFetchIntervals.clear();
+        m_busyIntervals.clear();
+    }
+    Q_EMIT eventBusySettingsChanged();
+}
+
+void TaskController::setBusyCalendarIds(const QString &ids)
+{
+    if (m_busyCalendarIds == ids) {
+        return;
+    }
+    m_busyCalendarIds = ids;
+    if (m_suppressRemindersDuringEvents) {
+        scheduleRefreshBusyEvents();
+    }
+    Q_EMIT eventBusySettingsChanged();
 }
 
 void TaskController::setEnabledCollectionIds(const QVariantList &ids)
@@ -1944,7 +1993,10 @@ void TaskController::loadCollections()
     m_collectionFetchJob = job;
 
     auto scope = job->fetchScope();
-    scope.setContentMimeTypes({QString::fromLatin1(KCalendarCore::Todo::todoMimeType())});
+    scope.setContentMimeTypes({
+        QString::fromLatin1(KCalendarCore::Todo::todoMimeType()),
+        QString::fromLatin1(KCalendarCore::Event::eventMimeType()),
+    });
     scope.setIncludeStatistics(false);
     scope.setAncestorRetrieval(Akonadi::CollectionFetchScope::None);
     scope.setListFilter(Akonadi::CollectionFetchScope::Display);
@@ -1971,29 +2023,41 @@ void TaskController::loadCollections()
         m_collectionNames.clear();
         const QList<Akonadi::Collection> fetched = fetchJob->collections();
         QList<Akonadi::Collection> collections;
+        QList<Akonadi::Collection> eventCollections;
         collections.reserve(fetched.size());
-        logDebug(QStringLiteral("loadCollections: found %1 todo collections").arg(fetched.size()));
+        eventCollections.reserve(fetched.size());
+        logDebug(QStringLiteral("loadCollections: found %1 calendar collections").arg(fetched.size()));
         for (const Akonadi::Collection &collection : fetched) {
             logDebug(QStringLiteral("  collection id=%1 name=\"%2\" mimes=%3 rights=%4")
                          .arg(collection.id())
                          .arg(collection.displayName())
                          .arg(collection.contentMimeTypes().join(QLatin1Char(',')))
                          .arg(static_cast<int>(collection.rights())));
-            if (!CollectionListModel::isTaskCollection(collection)) {
-                continue;
+            if (CollectionListModel::isTaskCollection(collection)) {
+                collections.append(collection);
+                m_collectionNames.insert(collection.id(), collection.displayName());
             }
-            collections.append(collection);
-            m_collectionNames.insert(collection.id(), collection.displayName());
+            if (CollectionListModel::isEventCollection(collection)) {
+                eventCollections.append(collection);
+                if (!m_collectionNames.contains(collection.id())) {
+                    m_collectionNames.insert(collection.id(), collection.displayName());
+                }
+            }
         }
-        logDebug(QStringLiteral("loadCollections: keeping %1 task collections").arg(collections.size()));
+        logDebug(QStringLiteral("loadCollections: keeping %1 task collections, %2 event calendars")
+                     .arg(collections.size())
+                     .arg(eventCollections.size()));
 
         s_collections = collections;
+        s_eventCollections = eventCollections;
         s_collectionNames = m_collectionNames;
         m_collectionModel.setCollections(collections);
+        m_eventCalendarModel.setCollections(eventCollections);
         for (TaskController *other : s_instances) {
             if (other != this) {
                 other->m_collectionNames = s_collectionNames;
                 other->m_collectionModel.setCollections(s_collections);
+                other->m_eventCalendarModel.setCollections(s_eventCollections);
             }
         }
 
@@ -2007,6 +2071,10 @@ void TaskController::loadCollections()
             m_collectionsReloadPending = false;
             scheduleLoadCollections();
             return;
+        }
+
+        if (m_suppressRemindersDuringEvents) {
+            scheduleRefreshBusyEvents();
         }
 
         loadTasks();
@@ -2411,6 +2479,9 @@ bool TaskController::hydrateFromCache()
     if (!s_collections.isEmpty()) {
         m_collectionModel.setCollections(s_collections);
     }
+    if (!s_eventCollections.isEmpty()) {
+        m_eventCalendarModel.setCollections(s_eventCollections);
+    }
     scheduleRebuild();
     return true;
 }
@@ -2623,6 +2694,105 @@ void TaskController::registerGlobalShortcuts()
 #endif
 }
 
+QList<Akonadi::Collection> TaskController::busyEventCollections() const
+{
+    QList<Akonadi::Collection> result;
+    result.reserve(s_eventCollections.size());
+    for (const Akonadi::Collection &collection : s_eventCollections) {
+        if (TaskLogic::isEnabledCsv(m_busyCalendarIds, collection.id())) {
+            result.append(collection);
+        }
+    }
+    return result;
+}
+
+bool TaskController::isInBusyEvent(const QDateTime &when) const
+{
+    if (!m_suppressRemindersDuringEvents || m_busyIntervals.isEmpty()) {
+        return false;
+    }
+    return TaskCalendar::isBusyAt(when, m_busyIntervals);
+}
+
+void TaskController::scheduleRefreshBusyEvents()
+{
+    if (!m_suppressRemindersDuringEvents || !m_akonadiAvailable) {
+        return;
+    }
+    QTimer::singleShot(0, this, &TaskController::refreshBusyEvents);
+}
+
+void TaskController::refreshBusyEvents()
+{
+    if (!m_suppressRemindersDuringEvents || !m_akonadiAvailable) {
+        m_busyIntervals.clear();
+        return;
+    }
+
+    const QList<Akonadi::Collection> collections = busyEventCollections();
+    if (collections.isEmpty()) {
+        m_busyIntervals.clear();
+        return;
+    }
+
+    if (m_pendingBusyFetchJobs > 0) {
+        return;
+    }
+
+    const QDateTime now = QDateTime::currentDateTime();
+    const QDateTime rangeStart = now.addDays(-1);
+    const QDateTime rangeEnd = now.addDays(2);
+
+    m_busyFetchIntervals.clear();
+    m_pendingBusyFetchJobs = collections.size();
+
+    for (const Akonadi::Collection &collection : collections) {
+        auto *job = new Akonadi::ItemFetchJob(collection, this);
+        configureItemFetchJob(job);
+        connect(job, &Akonadi::ItemFetchJob::result, this, [this, rangeStart, rangeEnd](KJob *kjob) {
+            onBusyEventsFetched(kjob, rangeStart, rangeEnd);
+        });
+    }
+}
+
+void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd)
+{
+    if (!m_suppressRemindersDuringEvents) {
+        return;
+    }
+
+    --m_pendingBusyFetchJobs;
+
+    if (auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(job)) {
+        if (!job->error()) {
+            for (const Akonadi::Item &item : fetchJob->items()) {
+                if (item.mimeType() != QLatin1String(KCalendarCore::Event::eventMimeType())
+                    && !item.hasPayload<KCalendarCore::Event::Ptr>()) {
+                    continue;
+                }
+                if (!item.hasPayload<KCalendarCore::Event::Ptr>()) {
+                    continue;
+                }
+                const KCalendarCore::Event::Ptr event = item.payload<KCalendarCore::Event::Ptr>();
+                TaskCalendar::appendBusyIntervals(event, rangeStart, rangeEnd, &m_busyFetchIntervals);
+            }
+        }
+    }
+
+    if (m_pendingBusyFetchJobs > 0) {
+        return;
+    }
+
+    m_pendingBusyFetchJobs = 0;
+    m_busyIntervals = m_busyFetchIntervals;
+    m_busyFetchIntervals.clear();
+    for (TaskController *other : s_instances) {
+        if (other != this) {
+            other->m_busyIntervals = m_busyIntervals;
+        }
+    }
+}
+
 void TaskController::checkReminders()
 {
     if (!m_notificationsEnabled || !m_akonadiAvailable) {
@@ -2631,6 +2801,9 @@ void TaskController::checkReminders()
     const QDateTime now = QDateTime::currentDateTime();
     if (TaskLogic::inQuietHours(now.time(), m_quietHoursStart, m_quietHoursEnd,
         m_quietHoursEnabled ? TaskLogic::QuietHoursMode::Enabled : TaskLogic::QuietHoursMode::Disabled)) {
+        return;
+    }
+    if (isInBusyEvent(now)) {
         return;
     }
     const QDateTime from = m_lastReminderScan.isValid() ? m_lastReminderScan : now.addSecs(-45);

@@ -23,7 +23,7 @@ private Q_SLOTS:
     void persistsNewPlannerKeys();
     void persistsKcmCatalogAndReset();
     void persistsReminderSearchAndColors();
-    void dropsLegacySortModeKey();
+    void persistsSortModeKeys();
 
 private:
     QTemporaryDir m_dir;
@@ -149,28 +149,30 @@ void SharedSettingsTest::persistsNewPlannerKeys()
     QCOMPARE(target.value(QStringLiteral("afternoonHour")).toInt(), 13);
     QCOMPARE(target.value(QStringLiteral("eveningHour")).toInt(), 19);
     QCOMPARE(target.value(QStringLiteral("showJoinButton")).toBool(), false);
-    QVERIFY(!store.keys().contains(QStringLiteral("sortMode")));
     QVERIFY(store.keys().contains(QStringLiteral("catchUpDays")));
 }
 
-void SharedSettingsTest::dropsLegacySortModeKey()
+void SharedSettingsTest::persistsSortModeKeys()
 {
-    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-sort-legacy"));
-    {
-        KConfig config(fileName);
-        KConfigGroup group(&config, QStringLiteral("General"));
-        group.writeEntry(QStringLiteral("sortMode"), QStringLiteral("due"));
-        group.writeEntry(QStringLiteral("catchUpDays"), 7);
-        config.sync();
-    }
-
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-sort"));
     SharedSettings store(fileName);
-    QVERIFY(!store.keys().contains(QStringLiteral("sortMode")));
-    QCOMPARE(store.values().value(QStringLiteral("catchUpDays")).toInt(), 7);
 
-    KConfig config(fileName);
-    KConfigGroup group(&config, QStringLiteral("General"));
-    QVERIFY(!group.hasKey(QStringLiteral("sortMode")));
+    QQmlPropertyMap source;
+    source.insert(QStringLiteral("sortMode"), QStringLiteral("due,priority"));
+    source.insert(QStringLiteral("sortScope"), QStringLiteral("global"));
+    source.insert(QStringLiteral("sortModeByView"), QStringLiteral("{\"today\":\"title\"}"));
+    store.copyFrom(&source);
+
+    SharedSettings other(fileName);
+    QQmlPropertyMap target;
+    other.applyTo(&target);
+
+    QCOMPARE(target.value(QStringLiteral("sortMode")).toString(), QStringLiteral("due,priority"));
+    QCOMPARE(target.value(QStringLiteral("sortScope")).toString(), QStringLiteral("global"));
+    QCOMPARE(target.value(QStringLiteral("sortModeByView")).toString(), QStringLiteral("{\"today\":\"title\"}"));
+    QVERIFY(store.keys().contains(QStringLiteral("sortMode")));
+    QVERIFY(store.keys().contains(QStringLiteral("sortScope")));
+    QVERIFY(store.keys().contains(QStringLiteral("sortModeByView")));
 }
 
 void SharedSettingsTest::persistsKcmCatalogAndReset()
@@ -183,7 +185,6 @@ void SharedSettingsTest::persistsKcmCatalogAndReset()
     QCOMPARE(store.defaults().value(QStringLiteral("clickAction")).toString(), QStringLiteral("inline"));
     QVERIFY(store.keys().contains(QStringLiteral("rememberLastView")));
     QVERIFY(store.keys().contains(QStringLiteral("panelBadge")));
-    QVERIFY(store.keys().contains(QStringLiteral("flyoutHeightUnits")));
     QVERIFY(!store.keys().contains(QString()));
 
     QQmlPropertyMap source;
@@ -203,8 +204,6 @@ void SharedSettingsTest::persistsKcmCatalogAndReset()
     source.insert(QStringLiteral("confirmDelete"), true);
     source.insert(QStringLiteral("clickAction"), QStringLiteral("full"));
     source.insert(QStringLiteral("panelBadge"), QStringLiteral("overdue"));
-    source.insert(QStringLiteral("flyoutWidthUnits"), 40);
-    source.insert(QStringLiteral("flyoutHeightUnits"), 28);
     store.copyFrom(&source);
 
     SharedSettings other(fileName);
@@ -223,7 +222,6 @@ void SharedSettingsTest::persistsKcmCatalogAndReset()
     store.resetToDefaults();
     QCOMPARE(store.values().value(QStringLiteral("sidebarWidthUnits")).toInt(), 10);
     QCOMPARE(store.values().value(QStringLiteral("lastView")).toString(), QStringLiteral("inbox"));
-    QCOMPARE(store.values().value(QStringLiteral("flyoutWidthUnits")).toInt(), 32);
 }
 
 void SharedSettingsTest::persistsReminderSearchAndColors()

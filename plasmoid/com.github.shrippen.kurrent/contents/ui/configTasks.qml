@@ -14,6 +14,7 @@ KCM.SimpleKCM {
     property alias cfg_searchCaseSensitive: searchCaseCheck.checked
     property alias cfg_completeChildren: completeChildrenCheck.checked
     property alias cfg_relativeDates: relativeDatesCheck.checked
+    property string cfg_sortScope
     property alias cfg_showTimeOnRow: showTimeCheck.checked
     property alias cfg_showDateChip: dateChipCheck.checked
     property alias cfg_showLabelChips: labelChipCheck.checked
@@ -36,6 +37,7 @@ KCM.SimpleKCM {
         selectCombo(morningHourCombo, String(cfg_morningHour))
         selectCombo(afternoonHourCombo, String(cfg_afternoonHour))
         selectCombo(eveningHourCombo, String(cfg_eveningHour))
+        selectCombo(sortScopeCombo, cfg_sortScope || "global")
     }
 
     ConfigFormShell {
@@ -48,6 +50,31 @@ KCM.SimpleKCM {
                 Kirigami.FormData.label: i18n("Catch-up")
                 text: i18n("Show overdue tasks at the top of Today")
                 Component.onCompleted: checked = plasmoid.configuration.catchUpEnabled !== false
+            }
+
+            QQC2.ComboBox {
+                id: sortScopeCombo
+                Kirigami.FormData.label: i18n("Sort order")
+                Layout.fillWidth: true
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 20
+                textRole: "text"
+                model: [
+                    { text: i18n("Remember globally (all views)"), value: "global" },
+                    { text: i18n("Remember per view"), value: "perView" }
+                ]
+                onActivated: cfg_sortScope = model[currentIndex].value
+                Component.onCompleted: selectCombo(sortScopeCombo, plasmoid.configuration.sortScope || "global")
+            }
+
+            QQC2.Label {
+                Kirigami.FormData.label: ""
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                opacity: 0.7
+                text: sortScopeCombo.currentIndex >= 0
+                        && sortScopeCombo.model[sortScopeCombo.currentIndex].value === "perView"
+                        ? i18n("Each sidebar view keeps its own sort. Views you have not changed start with Priority › Due › Title A–Z.")
+                        : i18n("One sort order for every view. The default is Priority › Due › Title A–Z until you change it in the task list.")
             }
 
             QQC2.ComboBox {
@@ -165,7 +192,10 @@ KCM.SimpleKCM {
                     searchCaseSensitive: false,
                     relativeDates: false,
                     showTimeOnRow: true,
-                    completeChildren: false
+                    completeChildren: false,
+                    sortScope: "global",
+                    sortMode: "",
+                    sortModeByView: "{}"
                 })
             }
         }

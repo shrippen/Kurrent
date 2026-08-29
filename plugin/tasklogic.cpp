@@ -352,6 +352,7 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
     for (const QString &viewId : viewIds) {
         out.viewCounts.insert(viewId, 0);
     }
+    out.viewCounts.insert(QStringLiteral("high"), 0);
     out.sidebarPriorities.insert(QStringLiteral("0"), 0);
     out.sidebarPriorities.insert(QStringLiteral("1"), 0);
     out.sidebarPriorities.insert(QStringLiteral("5"), 0);
@@ -383,6 +384,10 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
                 } else if (passCompleted && matchesView(task, viewId, today)) {
                     out.viewCounts.insert(viewId, out.viewCounts.value(viewId).toInt() + 1);
                 }
+            }
+            if (passCompleted && !task.completed && priorityBand(task.priority) == PriorityBand::High) {
+                out.viewCounts.insert(QStringLiteral("high"),
+                                      out.viewCounts.value(QStringLiteral("high")).toInt() + 1);
             }
         }
 
@@ -586,16 +591,22 @@ QString emptyKind(LoadState loading,
     return QStringLiteral("empty");
 }
 
-int panelBadgeCount(const QString &mode, int openRoots, int todayCount, int overdueCount)
+int panelBadgeCount(const QString &mode, int openRoots, const QVariantMap &viewCounts)
 {
     if (mode == QLatin1String("off")) {
         return 0;
     }
     if (mode == QLatin1String("today")) {
-        return qMax(0, todayCount);
+        return qMax(0, viewCounts.value(QStringLiteral("today")).toInt());
     }
     if (mode == QLatin1String("overdue")) {
-        return qMax(0, overdueCount);
+        return qMax(0, viewCounts.value(QStringLiteral("overdue")).toInt());
+    }
+    if (mode == QLatin1String("tomorrow")) {
+        return qMax(0, viewCounts.value(QStringLiteral("tomorrow")).toInt());
+    }
+    if (mode == QLatin1String("high")) {
+        return qMax(0, viewCounts.value(QStringLiteral("high")).toInt());
     }
     return qMax(0, openRoots);
 }

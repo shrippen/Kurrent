@@ -1,5 +1,6 @@
 #include "taskcalendar.h"
 
+#include <KCalendarCore/Event>
 #include <KCalendarCore/Todo>
 
 #include <QDate>
@@ -24,6 +25,7 @@ private Q_SLOTS:
     void reminderOffAtDueAndBefore();
     void snoozeSetsAbsoluteTime();
     void dueAndStartFromTodo();
+    void busyIntervalsAndIsBusyAt();
 };
 
 void CalendarTest::presetNoneWithoutRecurrence()
@@ -195,6 +197,31 @@ void CalendarTest::dueAndStartFromTodo()
     allDay->setAllDay(true);
     QVERIFY(allDay->hasDueDate());
     QCOMPARE(TaskCalendar::dueDateFromTodo(allDay).date(), QDate(2026, 8, 28));
+}
+
+void CalendarTest::busyIntervalsAndIsBusyAt()
+{
+    const QDateTime rangeStart(QDate(2026, 8, 29), QTime(0, 0));
+    const QDateTime rangeEnd(QDate(2026, 8, 31), QTime(0, 0));
+    const QDateTime during(QDate(2026, 8, 29), QTime(10, 30));
+    const QDateTime outside(QDate(2026, 8, 29), QTime(12, 30));
+
+    KCalendarCore::Event::Ptr busy(new KCalendarCore::Event);
+    busy->setDtStart(QDateTime(QDate(2026, 8, 29), QTime(10, 0)));
+    busy->setDtEnd(QDateTime(QDate(2026, 8, 29), QTime(11, 0)));
+
+    KCalendarCore::Event::Ptr free(new KCalendarCore::Event);
+    free->setDtStart(QDateTime(QDate(2026, 8, 29), QTime(10, 0)));
+    free->setDtEnd(QDateTime(QDate(2026, 8, 29), QTime(11, 0)));
+    free->setTransparency(KCalendarCore::Event::Transparent);
+
+    QVector<TaskCalendar::BusyInterval> intervals;
+    TaskCalendar::appendBusyIntervals(busy, rangeStart, rangeEnd, &intervals);
+    TaskCalendar::appendBusyIntervals(free, rangeStart, rangeEnd, &intervals);
+    QCOMPARE(intervals.size(), 1);
+    QVERIFY(TaskCalendar::isBusyAt(during, intervals));
+    QVERIFY(!TaskCalendar::isBusyAt(outside, intervals));
+    QVERIFY(!TaskCalendar::isBusyAt({}, intervals));
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)

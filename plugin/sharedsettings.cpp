@@ -50,9 +50,13 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"defaultDueMode", ValueType::String, QStringLiteral("none")},
         {"confirmDelete", ValueType::Bool, false},
         {"clickAction", ValueType::String, QStringLiteral("inline")},
+        {"sortMode", ValueType::String, QString()},
+        {"sortScope", ValueType::String, QStringLiteral("global")},
+        {"sortModeByView", ValueType::String, QStringLiteral("{}")},
         {"panelBadge", ValueType::String, QStringLiteral("open")},
-        {"flyoutWidthUnits", ValueType::Int, 32},
-        {"flyoutHeightUnits", ValueType::Int, 24},
+        {"panelBadgeStyle", ValueType::String, QStringLiteral("number")},
+        {"panelBadgeOverdueColor", ValueType::String, QStringLiteral("highlight")},
+        {"panelTooltip", ValueType::String, QStringLiteral("open")},
         {"searchTitleOnly", ValueType::Bool, false},
         {"completeChildren", ValueType::Bool, false},
         {"notificationsEnabled", ValueType::Bool, true},
@@ -71,6 +75,8 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"quietHoursEnabled", ValueType::Bool, false},
         {"quietHoursStart", ValueType::Int, 22},
         {"quietHoursEnd", ValueType::Int, 7},
+        {"suppressRemindersDuringEvents", ValueType::Bool, false},
+        {"busyCalendarIds", ValueType::String, QString()},
         {nullptr, ValueType::String, {}},
     };
     return keys;
@@ -156,11 +162,6 @@ void SharedSettings::reloadFromDisk()
 {
     m_cache.clear();
     const KeySpec *keys = specs();
-    // Sort is session-only; drop any leftover sortMode from older installs.
-    if (m_group.hasKey(QLatin1String("sortMode"))) {
-        m_group.deleteEntry(QLatin1String("sortMode"));
-        m_config->sync();
-    }
     for (int i = 0; i < specCount(); ++i) {
         m_cache.insert(QLatin1String(keys[i].name), readStored(keys[i]));
     }

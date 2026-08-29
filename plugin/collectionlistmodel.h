@@ -32,6 +32,7 @@ public:
     bool hasCustomEnabledFilter() const { return !m_enabledIds.isEmpty(); }
 
     static bool isTaskCollection(const Akonadi::Collection &collection);
+    static bool isEventCollection(const Akonadi::Collection &collection);
     static bool isTaskWritable(const Akonadi::Collection &collection);
 
     Q_INVOKABLE int rowForCollectionId(qint64 collectionId) const;

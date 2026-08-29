@@ -6,21 +6,28 @@
 
 - Search/sidebar filters keep the full *open* task tree; completed tasks only in Completed view (with open parents rescued)
 - Sort popup stays open for multi-level edits; default Priority › Due › A–Z; opposite directions mutually exclusive; removed opaque “Default”
+- Sort persistence: global or per-view scope (Tasks KCM); stored in `Plasmoid.configuration` / shared `kurrentrc`; default `priority,due,title` when unset
 - Sort keys: due latest-first, start date, reminder/recurring first|last, progress % low|high
 - Overdue view: `chronometer` icon (replaces missing `appointment-missed`); “Overdue” translated
 - Due date/time in task row chip line: right-aligned accent text (overdue stays negative)
 - Full editor: pick any same-project task as parent (`ParentPicker` search field like labels)
+- Notifications KCM: optionally suppress reminders during ongoing calendar events; pick which Akonadi event calendars count (opaque/busy events only)
+- Panel KCM: badge modes tomorrow and high priority; dot instead of number; overdue badge color (accent vs negative); configurable panel tooltip (open, today, today+overdue, overdue, high, all views)
+- Panel flyout preloads at applet startup (`preloadFullRepresentation: true`; `FullView.qml` loads async once the plugin is ready)
+- Boot loader: Breeze gear icon (`boot-gear.svg`, from `process-working-symbolic`) while plugin / FullView load
+- Backend version mismatch banner: widget compares `metadata.json` to `TaskController.pluginVersion`; warning in FullView and General KCM with reinstall one-liner (KDE Store widget + outdated `~/.local` plugin)
 - i18n catalog gap fill: ~129 UI/C++ strings (sort keys, ParentPicker, settings pages, notifications, parent errors) for de/es/fr/ja/zh_CN
 
 ### Fixed
 
-- Sort is session-only: no longer persisted in `Plasmoid.configuration` / shared `kurrentrc`; cold start always Priority › Due › Title A–Z (`priority,due,title`); leftover `sortMode` keys are dropped
 - Panel startup: load `PluginBackend` asynchronously so the compact icon is not blocked on `libkurrentplugin.so`; keep task cache during Akonadi fetch (no empty badge flash)
 - Flyout opens immediately with boot loader; FullView loads async; indeterminate progress while Akonadi connects / tasks load
 - Today Catch-up (“Still open”) includes all overdue incomplete tasks (same set as the Overdue view), not only those within the former catch-up lookback window
 - Sort menu radios no longer stick on “None” for levels 2–3
 - Due dates missing in list chip and editor (#2): Qt 6 Date has no `isValid`; use `DateTime.isValidDate()` (`getTime()` / format fallback) instead of `task.dueDate.isValid === true`
 - `install-linux.sh` Debian/Ubuntu build deps (#1): `libkirigami-dev` (not `libkf6kirigami-dev`)
+- Panel KCM category icon: `plasmashell` (Breeze has no generic `panel` icon)
+- Remove Panel KCM flyout width/height (Plasma persists popup size via drag-resize)
 - Full editor project radios: folder icon sits beside the name (not under the radio circle)
 - Quick Add: long text wraps and the field grows (capped at `quickAddMaxLines`); scrolls internally beyond that; Enter still adds, Shift+Enter inserts a newline
 - Parent picker: TextField stays focusable for typing; label vertically centered; suggestions open upward (height clamped to space above); priority/tag chips before task name
@@ -53,7 +60,10 @@
 ### Installer
 
 - `install-linux.sh`: chown `~/.local` before copy; drop `kpackagetool6` for plasmoid install/update; legacy cleanup via `rm -rf`; verify file ownership after install; warn when not run via `sudo`; clearer fallback messages for incompatible prebuilt plugins
-- `install.sh`: same plasmoid install path as the release installer (cmake install + verify, no `kpackagetool6`)
+- `install-linux.sh`: hard Plasma 6 / Qt 6 / KF6 gate (`check_plasma6_env`) before deps or binary install; unknown distros warn and ask to continue (`confirm_unknown_distro`; auto-continues when non-interactive)
+- `install-linux.sh`: immutable/atomic distro detection (`warn_immutable_distro`) with rpm-ostree, transactional-update, and Toolbx/Distrobox guidance; interactive continue prompt (auto-continues when non-interactive)
+- `install-linux.sh`: Debian/Ubuntu Akonadi runtime packages; Fedora `akonadi-server`/`akonadi-calendar` without silent failure; `lib64/qml` in QML env (Fedora/RHEL source installs)
+- `install.sh`: same plasmoid install path as the release installer (cmake install + verify, no `kpackagetool6`); `lib64/qml` in QML env helper
 
 ## 0.2.2 — 2026-08-22
 
@@ -97,7 +107,7 @@ Catch-up on the 1.0 branch: planner-style task flow, a full settings dialog, not
 - Keyboard in the widget plus global Meta+Shift+K / Meta+Shift+N (D-Bus `org.github.shrippen.Kurrent`)
 - Relative due chips
 - Panel startup: non-blocking Akonadi start (`ServerManager::start()`, never `Control::start()`); cache can fill the badge/list immediately
-- Compact panel icon first; `FullView.qml` (sidebar, list, editor) loads on first expand (`preloadFullRepresentation: false`)
+- Panel flyout preloads at applet startup (`preloadFullRepresentation: true`; `FullView.qml` loads async once the plugin is ready, not on first click)
 
 ## 0.1.0 — 2026-08-17
 

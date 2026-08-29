@@ -102,14 +102,26 @@
         <entry name="clickAction" type="String">
             <default>inline</default>
         </entry>
+        <entry name="sortMode" type="String">
+            <default></default>
+        </entry>
+        <entry name="sortScope" type="String">
+            <default>global</default>
+        </entry>
+        <entry name="sortModeByView" type="String">
+            <default>{}</default>
+        </entry>
         <entry name="panelBadge" type="String">
             <default>open</default>
         </entry>
-        <entry name="flyoutWidthUnits" type="Int">
-            <default>32</default>
+        <entry name="panelBadgeStyle" type="String">
+            <default>number</default>
         </entry>
-        <entry name="flyoutHeightUnits" type="Int">
-            <default>24</default>
+        <entry name="panelBadgeOverdueColor" type="String">
+            <default>highlight</default>
+        </entry>
+        <entry name="panelTooltip" type="String">
+            <default>open</default>
         </entry>
         <entry name="searchTitleOnly" type="Bool">
             <default>false</default>
@@ -164,6 +176,12 @@
         </entry>
         <entry name="quietHoursEnd" type="Int">
             <default>7</default>
+        </entry>
+        <entry name="suppressRemindersDuringEvents" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="busyCalendarIds" type="String">
+            <default></default>
         </entry>
     </group>
 </kcfg>

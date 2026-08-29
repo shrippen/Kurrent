@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.2.0\n"
+"Project-Id-Version: kurrent 0.3.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -28,9 +28,6 @@ msgstr "Bandeja de entrada"
 
 msgid "Today"
 msgstr "Hoy"
-
-msgid "Overdue"
-msgstr "Atrasadas"
 
 msgid "Tomorrow"
 msgstr "Mañana"
@@ -73,18 +70,6 @@ msgstr "Orden: %1"
 
 msgid "Sort tasks"
 msgstr "Ordenar tareas"
-
-msgid "First sort"
-msgstr "Primera ordenación"
-
-msgid "Second sort"
-msgstr "Segunda ordenación"
-
-msgid "Third sort"
-msgstr "Tercera ordenación"
-
-msgid "Open first"
-msgstr "Abiertas primero"
 
 msgid "Build"
 msgstr "Compilación"
@@ -166,6 +151,15 @@ msgstr "Copiar comando"
 
 msgid "Open GitHub"
 msgstr "Abrir GitHub"
+
+msgid "Backend version mismatch"
+msgstr "Versión del backend no coincide"
+
+msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
+msgstr "Este widget es la versión %1 pero el backend instalado es %2. Reinstala el backend para que coincidan."
+
+msgid "unknown"
+msgstr "desconocido"
 
 msgid "Add task"
 msgstr "Añadir tarea"
@@ -302,12 +296,6 @@ msgstr "Ubicación"
 msgid "Project:"
 msgstr "Proyecto:"
 
-msgid "Parent:"
-msgstr "Padre:"
-
-msgid "Open / Join"
-msgstr "Abrir / Unirse"
-
 msgid "No projects available"
 msgstr "No hay proyectos disponibles"
 
@@ -340,15 +328,6 @@ msgstr "Baja"
 
 msgid "Search or create label…"
 msgstr "Buscar o crear etiqueta…"
-
-msgid "Search parent task…"
-msgstr "Buscar tarea padre…"
-
-msgid "Clear parent"
-msgstr "Quitar padre"
-
-msgid "No matching tasks"
-msgstr "No hay tareas coincidentes"
 
 msgid "Remove label"
 msgstr "Quitar etiqueta"
@@ -529,399 +508,6 @@ msgstr "Nueva etiqueta"
 
 msgid "Delete label"
 msgstr "Eliminar etiqueta"
-
-msgid "%1 grid units"
-msgstr "%1 unidades de cuadrícula"
-
-msgid "%1:00"
-msgstr "%1:00"
-
-msgid "1 day before"
-msgstr "1 día antes"
-
-msgid "1 hour"
-msgstr "1 hora"
-
-msgid "1 hour before"
-msgstr "1 hora antes"
-
-msgid "1 line"
-msgstr "1 línea"
-
-msgid "15 minutes"
-msgstr "15 minutos"
-
-msgid "15 minutes before"
-msgstr "15 minutos antes"
-
-msgid "2 lines"
-msgstr "2 líneas"
-
-msgid "A task cannot be its own parent."
-msgstr "Una tarea no puede ser su propio padre."
-
-msgid "A task is due."
-msgstr "Hay una tarea vencida."
-
-msgid "Add Kurrent task"
-msgstr "Añadir tarea de Kurrent"
-
-msgid "Add label"
-msgstr "Añadir etiqueta"
-
-msgid "Afternoon"
-msgstr "Tarde"
-
-msgid "Afternoon starts"
-msgstr "Inicio de la tarde"
-
-msgid "Akonadi is not available."
-msgstr "Akonadi no está disponible."
-
-msgid "Akonadi is not running"
-msgstr "Akonadi no está en ejecución"
-
-msgid "Connecting to Akonadi…"
-msgstr "Conectando con Akonadi…"
-
-msgid "Loading tasks…"
-msgstr "Cargando tareas…"
-
-msgid "The flyout is ready; tasks appear when the server answers."
-msgstr "El panel ya está listo; las tareas aparecen cuando responde el servidor."
-
-msgid "Ask before deleting a task"
-msgstr "Preguntar antes de eliminar una tarea"
-
-msgid "At due time"
-msgstr "A la hora de vencimiento"
-
-msgid "Background"
-msgstr "Fondo"
-
-msgid "Blurred wallpaper behind the widget"
-msgstr "Fondo de pantalla desenfocado detrás del widget"
-
-msgid "Cannot create a circular task hierarchy."
-msgstr "No se puede crear una jerarquía circular de tareas."
-
-msgid "Case sensitive"
-msgstr "Distinguir mayúsculas/minúsculas"
-
-msgid "Catch-up"
-msgstr "Ponerse al día"
-
-msgid "Checkbox"
-msgstr "Casilla"
-
-msgid "Click a task"
-msgstr "Clic en una tarea"
-
-msgid "Collapse subtasks"
-msgstr "Contraer subtareas"
-
-msgid "Comfortable"
-msgstr "Cómodo"
-
-msgid "Complete only with Shift or Ctrl held"
-msgstr "Completar solo con Mayús o Ctrl pulsadas"
-
-msgid "Completing a parent also completes its children"
-msgstr "Completar un padre también completa sus hijos"
-
-msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
-msgstr "Configura CalDAV/Nextcloud en KOrganizer o Merkuro (recurso DAV groupware)."
-
-msgid "Could not load tasks"
-msgstr "No se pudieron cargar las tareas"
-
-msgid "Counts"
-msgstr "Contadores"
-
-msgid "Dates"
-msgstr "Fechas"
-
-msgid "Default due date"
-msgstr "Fecha de vencimiento predeterminada"
-
-msgid "Default reminder"
-msgstr "Recordatorio predeterminado"
-
-msgid "Delete"
-msgstr "Eliminar"
-
-msgid "Delete task?"
-msgstr "¿Eliminar tarea?"
-
-msgid "Delete this task?"
-msgstr "¿Eliminar esta tarea?"
-
-msgid "Density"
-msgstr "Densidad"
-
-msgid "Description preview"
-msgstr "Vista previa de la descripción"
-
-msgid "Desktop notifications"
-msgstr "Notificaciones de escritorio"
-
-msgid "Due %1"
-msgstr "Vence %1"
-
-msgid "Due date (latest first)"
-msgstr "Fecha de vencimiento (más reciente primero)"
-
-msgid "Editor dim"
-msgstr "Oscurecimiento del editor"
-
-msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
-msgstr "Activa un calendario en Configurar Kurrent → Proyectos, o añade un recurso CalDAV en Merkuro o KOrganizer."
-
-msgid "Ends"
-msgstr "Fin"
-
-msgid "Evening"
-msgstr "Noche"
-
-msgid "Evening starts"
-msgstr "Inicio de la noche"
-
-msgid "Exclude collapsed subtasks from counts"
-msgstr "Excluir subtareas contraídas del recuento"
-
-msgid "Expand subtasks"
-msgstr "Expandir subtareas"
-
-msgid "Failed to fetch collections."
-msgstr "No se pudieron obtener las colecciones."
-
-msgid "Flyout height"
-msgstr "Alto del desplegable"
-
-msgid "Flyout width"
-msgstr "Ancho del desplegable"
-
-msgid "Heading on the list"
-msgstr "Encabezado en la lista"
-
-msgid "Hidden"
-msgstr "Oculto"
-
-msgid "In 1 hour"
-msgstr "En 1 hora"
-
-msgid "In 15 minutes"
-msgstr "En 15 minutos"
-
-msgid "In 4 hours"
-msgstr "En 4 horas"
-
-msgid "Light"
-msgstr "Ligero"
-
-msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
-msgstr "Elige qué calendarios Akonadi escribibles se usan como proyectos. Los desactivados no se consultan. Los ocultos se consultan pero no aparecen en la barra lateral."
-
-msgid "Meetings"
-msgstr "Reuniones"
-
-msgid "Morning"
-msgstr "Mañana"
-
-msgid "Morning starts"
-msgstr "Inicio de la mañana"
-
-msgid "Motion"
-msgstr "Movimiento"
-
-msgid "No task lists"
-msgstr "No hay listas de tareas"
-
-msgid "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."
-msgstr "No se encontraron listas de tareas en Akonadi. Configura CalDAV en KOrganizer o Kalendar."
-
-msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
-msgstr "No se encontraron calendarios Akonadi escribibles. Comprueba que Akonadi esté en ejecución y que tu recurso CalDAV permita editar tareas."
-
-msgid "No writable task list selected."
-msgstr "No hay una lista de tareas escribible seleccionada."
-
-msgid "Notify when a task reminder is due"
-msgstr "Notificar cuando venza un recordatorio de tarea"
-
-msgid "Off"
-msgstr "Desactivado"
-
-msgid "Open root tasks"
-msgstr "Tareas raíz abiertas"
-
-msgid "Open the full editor"
-msgstr "Abrir el editor completo"
-
-msgid "Open the inline editor"
-msgstr "Abrir el editor en línea"
-
-msgid "Order and visibility"
-msgstr "Orden y visibilidad"
-
-msgid "Panel badge"
-msgstr "Insignia del panel"
-
-msgid "Parent task must be in the same project."
-msgstr "La tarea padre debe estar en el mismo proyecto."
-
-msgid "Parent task not found."
-msgstr "Tarea padre no encontrada."
-
-msgid "Progress %"
-msgstr "Progreso %"
-
-msgid "Progress % (high first)"
-msgstr "Progreso % (mayor primero)"
-
-msgid "Quiet hours"
-msgstr "Horas tranquilas"
-
-msgid "Recurring first"
-msgstr "Recurrentes primero"
-
-msgid "Recurring icon"
-msgstr "Icono de recurrencia"
-
-msgid "Recurring last"
-msgstr "Recurrentes al final"
-
-msgid "Reduced motion (no spinner, quieter hover)"
-msgstr "Movimiento reducido (sin spinner, hover más suave)"
-
-msgid "Relative dates (Today, Tomorrow)"
-msgstr "Fechas relativas (Hoy, Mañana)"
-
-msgid "Remember the last view instead"
-msgstr "Recordar la última vista en su lugar"
-
-msgid "Reminder first"
-msgstr "Recordatorio primero"
-
-msgid "Reminder last"
-msgstr "Recordatorio al final"
-
-msgid "Reminder:"
-msgstr "Recordatorio:"
-
-msgid "Rename"
-msgstr "Renombrar"
-
-msgid "Rename from"
-msgstr "Renombrar de"
-
-msgid "Rename to"
-msgstr "Renombrar a"
-
-msgid "Reset this page"
-msgstr "Restablecer esta página"
-
-msgid "Row chips"
-msgstr "Chips de fila"
-
-msgid "Row size"
-msgstr "Tamaño de fila"
-
-msgid "Search"
-msgstr "Buscar"
-
-msgid "Search titles only"
-msgstr "Buscar solo en títulos"
-
-msgid "Section:"
-msgstr "Sección:"
-
-msgid "Sections"
-msgstr "Secciones"
-
-msgid "Select only (double-click opens the full editor)"
-msgstr "Solo seleccionar (doble clic abre el editor completo)"
-
-msgid "Show Kurrent"
-msgstr "Mostrar Kurrent"
-
-msgid "Show a Join button for http(s) links"
-msgstr "Mostrar un botón Unirse para enlaces http(s)"
-
-msgid "Show empty projects"
-msgstr "Mostrar proyectos vacíos"
-
-msgid "Show in the sidebar"
-msgstr "Mostrar en la barra lateral"
-
-msgid "Show task counts"
-msgstr "Mostrar recuento de tareas"
-
-msgid "Show time on the due chip"
-msgstr "Mostrar la hora en el chip de vencimiento"
-
-msgid "Show overdue tasks at the top of Today"
-msgstr "Mostrar tareas vencidas al inicio de Hoy"
-
-msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
-msgstr "Posponer desde la notificación (15 minutos, 1 hora, mañana) reescribe el VALARM. La fecha de vencimiento no cambia; usa Reprogramar para eso."
-
-msgid "Start date"
-msgstr "Fecha de inicio"
-
-msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
-msgstr "Inícialo con akonadictl start y luego añade un recurso CalDAV en Merkuro o KOrganizer."
-
-msgid "Starts"
-msgstr "Inicio"
-
-msgid "Still open"
-msgstr "Aún abiertas"
-
-msgid "Strong"
-msgstr "Fuerte"
-
-msgid "Subtasks"
-msgstr "Subtareas"
-
-msgid "Suppress reminder notifications in this window"
-msgstr "Suprimir notificaciones de recordatorio en este intervalo"
-
-msgid "Task not found."
-msgstr "Tarea no encontrada."
-
-msgid "Task reminder"
-msgstr "Recordatorio de tarea"
-
-msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
-msgstr "El editor completo sigue siendo una superposición dentro del widget. La sección del día (LIST) está en el editor completo."
-
-msgid "This project cannot accept tasks."
-msgstr "Este proyecto no puede aceptar tareas."
-
-msgid "Try again"
-msgstr "Reintentar"
-
-msgid "Undo"
-msgstr "Deshacer"
-
-msgid "Undo complete"
-msgstr "Deshacer completar"
-
-msgid "Undo delete"
-msgstr "Deshacer eliminación"
-
-msgid "Undo move"
-msgstr "Deshacer movimiento"
-
-msgid "Undo reschedule"
-msgstr "Deshacer reprogramación"
-
-msgid "Views"
-msgstr "Vistas"
-
-msgid "Width"
-msgstr "Ancho"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

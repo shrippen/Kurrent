@@ -65,8 +65,8 @@ Item {
 
     Layout.minimumWidth: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * 28 : Kirigami.Units.gridUnit * 12
     Layout.minimumHeight: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
-    Layout.preferredWidth: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * (Plasmoid.configuration.flyoutWidthUnits || 32) : implicitWidth
-    Layout.preferredHeight: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * (Plasmoid.configuration.flyoutHeightUnits || 24) : implicitHeight
+    Layout.preferredWidth: implicitWidth
+    Layout.preferredHeight: implicitHeight
     Layout.maximumWidth: Infinity
     Layout.maximumHeight: Infinity
 
@@ -388,8 +388,8 @@ Item {
     }
 
     function applySortMode(mode) {
-        // Session-only: do not write Plasmoid.configuration or shared settings.
         backend.sortMode = mode
+        plasmoidRoot.persistSortMode(mode)
     }
 
     function setSortLevel(level, id) {
@@ -606,6 +606,13 @@ Item {
                     color: Kirigami.Theme.negativeTextColor
                     Layout.alignment: Qt.AlignVCenter
                 }
+            }
+
+            VersionMismatchBanner {
+                visible: plasmoidRoot.backendVersionMismatch
+                Layout.fillWidth: true
+                widgetVersion: plasmoidRoot.widgetVersion
+                backendVersion: plasmoidRoot.backendVersion
             }
 
             TaskListView {

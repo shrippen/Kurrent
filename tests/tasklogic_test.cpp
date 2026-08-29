@@ -469,11 +469,19 @@ void TaskLogicTest::emptyKindStates()
 
 void TaskLogicTest::panelBadgeAndDefaultDue()
 {
-    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("off"), 4, 2, 1), 0);
-    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("open"), 4, 2, 1), 4);
-    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("today"), 4, 2, 1), 2);
-    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("overdue"), 4, 2, 1), 1);
-    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("unknown"), 4, 2, 1), 4);
+    QVariantMap counts;
+    counts.insert(QStringLiteral("today"), 2);
+    counts.insert(QStringLiteral("overdue"), 1);
+    counts.insert(QStringLiteral("tomorrow"), 3);
+    counts.insert(QStringLiteral("high"), 5);
+
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("off"), 4, counts), 0);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("open"), 4, counts), 4);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("today"), 4, counts), 2);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("overdue"), 4, counts), 1);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("tomorrow"), 4, counts), 3);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("high"), 4, counts), 5);
+    QCOMPARE(TaskLogic::panelBadgeCount(QStringLiteral("unknown"), 4, counts), 4);
 
     const QDate today(2026, 8, 17);
     QVERIFY(!TaskLogic::defaultDueForMode(QStringLiteral("none"), today).isValid());
