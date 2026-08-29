@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.3"><img alt="Version" src="https://img.shields.io/badge/version-0.3-e8dcc4?labelColor=1c1c20"></a>
+  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.3.1"><img alt="Version" src="https://img.shields.io/badge/version-0.3.1-e8dcc4?labelColor=1c1c20"></a>
   <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
   <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey?labelColor=1c1c20">
 </p>
