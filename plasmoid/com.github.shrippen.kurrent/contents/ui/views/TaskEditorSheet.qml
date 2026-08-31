@@ -175,7 +175,11 @@ FocusScope {
             fields.startDate = startResult.date
         }
 
-        controller.updateTaskFull(task.itemId, fields)
+        if (task.itemId > 0) {
+            controller.updateTaskFull(task.itemId, fields)
+        } else {
+            controller.createTaskFull(fields)
+        }
         close()
     }
 

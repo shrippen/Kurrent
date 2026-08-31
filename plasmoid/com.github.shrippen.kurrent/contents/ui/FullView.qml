@@ -263,6 +263,12 @@ Item {
         taskFullEditor.open()
     }
 
+    function openNewTaskEditor(collectionId) {
+        var taskObj = { itemId: -1, collectionId: collectionId || -1 }
+        taskFullEditor.task = taskObj
+        taskFullEditor.open()
+    }
+
     readonly property string defaultSortMode: "priority,due,title"
 
     function parseSortKeys(mode) {

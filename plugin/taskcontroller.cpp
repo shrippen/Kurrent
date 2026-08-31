@@ -10,6 +10,7 @@
 #include <Akonadi/Collection>
 #include <Akonadi/CollectionFetchJob>
 #include <Akonadi/CollectionFetchScope>
+#include <Akonadi/ItemCreateJob>
 #include <Akonadi/ItemFetchJob>
 #include <Akonadi/ItemFetchScope>
 #include <Akonadi/ServerManager>
@@ -2560,6 +2561,109 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
     }
 
     persistTodo(originalItem, todo, moveToCollectionId);
+}
+
+void TaskController::createTaskFull(const QVariantMap &fields)
+{
+    if (!m_akonadiAvailable) {
+        return;
+    }
+
+    // Resolve collection
+    qint64 collectionId = fields.value(QStringLiteral("collectionId")).toLongLong();
+    Akonadi::Collection collection = collectionById(collectionId);
+    if (!CollectionListModel::isTaskWritable(collection)) {
+        collection = collectionById(m_selectedCollectionId);
+    }
+    if (!CollectionListModel::isTaskWritable(collection)) {
+        collection = firstWritableCollection();
+    }
+    if (!CollectionListModel::isTaskWritable(collection)) {
+        setErrorMessage(tr("No writable task list selected."));
+        Q_EMIT error(m_errorMessage);
+        return;
+    }
+
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+
+    // Apply all fields the same way updateTaskFull does.
+    if (fields.contains(QStringLiteral("summary"))) {
+        todo->setSummary(fields.value(QStringLiteral("summary")).toString().trimmed());
+    }
+    if (fields.contains(QStringLiteral("description"))) {
+        todo->setDescription(fields.value(QStringLiteral("description")).toString());
+    }
+    if (fields.contains(QStringLiteral("priority"))) {
+        todo->setPriority(fields.value(QStringLiteral("priority")).toInt());
+    }
+    if (fields.contains(QStringLiteral("categories"))) {
+        todo->setCategories(fields.value(QStringLiteral("categories")).toStringList());
+    }
+    if (fields.contains(QStringLiteral("location"))) {
+        todo->setLocation(fields.value(QStringLiteral("location")).toString());
+    }
+    if (fields.contains(QStringLiteral("allDay"))) {
+        todo->setAllDay(fields.value(QStringLiteral("allDay")).toBool());
+    }
+    if (fields.contains(QStringLiteral("status"))) {
+        todo->setStatus(static_cast<KCalendarCore::Incidence::Status>(fields.value(QStringLiteral("status")).toInt()));
+    }
+    if (fields.contains(QStringLiteral("secrecy"))) {
+        todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(fields.value(QStringLiteral("secrecy")).toInt()));
+    }
+
+    const bool clearDue = fields.value(QStringLiteral("clearDue")).toBool();
+    if (clearDue) {
+        todo->setDtDue(QDateTime());
+    } else if (fields.contains(QStringLiteral("dueDate"))) {
+        const QDateTime due = dateTimeFromVariant(fields.value(QStringLiteral("dueDate")));
+        if (due.isValid()) {
+            todo->setDtDue(due);
+        }
+    }
+
+    const bool clearStart = fields.value(QStringLiteral("clearStart")).toBool();
+    if (clearStart) {
+        todo->setDtStart(QDateTime());
+    } else if (fields.contains(QStringLiteral("startDate"))) {
+        const QDateTime startDate = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
+        if (startDate.isValid()) {
+            todo->setDtStart(startDate);
+        }
+    }
+
+    if (fields.contains(QStringLiteral("completed"))) {
+        const bool completed = fields.value(QStringLiteral("completed")).toBool();
+        TaskCalendar::completeTodo(todo, completed ? TaskCalendar::CompleteAction::Mark : TaskCalendar::CompleteAction::Unmark, QDateTime::currentDateTime());
+        if (!fields.contains(QStringLiteral("percentComplete")) && !todo->recurs()) {
+            todo->setPercentComplete(completed ? 100 : 0);
+        }
+    }
+    if (fields.contains(QStringLiteral("percentComplete"))) {
+        todo->setPercentComplete(fields.value(QStringLiteral("percentComplete")).toInt());
+    }
+
+    if (fields.contains(QStringLiteral("recurrencePreset"))) {
+        applyRecurrencePreset(todo, fields.value(QStringLiteral("recurrencePreset")).toString());
+    }
+    if (fields.contains(QStringLiteral("section"))) {
+        TaskCalendar::setSection(todo, fields.value(QStringLiteral("section")).toString());
+    }
+    if (fields.contains(QStringLiteral("reminderMinutes"))) {
+        TaskCalendar::setReminderMinutes(todo, fields.value(QStringLiteral("reminderMinutes")).toInt());
+    }
+
+    Akonadi::Item item(todo->mimeType());
+    item.setPayload<KCalendarCore::Todo::Ptr>(todo);
+    item.setParentCollection(collection);
+
+    auto *job = new Akonadi::ItemCreateJob(item, collection, this);
+    connect(job, &KJob::result, this, [this, job]() {
+        if (job->error() != KJob::NoError) {
+            setErrorMessage(tr("Failed to create task: %1").arg(job->errorText()));
+            Q_EMIT error(m_errorMessage);
+        }
+    });
 }
 
 void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)

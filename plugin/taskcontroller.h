@@ -302,6 +302,7 @@ public:
                                 int priority,
                                 const QStringList &categories);
     Q_INVOKABLE void updateTaskFull(qint64 itemId, const QVariantMap &fields);
+    Q_INVOKABLE void createTaskFull(const QVariantMap &fields);
     Q_INVOKABLE void setTaskParent(qint64 itemId, const QString &parentUid);
     /** Same-project parent options for the full editor (excludes self and descendants). */
     Q_INVOKABLE QVariantList parentCandidates(qint64 itemId, qint64 collectionId) const;

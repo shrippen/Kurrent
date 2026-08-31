@@ -108,7 +108,9 @@ ADDON = {
         "Day section:": "Tagesabschnitt:",
         "Custom column:": "Eigene Spalte:",
     },
-    "es": {
+   
+        "Open full editor": "Vollständigen Editor öffnen",
+ "es": {
         "Add": "Añadir",
         "Add Smart View": "Añadir vista inteligente",
         "Akonadi and plugin diagnostics": "Diagnóstico de Akonadi y del complemento",
