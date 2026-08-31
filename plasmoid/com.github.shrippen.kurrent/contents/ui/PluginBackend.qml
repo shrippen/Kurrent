@@ -34,6 +34,12 @@ Item {
         quietHoursEnd: Plasmoid.configuration.quietHoursEnd !== undefined ? Plasmoid.configuration.quietHoursEnd : 7
         suppressRemindersDuringEvents: Plasmoid.configuration.suppressRemindersDuringEvents === true
         busyCalendarIds: Plasmoid.configuration.busyCalendarIds || ""
+        smartViewsJson: Plasmoid.configuration.smartViews || "[]"
+        kanbanColumnSource: Plasmoid.configuration.kanbanColumnSource || "status"
+        kanbanWriteMode: Plasmoid.configuration.kanbanWriteMode || "fields"
+        swimlaneLaneAxis: Plasmoid.configuration.swimlaneLaneAxis || "project"
+        swimlaneTimeBucket: Plasmoid.configuration.swimlaneTimeBucket || "day"
+        multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
 
         Component.onCompleted: {
             var view = Plasmoid.configuration.defaultView || "inbox"

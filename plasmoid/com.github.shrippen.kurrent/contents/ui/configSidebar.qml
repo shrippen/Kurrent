@@ -2,30 +2,21 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
 
-    property alias cfg_showEmptyProjects: emptyProjectsCheck.checked
-    property alias cfg_showSidebarCounts: countsCheck.checked
-    property alias cfg_countsExcludeCollapsed: countsCollapsedCheck.checked
-    property string cfg_sidebarRowSize
-    property int cfg_sidebarWidthUnits
-    property string cfg_sidebarSectionOrder
-    property string cfg_hiddenSidebarSections
-    property string cfg_sidebarViewOrder
-    property string cfg_hiddenViews
 
-    readonly property string sectionDefaults: "views,projects,labels,priorities"
-    readonly property string viewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,recurring,unlabeled,completed"
-
-    Loader {
+    readonly property string sectionDefaults: "views,projects,labels,priorities,progress,status,secrecy,location"
+    readonly property string primaryViewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,completed"
+    readonly property string maintenanceViewDefaults: "recurring,unlabeled,reminder,nolocation,nopriority,nostatus"
+    readonly property string viewDefaults: primaryViewDefaults + "," + maintenanceViewDefaults
+    ConfigControllerLoader {
         id: orderControllerLoader
-        source: Qt.resolvedUrl("PluginController.qml")
+        Component.onCompleted: refresh()
     }
-    readonly property var orderController: orderControllerLoader.item
+    readonly property var orderController: orderControllerLoader.controller
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {
@@ -47,6 +38,10 @@ KCM.SimpleKCM {
         case "projects": return i18n("Projects")
         case "labels": return i18n("Labels")
         case "priorities": return i18n("Priorities")
+        case "progress": return i18n("Progress")
+        case "status": return i18n("Status")
+        case "secrecy": return i18n("Secrecy")
+        case "location": return i18n("Location")
         default: return id
         }
     }
@@ -62,6 +57,10 @@ KCM.SimpleKCM {
         case "recurring": return i18n("Recurring")
         case "unlabeled": return i18n("Unlabeled")
         case "completed": return i18n("Completed")
+        case "reminder": return i18n("Has reminder")
+        case "nolocation": return i18n("Has no location")
+        case "nopriority": return i18n("No priority")
+        case "nostatus": return i18n("No status")
         default: return id
         }
     }
@@ -110,21 +109,24 @@ KCM.SimpleKCM {
                 id: emptyProjectsCheck
                 Kirigami.FormData.label: i18n("Projects")
                 text: i18n("Show empty projects")
-                Component.onCompleted: checked = plasmoid.configuration.showEmptyProjects === true
+                checked: root.cfg_showEmptyProjects
+                onCheckedChanged: root.cfg_showEmptyProjects = checked
             }
 
             QQC2.CheckBox {
                 id: countsCheck
                 Kirigami.FormData.label: i18n("Counts")
                 text: i18n("Show task counts")
-                Component.onCompleted: checked = plasmoid.configuration.showSidebarCounts !== false
+                checked: root.cfg_showSidebarCounts
+                onCheckedChanged: root.cfg_showSidebarCounts = checked
             }
 
             QQC2.CheckBox {
                 id: countsCollapsedCheck
                 text: i18n("Exclude collapsed subtasks from counts")
                 enabled: countsCheck.checked
-                Component.onCompleted: checked = plasmoid.configuration.countsExcludeCollapsed === true
+                checked: root.cfg_countsExcludeCollapsed
+                onCheckedChanged: root.cfg_countsExcludeCollapsed = checked
             }
 
             Kirigami.Separator {
@@ -184,8 +186,8 @@ KCM.SimpleKCM {
                     showEmptyProjects: false,
                     showSidebarCounts: true,
                     countsExcludeCollapsed: false,
-                    sidebarSectionOrder: "views,projects,labels,priorities",
-                    hiddenSidebarSections: "",
+                    sidebarSectionOrder: "views,projects,labels,priorities,progress,status,secrecy,location",
+                    hiddenSidebarSections: "progress||status||secrecy||location",
                     sidebarViewOrder: "",
                     hiddenViews: ""
                 })

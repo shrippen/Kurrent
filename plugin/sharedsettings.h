@@ -31,6 +31,7 @@ public:
     Q_INVOKABLE QStringList keys() const;
     Q_INVOKABLE QVariantMap values() const;
     Q_INVOKABLE QVariantMap defaults() const;
+    Q_INVOKABLE void storeString(const QString &key, const QString &value);
 
 Q_SIGNALS:
     void changed();

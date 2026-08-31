@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(kurrent VERSION 0.3.1 LANGUAGES CXX)
+project(kurrent VERSION 1.0.0 LANGUAGES CXX)
 
 set(KURRENT_RELEASE_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 add_compile_definitions(KURRENT_RELEASE_VERSION="${KURRENT_RELEASE_VERSION}")
@@ -44,6 +44,16 @@ include(CTest)
 set(CMAKE_AUTOMOC ON)
 
 add_subdirectory(plugin)
+
+option(KURRENT_BUILD_KRUNNER "Build the KRunner plugin" ON)
+if(KURRENT_BUILD_KRUNNER)
+    find_package(KF6Runner QUIET)
+    if(KF6Runner_FOUND)
+        add_subdirectory(krunner)
+    else()
+        message(STATUS "KF6Runner not found; skipping KRunner plugin.")
+    endif()
+endif()
 
 if(BUILD_TESTING)
     enable_testing()

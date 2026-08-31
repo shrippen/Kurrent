@@ -2,17 +2,11 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
 
-    property alias cfg_blurBackground: blurBackgroundCheck.checked
-    property alias cfg_reducedMotion: reducedMotionCheck.checked
-    property int cfg_descriptionPreviewLines
-    property string cfg_density
-    property int cfg_overlayDimStep
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {
@@ -37,8 +31,10 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: blurBackgroundCheck
                 Kirigami.FormData.label: i18n("Background")
-                text: i18n("Blurred wallpaper behind the widget")
-            }
+                text: i18n("Blurred wallpaper behind the widget")              
+                checked: root.cfg_blurBackground
+                onCheckedChanged: root.cfg_blurBackground = checked
+                        }
 
             QQC2.Label {
                 Layout.fillWidth: true
@@ -81,7 +77,8 @@ KCM.SimpleKCM {
                 id: reducedMotionCheck
                 Kirigami.FormData.label: i18n("Motion")
                 text: i18n("Reduced motion (no spinner, quieter hover)")
-                Component.onCompleted: checked = plasmoid.configuration.reducedMotion === true
+                checked: root.cfg_blurBackground
+                onCheckedChanged: root.cfg_blurBackground = checked
             }
 
             QQC2.ComboBox {

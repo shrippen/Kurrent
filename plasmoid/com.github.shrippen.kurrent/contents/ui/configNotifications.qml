@@ -2,26 +2,17 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "."
 
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
-
-    property alias cfg_notificationsEnabled: notifyCheck.checked
-    property alias cfg_quietHoursEnabled: quietCheck.checked
-    property alias cfg_suppressRemindersDuringEvents: eventBusyCheck.checked
-    property int cfg_quietHoursStart
-    property int cfg_quietHoursEnd
-    property string cfg_busyCalendarIds
-
-    Loader {
+    ConfigControllerLoader {
         id: configControllerLoader
-        source: Qt.resolvedUrl("PluginController.qml")
+        Component.onCompleted: refresh()
     }
-    readonly property var configController: configControllerLoader.item
+    readonly property var configController: configControllerLoader.controller
 
     readonly property int eventCalendarCount: {
         var model = configController ? configController.eventCalendarModel : null
@@ -115,7 +106,8 @@ KCM.SimpleKCM {
                 id: notifyCheck
                 Kirigami.FormData.label: i18n("Desktop notifications")
                 text: i18n("Notify when a task reminder is due")
-                Component.onCompleted: checked = plasmoid.configuration.notificationsEnabled !== false
+                checked: root.cfg_notificationsEnabled
+                onCheckedChanged: root.cfg_notificationsEnabled = checked
             }
 
             QQC2.Label {
@@ -129,7 +121,8 @@ KCM.SimpleKCM {
                 id: quietCheck
                 Kirigami.FormData.label: i18n("Quiet hours")
                 text: i18n("Suppress reminder notifications in this window")
-                Component.onCompleted: checked = plasmoid.configuration.quietHoursEnabled === true
+                checked: root.cfg_quietHoursEnabled
+                onCheckedChanged: root.cfg_quietHoursEnabled = checked
             }
 
             QQC2.ComboBox {
@@ -160,7 +153,8 @@ KCM.SimpleKCM {
                 id: eventBusyCheck
                 Kirigami.FormData.label: i18n("During events")
                 text: i18n("Suppress reminders while a calendar event is in progress")
-                Component.onCompleted: checked = plasmoid.configuration.suppressRemindersDuringEvents === true
+                checked: root.cfg_suppressRemindersDuringEvents
+                onCheckedChanged: root.cfg_suppressRemindersDuringEvents = checked
             }
 
             QQC2.Label {

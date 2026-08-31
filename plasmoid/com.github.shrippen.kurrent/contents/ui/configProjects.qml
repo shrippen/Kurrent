@@ -2,17 +2,13 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "colors.js" as Colors
 import "."
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
 
-    property string cfg_enabledCollections
-    property string cfg_hiddenProjects
-    property string cfg_projectColors
 
     readonly property int writableProjectCount: {
         var model = configController ? configController.collectionModel : null
@@ -27,12 +23,11 @@ KCM.SimpleKCM {
         }
         return count
     }
-
-    Loader {
+    ConfigControllerLoader {
         id: configControllerLoader
-        source: Qt.resolvedUrl("PluginController.qml")
+        Component.onCompleted: refresh()
     }
-    readonly property var configController: configControllerLoader.item
+    readonly property var configController: configControllerLoader.controller
 
     function hiddenSet() {
         var raw = cfg_hiddenProjects || ""

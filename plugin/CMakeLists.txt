@@ -1,6 +1,6 @@
 set(QT_DEFAULT_MAJOR_VERSION 6)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml DBus Concurrent)
 find_package(KF6 REQUIRED COMPONENTS CalendarCore I18n Config)
 find_package(KF6 QUIET COMPONENTS Notifications GlobalAccel)
 find_package(KPim6Akonadi REQUIRED)
@@ -22,6 +22,8 @@ add_library(kurrentplugin SHARED
     sharedsettings.h
     kurrentdbus.cpp
     kurrentdbus.h
+    kurrentlogging.h
+    kurrentlogging.cpp
     taskstore.h
     akonaditaskstore.cpp
     akonaditaskstore.h
@@ -39,6 +41,7 @@ target_link_libraries(kurrentplugin PRIVATE
     Qt6::Gui
     Qt6::Qml
     Qt6::DBus
+    Qt6::Concurrent
     KF6::CalendarCore
     KF6::I18n
     KF6::ConfigCore

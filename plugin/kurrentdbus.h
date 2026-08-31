@@ -17,4 +17,5 @@ public Q_SLOTS:
     Q_NOREPLY void show();
     Q_NOREPLY void addTask(const QString &summary);
     Q_NOREPLY void openView(const QString &view);
+    Q_NOREPLY void searchAndShow(const QString &query);
 };

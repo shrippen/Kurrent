@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.3.1\n"
+"Project-Id-Version: kurrent 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -20,11 +20,17 @@ msgstr ""
 msgid "%1 grid units"
 msgstr "%1 格单位"
 
+msgid "%1% complete"
+msgstr "已完成 %1%"
+
 msgid "%1:00"
 msgstr "%1:00"
 
 msgid "(Untitled)"
 msgstr "（无标题）"
+
+msgid "+1 day"
+msgstr "+1 天"
 
 msgid "1 day before"
 msgstr "提前 1 天"
@@ -43,6 +49,9 @@ msgstr "2 行"
 
 msgid "Accent (highlight)"
 msgstr "强调色（高亮）"
+
+msgid "Add"
+msgstr "添加"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "添加任务…  tomorrow 18:00 !high #tag @project"
@@ -64,6 +73,9 @@ msgstr "下午开始"
 
 msgid "Akonadi"
 msgstr "Akonadi"
+
+msgid "Akonadi and plugin diagnostics"
+msgstr "Akonadi 与插件诊断"
 
 msgid "Akonadi is not running"
 msgstr "Akonadi 未运行"
@@ -95,6 +107,15 @@ msgstr "已在项目“%1”中"
 msgid "Already priority “%1”"
 msgstr "已是优先级“%1”"
 
+msgid "Any due date"
+msgstr "任意截止日期"
+
+msgid "Any priority"
+msgstr "任意优先级"
+
+msgid "Any status"
+msgstr "任意状态"
+
 msgid "Anytime"
 msgstr "随时"
 
@@ -112,6 +133,9 @@ msgstr "删除任务前询问"
 
 msgid "Ask which project to use"
 msgstr "询问使用哪个项目"
+
+msgid "Assignees:"
+msgstr "负责人："
 
 msgid "At due time"
 msgstr "到期时"
@@ -137,8 +161,17 @@ msgstr "基本信息"
 msgid "Blurred wallpaper behind the widget"
 msgstr "部件背后的模糊壁纸"
 
+msgid "Both"
+msgstr "两者"
+
 msgid "Build"
 msgstr "构建"
+
+msgid "Busy days:"
+msgstr "忙碌日："
+
+msgid "Calendar + tasks"
+msgstr "日历 + 任务"
 
 msgid "Calendars for event suppression"
 msgstr "用于抑制事件的日历"
@@ -147,6 +180,9 @@ msgid "Cancel"
 msgstr "取消"
 
 msgid "Canceled"
+msgstr "已取消"
+
+msgid "Cancelled"
 msgstr "已取消"
 
 msgid "Case sensitive"
@@ -170,6 +206,9 @@ msgstr "选择哪些 Akonadi 事件日历会阻止提醒。检查进行中的事
 msgid "Classification"
 msgstr "分类"
 
+msgid "Clear cell filter"
+msgstr "清除单元格筛选"
+
 msgid "Clear due date"
 msgstr "清除截止日期"
 
@@ -187,6 +226,9 @@ msgstr "清除项目筛选"
 
 msgid "Clear search"
 msgstr "清除搜索"
+
+msgid "Clear selection"
+msgstr "清除选择"
 
 msgid "Clear start"
 msgstr "清除开始时间"
@@ -206,6 +248,9 @@ msgstr "舒适（适合触摸）"
 msgid "Compact"
 msgstr "紧凑"
 
+msgid "Complete"
+msgstr "完成"
+
 msgid "Complete only with Shift or Ctrl held"
 msgstr "仅按住 Shift 或 Ctrl 时完成"
 
@@ -221,6 +266,12 @@ msgstr "已完成："
 msgid "Completing a parent also completes its children"
 msgstr "完成父任务也会完成其子任务"
 
+msgid "Completion"
+msgstr "完成"
+
+msgid "Completions"
+msgstr "完成数"
+
 msgid "Confidential"
 msgstr "机密"
 
@@ -230,8 +281,17 @@ msgstr "在 KOrganizer 或 Merkuro 中配置 CalDAV/Nextcloud（DAV 群件资源
 msgid "Connecting to Akonadi…"
 msgstr "正在连接 Akonadi…"
 
+msgid "Copy"
+msgstr "复制"
+
+msgid "Copy UIDs"
+msgstr "复制 UID"
+
 msgid "Copy command"
 msgstr "复制命令"
+
+msgid "Copy debug bundle"
+msgstr "复制调试信息"
 
 msgid "Could not load tasks"
 msgstr "无法加载任务"
@@ -242,11 +302,29 @@ msgstr "计数"
 msgid "Create label “%1”"
 msgstr "创建标签“%1”"
 
+msgid "Custom column (KURRENT/COLUMN)"
+msgstr "自定义列 (KURRENT/COLUMN)"
+
 msgid "Daily"
 msgstr "每天"
 
 msgid "Dates"
 msgstr "日期"
+
+msgid "Day"
+msgstr "日"
+
+msgid "Day agenda"
+msgstr "日议程"
+
+msgid "Day section"
+msgstr "日分区"
+
+msgid "Debug info"
+msgstr "调试信息"
+
+msgid "Default column source"
+msgstr "默认列来源"
 
 msgid "Default due date"
 msgstr "默认截止日期"
@@ -293,6 +371,12 @@ msgstr "描述："
 msgid "Desktop notifications"
 msgstr "桌面通知"
 
+msgid "Diagnostics"
+msgstr "诊断"
+
+msgid "Dismiss"
+msgstr "关闭"
+
 msgid "Dot"
 msgstr "圆点"
 
@@ -308,14 +392,26 @@ msgstr "截止日期"
 msgid "Due date (latest first)"
 msgstr "截止日期（最新优先）"
 
+msgid "Due date buckets"
+msgstr "截止日期分组"
+
+msgid "Due dates"
+msgstr "截止日期"
+
 msgid "Due:"
 msgstr "截止："
+
+msgid "Duplicate built-in view…"
+msgstr "复制内置视图…"
 
 msgid "During events"
 msgstr "事件期间"
 
 msgid "Each sidebar view keeps its own sort. Views you have not changed start with Priority › Due › Title A–Z."
 msgstr "每个侧栏视图保留各自的排序。未更改的视图默认以优先级 › 截止 › 标题 A–Z 开始。"
+
+msgid "Edit Smart View"
+msgstr "编辑智能视图"
 
 msgid "Edit task"
 msgstr "编辑任务"
@@ -331,6 +427,9 @@ msgstr "全部启用"
 
 msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
 msgstr "在配置 Kurrent → 项目中启用日历，或在 Merkuro 或 KOrganizer 中添加 CalDAV 资源。"
+
+msgid "Enable multi-select (Ctrl+click) and bulk actions"
+msgstr "启用多选 (Ctrl+点击) 和批量操作"
 
 msgid "Enabled"
 msgstr "已启用"
@@ -362,6 +461,9 @@ msgstr "常规"
 msgid "Heading on the list"
 msgstr "列表标题"
 
+msgid "Heatmap"
+msgstr "热力图"
+
 msgid "Hidden"
 msgstr "隐藏"
 
@@ -373,6 +475,9 @@ msgstr "高优先级"
 
 msgid "High priority (%1)"
 msgstr "高优先级 (%1)"
+
+msgid "Icon name (Plasma icon)"
+msgstr "图标名称（Plasma 图标）"
 
 msgid "In 1 hour"
 msgstr "1 小时后"
@@ -398,8 +503,26 @@ msgstr "检查进行中的事件时包含此日历"
 msgid "Include this calendar when fetching tasks"
 msgstr "获取任务时包含此日历"
 
+msgid "KURRENT/COLUMN"
+msgstr "KURRENT/COLUMN"
+
+msgid "KURRENT/COLUMN only"
+msgstr "仅 KURRENT/COLUMN"
+
+msgid "KURRENT/LIST (day section)"
+msgstr "KURRENT/LIST（时段）"
+
+msgid "Kanban"
+msgstr "看板"
+
+msgid "Kanban writes"
+msgstr "看板写入"
+
 msgid "Kurrent"
 msgstr "Kurrent"
+
+msgid "Label"
+msgstr "标签"
 
 msgid "Labels"
 msgstr "标签"
@@ -413,8 +536,14 @@ msgstr "标签来自 Akonadi 任务类别。隐藏的标签不出现在侧栏筛
 msgid "Labels:"
 msgstr "标签："
 
+msgid "Lane axis (rows)"
+msgstr "泳道轴（行）"
+
 msgid "Light"
 msgstr "浅色"
+
+msgid "List"
+msgstr "列表"
 
 msgid "Loading tasks…"
 msgstr "正在加载任务…"
@@ -455,6 +584,12 @@ msgstr "中优先级 (%1)"
 msgid "Meetings"
 msgstr "会议"
 
+msgid "Mode:"
+msgstr "模式："
+
+msgid "Month"
+msgstr "月"
+
 msgid "Monthly"
 msgstr "每月"
 
@@ -470,11 +605,20 @@ msgstr "上午开始"
 msgid "Motion"
 msgstr "动效"
 
+msgid "Move to project"
+msgstr "移动到项目"
+
 msgid "Move to project “%1”"
 msgstr "移动到项目“%1”"
 
+msgid "Name"
+msgstr "名称"
+
 msgid "Needs action"
 msgstr "需要处理"
+
+msgid "New Smart View"
+msgstr "新建智能视图"
 
 msgid "New label"
 msgstr "新标签"
@@ -484,6 +628,15 @@ msgstr "新任务"
 
 msgid "Next week"
 msgstr "下周"
+
+msgid "No busy events for this day."
+msgstr "今天没有忙碌日程。"
+
+msgid "No date"
+msgstr "无日期"
+
+msgid "No dated open tasks in this view."
+msgstr "此视图中没有带日期的未完成任务。"
 
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "未找到事件日历。请确认 Akonadi 正在运行且已配置 CalDAV 日历。"
@@ -524,6 +677,9 @@ msgstr "未找到可写的 Akonadi 日历。请确认 Akonadi 正在运行且 Ca
 msgid "None"
 msgstr "无"
 
+msgid "Not loaded"
+msgstr "未加载"
+
 msgid "Nothing due today"
 msgstr "今天无到期任务"
 
@@ -539,11 +695,20 @@ msgstr "数字"
 msgid "Off"
 msgstr "关闭"
 
+msgid "Offline"
+msgstr "离线"
+
 msgid "One sort order for every view. The default is Priority › Due › Title A–Z until you change it in the task list."
 msgstr "所有视图使用同一排序。在任务列表中更改前，默认为优先级 › 截止 › 标题 A–Z。"
 
+msgid "Online"
+msgstr "在线"
+
 msgid "Only opaque (busy) events count. Transparent events are ignored."
 msgstr "仅不透明（忙碌）事件计入。透明事件会被忽略。"
+
+msgid "Open"
+msgstr "未完成"
 
 msgid "Open / Join"
 msgstr "打开 / 加入"
@@ -554,11 +719,17 @@ msgstr "打开 GitHub"
 msgid "Open first"
 msgstr "未完成优先"
 
+msgid "Open map"
+msgstr "打开地图"
+
 msgid "Open root tasks"
 msgstr "未完成的根任务"
 
 msgid "Open tasks"
 msgstr "未完成任务"
+
+msgid "Open tasks by project and week"
+msgstr "按项目和周显示的未完成任务"
 
 msgid "Open the full editor"
 msgstr "打开完整编辑器"
@@ -590,8 +761,17 @@ msgstr "面板徽章"
 msgid "Panel tooltip"
 msgstr "面板提示"
 
+msgid "Parent task"
+msgstr "父任务"
+
+msgid "Pending jobs"
+msgstr "待处理作业"
+
 msgid "Pick date"
 msgstr "选择日期"
+
+msgid "Plugin version"
+msgstr "插件版本"
 
 msgid "Priorities"
 msgstr "优先级"
@@ -616,6 +796,12 @@ msgstr "进度 %（高优先）"
 
 msgid "Progress:"
 msgstr "进度："
+
+msgid "Project"
+msgstr "项目"
+
+msgid "Project plan"
+msgstr "项目计划"
 
 msgid "Project:"
 msgstr "项目："
@@ -644,6 +830,9 @@ msgstr "重复图标"
 msgid "Recurring last"
 msgstr "重复最后"
 
+msgid "Recurring only"
+msgstr "仅重复任务"
+
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "减少动效（无加载动画，更安静的悬停）"
 
@@ -652,6 +841,12 @@ msgstr "刷新"
 
 msgid "Relative dates (Today, Tomorrow)"
 msgstr "相对日期（今天、明天）"
+
+msgid "Release"
+msgstr "发布"
+
+msgid "Reload"
+msgstr "重新加载"
 
 msgid "Remember globally (all views)"
 msgstr "全局记住（所有视图）"
@@ -698,6 +893,9 @@ msgstr "行高"
 msgid "Save"
 msgstr "保存"
 
+msgid "Saved filters appear in the sidebar. Each can set filter rules and a default main-pane mode."
+msgstr "已保存的筛选器显示在侧边栏。每个筛选器可设置规则和默认主视图模式。"
+
 msgid "Schedule"
 msgstr "日程"
 
@@ -740,11 +938,23 @@ msgstr "选择项目以筛选任务。"
 msgid "Select only (double-click opens the full editor)"
 msgstr "仅选择（双击打开完整编辑器）"
 
+msgid "Selection"
+msgstr "选择"
+
+msgid "Set KURRENT_SMOKE=1 and check ~/.cache/kurrent-smoke/ for logs."
+msgstr "设置 KURRENT_SMOKE=1 并查看 ~/.cache/kurrent-smoke/ 中的日志。"
+
+msgid "Set priority"
+msgstr "设置优先级"
+
 msgid "Set priority “%1”"
 msgstr "将优先级设为“%1”"
 
 msgid "Setup"
 msgstr "设置"
+
+msgid "Show %1 tasks"
+msgstr "显示 %1 个任务"
 
 msgid "Show All"
 msgstr "全部显示"
@@ -779,17 +989,29 @@ msgstr "在截止标签上显示时间"
 msgid "Sidebar"
 msgstr "侧栏"
 
+msgid "Smart Views"
+msgstr "智能视图"
+
+msgid "Smoke test"
+msgstr "冒烟测试"
+
 msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
 msgstr "从通知推迟（15 分钟、1 小时、明天）会重写 VALARM。截止日期不变；请使用重新安排。"
 
 msgid "Sort order"
 msgstr "排序方式"
 
+msgid "Sort override (e.g. priority,due,title)"
+msgstr "排序覆盖（如 priority,due,title）"
+
 msgid "Sort tasks"
 msgstr "排序任务"
 
 msgid "Sort: %1"
 msgstr "排序：%1"
+
+msgid "Standard VTODO fields"
+msgstr "标准 VTODO 字段"
 
 msgid "Start date"
 msgstr "开始日期"
@@ -824,14 +1046,26 @@ msgstr "在此时间段内抑制提醒通知"
 msgid "Suppress reminders while a calendar event is in progress"
 msgstr "日历事件进行中时抑制提醒"
 
+msgid "Swimlanes"
+msgstr "泳道"
+
 msgid "Sync now"
 msgstr "立即同步"
+
+msgid "Syncing…"
+msgstr "同步中…"
 
 msgid "Tasks"
 msgstr "任务"
 
 msgid "Tasks are loaded from your existing Akonadi setup."
 msgstr "任务来自您现有的 Akonadi 配置。"
+
+msgid "Tasks due this day"
+msgstr "当天到期的任务"
+
+msgid "Text contains"
+msgstr "文本包含"
 
 msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
 msgstr "KDE 商店安装包只有部件界面。在终端运行下面的命令以安装插件："
@@ -845,8 +1079,17 @@ msgstr "完整编辑器仍为部件内的叠加层。日分区（LIST）在完�
 msgid "Third sort"
 msgstr "第三排序"
 
+msgid "This task was changed on the server. Reload to discard your edit."
+msgstr "此任务已在服务器上更改。重新加载将放弃你的编辑。"
+
+msgid "This week"
+msgstr "本周"
+
 msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
 msgstr "此部件版本为 %1，但已安装的后端为 %2。请重新安装后端以匹配。"
+
+msgid "Time axis (columns)"
+msgstr "时间轴（列）"
 
 msgid "Title"
 msgstr "标题"
@@ -905,6 +1148,12 @@ msgstr "使用指定项目"
 msgid "Use the top project in the sidebar"
 msgstr "使用侧栏中的第一个项目"
 
+msgid "View mode"
+msgstr "视图模式"
+
+msgid "View mode: %1"
+msgstr "视图模式：%1"
+
 msgid "Views"
 msgstr "视图"
 
@@ -913,6 +1162,9 @@ msgstr "可见"
 
 msgid "Waiting for Akonadi…"
 msgstr "正在等待 Akonadi…"
+
+msgid "Week"
+msgstr "周"
 
 msgid "Weekly"
 msgstr "每周"
@@ -925,6 +1177,9 @@ msgstr "每年"
 
 msgid "Yesterday"
 msgstr "昨天"
+
+msgid "tasks"
+msgstr "任务"
 
 msgid "unknown"
 msgstr "未知"

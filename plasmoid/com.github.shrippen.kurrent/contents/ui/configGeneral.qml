@@ -2,20 +2,11 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
 
-    property alias cfg_showCompleted: showCompletedCheck.checked
-    property alias cfg_rememberLastView: rememberLastCheck.checked
-    property alias cfg_confirmDelete: confirmDeleteCheck.checked
-    property alias cfg_completeNeedsModifier: modifierCheck.checked
-    property string cfg_defaultView
-    property string cfg_newTaskProjectMode
-    property string cfg_newTaskDefaultCollectionId
-    property string cfg_defaultDueMode
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {
@@ -110,14 +101,17 @@ KCM.SimpleKCM {
             QQC2.CheckBox {
                 id: rememberLastCheck
                 text: i18n("Remember the last view instead")
-                Component.onCompleted: checked = plasmoid.configuration.rememberLastView === true
+                checked: root.cfg_rememberLastView
+                onCheckedChanged: root.cfg_rememberLastView = checked
             }
 
             QQC2.CheckBox {
                 id: showCompletedCheck
                 Kirigami.FormData.label: i18n("Completed tasks")
-                text: i18n("Show completed tasks")
-            }
+                text: i18n("Show completed tasks")              
+                checked: root.cfg_showCompleted
+                onCheckedChanged: root.cfg_showCompleted = checked
+                        }
 
             QQC2.RadioButton {
                 id: newTaskAskRadio
@@ -182,14 +176,16 @@ KCM.SimpleKCM {
                 id: confirmDeleteCheck
                 Kirigami.FormData.label: i18n("Delete")
                 text: i18n("Ask before deleting a task")
-                Component.onCompleted: checked = plasmoid.configuration.confirmDelete === true
+                checked: root.cfg_showCompleted
+                onCheckedChanged: root.cfg_showCompleted = checked
             }
 
             QQC2.CheckBox {
                 id: modifierCheck
                 Kirigami.FormData.label: i18n("Checkbox")
                 text: i18n("Complete only with Shift or Ctrl held")
-                Component.onCompleted: checked = plasmoid.configuration.completeNeedsModifier === true
+                checked: root.cfg_confirmDelete
+                onCheckedChanged: root.cfg_confirmDelete = checked
             }
 
             ConfigResetButton {
@@ -213,9 +209,8 @@ KCM.SimpleKCM {
         id: newTaskModeGroup
     }
 
-    Loader {
+    ConfigControllerLoader {
         id: settingsControllerLoader
-        source: Qt.resolvedUrl("PluginController.qml")
         onLoaded: {
             var raw = plasmoid.configuration.enabledCollections || ""
             if (!raw.trim()) {
@@ -230,11 +225,11 @@ KCM.SimpleKCM {
                     ids.push(value)
                 }
             }
-            if (ids.length > 0) {
-                item.setEnabledCollectionIds(ids)
+            if (controller && ids.length > 0) {
+                controller.setEnabledCollectionIds(ids)
             }
             defaultProjectPicker.rebuild()
         }
     }
-    readonly property var settingsController: settingsControllerLoader.item
+    readonly property var settingsController: settingsControllerLoader.controller
 }

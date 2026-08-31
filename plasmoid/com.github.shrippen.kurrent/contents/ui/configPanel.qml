@@ -2,16 +2,11 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
 
-    property string cfg_panelBadge
-    property string cfg_panelBadgeStyle
-    property string cfg_panelBadgeOverdueColor
-    property string cfg_panelTooltip
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {

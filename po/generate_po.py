@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extra_translations import EXTRA
 
 DOMAIN = "plasma_applet_com.github.shrippen.kurrent"
-VERSION = "0.3.1"
+VERSION = "1.0.0"
 YEAR = datetime.date.today().year
 QML_ROOT = Path(__file__).resolve().parent.parent / "plasmoid"
 

@@ -18,7 +18,8 @@
  *   update cache, syncing=true    --->   submit(Request)
  *   finishSync / upsert / remove  <---   finished(Result)
  *
- * One outstanding job per clientId is expected from the controller.
+ * The controller coalesces further edits while a job for that clientId is in
+ * flight, then submits the latest payload after the job finishes.
  */
 class AbstractTaskStore : public QObject
 {

@@ -21,3 +21,8 @@ void KurrentDBusAdaptor::openView(const QString &view)
 {
     TaskController::broadcastDbusOpenView(view);
 }
+
+void KurrentDBusAdaptor::searchAndShow(const QString &query)
+{
+    TaskController::broadcastDbusSearchAndShow(query);
+}

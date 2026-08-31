@@ -1,6 +1,7 @@
 #include "taskcalendar.h"
 
 #include <KCalendarCore/Alarm>
+#include <KCalendarCore/Attendee>
 #include <KCalendarCore/Duration>
 #include <KCalendarCore/Event>
 #include <KCalendarCore/MemoryCalendar>
@@ -107,6 +108,115 @@ void setSection(const KCalendarCore::Todo::Ptr &todo, const QString &section)
         return;
     }
     todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("LIST"), trimmed);
+}
+
+QString columnFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return {};
+    }
+    return todo->customProperty(QByteArray("KURRENT"), QByteArray("COLUMN"));
+}
+
+void setColumn(const KCalendarCore::Todo::Ptr &todo, const QString &column)
+{
+    if (!todo) {
+        return;
+    }
+    const QString trimmed = column.trimmed();
+    if (trimmed.isEmpty()) {
+        todo->removeCustomProperty(QByteArray("KURRENT"), QByteArray("COLUMN"));
+        return;
+    }
+    todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("COLUMN"), trimmed);
+}
+
+int columnOrderFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return 0;
+    }
+    bool ok = false;
+    const int value = todo->customProperty(QByteArray("KURRENT"), QByteArray("COLUMN-ORDER")).toInt(&ok);
+    return ok ? value : 0;
+}
+
+void setColumnOrder(const KCalendarCore::Todo::Ptr &todo, int order)
+{
+    if (!todo) {
+        return;
+    }
+    todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("COLUMN-ORDER"), QString::number(order));
+}
+
+int appleSortOrderFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return 0;
+    }
+    bool ok = false;
+    const int value = todo->nonKDECustomProperty(QByteArray("X-APPLE-SORT-ORDER")).toInt(&ok);
+    return ok ? value : 0;
+}
+
+void setAppleSortOrder(const KCalendarCore::Todo::Ptr &todo, int order)
+{
+    if (!todo) {
+        return;
+    }
+    todo->setNonKDECustomProperty(QByteArray("X-APPLE-SORT-ORDER"), QString::number(order));
+}
+
+int kanbanSortOrderFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return 0;
+    }
+    const int apple = appleSortOrderFromTodo(todo);
+    if (apple != 0) {
+        return apple;
+    }
+    return columnOrderFromTodo(todo);
+}
+
+void setKanbanSortOrder(const KCalendarCore::Todo::Ptr &todo, int order)
+{
+    if (!todo) {
+        return;
+    }
+    setAppleSortOrder(todo, order);
+    setColumnOrder(todo, order);
+}
+
+QStringList attendeesFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    QStringList result;
+    if (!todo) {
+        return result;
+    }
+    const KCalendarCore::Attendee::List attendees = todo->attendees();
+    for (const KCalendarCore::Attendee &attendee : attendees) {
+        const QString label = attendee.name().isEmpty() ? attendee.email() : attendee.name();
+        if (!label.isEmpty()) {
+            result.append(label);
+        }
+    }
+    return result;
+}
+
+QString geoMapUrlFromTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo || !todo->hasGeo()) {
+        return {};
+    }
+    const float lat = todo->geoLatitude();
+    const float lon = todo->geoLongitude();
+    if (lat < -90.0f || lat > 90.0f || lon < -180.0f || lon > 180.0f) {
+        return {};
+    }
+    const QString latStr = QString::number(static_cast<double>(lat), 'f', 6);
+    const QString lonStr = QString::number(static_cast<double>(lon), 'f', 6);
+    return QStringLiteral("https://www.openstreetmap.org/?mlat=%1&mlon=%2#map=16/%1/%2").arg(latStr, lonStr);
 }
 
 bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, const QDateTime &now)

@@ -1,5 +1,7 @@
 #include "tasklogic.h"
 
+#include <QHash>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QRegularExpression>
@@ -14,6 +16,12 @@
 
 namespace TaskLogic
 {
+
+QString kanbanColumnKey(const TaskEntry &task,
+                        const QString &source,
+                        const FilterState &filters,
+                        const QDate &today);
+QString kanbanColumnLabel(const QString &key, const QString &source);
 
 int priorityBand(int priority)
 {
@@ -81,24 +89,33 @@ bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &toda
     if (viewId == ViewId::Completed) {
         return task.completed;
     }
+    if (viewId == ViewId::Reminder) {
+        return task.reminderMinutes >= 0;
+    }
+    if (viewId == ViewId::NoLocation) {
+        return task.location.trimmed().isEmpty();
+    }
+    if (viewId == ViewId::NoPriority) {
+        return priorityBand(task.priority) == PriorityBand::None;
+    }
+    if (viewId == ViewId::NoStatus) {
+        return normalizeStatus(task.status) == 0;
+    }
     return true;
 }
 
-bool isCatchUp(const TaskEntry &task, const QDate &today, int /*lookbackDays*/)
+bool matchesViewFilter(const TaskEntry &task, const FilterState &filters, const QDate &today)
 {
-    // Still open / catch-up matches the Overdue view: incomplete with due before today.
-    // lookbackDays is unused (kept for API compatibility); a former N-day window hid older
-    // overdue from Today while Overdue still listed them.
-    return matchesView(task, ViewId::Overdue, today);
+    if (filters.hasSmartRules) {
+        return matchesSmartView(task, filters.smartRules, today);
+    }
+    return matchesView(task, filters.currentView, today);
 }
 
 bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const QDate &today)
 {
-    if (matchesView(task, QStringLiteral("today"), today)) {
-        return true;
-    }
-    // When catch-up is on, Today includes the full Overdue set under Still open.
-    return filters.catchUpEnabled && isCatchUp(task, today, filters.catchUpDays);
+    Q_UNUSED(filters);
+    return matchesView(task, QStringLiteral("today"), today);
 }
 
 QString dayPart(const QDateTime &when, const FilterState &filters)
@@ -125,9 +142,6 @@ QString dayPart(const QDateTime &when, const FilterState &filters)
 QString listBucket(const TaskEntry &task, const FilterState &filters, const QDate &today)
 {
     if (filters.currentView == QLatin1String("today")) {
-        if (isCatchUp(task, today, filters.catchUpDays)) {
-            return QStringLiteral("catchup");
-        }
         if (task.allDay || !task.dueDate.isValid()) {
             return QStringLiteral("unspecified");
         }
@@ -140,6 +154,271 @@ QString listBucket(const TaskEntry &task, const FilterState &filters, const QDat
         return dayPart(task.dueDate, filters);
     }
     return {};
+}
+
+QString listGroupKey(const TaskEntry &task, const QString &mode, const FilterState &filters, const QDate &today)
+{
+    const QString normalized = mode.trimmed();
+    if (normalized.isEmpty() || normalized == ListGroupSource::None) {
+        return {};
+    }
+    if (normalized == ListGroupSource::Progress) {
+        return progressBandKey(task.percentComplete);
+    }
+    if (normalized == ListGroupSource::Location) {
+        const QString loc = task.location.trimmed();
+        return loc.isEmpty() ? QStringLiteral("none") : loc;
+    }
+    if (normalized == ListGroupSource::Status) {
+        return QString::number(normalizeStatus(task.status));
+    }
+    return kanbanColumnKey(task, normalized, filters, today);
+}
+
+QString listViewSectionKey(const TaskEntry &task, const FilterState &filters, const QDate &today)
+{
+    const QString grouped = listGroupKey(task, filters.listGroupMode, filters, today);
+    if (!grouped.isEmpty()) {
+        return grouped;
+    }
+    return listBucket(task, filters, today);
+}
+
+QString listGroupLabel(const QString &key, const QString &mode)
+{
+    const QString normalized = mode.trimmed();
+    if (normalized == ListGroupSource::Progress) {
+        if (key == QLatin1String("0-25")) {
+            return QStringLiteral("0–25%");
+        }
+        if (key == QLatin1String("26-50")) {
+            return QStringLiteral("26–50%");
+        }
+        if (key == QLatin1String("51-75")) {
+            return QStringLiteral("51–75%");
+        }
+        if (key == QLatin1String("76-100")) {
+            return QStringLiteral("76–100%");
+        }
+    }
+    if (normalized == ListGroupSource::Location && key == QLatin1String("none")) {
+        return QStringLiteral("No location");
+    }
+    if (normalized == ListGroupSource::Status) {
+        if (key == QLatin1String("0")) {
+            return QStringLiteral("None");
+        }
+        if (key == QLatin1String("4")) {
+            return QStringLiteral("Needs action");
+        }
+        if (key == QLatin1String("6")) {
+            return QStringLiteral("In process");
+        }
+        if (key == QLatin1String("3")) {
+            return QStringLiteral("Completed");
+        }
+        if (key == QLatin1String("5")) {
+            return QStringLiteral("Canceled");
+        }
+    }
+    return kanbanColumnLabel(key, normalized);
+}
+
+QString listGroupAlphaLabel(const TaskEntry &task, const QString &mode)
+{
+    const QString normalized = mode.trimmed();
+    if (normalized.isEmpty() || normalized == ListGroupSource::None) {
+        return {};
+    }
+    if (normalized == ListGroupSource::Project) {
+        const QString name = task.collectionName.trimmed();
+        if (task.collectionId < 0 || name.isEmpty()) {
+            return kanbanColumnLabel(QStringLiteral("inbox"), normalized);
+        }
+        return name;
+    }
+    QString key = task.bucket.trimmed();
+    if (key.isEmpty()) {
+        // Bucket is normally set by filterVisibleTasks; fall back for unit tests.
+        key = listGroupKey(task, normalized, FilterState{}, QDate::currentDate());
+    }
+    return listGroupLabel(key, normalized);
+}
+
+namespace
+{
+QStringList sidebarFixedListGroupKeys(const QString &mode)
+{
+    const QString normalized = mode.trimmed();
+    if (normalized == ListGroupSource::Priority) {
+        // Sidebar: High → Medium → Low → None
+        return {QStringLiteral("high"), QStringLiteral("medium"), QStringLiteral("low"),
+                QStringLiteral("none")};
+    }
+    if (normalized == ListGroupSource::Progress) {
+        return {QStringLiteral("0-25"), QStringLiteral("26-50"), QStringLiteral("51-75"),
+                QStringLiteral("76-100")};
+    }
+    if (normalized == ListGroupSource::Status) {
+        // Sidebar status rows (None/0 is not a sidebar row — ends up after these).
+        return {QStringLiteral("4"), QStringLiteral("6"), QStringLiteral("3"), QStringLiteral("5")};
+    }
+    if (normalized == ListGroupSource::Secrecy) {
+        return {QStringLiteral("public"), QStringLiteral("private"), QStringLiteral("confidential")};
+    }
+    return {};
+}
+
+QStringList listGroupSidebarOrderKeys(const QString &mode, const ListGroupOrderContext &ctx)
+{
+    const QString normalized = mode.trimmed();
+    if (normalized == ListGroupSource::Project) {
+        return ctx.projectKeys;
+    }
+    if (normalized == ListGroupSource::Label) {
+        return ctx.labelKeys;
+    }
+    if (normalized == ListGroupSource::Location) {
+        return ctx.locationKeys;
+    }
+    return sidebarFixedListGroupKeys(normalized);
+}
+} // namespace
+
+int compareListGroupKeys(const QString &leftKey,
+                         const QString &rightKey,
+                         const QString &mode,
+                         const ListGroupOrderContext &ctx)
+{
+    const QStringList ordered = listGroupSidebarOrderKeys(mode, ctx);
+    const int leftRank = ordered.indexOf(leftKey);
+    const int rightRank = ordered.indexOf(rightKey);
+    const bool leftKnown = leftRank >= 0;
+    const bool rightKnown = rightRank >= 0;
+    if (leftKnown && rightKnown) {
+        if (leftRank == rightRank) {
+            return 0;
+        }
+        return leftRank < rightRank ? -1 : 1;
+    }
+    if (leftKnown != rightKnown) {
+        return leftKnown ? -1 : 1;
+    }
+    const int labelCmp = QString::localeAwareCompare(listGroupLabel(leftKey, mode),
+                                                     listGroupLabel(rightKey, mode));
+    if (labelCmp != 0) {
+        return labelCmp < 0 ? -1 : 1;
+    }
+    return leftKey < rightKey ? -1 : (leftKey > rightKey ? 1 : 0);
+}
+
+void applyListGroupTreeBuckets(QList<TaskEntry> &tasks,
+                               const QString &groupMode,
+                               const FilterState &filters,
+                               const QDate &today)
+{
+    const QString normalized = groupMode.trimmed();
+    if (normalized.isEmpty() || normalized == ListGroupSource::None || tasks.isEmpty()) {
+        return;
+    }
+
+    int i = 0;
+    while (i < tasks.size()) {
+        const int start = i;
+        const QString key = listGroupKey(tasks.at(i), normalized, filters, today);
+        ++i;
+        while (i < tasks.size() && tasks.at(i).indentLevel > 0) {
+            ++i;
+        }
+        for (int k = start; k < i; ++k) {
+            tasks[k].bucket = key;
+        }
+    }
+}
+
+QList<TaskEntry> sortFlatForListGroup(const QList<TaskEntry> &tasks,
+                                      const QString &groupMode,
+                                      const QString &sortMode,
+                                      const ListGroupOrderContext &ctx)
+{
+    const QString normalized = groupMode.trimmed();
+    if (normalized.isEmpty() || normalized == ListGroupSource::None || tasks.size() < 2) {
+        return tasks;
+    }
+
+    QString mode = sortMode;
+    if (mode.isEmpty() || mode == QLatin1String("default")) {
+        mode = QStringLiteral("priority,due,title");
+    }
+
+    QList<QList<TaskEntry>> segments;
+    segments.reserve(tasks.size());
+    int i = 0;
+    while (i < tasks.size()) {
+        QList<TaskEntry> segment;
+        do {
+            segment.append(tasks.at(i++));
+        } while (i < tasks.size() && tasks.at(i).indentLevel > 0);
+        segments.append(segment);
+    }
+
+    const QDate today = QDate::currentDate();
+    std::stable_sort(segments.begin(), segments.end(), [&](const QList<TaskEntry> &left, const QList<TaskEntry> &right) {
+        const TaskEntry &leftRoot = left.first();
+        const TaskEntry &rightRoot = right.first();
+        const QString leftKey = leftRoot.bucket.isEmpty()
+                ? listGroupKey(leftRoot, normalized, FilterState{}, today)
+                : leftRoot.bucket;
+        const QString rightKey = rightRoot.bucket.isEmpty()
+                ? listGroupKey(rightRoot, normalized, FilterState{}, today)
+                : rightRoot.bucket;
+        if (leftKey != rightKey) {
+            const int groupCmp = compareListGroupKeys(leftKey, rightKey, normalized, ctx);
+            if (groupCmp != 0) {
+                return groupCmp < 0;
+            }
+        }
+        const int cmp = compareTasks(leftRoot, rightRoot, mode);
+        if (cmp != 0) {
+            return cmp < 0;
+        }
+        return leftRoot.itemId < rightRoot.itemId;
+    });
+
+    QList<TaskEntry> out;
+    out.reserve(tasks.size());
+    for (const QList<TaskEntry> &segment : segments) {
+        out.append(segment);
+    }
+    return out;
+}
+
+TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate &today)
+{
+    TaskRebuildOutput out;
+    out.allTasks = input.allTasks;
+    out.filtered = filterVisibleTasks(input.allTasks, input.filters, today);
+    const QSet<QString> collapseForList = input.hierarchyAware ? QSet<QString>() : input.collapsedUids;
+    out.tasks = flattenTree(out.filtered.tasks, input.sortMode, collapseForList);
+    if (!input.listGroupMode.isEmpty()) {
+        applyListGroupTreeBuckets(out.tasks, input.listGroupMode, input.filters, today);
+        out.tasks = sortFlatForListGroup(out.tasks, input.listGroupMode, input.sortMode, input.listGroupOrder);
+    }
+    if (!input.planPreviewWeek.isEmpty()) {
+        QList<TaskEntry> preview;
+        preview.reserve(out.tasks.size());
+        for (const TaskEntry &task : out.tasks) {
+            const QString week = planWeekKey(task, today);
+            const QString project = task.collectionId >= 0 ? QString::number(task.collectionId)
+                                                           : QStringLiteral("inbox");
+            if (week == input.planPreviewWeek && project == input.planPreviewProject) {
+                preview.append(task);
+            }
+        }
+        out.tasks = preview;
+    }
+    out.flatForCounts = flattenTree(input.allTasks, input.sortMode, input.collapsedUids);
+    return out;
 }
 
 QDateTime rescheduleDue(const QDateTime &currentDue, DaySpan daySpan, const QDateTime &now, const QString &preset)
@@ -171,6 +450,12 @@ QDateTime rescheduleDue(const QDateTime &currentDue, DaySpan daySpan, const QDat
         const QDate origin = seed.isValid() ? seed.date() : base.date();
         return QDateTime(origin.addDays(7), seed.isValid() ? seed.time() : base.time());
     }
+    if (preset == ReschedulePreset::Plus1Day) {
+        if (allDay || !seed.time().isValid()) {
+            return QDateTime(seed.date().addDays(1), QTime(0, 0));
+        }
+        return seed.addDays(1);
+    }
     return seed;
 }
 
@@ -194,18 +479,68 @@ QString joinUrl(const QString &description, const QString &location)
     return parsed.toString();
 }
 
-bool matchesFilters(const TaskEntry &task, qint64 selectedCollectionId, const QString &selectedLabel, int selectedPriority)
+bool matchesFilters(const TaskEntry &task, const FilterState &filters)
 {
-    if (selectedCollectionId >= 0 && task.collectionId != selectedCollectionId) {
+    if (filters.selectedCollectionId >= 0 && task.collectionId != filters.selectedCollectionId) {
         return false;
     }
-    if (!selectedLabel.isEmpty() && !task.categories.contains(selectedLabel)) {
+    if (!filters.selectedLabel.isEmpty() && !task.categories.contains(filters.selectedLabel)) {
         return false;
     }
-    if (selectedPriority >= 0 && priorityBand(task.priority) != selectedPriority) {
+    if (filters.selectedPriority >= 0 && priorityBand(task.priority) != filters.selectedPriority) {
+        return false;
+    }
+    if (!filters.selectedProgressBand.isEmpty()
+        && progressBandKey(task.percentComplete) != filters.selectedProgressBand) {
+        return false;
+    }
+    if (filters.selectedStatus >= 0 && normalizeStatus(task.status) != filters.selectedStatus) {
+        return false;
+    }
+    if (filters.selectedSecrecy >= 0 && task.secrecy != filters.selectedSecrecy) {
+        return false;
+    }
+    if (!filters.selectedLocation.isEmpty()
+        && task.location.trimmed() != filters.selectedLocation) {
         return false;
     }
     return true;
+}
+
+bool hasSidebarFilters(const FilterState &filters)
+{
+    return filters.selectedCollectionId >= 0
+            || !filters.selectedLabel.isEmpty()
+            || filters.selectedPriority >= 0
+            || !filters.selectedProgressBand.isEmpty()
+            || filters.selectedStatus >= 0
+            || filters.selectedSecrecy >= 0
+            || !filters.selectedLocation.isEmpty();
+}
+
+QStringList progressBandKeys()
+{
+    return {
+        QStringLiteral("0-25"),
+        QStringLiteral("26-50"),
+        QStringLiteral("51-75"),
+        QStringLiteral("76-100"),
+    };
+}
+
+QString progressBandKey(int percentComplete)
+{
+    const int percent = qBound(0, percentComplete, 100);
+    if (percent <= 25) {
+        return QStringLiteral("0-25");
+    }
+    if (percent <= 50) {
+        return QStringLiteral("26-50");
+    }
+    if (percent <= 75) {
+        return QStringLiteral("51-75");
+    }
+    return QStringLiteral("76-100");
 }
 
 int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &sortMode)
@@ -294,6 +629,77 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
             } else if (left.percentComplete > right.percentComplete) {
                 cmp = 1;
             }
+        } else if (field == QLatin1String("project")) {
+            const QString leftName = left.collectionName.trimmed();
+            const QString rightName = right.collectionName.trimmed();
+            if (leftName.isEmpty() != rightName.isEmpty()) {
+                cmp = leftName.isEmpty() ? 1 : -1;
+                flipHasEmpty = false;
+            } else {
+                cmp = QString::compare(leftName, rightName, Qt::CaseInsensitive);
+                if (cmp > 0) {
+                    cmp = 1;
+                } else if (cmp < 0) {
+                    cmp = -1;
+                }
+            }
+        } else if (field == QLatin1String("label")) {
+            const QString leftLabel = left.categories.isEmpty() ? QString() : left.categories.first().trimmed();
+            const QString rightLabel = right.categories.isEmpty() ? QString() : right.categories.first().trimmed();
+            if (leftLabel.isEmpty() != rightLabel.isEmpty()) {
+                cmp = leftLabel.isEmpty() ? 1 : -1;
+                flipHasEmpty = false;
+            } else {
+                cmp = QString::compare(leftLabel, rightLabel, Qt::CaseInsensitive);
+                if (cmp > 0) {
+                    cmp = 1;
+                } else if (cmp < 0) {
+                    cmp = -1;
+                }
+            }
+        } else if (field == QLatin1String("status")) {
+            const auto statusRank = [](int status, bool completed) -> int {
+                if (completed || status == 3) {
+                    return 3;
+                }
+                if (status == 5) {
+                    return 4;
+                }
+                if (status == 6) {
+                    return 2;
+                }
+                if (status == 4) {
+                    return 1;
+                }
+                return 5;
+            };
+            const int leftRank = statusRank(left.status, left.completed);
+            const int rightRank = statusRank(right.status, right.completed);
+            if (leftRank < rightRank) {
+                cmp = -1;
+            } else if (leftRank > rightRank) {
+                cmp = 1;
+            }
+        } else if (field == QLatin1String("secrecy")) {
+            if (left.secrecy < right.secrecy) {
+                cmp = -1;
+            } else if (left.secrecy > right.secrecy) {
+                cmp = 1;
+            }
+        } else if (field == QLatin1String("location")) {
+            const QString leftLoc = left.location.trimmed();
+            const QString rightLoc = right.location.trimmed();
+            if (leftLoc.isEmpty() != rightLoc.isEmpty()) {
+                cmp = leftLoc.isEmpty() ? 1 : -1;
+                flipHasEmpty = false;
+            } else {
+                cmp = QString::compare(leftLoc, rightLoc, Qt::CaseInsensitive);
+                if (cmp > 0) {
+                    cmp = 1;
+                } else if (cmp < 0) {
+                    cmp = -1;
+                }
+            }
         }
 
         if (cmp != 0) {
@@ -346,6 +752,10 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
         QStringLiteral("recurring"),
         QStringLiteral("unlabeled"),
         QStringLiteral("completed"),
+        QStringLiteral("reminder"),
+        QStringLiteral("nolocation"),
+        QStringLiteral("nopriority"),
+        QStringLiteral("nostatus"),
     };
 
     SidebarCounts out;
@@ -357,6 +767,43 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
     out.sidebarPriorities.insert(QStringLiteral("1"), 0);
     out.sidebarPriorities.insert(QStringLiteral("5"), 0);
     out.sidebarPriorities.insert(QStringLiteral("9"), 0);
+    for (const QString &band : progressBandKeys()) {
+        out.sidebarProgress.insert(band, 0);
+    }
+    for (const int status : {0, 4, 6, 3, 5}) {
+        out.sidebarStatus.insert(QString::number(status), 0);
+    }
+    for (const int secrecy : {0, 1, 2}) {
+        out.sidebarSecrecy.insert(QString::number(secrecy), 0);
+    }
+
+    const auto passExcept = [&](const TaskEntry &task, bool skipCollection, bool skipLabel, bool skipPriority,
+                                bool skipProgress, bool skipStatus, bool skipSecrecy, bool skipLocation) -> bool {
+        if (!skipCollection && filters.selectedCollectionId >= 0 && task.collectionId != filters.selectedCollectionId) {
+            return false;
+        }
+        if (!skipLabel && !filters.selectedLabel.isEmpty() && !task.categories.contains(filters.selectedLabel)) {
+            return false;
+        }
+        if (!skipPriority && filters.selectedPriority >= 0 && priorityBand(task.priority) != filters.selectedPriority) {
+            return false;
+        }
+        if (!skipProgress && !filters.selectedProgressBand.isEmpty()
+            && progressBandKey(task.percentComplete) != filters.selectedProgressBand) {
+            return false;
+        }
+        if (!skipStatus && filters.selectedStatus >= 0 && normalizeStatus(task.status) != filters.selectedStatus) {
+            return false;
+        }
+        if (!skipSecrecy && filters.selectedSecrecy >= 0 && task.secrecy != filters.selectedSecrecy) {
+            return false;
+        }
+        if (!skipLocation && !filters.selectedLocation.isEmpty()
+            && task.location.trimmed() != filters.selectedLocation) {
+            return false;
+        }
+        return true;
+    };
 
     for (const TaskEntry &task : tasks) {
         if (task.treeHidden) {
@@ -368,14 +815,16 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
             }
             out.totalLabels.insert(category, out.totalLabels.value(category).toInt() + 1);
         }
+        const QString location = task.location.trimmed();
+        if (!location.isEmpty()) {
+            out.totalLocations.insert(location, out.totalLocations.value(location).toInt() + 1);
+        }
 
-        const bool passCollection = filters.selectedCollectionId < 0 || task.collectionId == filters.selectedCollectionId;
-        const bool passLabel = filters.selectedLabel.isEmpty() || task.categories.contains(filters.selectedLabel);
-        const bool passPriority = filters.selectedPriority < 0 || priorityBand(task.priority) == filters.selectedPriority;
         const bool passSearch = matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase);
         const bool passCompleted = filters.showCompleted || !task.completed;
+        const bool passSidebarForViews = passExcept(task, false, false, false, false, false, false, false);
 
-        if (passCollection && passLabel && passPriority && passSearch) {
+        if (passSidebarForViews && passSearch) {
             for (const QString &viewId : viewIds) {
                 if (viewId == ViewId::Completed) {
                     if (task.completed && matchesView(task, viewId, today)) {
@@ -395,11 +844,13 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
             ? task.completed && matchesView(task, filters.currentView, today)
             : passCompleted && matchesView(task, filters.currentView, today);
 
-        if (inCurrentView && passLabel && passPriority && passSearch) {
+        if (inCurrentView && passSearch
+            && passExcept(task, true, false, false, false, false, false, false)) {
             const QString projectKey = QString::number(task.collectionId);
             out.sidebarProjects.insert(projectKey, out.sidebarProjects.value(projectKey).toInt() + 1);
         }
-        if (inCurrentView && passCollection && passPriority && passSearch) {
+        if (inCurrentView && passSearch
+            && passExcept(task, false, true, false, false, false, false, false)) {
             for (const QString &category : task.categories) {
                 if (category.isEmpty()) {
                     continue;
@@ -407,9 +858,30 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
                 out.sidebarLabels.insert(category, out.sidebarLabels.value(category).toInt() + 1);
             }
         }
-        if (inCurrentView && passCollection && passLabel && passSearch) {
+        if (inCurrentView && passSearch
+            && passExcept(task, false, false, true, false, false, false, false)) {
             const QString priorityKey = QString::number(priorityBand(task.priority));
             out.sidebarPriorities.insert(priorityKey, out.sidebarPriorities.value(priorityKey).toInt() + 1);
+        }
+        if (inCurrentView && passSearch
+            && passExcept(task, false, false, false, true, false, false, false)) {
+            const QString band = progressBandKey(task.percentComplete);
+            out.sidebarProgress.insert(band, out.sidebarProgress.value(band).toInt() + 1);
+        }
+        if (inCurrentView && passSearch
+            && passExcept(task, false, false, false, false, true, false, false)) {
+            const QString statusKey = QString::number(normalizeStatus(task.status));
+            out.sidebarStatus.insert(statusKey, out.sidebarStatus.value(statusKey).toInt() + 1);
+        }
+        if (inCurrentView && passSearch
+            && passExcept(task, false, false, false, false, false, true, false)) {
+            const QString secrecyKey = QString::number(qBound(0, task.secrecy, 2));
+            out.sidebarSecrecy.insert(secrecyKey, out.sidebarSecrecy.value(secrecyKey).toInt() + 1);
+        }
+        if (inCurrentView && passSearch
+            && passExcept(task, false, false, false, false, false, false, true)
+            && !location.isEmpty()) {
+            out.sidebarLocations.insert(location, out.sidebarLocations.value(location).toInt() + 1);
         }
     }
 
@@ -652,6 +1124,10 @@ QString undoKindName(UndoRecord::Kind kind)
         return QStringLiteral("move");
     case UndoRecord::Kind::Delete:
         return QStringLiteral("delete");
+    case UndoRecord::Kind::Edit:
+        return QStringLiteral("edit");
+    case UndoRecord::Kind::KanbanLayout:
+        return QStringLiteral("kanban");
     case UndoRecord::Kind::None:
         break;
     }
@@ -694,9 +1170,7 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
     // open tree around search/sidebar hits (completed descendants stay hidden).
     const bool hierarchyAware = completedView
             || !filters.searchQuery.trimmed().isEmpty()
-            || filters.selectedCollectionId >= 0
-            || !filters.selectedLabel.isEmpty()
-            || filters.selectedPriority >= 0;
+            || hasSidebarFilters(filters);
 
     QHash<QString, QString> parentByUid;
     QHash<QString, int> indexByUid;
@@ -717,10 +1191,10 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
     const auto passesViewAndSidebar = [&](const TaskEntry &task) -> bool {
         if (filters.currentView == QLatin1String("today")) {
             return matchesTodayList(task, filters, today)
-                    && matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority);
+                    && matchesFilters(task, filters);
         }
-        return matchesView(task, filters.currentView, today)
-                && matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority);
+        return matchesViewFilter(task, filters, today)
+                && matchesFilters(task, filters);
     };
 
     const auto isDirectMatch = [&](const TaskEntry &task) -> bool {
@@ -777,14 +1251,14 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
     if (hierarchyAware) {
         for (const TaskEntry &task : tasks) {
             if (isDirectMatch(task)) {
-                matchBucket.insert(task.uid, listBucket(task, filters, today));
+                matchBucket.insert(task.uid, listViewSectionKey(task, filters, today));
             }
         }
     }
 
     const auto bucketForKept = [&](const TaskEntry &task) -> QString {
         if (!hierarchyAware) {
-            return listBucket(task, filters, today);
+            return listViewSectionKey(task, filters, today);
         }
         // Prefer a direct match's bucket so rescued parents/children stay in the
         // same Today section as the hit that pulled the tree in.
@@ -804,7 +1278,7 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
                 return matchBucket.value(uid);
             }
         }
-        return listBucket(task, filters, today);
+        return listViewSectionKey(task, filters, today);
     };
 
     for (const TaskEntry &task : tasks) {
@@ -822,13 +1296,13 @@ VisibleFilterResult filterVisibleTasks(const QList<TaskEntry> &tasks, const Filt
                 ++out.filteredOutCompleted;
             } else if (filters.currentView == QLatin1String("today")) {
                 if (!matchesTodayList(task, filters, today)
-                        || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
+                        || !matchesFilters(task, filters)) {
                     ++out.filteredOutView;
                 } else if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
                     ++out.filteredOutSearch;
                 }
-            } else if (!matchesView(task, filters.currentView, today)
-                       || !matchesFilters(task, filters.selectedCollectionId, filters.selectedLabel, filters.selectedPriority)) {
+            } else if (!matchesViewFilter(task, filters, today)
+                       || !matchesFilters(task, filters)) {
                 ++out.filteredOutView;
             } else if (!matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase)) {
                 ++out.filteredOutSearch;
@@ -917,6 +1391,25 @@ QStringList collectAvailableLabels(const QList<TaskEntry> &tasks, const QStringL
     return sorted;
 }
 
+QStringList collectAvailableLocations(const QList<TaskEntry> &tasks, const QStringList &extraLocations)
+{
+    QSet<QString> locations;
+    for (const TaskEntry &task : tasks) {
+        const QString location = task.location.trimmed();
+        if (!location.isEmpty()) {
+            locations.insert(location);
+        }
+    }
+    for (const QString &extra : extraLocations) {
+        if (!extra.trimmed().isEmpty()) {
+            locations.insert(extra.trimmed());
+        }
+    }
+    QStringList sorted = locations.values();
+    sorted.sort(Qt::CaseInsensitive);
+    return sorted;
+}
+
 bool canCreateLabel(const QString &name, const QStringList &available, const QStringList &extraLabels)
 {
     const QString trimmed = name.trimmed();
@@ -928,13 +1421,22 @@ bool canCreateLabel(const QString &name, const QStringList &available, const QSt
 
 bool containsLabel(const QStringList &selected, const QString &name)
 {
-    return selected.contains(name);
+    const QString trimmed = name.trimmed();
+    if (trimmed.isEmpty()) {
+        return false;
+    }
+    for (const QString &label : selected) {
+        if (label.trimmed() == trimmed) {
+            return true;
+        }
+    }
+    return false;
 }
 
 QStringList addLabel(QStringList selected, const QString &name)
 {
     const QString trimmed = name.trimmed();
-    if (trimmed.isEmpty() || selected.contains(trimmed)) {
+    if (trimmed.isEmpty() || containsLabel(selected, trimmed)) {
         return selected;
     }
     selected.append(trimmed);
@@ -943,10 +1445,11 @@ QStringList addLabel(QStringList selected, const QString &name)
 
 QStringList removeLabel(const QStringList &selected, const QString &name)
 {
+    const QString trimmed = name.trimmed();
     QStringList out;
     out.reserve(selected.size());
     for (const QString &label : selected) {
-        if (label != name) {
+        if (label.trimmed() != trimmed) {
             out.append(label);
         }
     }
@@ -1108,7 +1611,16 @@ QString joinTokens(const QStringList &tokens, const QString &separator)
 
 QStringList defaultSidebarSections()
 {
-    return {QStringLiteral("views"), QStringLiteral("projects"), QStringLiteral("labels"), QStringLiteral("priorities")};
+    return {
+        QStringLiteral("views"),
+        QStringLiteral("projects"),
+        QStringLiteral("labels"),
+        QStringLiteral("priorities"),
+        QStringLiteral("progress"),
+        QStringLiteral("status"),
+        QStringLiteral("secrecy"),
+        QStringLiteral("location"),
+    };
 }
 
 QStringList defaultViewIds()
@@ -1123,6 +1635,10 @@ QStringList defaultViewIds()
         QStringLiteral("recurring"),
         QStringLiteral("unlabeled"),
         QStringLiteral("completed"),
+        QStringLiteral("reminder"),
+        QStringLiteral("nolocation"),
+        QStringLiteral("nopriority"),
+        QStringLiteral("nostatus"),
     };
 }
 
@@ -1363,6 +1879,18 @@ QString viewIconSource(const QString &viewId)
     if (viewId == ViewId::Completed) {
         return QStringLiteral("checkmark");
     }
+    if (viewId == ViewId::Reminder) {
+        return QStringLiteral("appointment-reminder");
+    }
+    if (viewId == ViewId::NoLocation) {
+        return QStringLiteral("location-disabled");
+    }
+    if (viewId == ViewId::NoPriority) {
+        return QStringLiteral("flag");
+    }
+    if (viewId == ViewId::NoStatus) {
+        return QStringLiteral("task-new");
+    }
     return QStringLiteral("mail-folder-inbox");
 }
 
@@ -1383,6 +1911,28 @@ int normalizeStatus(int status)
 {
     static const QList<int> values = {0, 4, 6, 3, 5};
     return values.contains(status) ? status : 0;
+}
+
+QString normalizeStatusColumnKey(const QString &key)
+{
+    bool ok = false;
+    const int n = key.toInt(&ok);
+    if (ok) {
+        return QString::number(normalizeStatus(n));
+    }
+    if (key == QLatin1String("needs-action")) {
+        return QStringLiteral("4");
+    }
+    if (key == QLatin1String("in-process")) {
+        return QStringLiteral("6");
+    }
+    if (key == QLatin1String("completed")) {
+        return QStringLiteral("3");
+    }
+    if (key == QLatin1String("cancelled")) {
+        return QStringLiteral("5");
+    }
+    return key;
 }
 
 int recurrenceIndexFor(const QString &preset)
@@ -1742,6 +2292,592 @@ bool parseHmsTime(const QString &str, int *hours, int *minutes)
         *minutes = m;
     }
     return true;
+}
+
+QList<SmartViewDef> parseSmartViews(const QString &json)
+{
+    QList<SmartViewDef> result;
+    if (json.trimmed().isEmpty()) {
+        return result;
+    }
+    const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+    if (!doc.isArray()) {
+        return result;
+    }
+    const QJsonArray arr = doc.array();
+    for (const QJsonValue &val : arr) {
+        if (!val.isObject()) {
+            continue;
+        }
+        result.append(parseSmartViewObject(val.toObject()));
+    }
+    return result;
+}
+
+SmartViewDef parseSmartViewObject(const QJsonObject &obj)
+{
+    SmartViewDef def;
+    def.id = obj.value(QStringLiteral("id")).toString().trimmed();
+    def.name = obj.value(QStringLiteral("name")).toString().trimmed();
+    def.icon = obj.value(QStringLiteral("icon")).toString().trimmed();
+    if (def.icon.isEmpty()) {
+        def.icon = QStringLiteral("view-filter");
+    }
+    def.defaultMode = obj.value(QStringLiteral("mode")).toString(MainPaneMode::List);
+    def.sortOverride = obj.value(QStringLiteral("sort")).toString();
+
+    const QJsonObject rules = obj.value(QStringLiteral("rules")).toObject();
+    def.rules.text = rules.value(QStringLiteral("text")).toString();
+    def.rules.projectId = rules.value(QStringLiteral("projectId")).toVariant().toLongLong();
+    def.rules.label = rules.value(QStringLiteral("label")).toString();
+    def.rules.priority = rules.value(QStringLiteral("priority")).toInt(-1);
+    def.rules.dueWindow = rules.value(QStringLiteral("dueWindow")).toString();
+    def.rules.statusFilter = rules.value(QStringLiteral("status")).toString();
+    def.rules.recurringOnly = rules.value(QStringLiteral("recurring")).toBool(false);
+    def.rules.kurrentList = rules.value(QStringLiteral("list")).toString();
+    def.rules.kurrentColumn = rules.value(QStringLiteral("column")).toString();
+    return def;
+}
+
+bool matchesSmartView(const TaskEntry &task, const SmartViewRules &rules, const QDate &today)
+{
+    if (!rules.text.trimmed().isEmpty()) {
+        if (!matchesSearch(task, rules.text, SearchScope::All, SearchCase::Insensitive)) {
+            return false;
+        }
+    }
+    if (rules.projectId >= 0 && task.collectionId != rules.projectId) {
+        return false;
+    }
+    if (!rules.label.isEmpty() && !containsLabel(task.categories, rules.label)) {
+        return false;
+    }
+    if (rules.priority >= 0 && priorityBand(task.priority) != rules.priority) {
+        return false;
+    }
+    if (rules.recurringOnly && !task.recurring) {
+        return false;
+    }
+    if (!rules.kurrentList.isEmpty() && task.section != rules.kurrentList) {
+        return false;
+    }
+    if (!rules.kurrentColumn.isEmpty() && task.column != rules.kurrentColumn) {
+        return false;
+    }
+    if (!rules.statusFilter.isEmpty()) {
+        if (rules.statusFilter == QLatin1String("completed") && !task.completed) {
+            return false;
+        }
+        if (rules.statusFilter == QLatin1String("open") && task.completed) {
+            return false;
+        }
+        if (rules.statusFilter == QLatin1String("in-process")
+            && (task.completed || (task.status != 2 && task.status != 4 && task.status != 6))) {
+            return false;
+        }
+        if (rules.statusFilter == QLatin1String("cancelled") && task.status != 3) {
+            return false;
+        }
+    }
+    if (!rules.dueWindow.isEmpty()) {
+        const bool hasDue = task.dueDate.isValid();
+        const QDate due = hasDue ? task.dueDate.date() : QDate();
+        if (rules.dueWindow == QLatin1String("overdue")) {
+            if (!hasDue || due >= today || task.completed) {
+                return false;
+            }
+        } else if (rules.dueWindow == QLatin1String("today")) {
+            if (!hasDue || due != today) {
+                return false;
+            }
+        } else if (rules.dueWindow == QLatin1String("tomorrow")) {
+            if (!hasDue || due != today.addDays(1)) {
+                return false;
+            }
+        } else if (rules.dueWindow == QLatin1String("week")) {
+            if (!hasDue || due < today || due > today.addDays(7)) {
+                return false;
+            }
+        } else if (rules.dueWindow == QLatin1String("none")) {
+            if (hasDue) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+QString kanbanColumnKey(const TaskEntry &task, const QString &source, const FilterState &filters, const QDate &today)
+{
+    const QString src = source.isEmpty() ? KanbanSource::Status : source;
+    if (src == KanbanSource::Completion) {
+        return task.completed ? QStringLiteral("done") : QStringLiteral("open");
+    }
+    if (src == KanbanSource::Status) {
+        // Same VTODO STATUS enum as Sidebar counts and list grouping (0/4/6/3/5).
+        return QString::number(normalizeStatus(task.status));
+    }
+    if (src == KanbanSource::Secrecy) {
+        // KCalendarCore::Incidence::Secrecy: Public=0, Private=1, Confidential=2
+        if (task.secrecy == 1) {
+            return QStringLiteral("private");
+        }
+        if (task.secrecy == 2) {
+            return QStringLiteral("confidential");
+        }
+        return QStringLiteral("public");
+    }
+    if (src == KanbanSource::Project) {
+        return task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
+    }
+    if (src == KanbanSource::Due) {
+        if (!task.dueDate.isValid()) {
+            return QStringLiteral("no-date");
+        }
+        const QDate due = task.dueDate.date();
+        if (due < today) {
+            return QStringLiteral("overdue");
+        }
+        if (due == today) {
+            return QStringLiteral("today");
+        }
+        if (due == today.addDays(1)) {
+            return QStringLiteral("tomorrow");
+        }
+        if (due <= today.addDays(7)) {
+            return QStringLiteral("this-week");
+        }
+        return QStringLiteral("later");
+    }
+    if (src == KanbanSource::Priority) {
+        const int band = priorityBand(task.priority);
+        if (band == PriorityBand::High) {
+            return QStringLiteral("high");
+        }
+        if (band == PriorityBand::Medium) {
+            return QStringLiteral("medium");
+        }
+        if (band == PriorityBand::Low) {
+            return QStringLiteral("low");
+        }
+        return QStringLiteral("none");
+    }
+    if (src == KanbanSource::Label) {
+        return task.categories.isEmpty() ? QStringLiteral("none") : task.categories.first();
+    }
+    if (src == KanbanSource::DaySection) {
+        const QString bucket = listBucket(task, filters, today);
+        return bucket.isEmpty() ? QStringLiteral("unscheduled") : bucket;
+    }
+    if (src == KanbanSource::Column) {
+        if (!task.column.isEmpty()) {
+            return task.column;
+        }
+        return kanbanColumnKey(task, KanbanSource::Status, filters, today);
+    }
+    return QStringLiteral("default");
+}
+
+QStringList fixedKanbanColumnKeys(const QString &source)
+{
+    const QString src = source.isEmpty() ? KanbanSource::Status : source;
+    if (src == KanbanSource::Status) {
+        return {QStringLiteral("4"), QStringLiteral("6"), QStringLiteral("3"), QStringLiteral("5"),
+                QStringLiteral("0")};
+    }
+    if (src == KanbanSource::Completion) {
+        return {QStringLiteral("open"), QStringLiteral("done")};
+    }
+    if (src == KanbanSource::Priority) {
+        return {QStringLiteral("none"), QStringLiteral("low"), QStringLiteral("medium"),
+                QStringLiteral("high")};
+    }
+    if (src == KanbanSource::Due) {
+        return {QStringLiteral("overdue"), QStringLiteral("today"), QStringLiteral("tomorrow"),
+                QStringLiteral("this-week"), QStringLiteral("later"), QStringLiteral("no-date")};
+    }
+    if (src == KanbanSource::DaySection) {
+        return {QStringLiteral("morning"), QStringLiteral("afternoon"), QStringLiteral("evening"),
+                QStringLiteral("unspecified"), QStringLiteral("unscheduled")};
+    }
+    if (src == KanbanSource::Secrecy) {
+        return {QStringLiteral("public"), QStringLiteral("private"), QStringLiteral("confidential")};
+    }
+    return {};
+}
+
+QStringList orderKanbanColumnKeys(const QStringList &keys, const QString &source,
+                                   const QHash<QString, QString> &displayNames)
+{
+    const QString src = source.isEmpty() ? KanbanSource::Status : source;
+    const QStringList ranked = fixedKanbanColumnKeys(src);
+
+    QSet<QString> seen;
+    QStringList out;
+    if (src == KanbanSource::Label || src == KanbanSource::Project) {
+        QStringList named;
+        bool hasInbox = false;
+        bool hasNone = false;
+        for (const QString &key : keys) {
+            if (key == QLatin1String("inbox")) {
+                hasInbox = true;
+            } else if (key == QLatin1String("none")) {
+                hasNone = true;
+            } else {
+                named.append(key);
+            }
+        }
+        std::sort(named.begin(), named.end(), [&](const QString &a, const QString &b) {
+            const QString la = displayNames.value(a, a);
+            const QString lb = displayNames.value(b, b);
+            const int cmp = la.localeAwareCompare(lb);
+            return cmp != 0 ? cmp < 0 : a < b;
+        });
+        if (hasInbox) {
+            out.append(QStringLiteral("inbox"));
+        }
+        out += named;
+        if (hasNone) {
+            out.append(QStringLiteral("none"));
+        }
+        return out;
+    }
+
+    // Fixed vocabularies: always show every column so empty targets stay droppable.
+    for (const QString &key : ranked) {
+        if (!seen.contains(key)) {
+            out.append(key);
+            seen.insert(key);
+        }
+    }
+    QStringList rest;
+    for (const QString &key : keys) {
+        if (!seen.contains(key)) {
+            rest.append(key);
+        }
+    }
+    std::sort(rest.begin(), rest.end(), [&](const QString &a, const QString &b) {
+        const QString la = displayNames.value(a, a);
+        const QString lb = displayNames.value(b, b);
+        return la.localeAwareCompare(lb) < 0;
+    });
+    return out + rest;
+}
+
+QList<qint64> applyManualKanbanOrder(const QList<qint64> &ids, const QList<qint64> &manualOrder)
+{
+    QList<qint64> out;
+    QSet<qint64> remaining = QSet<qint64>(ids.begin(), ids.end());
+    for (qint64 id : manualOrder) {
+        if (remaining.contains(id)) {
+            out.append(id);
+            remaining.remove(id);
+        }
+    }
+    for (qint64 id : ids) {
+        if (remaining.contains(id)) {
+            out.append(id);
+        }
+    }
+    return out;
+}
+
+QString kanbanColumnLabel(const QString &key, const QString &source)
+{
+    Q_UNUSED(source)
+    static const QHash<QString, QString> labels = {
+        {QStringLiteral("0"), QStringLiteral("None")},
+        {QStringLiteral("4"), QStringLiteral("Needs action")},
+        {QStringLiteral("6"), QStringLiteral("In process")},
+        {QStringLiteral("3"), QStringLiteral("Completed")},
+        {QStringLiteral("5"), QStringLiteral("Canceled")},
+        {QStringLiteral("needs-action"), QStringLiteral("Needs action")},
+        {QStringLiteral("in-process"), QStringLiteral("In process")},
+        {QStringLiteral("completed"), QStringLiteral("Completed")},
+        {QStringLiteral("cancelled"), QStringLiteral("Cancelled")},
+        {QStringLiteral("open"), QStringLiteral("Open")},
+        {QStringLiteral("done"), QStringLiteral("Done")},
+        {QStringLiteral("inbox"), QStringLiteral("Inbox")},
+        {QStringLiteral("overdue"), QStringLiteral("Overdue")},
+        {QStringLiteral("today"), QStringLiteral("Today")},
+        {QStringLiteral("tomorrow"), QStringLiteral("Tomorrow")},
+        {QStringLiteral("this-week"), QStringLiteral("This week")},
+        {QStringLiteral("later"), QStringLiteral("Later")},
+        {QStringLiteral("no-date"), QStringLiteral("No date")},
+        {QStringLiteral("high"), QStringLiteral("High")},
+        {QStringLiteral("medium"), QStringLiteral("Medium")},
+        {QStringLiteral("low"), QStringLiteral("Low")},
+        {QStringLiteral("none"), QStringLiteral("None")},
+        {QStringLiteral("unscheduled"), QStringLiteral("Unscheduled")},
+        {QStringLiteral("morning"), QStringLiteral("Morning")},
+        {QStringLiteral("afternoon"), QStringLiteral("Afternoon")},
+        {QStringLiteral("evening"), QStringLiteral("Evening")},
+        {QStringLiteral("public"), QStringLiteral("Public")},
+        {QStringLiteral("private"), QStringLiteral("Private")},
+        {QStringLiteral("confidential"), QStringLiteral("Confidential")},
+    };
+    return labels.value(key, key);
+}
+
+QString swimlaneTimeBucket(const TaskEntry &task, const QString &bucketMode, const QDate &today)
+{
+    QDate anchor;
+    if (task.dueDate.isValid()) {
+        anchor = task.dueDate.date();
+    } else if (task.startDate.isValid()) {
+        anchor = task.startDate.date();
+    } else {
+        return QStringLiteral("unscheduled");
+    }
+    if (bucketMode == QLatin1String("week")) {
+        return QStringLiteral("%1-W%2").arg(anchor.year()).arg(anchor.weekNumber(), 2, 10, QChar('0'));
+    }
+    if (bucketMode == QLatin1String("month")) {
+        return QStringLiteral("%1-%2").arg(anchor.year()).arg(anchor.month(), 2, 10, QChar('0'));
+    }
+    return anchor.toString(Qt::ISODate);
+}
+
+QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis)
+{
+    if (laneAxis == QLatin1String("label")) {
+        return task.categories.isEmpty() ? QStringLiteral("none") : task.categories.first();
+    }
+    if (laneAxis == QLatin1String("priority")) {
+        return QString::number(priorityBand(task.priority));
+    }
+    if (laneAxis == QLatin1String("parent")) {
+        return task.parentUid.isEmpty() ? task.uid : task.parentUid;
+    }
+    return task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
+}
+
+QString planWeekKey(const TaskEntry &task, const QDate &today)
+{
+    Q_UNUSED(today)
+    QDate anchor;
+    if (task.dueDate.isValid()) {
+        anchor = task.dueDate.date();
+    } else if (task.startDate.isValid()) {
+        anchor = task.startDate.date();
+    } else {
+        return {};
+    }
+    return QStringLiteral("%1-W%2").arg(anchor.year()).arg(anchor.weekNumber(), 2, 10, QChar('0'));
+}
+
+QString heatmapDayKey(const TaskEntry &task, const QString &mode, const QDate &today)
+{
+    Q_UNUSED(today)
+    if (mode == QLatin1String("completed")) {
+        if (!task.completed) {
+            return {};
+        }
+        QDate anchor = task.dueDate.isValid() ? task.dueDate.date() : QDate();
+        if (!anchor.isValid() && task.startDate.isValid()) {
+            anchor = task.startDate.date();
+        }
+        return anchor.isValid() ? anchor.toString(Qt::ISODate) : QString();
+    }
+    if (task.completed || !task.dueDate.isValid()) {
+        return QString();
+    }
+    return task.dueDate.date().toString(Qt::ISODate);
+}
+
+QVariantMap heatmapCounts(const QList<TaskEntry> &tasks, const QString &mode, const QDate &monthStart)
+{
+    const QDate monthEnd = monthStart.addMonths(1).addDays(-1);
+    QVariantMap counts;
+    for (const TaskEntry &task : tasks) {
+        const QString key = heatmapDayKey(task, mode, monthStart);
+        if (key.isEmpty()) {
+            continue;
+        }
+        const QDate day = QDate::fromString(key, Qt::ISODate);
+        if (!day.isValid() || day < monthStart || day > monthEnd) {
+            continue;
+        }
+        counts.insert(key, counts.value(key, 0).toInt() + 1);
+    }
+    return counts;
+}
+
+QVariantMap planMatrixCounts(const QList<TaskEntry> &tasks, const QDate &today)
+{
+    QVariantMap matrix;
+    for (const TaskEntry &task : tasks) {
+        if (task.completed) {
+            continue;
+        }
+        const QString week = planWeekKey(task, today);
+        if (week.isEmpty()) {
+            continue;
+        }
+        const QString row = task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
+        const QString cell = row + QLatin1Char('|') + week;
+        matrix.insert(cell, matrix.value(cell, 0).toInt() + 1);
+    }
+    return matrix;
+}
+
+QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,
+                                const QString &laneAxis,
+                                const QString &timeBucket,
+                                const QDate &today)
+{
+    QStringList lanes;
+    QStringList times;
+    QSet<QString> laneSeen;
+    QSet<QString> timeSeen;
+    QVariantMap cells;
+
+    for (const TaskEntry &task : tasks) {
+        const QString lane = swimlaneLaneKey(task, laneAxis);
+        const QString time = swimlaneTimeBucket(task, timeBucket, today);
+        if (!laneSeen.contains(lane)) {
+            laneSeen.insert(lane);
+            lanes.append(lane);
+        }
+        if (!timeSeen.contains(time)) {
+            timeSeen.insert(time);
+            times.append(time);
+        }
+        const QString key = lane + QLatin1Char('|') + time;
+        QVariantList ids = cells.value(key).toList();
+        ids.append(task.itemId);
+        cells.insert(key, ids);
+    }
+
+    std::sort(lanes.begin(), lanes.end());
+    std::sort(times.begin(), times.end(), [timeBucket](const QString &left, const QString &right) {
+        if (left == QLatin1String("unscheduled")) {
+            return false;
+        }
+        if (right == QLatin1String("unscheduled")) {
+            return true;
+        }
+        return left < right;
+    });
+
+    QVariantMap result;
+    result.insert(QStringLiteral("lanes"), lanes);
+    result.insert(QStringLiteral("times"), times);
+    result.insert(QStringLiteral("cells"), cells);
+    return result;
+}
+
+QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks, const QDate &today)
+{
+    QStringList projects;
+    QStringList weeks;
+    QSet<QString> projectSeen;
+    QSet<QString> weekSeen;
+    QVariantMap counts;
+    QVariantMap taskIds;
+
+    for (const TaskEntry &task : tasks) {
+        if (task.completed) {
+            continue;
+        }
+        const QString week = planWeekKey(task, today);
+        if (week.isEmpty()) {
+            continue;
+        }
+        const QString project = task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
+        if (!projectSeen.contains(project)) {
+            projectSeen.insert(project);
+            projects.append(project);
+        }
+        if (!weekSeen.contains(week)) {
+            weekSeen.insert(week);
+            weeks.append(week);
+        }
+        const QString key = project + QLatin1Char('|') + week;
+        counts.insert(key, counts.value(key, 0).toInt() + 1);
+        QVariantList ids = taskIds.value(key).toList();
+        ids.append(task.itemId);
+        taskIds.insert(key, ids);
+    }
+
+    std::sort(projects.begin(), projects.end(), [](const QString &left, const QString &right) {
+        if (left == QLatin1String("inbox")) {
+            return true;
+        }
+        if (right == QLatin1String("inbox")) {
+            return false;
+        }
+        return left.toLongLong() < right.toLongLong();
+    });
+    std::sort(weeks.begin(), weeks.end());
+
+    QVariantMap result;
+    result.insert(QStringLiteral("projects"), projects);
+    result.insert(QStringLiteral("weeks"), weeks);
+    result.insert(QStringLiteral("counts"), counts);
+    result.insert(QStringLiteral("taskIds"), taskIds);
+    return result;
+}
+
+QString swimlaneLaneLabel(const QString &key, const QString &laneAxis)
+{
+    if (laneAxis == QLatin1String("label")) {
+        return key == QLatin1String("none") ? QStringLiteral("No label") : key;
+    }
+    if (laneAxis == QLatin1String("priority")) {
+        if (key == QString::number(PriorityBand::High)) {
+            return QStringLiteral("High");
+        }
+        if (key == QString::number(PriorityBand::Medium)) {
+            return QStringLiteral("Medium");
+        }
+        if (key == QString::number(PriorityBand::Low)) {
+            return QStringLiteral("Low");
+        }
+        return QStringLiteral("None");
+    }
+    if (laneAxis == QLatin1String("parent")) {
+        return key;
+    }
+    if (key == QLatin1String("inbox")) {
+        return QStringLiteral("Inbox");
+    }
+    return key;
+}
+
+QString swimlaneTimeLabel(const QString &key, const QString &timeBucket)
+{
+    if (key == QLatin1String("unscheduled")) {
+        return QStringLiteral("Unscheduled");
+    }
+    if (timeBucket == QLatin1String("day")) {
+        return key;
+    }
+    return key;
+}
+
+QStringList busyDayKeys(const QList<TaskEntry> &tasks, const QDate &today)
+{
+    QSet<QString> days;
+    for (const TaskEntry &task : tasks) {
+        if (task.completed) {
+            continue;
+        }
+        QDate anchor;
+        if (task.dueDate.isValid()) {
+            anchor = task.dueDate.date();
+        } else if (task.startDate.isValid()) {
+            anchor = task.startDate.date();
+        } else {
+            continue;
+        }
+        if (anchor >= today.addDays(-7) && anchor <= today.addDays(14)) {
+            days.insert(anchor.toString(Qt::ISODate));
+        }
+    }
+    QStringList result = QStringList(days.begin(), days.end());
+    std::sort(result.begin(), result.end());
+    return result;
 }
 
 } // namespace TaskLogic

@@ -155,12 +155,20 @@ ColumnLayout {
             boundsBehavior: Flickable.StopAtBounds
             keyNavigationEnabled: true
             focus: true
+            rightMargin: Design.spaceSmall
+
+            QQC2.ScrollBar.vertical: ThinScrollBar {
+                view: listView
+            }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+                policy: QQC2.ScrollBar.AlwaysOff
+            }
 
             Keys.onEscapePressed: root.closeMenu()
 
             delegate: QQC2.ItemDelegate {
                 id: delegate
-                width: listView.width
+                width: Math.max(1, listView.width - listView.rightMargin)
                 text: modelData.kind === "create"
                       ? i18n("Create label “%1”", modelData.name)
                       : modelData.name

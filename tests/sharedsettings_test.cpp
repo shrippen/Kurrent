@@ -24,6 +24,7 @@ private Q_SLOTS:
     void persistsKcmCatalogAndReset();
     void persistsReminderSearchAndColors();
     void persistsSortModeKeys();
+    void persistsViewModeAndSmartViews();
 
 private:
     QTemporaryDir m_dir;
@@ -185,6 +186,8 @@ void SharedSettingsTest::persistsKcmCatalogAndReset()
     QCOMPARE(store.defaults().value(QStringLiteral("clickAction")).toString(), QStringLiteral("inline"));
     QVERIFY(store.keys().contains(QStringLiteral("rememberLastView")));
     QVERIFY(store.keys().contains(QStringLiteral("panelBadge")));
+    QVERIFY(store.keys().contains(QStringLiteral("verboseJournalLogging")));
+    QVERIFY(store.keys().contains(QStringLiteral("infoJournalLogging")));
     QVERIFY(!store.keys().contains(QString()));
 
     QQmlPropertyMap source;
@@ -199,11 +202,17 @@ void SharedSettingsTest::persistsKcmCatalogAndReset()
     source.insert(QStringLiteral("showDateChip"), false);
     source.insert(QStringLiteral("showLabelChips"), false);
     source.insert(QStringLiteral("showPriorityChip"), false);
-    source.insert(QStringLiteral("showRecurringIcon"), false);
+        source.insert(QStringLiteral("showRecurringIcon"), false);
+        source.insert(QStringLiteral("showProgressChip"), false);
+        source.insert(QStringLiteral("showStatusChip"), false);
+        source.insert(QStringLiteral("showSecrecyChip"), false);
+        source.insert(QStringLiteral("showLocationChip"), false);
     source.insert(QStringLiteral("defaultDueMode"), QStringLiteral("tomorrow"));
     source.insert(QStringLiteral("confirmDelete"), true);
     source.insert(QStringLiteral("clickAction"), QStringLiteral("full"));
     source.insert(QStringLiteral("panelBadge"), QStringLiteral("overdue"));
+    source.insert(QStringLiteral("verboseJournalLogging"), true);
+    source.insert(QStringLiteral("infoJournalLogging"), false);
     store.copyFrom(&source);
 
     SharedSettings other(fileName);
@@ -213,6 +222,8 @@ void SharedSettingsTest::persistsKcmCatalogAndReset()
     QCOMPARE(target.value(QStringLiteral("sidebarWidthUnits")).toInt(), 14);
     QCOMPARE(target.value(QStringLiteral("panelBadge")).toString(), QStringLiteral("overdue"));
     QCOMPARE(target.value(QStringLiteral("confirmDelete")).toBool(), true);
+    QCOMPARE(target.value(QStringLiteral("verboseJournalLogging")).toBool(), true);
+    QCOMPARE(target.value(QStringLiteral("infoJournalLogging")).toBool(), false);
 
     store.resetKeys({QStringLiteral("density"), QStringLiteral("confirmDelete")});
     QCOMPARE(store.values().value(QStringLiteral("density")).toString(), QStringLiteral("auto"));
@@ -251,6 +262,26 @@ void SharedSettingsTest::persistsReminderSearchAndColors()
     QCOMPARE(target.value(QStringLiteral("quietHoursEnabled")).toBool(), true);
     QVERIFY(store.keys().contains(QStringLiteral("projectColors")));
     QVERIFY(store.keys().contains(QStringLiteral("notificationsEnabled")));
+}
+
+void SharedSettingsTest::persistsViewModeAndSmartViews()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-g"));
+    SharedSettings store(fileName);
+    QQmlPropertyMap source;
+    source.insert(QStringLiteral("mainPaneMode"), QStringLiteral("kanban"));
+    source.insert(QStringLiteral("smartViews"), QStringLiteral("[{\"id\":\"x\",\"name\":\"X\"}]"));
+    source.insert(QStringLiteral("kanbanColumnSource"), QStringLiteral("due"));
+    source.insert(QStringLiteral("multiSelectEnabled"), true);
+    store.copyFrom(&source);
+
+    SharedSettings other(fileName);
+    QQmlPropertyMap target;
+    other.applyTo(&target);
+    QCOMPARE(target.value(QStringLiteral("mainPaneMode")).toString(), QStringLiteral("kanban"));
+    QCOMPARE(target.value(QStringLiteral("kanbanColumnSource")).toString(), QStringLiteral("due"));
+    QCOMPARE(target.value(QStringLiteral("multiSelectEnabled")).toBool(), true);
+    QVERIFY(target.value(QStringLiteral("smartViews")).toString().contains(QStringLiteral("x")));
 }
 
 QTEST_MAIN(SharedSettingsTest)

@@ -18,6 +18,11 @@ ConfigModel {
         source: "configSidebar.qml"
     }
     ConfigCategory {
+        name: i18n("Views")
+        icon: "view-filter"
+        source: "configViews.qml"
+    }
+    ConfigCategory {
         name: i18n("Tasks")
         icon: "view-list-details"
         source: "configTasks.qml"
@@ -46,5 +51,15 @@ ConfigModel {
         name: i18n("Labels")
         icon: "tag"
         source: "configLabels.qml"
+    }
+    ConfigCategory {
+        name: i18n("Locations")
+        icon: "mark-location"
+        source: "configLocations.qml"
+    }
+    ConfigCategory {
+        name: i18n("Diagnostics")
+        icon: "tools-report-bug"
+        source: "configDiagnostics.qml"
     }
 }

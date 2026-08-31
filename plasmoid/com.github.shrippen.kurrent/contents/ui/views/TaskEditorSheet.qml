@@ -29,6 +29,9 @@ FocusScope {
 
     // Date pickers stay inside this item, not a separate overlay window.
     readonly property Item popupAnchor: root
+    readonly property alias deleteButton: deleteButton
+    readonly property alias saveButton: saveButton
+    readonly property alias cancelButton: cancelButton
 
     property bool clearDueRequested: false
     property bool clearStartRequested: false
@@ -56,7 +59,7 @@ FocusScope {
         clearStartRequested = false
         summaryField.text = task.summary || ""
         descriptionField.text = task.description || ""
-        locationField.text = task.location || ""
+        locationPicker.selectedLocation = task.location || ""
         sectionField.text = task.section || ""
         allDayCheck.checked = task.allDay === true
         dueDateField.text = DateTime.formatDate(task.dueDate)
@@ -149,7 +152,7 @@ FocusScope {
         var fields = {
             "summary": summaryField.text,
             "description": descriptionField.text,
-            "location": locationField.text,
+            "location": locationPicker.selectedLocation,
             "section": sectionField.text,
             "allDay": allDayCheck.checked,
             "priority": Colors.normalizePriority(priorityPicker.priority),
@@ -179,6 +182,7 @@ FocusScope {
     component FieldLabel: QQC2.Label {
         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
         horizontalAlignment: Text.AlignRight
+        verticalAlignment: Text.AlignVCenter
         wrapMode: Text.WordWrap
         Layout.maximumWidth: Kirigami.Units.gridUnit * 8
     }
@@ -215,12 +219,9 @@ FocusScope {
             z: 1
         }
 
-        MouseArea {
-            anchors.fill: parent
-            z: 1
-            acceptedButtons: Qt.LeftButton
-            onClicked: {}
-        }
+        // The card itself needs no click-capturing MouseArea: the dim is a lower-z
+        // sibling, so pointer events cannot fall through it. A full-card MouseArea
+        // can otherwise win the gesture grab from footer buttons after reparenting.
 
         // Hovering the card: never let the wheel reach the task list or sidebar.
         WheelHandler {
@@ -280,7 +281,7 @@ FocusScope {
                 text: i18n("Basics")
             }
 
-            FieldLabel { text: i18n("Title:") }
+            FieldLabel { text: i18n("Title") }
             QQC2.TextField {
                 id: summaryField
                 Layout.fillWidth: true
@@ -288,7 +289,7 @@ FocusScope {
             }
 
             FieldLabel {
-                text: i18n("Description:")
+                text: i18n("Description")
                 Layout.alignment: Qt.AlignRight | Qt.AlignTop
             }
             ScrollableTextArea {
@@ -307,13 +308,13 @@ FocusScope {
                 text: i18n("Schedule")
             }
 
-            FieldLabel { text: i18n("All day:") }
+            FieldLabel { text: i18n("All day") }
             QQC2.CheckBox {
                 id: allDayCheck
                 text: i18n("All-day task")
             }
 
-            FieldLabel { text: i18n("Start:") }
+            FieldLabel { text: i18n("Start") }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
@@ -345,7 +346,7 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Due:") }
+            FieldLabel { text: i18n("Due") }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
@@ -377,7 +378,7 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Repeat:") }
+            FieldLabel { text: i18n("Repeat") }
             QQC2.ComboBox {
                 id: recurrenceBox
                 Layout.fillWidth: true
@@ -390,7 +391,7 @@ FocusScope {
                 ]
             }
 
-            FieldLabel { text: i18n("Reminder:") }
+            FieldLabel { text: i18n("Reminder") }
             QQC2.ComboBox {
                 id: reminderBox
                 Layout.fillWidth: true
@@ -411,7 +412,7 @@ FocusScope {
                 text: i18n("Status")
             }
 
-            FieldLabel { text: i18n("Completed:") }
+            FieldLabel { text: i18n("Completed") }
             QQC2.CheckBox {
                 id: completedCheck
                 text: i18n("Mark as done")
@@ -424,61 +425,58 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Progress:") }
-            ColumnLayout {
+            FieldLabel { text: i18n("Progress") }
+            RowLayout {
+                id: progressSliderRow
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing / 2
+                spacing: Kirigami.Units.smallSpacing
 
-                RowLayout {
+                QQC2.Slider {
+                    id: percentSlider
                     Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
+                    from: 0
+                    to: 100
+                    live: true
+                    // Match visible ticks; stepSize 1 makes Breeze draw ~100 groove ticks.
+                    stepSize: availableWidth >= Kirigami.Units.gridUnit * 14 ? 10 : 25
 
-                    QQC2.Slider {
-                        id: percentSlider
-                        Layout.fillWidth: true
-                        from: 0
-                        to: 100
-                        live: true
-                        // Match visible ticks; stepSize 1 makes Breeze draw ~100 groove ticks.
-                        stepSize: availableWidth >= Kirigami.Units.gridUnit * 14 ? 10 : 25
-
-                        readonly property var tickValues: availableWidth >= Kirigami.Units.gridUnit * 14
-                            ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-                            : [0, 25, 50, 75, 100]
-                    }
-
-                    QQC2.Label {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 3
-                        horizontalAlignment: Text.AlignRight
-                        text: Math.round(percentSlider.value) + "%"
-                    }
+                    readonly property var tickValues: availableWidth >= Kirigami.Units.gridUnit * 14
+                        ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+                        : [0, 25, 50, 75, 100]
                 }
 
-                Item {
-                    Layout.fillWidth: true
-                    Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Kirigami.Units.smallSpacing
-                    Layout.preferredHeight: Kirigami.Theme.smallFont.pixelSize + 2
+                QQC2.Label {
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 3
+                    horizontalAlignment: Text.AlignRight
+                    text: Math.round(percentSlider.value) + "%"
+                }
+            }
 
-                    Repeater {
-                        model: percentSlider.tickValues
-                        delegate: QQC2.Label {
-                            required property int modelData
-                            text: String(modelData)
-                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                            opacity: 0.6
-                            x: {
-                                var groove = Math.max(1, parent.width)
-                                return (modelData / 100) * groove - width / 2
-                            }
+            Item {
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 8
+            }
+
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Theme.smallFont.pixelSize + 2
+                Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Kirigami.Units.smallSpacing
+
+                Repeater {
+                    model: percentSlider.tickValues
+                    delegate: QQC2.Label {
+                        required property int modelData
+                        text: String(modelData)
+                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        opacity: 0.6
+                        x: {
+                            var groove = Math.max(1, parent.width)
+                            return (modelData / 100) * groove - width / 2
                         }
                     }
                 }
             }
 
-            FieldLabel {
-                text: i18n("Status:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
-            }
+            FieldLabel { text: i18n("Status") }
             Flow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.largeSpacing
@@ -513,27 +511,21 @@ FocusScope {
                 text: i18n("Classification")
             }
 
-            FieldLabel { text: i18n("Priority:") }
+            FieldLabel { text: i18n("Priority") }
             PriorityPicker {
                 id: priorityPicker
                 Layout.fillWidth: true
                 showLabel: false
             }
 
-            FieldLabel {
-                text: i18n("Labels:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
-            }
+            FieldLabel { text: i18n("Labels") }
             LabelPicker {
                 id: labelPicker
                 Layout.fillWidth: true
                 availableLabels: controller.availableLabels
             }
 
-            FieldLabel {
-                text: i18n("Secrecy:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
-            }
+            FieldLabel { text: i18n("Secrecy") }
             Flow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.largeSpacing
@@ -558,24 +550,44 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Location:") }
-            QQC2.TextField {
-                id: locationField
+            FieldLabel { text: i18n("Location") }
+            LocationPicker {
+                id: locationPicker
                 Layout.fillWidth: true
-                placeholderText: i18n("Location")
+                availableLocations: controller.availableLocations
+                boundsItem: root.popupAnchor
             }
 
-            FieldLabel { text: i18n("Section:") }
-            QQC2.TextField {
-                id: sectionField
+            QQC2.Button {
+                visible: !!(task.geoUrl && String(task.geoUrl).length > 0)
                 Layout.fillWidth: true
-                placeholderText: i18n("Heading on the list")
+                icon.name: "internet-services"
+                text: i18n("Open map")
+                onClicked: Qt.openUrlExternally(task.geoUrl)
             }
 
             FieldLabel {
-                text: i18n("Project:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
+                visible: !!(task.attendees && task.attendees.length > 0)
+                text: i18n("Assignees")
             }
+            QQC2.Label {
+                visible: !!(task.attendees && task.attendees.length > 0)
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: (task.attendees || []).join(", ")
+                opacity: 0.85
+            }
+
+            FieldLabel { text: i18n("Section") }
+            QQC2.TextField {
+                id: sectionField
+                Layout.fillWidth: true
+                placeholderText: i18n("Day section (morning / afternoon / …)")
+                QQC2.ToolTip.text: i18n("Stores KURRENT/LIST for Today-view day sections (Morning, Afternoon, Evening). Also used as the Kanban “Day section” column source.")
+                QQC2.ToolTip.visible: hovered
+            }
+
+            FieldLabel { text: i18n("Project") }
             ProjectPicker {
                 id: projectPicker
                 Layout.fillWidth: true
@@ -604,6 +616,7 @@ FocusScope {
             }
 
             QQC2.Button {
+                id: deleteButton
                 text: i18n("Delete task")
                 icon.name: "edit-delete"
                 onClicked: {
@@ -615,6 +628,7 @@ FocusScope {
             }
 
             QQC2.Button {
+                id: saveButton
                 text: i18n("Save")
                 icon.name: "document-save"
                 highlighted: true
@@ -622,6 +636,7 @@ FocusScope {
             }
 
             QQC2.Button {
+                id: cancelButton
                 text: i18n("Cancel")
                 icon.name: "dialog-cancel"
                 onClicked: root.reject()

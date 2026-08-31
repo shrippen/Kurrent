@@ -29,12 +29,12 @@ import "colors.js" as Colors
 //   ListView contentHeight must never become the plasmoid’s max/preferred height.
 // - Desktop fullRepresentation: implicit size is the default; Layout.maximumHeight is Infinity.
 // - Do not bind PlasmoidItem width/height; do not set Layout.maximumWidth Infinity on the PlasmoidItem root.
-// - Project/label accents live in `colors.js` (hash) plus optional overrides on this singleton (`setColorOverrides` / `colorForKey`). Do not duplicate palettes in views.
+// - Project/label/location accents live in `colors.js` (hash) plus optional overrides on this singleton (`setColorOverrides` / `colorForKey`). Do not duplicate palettes in views.
 // - TaskDelegate height comes only from implicitHeight (never height ↔ implicitHeight).
 // - Density (auto/compact/comfortable) sets taskRowPad. sidebarWidthUnits (6–20) sets sidebarWidth.
 // - overlayDimStep 0/1/2 maps to 0.25 / 0.40 / 0.55. reducedMotion skips spinner and hover flash.
 // - Main-pane view modes (FullView header): list | kanban | swimlane | plan | heatmap | calendar.
-//   Persist per sidebar view id in kurrentrc (viewModeByView). Kanban column/card min widths below.
+//   Persist globally in kurrentrc (mainPaneMode). Kanban column/card min widths below.
 
 QtObject {
     id: d
@@ -68,16 +68,23 @@ QtObject {
     property bool reducedMotion: false
     property var projectColorOverrides: ({})
     property var labelColorOverrides: ({})
+    property var locationColorOverrides: ({})
 
-    function setColorOverrides(projects, labels) {
+    function setColorOverrides(projects, labels, locations) {
         projectColorOverrides = projects || {}
         labelColorOverrides = labels || {}
-        Colors.setColorOverrides(projectColorOverrides, labelColorOverrides)
+        locationColorOverrides = locations || {}
+        Colors.setColorOverrides(projectColorOverrides, labelColorOverrides, locationColorOverrides)
     }
 
     function colorForKey(key, kind) {
         var s = String(key)
-        var map = (kind === "label") ? labelColorOverrides : projectColorOverrides
+        var map = projectColorOverrides
+        if (kind === "label") {
+            map = labelColorOverrides
+        } else if (kind === "location") {
+            map = locationColorOverrides
+        }
         if (map && map[s]) {
             return map[s]
         }
@@ -103,6 +110,30 @@ QtObject {
     readonly property int scrollBarExtent: 6
     readonly property int scrollBarPadding: 1
     readonly property int scrollGutter: scrollBarExtent + spaceSmall
+    // Main-pane sort overlay + view transition (MainPaneHost).
+    readonly property int mainPaneTransitionDuration: reducedMotion ? 0 : 280
+    readonly property int mainPaneSortOverlayFadeMs: reducedMotion ? 0 : 160
+    readonly property int mainPaneSortOverlayMinMs: 160
+    readonly property int mainPaneBlurMinEstimateMs: 48
+    readonly property int listSectionIconSize: Kirigami.Units.iconSizes.smallMedium
+    // Sort popup: radio indicator + gap beside label text (used for wide-layout threshold).
+    readonly property int sortMenuRadioChrome: Math.round(Kirigami.Units.gridUnit * 2.25)
+    readonly property int sortMenuWideMaxWidth: Kirigami.Units.gridUnit * 42
+    readonly property int sortMenuNarrowMaxWidth: Kirigami.Units.gridUnit * 16
+    // Main-pane header tools: default matches implicit ToolButton (~2 GU); larger only with touch.
+    readonly property bool touchHeaderTargets: !compactDensity
+    readonly property int mainPaneHeaderToolSize: touchHeaderTargets
+            ? Math.round(Kirigami.Units.gridUnit * 2.25)
+            : Math.round(Kirigami.Units.gridUnit * 2)
+    // Expanded view-mode icon strip; list group is a separate header tool next to it.
+    readonly property int viewModeToolbarButtonSize: mainPaneHeaderToolSize
+    readonly property int viewModeToolbarChromePadH: spaceTiny
+    readonly property int viewModeToolbarChromePadV: touchHeaderTargets ? spaceTiny : 0
+    readonly property real viewModeToolbarFillOpacity: 0.07
+    readonly property int viewModeToolbarViewModeCount: 6
+    readonly property int viewModeToolbarStripWidth:
+            viewModeToolbarButtonSize * viewModeToolbarViewModeCount
+            + viewModeToolbarChromePadH * 2
     // Fallback step for Design.applyWheel (editor/fields). Task list uses Kirigami.WheelHandler.
     readonly property int wheelNotchPx: Math.max(48, Math.round(Kirigami.Units.gridUnit * 3.5))
     // 0–100; reserved for config / field helpers (task list follows Kirigami defaults).

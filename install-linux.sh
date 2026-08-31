@@ -624,7 +624,7 @@ restart_plasmashell() {
             echo "Restarting plasmashell..."
             kquitapp6 plasmashell 2>/dev/null || true
             sleep 1
-            nohup plasmashell --replace >/dev/null 2>&1 &
+            env -u KCURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
             disown >/dev/null 2>&1 || true
             echo "plasmashell restarted."
         '

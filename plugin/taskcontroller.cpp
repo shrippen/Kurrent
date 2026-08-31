@@ -1,6 +1,8 @@
 #include "taskcontroller.h"
 #include "akonaditaskstore.h"
+#include "kurrentlogging.h"
 #include "memorytaskstore.h"
+#include "sharedsettings.h"
 #include "taskcalendar.h"
 #include "tasklogic.h"
 
@@ -21,21 +23,27 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QLocale>
 #include <QTime>
 #include <QDebug>
 #include <QFile>
 #include <QGuiApplication>
+#include <QHash>
 #include <QLoggingCategory>
 #include <QScreen>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QThread>
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QtConcurrent>
 #include <QtGlobal>
 #include <QDBusConnection>
+#include <algorithm>
 
 #ifdef KURRENT_HAS_NOTIFICATIONS
 #include <KNotification>
@@ -51,13 +59,51 @@
 
 #include <algorithm>
 
-Q_LOGGING_CATEGORY(KURRENT_AKONADI, "com.github.shrippen.kurrent.akonadi", QtWarningMsg)
-
 namespace
 {
 constexpr int kRebuildDelayMs = 50;
 constexpr int kCollectionsReloadDelayMs = 250;
 constexpr int kAkonadiRetryIntervalMs = 5000;
+constexpr int kAsyncRebuildThreshold = 40;
+
+void logAkonadi(const QString &message)
+{
+    KurrentLogging::info(message);
+}
+
+QString serverStateName(Akonadi::ServerManager::State state)
+{
+    switch (state) {
+    case Akonadi::ServerManager::NotRunning:
+        return QStringLiteral("NotRunning");
+    case Akonadi::ServerManager::Starting:
+        return QStringLiteral("Starting");
+    case Akonadi::ServerManager::Running:
+        return QStringLiteral("Running");
+    case Akonadi::ServerManager::Stopping:
+        return QStringLiteral("Stopping");
+    case Akonadi::ServerManager::Broken:
+        return QStringLiteral("Broken");
+    case Akonadi::ServerManager::Upgrading:
+        return QStringLiteral("Upgrading");
+    }
+    return QStringLiteral("Unknown(%1)").arg(static_cast<int>(state));
+}
+
+QString storeKindName(AbstractTaskStore::Kind kind)
+{
+    switch (kind) {
+    case AbstractTaskStore::Kind::Create:
+        return QStringLiteral("Create");
+    case AbstractTaskStore::Kind::Modify:
+        return QStringLiteral("Modify");
+    case AbstractTaskStore::Kind::Move:
+        return QStringLiteral("Move");
+    case AbstractTaskStore::Kind::Delete:
+        return QStringLiteral("Delete");
+    }
+    return QStringLiteral("Unknown");
+}
 constexpr int kBusyEventRefreshMs = 5 * 60 * 1000;
 
 bool isTodoItem(const Akonadi::Item &item)
@@ -71,6 +117,14 @@ KCalendarCore::Todo::Ptr todoFromPayload(const Akonadi::Item &item)
         return {};
     }
     return item.payload<KCalendarCore::Todo::Ptr>();
+}
+
+KCalendarCore::Todo::Ptr cloneTodo(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return {};
+    }
+    return KCalendarCore::Todo::Ptr(static_cast<KCalendarCore::Todo *>(todo->clone()));
 }
 
 void configureItemFetchJob(Akonadi::ItemFetchJob *job)
@@ -98,6 +152,34 @@ QDateTime dateTimeFromVariant(const QVariant &value)
     return value.toDateTime();
 }
 
+QString kanbanManualOrderColumnKey(const QString &source, const QString &columnKey)
+{
+    if (source == TaskLogic::KanbanSource::Status) {
+        return TaskLogic::normalizeStatusColumnKey(columnKey);
+    }
+    return columnKey;
+}
+
+QVariantList kanbanManualOrderForColumn(const QVariantMap &comboMap, const QString &source, const QString &columnKey)
+{
+    const QString key = kanbanManualOrderColumnKey(source, columnKey);
+    QVariantList stored = comboMap.value(key).toList();
+    if (!stored.isEmpty() || source != TaskLogic::KanbanSource::Status) {
+        return stored;
+    }
+    static const QHash<QString, QString> legacyByNorm = {
+        {QStringLiteral("4"), QStringLiteral("needs-action")},
+        {QStringLiteral("6"), QStringLiteral("in-process")},
+        {QStringLiteral("3"), QStringLiteral("completed")},
+        {QStringLiteral("5"), QStringLiteral("cancelled")},
+    };
+    const QString legacy = legacyByNorm.value(key);
+    if (!legacy.isEmpty()) {
+        return comboMap.value(legacy).toList();
+    }
+    return {};
+}
+
 } // namespace
 
 QHash<Akonadi::Item::Id, TaskController::CachedTask> TaskController::s_tasks;
@@ -105,6 +187,7 @@ QList<Akonadi::Collection> TaskController::s_collections;
 QList<Akonadi::Collection> TaskController::s_eventCollections;
 QHash<qint64, QString> TaskController::s_collectionNames;
 QStringList TaskController::s_extraLabels;
+QStringList TaskController::s_extraLocations;
 QList<TaskController *> TaskController::s_instances;
 qint64 TaskController::s_nextTempId = -2;
 int TaskController::s_smokeStep = 0;
@@ -123,6 +206,9 @@ TaskController::TaskController(QObject *parent)
     m_rebuildTimer.setInterval(kRebuildDelayMs);
     m_rebuildTimer.setSingleShot(true);
     connect(&m_rebuildTimer, &QTimer::timeout, this, &TaskController::rebuildTaskList);
+
+    connect(&m_rebuildWatcher, &QFutureWatcher<TaskLogic::TaskRebuildOutput>::finished, this,
+            &TaskController::onRebuildFinished);
 
     m_collectionsTimer.setInterval(kCollectionsReloadDelayMs);
     m_collectionsTimer.setSingleShot(true);
@@ -145,7 +231,13 @@ TaskController::TaskController(QObject *parent)
     m_store = new AkonadiTaskStore(this);
     connect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
 
+    KurrentLogging::reloadFromSharedSettings();
+    connect(SharedSettings::instance(), &SharedSettings::changed, this, []() {
+        KurrentLogging::reloadFromSharedSettings();
+    });
+
     hydrateFromCache();
+    loadRebuildPerfProfile();
     // D-Bus and GlobalAccel talk to the session bus; let QML finish constructing first.
     QTimer::singleShot(0, this, [this]() {
         registerSessionInterface();
@@ -155,6 +247,9 @@ TaskController::TaskController(QObject *parent)
 
 TaskController::~TaskController()
 {
+    if (m_rebuildWatcher.isRunning()) {
+        m_rebuildWatcher.waitForFinished();
+    }
     s_instances.removeAll(this);
     if (s_smokeLeader == this) {
         s_smokeLeader = nullptr;
@@ -188,6 +283,7 @@ void TaskController::resetSharedStateForTest()
     s_eventCollections.clear();
     s_collectionNames.clear();
     s_extraLabels.clear();
+    s_extraLocations.clear();
     m_undo.clear();
     m_recreateAfterDelete.clear();
     m_collapsedUids.clear();
@@ -294,6 +390,72 @@ int TaskController::testInflight(qint64 id) const
 {
     const auto it = s_tasks.constFind(id);
     return it == s_tasks.cend() ? 0 : it->inflight;
+}
+
+QStringList TaskController::testTaskCategories(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo) {
+        return {};
+    }
+    return it->todo->categories();
+}
+
+int TaskController::testTaskPriority(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo) {
+        return 0;
+    }
+    return it->todo->priority();
+}
+
+int TaskController::testTaskStatus(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo) {
+        return 0;
+    }
+    return static_cast<int>(it->todo->status());
+}
+
+int TaskController::testTaskSecrecy(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo) {
+        return 0;
+    }
+    return static_cast<int>(it->todo->secrecy());
+}
+
+QString TaskController::testTaskLocation(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo) {
+        return {};
+    }
+    return it->todo->location();
+}
+
+QString TaskController::testKanbanColumnKey(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend()) {
+        return {};
+    }
+    const TaskEntry entry = makeTaskEntry(*it, 0, false);
+    return TaskLogic::kanbanColumnKey(entry, m_kanbanColumnSource, filterState(), QDate::currentDate());
+}
+
+int TaskController::testTaskRevision(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    return it == s_tasks.cend() ? -1 : it->item.revision();
+}
+
+void TaskController::testApplyExternalItem(const Akonadi::Item &item)
+{
+    upsertTask(item);
 }
 
 int TaskController::buildNumber() const
@@ -456,6 +618,7 @@ void TaskController::setCurrentView(const QString &view)
         return;
     }
     m_currentView = view;
+    clearTaskSelection();
     scheduleRebuild();
     Q_EMIT currentViewChanged();
 }
@@ -521,6 +684,51 @@ void TaskController::setSelectedPriority(int priority)
     Q_EMIT selectedPriorityChanged();
 }
 
+void TaskController::setSelectedProgressBand(const QString &band)
+{
+    const QString trimmed = band.trimmed();
+    const QString normalized = TaskLogic::progressBandKeys().contains(trimmed) ? trimmed : QString();
+    if (m_selectedProgressBand == normalized) {
+        return;
+    }
+    m_selectedProgressBand = normalized;
+    scheduleRebuild();
+    Q_EMIT selectedProgressBandChanged();
+}
+
+void TaskController::setSelectedStatus(int status)
+{
+    const int normalized = (status < 0) ? -1 : TaskLogic::normalizeStatus(status);
+    if (m_selectedStatus == normalized) {
+        return;
+    }
+    m_selectedStatus = normalized;
+    scheduleRebuild();
+    Q_EMIT selectedStatusChanged();
+}
+
+void TaskController::setSelectedSecrecy(int secrecy)
+{
+    const int normalized = (secrecy < 0) ? -1 : qBound(0, secrecy, 2);
+    if (m_selectedSecrecy == normalized) {
+        return;
+    }
+    m_selectedSecrecy = normalized;
+    scheduleRebuild();
+    Q_EMIT selectedSecrecyChanged();
+}
+
+void TaskController::setSelectedLocation(const QString &location)
+{
+    const QString trimmed = location.trimmed();
+    if (m_selectedLocation == trimmed) {
+        return;
+    }
+    m_selectedLocation = trimmed;
+    scheduleRebuild();
+    Q_EMIT selectedLocationChanged();
+}
+
 void TaskController::setSortMode(const QString &mode)
 {
     QString normalized = mode.trimmed();
@@ -531,8 +739,958 @@ void TaskController::setSortMode(const QString &mode)
         return;
     }
     m_sortMode = normalized;
+    maybeShowReorganizing();
     scheduleRebuild();
     Q_EMIT sortModeChanged();
+}
+
+void TaskController::setListGroupMode(const QString &mode)
+{
+    QString normalized = mode.trimmed();
+    if (normalized == TaskLogic::ListGroupSource::None) {
+        normalized.clear();
+    }
+    if (m_listGroupMode == normalized) {
+        return;
+    }
+    m_listGroupMode = normalized;
+    maybeShowReorganizing();
+    scheduleRebuild();
+    Q_EMIT listGroupModeChanged();
+}
+
+void TaskController::setMainPaneMode(const QString &mode)
+{
+    const QString normalized = mode.isEmpty() ? TaskLogic::MainPaneMode::List : mode;
+    if (m_mainPaneMode == normalized) {
+        return;
+    }
+    m_mainPaneMode = normalized;
+    Q_EMIT mainPaneModeChanged();
+}
+
+void TaskController::setKanbanColumnSource(const QString &source)
+{
+    const QString normalized = source.isEmpty() ? TaskLogic::KanbanSource::Status : source;
+    if (m_kanbanColumnSource == normalized) {
+        return;
+    }
+    m_kanbanColumnSource = normalized;
+    updateKanbanLayout();
+    Q_EMIT kanbanColumnSourceChanged();
+}
+
+void TaskController::setKanbanWriteMode(const QString &mode)
+{
+    const QString normalized = mode.isEmpty() ? QStringLiteral("fields") : mode;
+    if (m_kanbanWriteMode == normalized) {
+        return;
+    }
+    m_kanbanWriteMode = normalized;
+    Q_EMIT kanbanWriteModeChanged();
+}
+
+void TaskController::setKanbanManualOrderJson(const QString &json)
+{
+    const QString trimmed = json.trimmed().isEmpty() ? QStringLiteral("{}") : json;
+    if (m_kanbanManualOrderJson == trimmed) {
+        return;
+    }
+    m_kanbanManualOrderJson = trimmed;
+    QJsonParseError err;
+    const QJsonDocument doc = QJsonDocument::fromJson(trimmed.toUtf8(), &err);
+    m_kanbanManualOrder = (err.error == QJsonParseError::NoError && doc.isObject())
+            ? doc.object().toVariantMap()
+            : QVariantMap();
+    Q_EMIT kanbanManualOrderJsonChanged();
+    updateKanbanLayout();
+}
+
+void TaskController::setSwimlaneLaneAxis(const QString &axis)
+{
+    const QString normalized = axis.isEmpty() ? QStringLiteral("project") : axis;
+    if (m_swimlaneLaneAxis == normalized) {
+        return;
+    }
+    m_swimlaneLaneAxis = normalized;
+    Q_EMIT swimlaneSettingsChanged();
+}
+
+void TaskController::setSwimlaneTimeBucket(const QString &bucket)
+{
+    const QString normalized = bucket.isEmpty() ? QStringLiteral("day") : bucket;
+    if (m_swimlaneTimeBucket == normalized) {
+        return;
+    }
+    m_swimlaneTimeBucket = normalized;
+    Q_EMIT swimlaneSettingsChanged();
+}
+
+void TaskController::setMultiSelectEnabled(bool enabled)
+{
+    if (m_multiSelectEnabled == enabled) {
+        return;
+    }
+    m_multiSelectEnabled = enabled;
+    if (!enabled && !m_selectedTaskIds.isEmpty()) {
+        m_selectedTaskIds.clear();
+        Q_EMIT selectedTaskIdsChanged();
+    }
+    Q_EMIT multiSelectEnabledChanged();
+}
+
+void TaskController::setSmartViewsJson(const QString &json)
+{
+    if (m_smartViewsJson == json) {
+        return;
+    }
+    m_smartViewsJson = json;
+    m_smartViews = TaskLogic::parseSmartViews(json);
+    scheduleRebuild();
+    Q_EMIT smartViewsJsonChanged();
+}
+
+void TaskController::setSelectedTaskIds(const QStringList &ids)
+{
+    if (m_selectedTaskIds == ids) {
+        return;
+    }
+    m_selectedTaskIds = ids;
+    Q_EMIT selectedTaskIdsChanged();
+}
+
+void TaskController::toggleTaskSelection(qint64 itemId, bool ctrl, bool shift)
+{
+    Q_UNUSED(shift)
+    const QString key = QString::number(itemId);
+    QStringList ids = m_selectedTaskIds;
+    if (ctrl) {
+        if (ids.contains(key)) {
+            ids.removeAll(key);
+        } else {
+            ids.append(key);
+        }
+    } else {
+        ids = {key};
+    }
+    setSelectedTaskIds(ids);
+}
+
+void TaskController::clearTaskSelection()
+{
+    if (m_selectedTaskIds.isEmpty()) {
+        return;
+    }
+    m_selectedTaskIds.clear();
+    Q_EMIT selectedTaskIdsChanged();
+}
+
+TaskLogic::FilterState TaskController::filterState() const
+{
+    TaskLogic::FilterState filters;
+    filters.currentView = m_currentView;
+    filters.searchQuery = m_searchQuery;
+    filters.showCompleted = m_showCompleted;
+    filters.selectedCollectionId = m_selectedCollectionId;
+    filters.selectedLabel = m_selectedLabel;
+    filters.selectedPriority = m_selectedPriority;
+    filters.selectedProgressBand = m_selectedProgressBand;
+    filters.selectedStatus = m_selectedStatus;
+    filters.selectedSecrecy = m_selectedSecrecy;
+    filters.selectedLocation = m_selectedLocation;
+    filters.catchUpEnabled = m_catchUpEnabled;
+    filters.catchUpDays = m_catchUpDays;
+    filters.morningHour = m_morningHour;
+    filters.afternoonHour = m_afternoonHour;
+    filters.eveningHour = m_eveningHour;
+    filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
+    filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
+    filters.listGroupMode = m_listGroupMode;
+    return filters;
+}
+
+QString TaskController::kanbanColumnKeyForTask(qint64 itemId) const
+{
+    const int row = m_taskModel.rowForItemId(itemId);
+    if (row < 0) {
+        return {};
+    }
+    const TaskEntry task = m_taskModel.taskAt(row);
+    return TaskLogic::kanbanColumnKey(task, m_kanbanColumnSource, filterState(), QDate::currentDate());
+}
+
+QString TaskController::kanbanColumnLabelForKey(const QString &key) const
+{
+    if (m_kanbanColumnSource == TaskLogic::KanbanSource::Project) {
+        const qint64 id = key.toLongLong();
+        if (id > 0) {
+            return m_collectionNames.value(id, key);
+        }
+        return tr("Inbox");
+    }
+    if (m_kanbanColumnSource == TaskLogic::KanbanSource::Label && key != QLatin1String("none")) {
+        return key;
+    }
+    if (m_kanbanColumnSource == TaskLogic::KanbanSource::Status) {
+        const QString nk = TaskLogic::normalizeStatusColumnKey(key);
+        if (nk == QLatin1String("0")) {
+            return tr("None");
+        }
+        if (nk == QLatin1String("4")) {
+            return tr("Needs action");
+        }
+        if (nk == QLatin1String("6")) {
+            return tr("In process");
+        }
+        if (nk == QLatin1String("3")) {
+            return tr("Completed");
+        }
+        if (nk == QLatin1String("5")) {
+            return tr("Canceled");
+        }
+    }
+    return TaskLogic::kanbanColumnLabel(key, m_kanbanColumnSource);
+}
+
+QString TaskController::listGroupLabelForKey(const QString &key) const
+{
+    const QString mode = m_listGroupMode.trimmed();
+    if (mode.isEmpty() || mode == TaskLogic::ListGroupSource::None) {
+        return key;
+    }
+    if (mode == TaskLogic::ListGroupSource::Project) {
+        const qint64 id = key.toLongLong();
+        if (id > 0) {
+            return m_collectionNames.value(id, key);
+        }
+        return tr("Inbox");
+    }
+    if (mode == TaskLogic::ListGroupSource::Label) {
+        return key == QLatin1String("none") ? tr("Unlabeled") : key;
+    }
+    if (mode == TaskLogic::ListGroupSource::Location) {
+        return key == QLatin1String("none") ? tr("No location") : key;
+    }
+    if (mode == TaskLogic::ListGroupSource::Progress) {
+        if (key == QLatin1String("0-25")) {
+            return tr("0–25%");
+        }
+        if (key == QLatin1String("26-50")) {
+            return tr("26–50%");
+        }
+        if (key == QLatin1String("51-75")) {
+            return tr("51–75%");
+        }
+        if (key == QLatin1String("76-100")) {
+            return tr("76–100%");
+        }
+    }
+    if (mode == TaskLogic::ListGroupSource::Status) {
+        if (key == QLatin1String("0")) {
+            return tr("None");
+        }
+        if (key == QLatin1String("4")) {
+            return tr("Needs action");
+        }
+        if (key == QLatin1String("6")) {
+            return tr("In process");
+        }
+        if (key == QLatin1String("3")) {
+            return tr("Completed");
+        }
+        if (key == QLatin1String("5")) {
+            return tr("Canceled");
+        }
+    }
+    return TaskLogic::listGroupLabel(key, mode);
+}
+
+QStringList TaskController::kanbanColumnKeysForVisibleTasks() const
+{
+    QStringList keys;
+    QSet<QString> seen;
+    QHash<QString, QString> names;
+    const int count = m_taskModel.count();
+    const QDate today = QDate::currentDate();
+    const TaskLogic::FilterState filters = filterState();
+
+    // Label columns: one per known label (sidebar catalog), not only first-label of visible tasks.
+    if (m_kanbanColumnSource == TaskLogic::KanbanSource::Label) {
+        bool hasUnlabeled = false;
+        for (int i = 0; i < count; ++i) {
+            if (m_taskModel.taskAt(i).categories.isEmpty()) {
+                hasUnlabeled = true;
+                break;
+            }
+        }
+        for (const QString &label : m_availableLabels) {
+            if (!label.isEmpty() && !seen.contains(label)) {
+                seen.insert(label);
+                keys.append(label);
+            }
+        }
+        for (int i = 0; i < count; ++i) {
+            for (const QString &category : m_taskModel.taskAt(i).categories) {
+                if (!category.isEmpty() && !seen.contains(category)) {
+                    seen.insert(category);
+                    keys.append(category);
+                }
+            }
+        }
+        if (hasUnlabeled || keys.isEmpty()) {
+            keys.append(QStringLiteral("none"));
+        }
+        return TaskLogic::orderKanbanColumnKeys(keys, m_kanbanColumnSource, names);
+    }
+
+    // Fixed vocabularies always start with the full column set (empty columns stay droppable).
+    const QStringList fixed = TaskLogic::fixedKanbanColumnKeys(m_kanbanColumnSource);
+    for (const QString &key : fixed) {
+        if (!seen.contains(key)) {
+            seen.insert(key);
+            keys.append(key);
+        }
+    }
+
+    for (int i = 0; i < count; ++i) {
+        const TaskEntry task = m_taskModel.taskAt(i);
+        const QString key = TaskLogic::kanbanColumnKey(task, m_kanbanColumnSource, filters, today);
+        if (!seen.contains(key)) {
+            seen.insert(key);
+            keys.append(key);
+        }
+        if (m_kanbanColumnSource == TaskLogic::KanbanSource::Project && key != QLatin1String("inbox")) {
+            names.insert(key, task.collectionName);
+        }
+    }
+    return TaskLogic::orderKanbanColumnKeys(keys, m_kanbanColumnSource, names);
+}
+
+void TaskController::moveTaskToKanbanColumn(qint64 itemId, const QString &columnKey)
+{
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache || !cache->todo) {
+        return;
+    }
+
+    if (!m_applyingUndo && !m_batchUndo) {
+        TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+        record.restoreLayout = true;
+        record.kanbanManualOrderJson = m_kanbanManualOrderJson;
+        record.sortMode = m_sortMode;
+        pushUndo(record);
+    }
+
+    if (m_kanbanWriteMode == QLatin1String("custom")) {
+        TaskCalendar::setColumn(cache->todo, columnKey);
+        persistTodo(cache->item, cache->todo);
+        return;
+    }
+
+    const TaskEntry before = makeTaskEntry(*cache, 0, false);
+    const QString source = m_kanbanColumnSource;
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+
+    if (source == TaskLogic::KanbanSource::Completion) {
+        // Mutate directly so nested helpers cannot push a second undo or return early
+        // while the model still has a stale band.
+        const bool wantDone = columnKey == QLatin1String("done");
+        if (todo->isCompleted() != wantDone) {
+            TaskCalendar::completeTodo(todo,
+                                       wantDone ? TaskCalendar::CompleteAction::Mark
+                                                : TaskCalendar::CompleteAction::Unmark,
+                                       QDateTime::currentDateTime());
+            if (!todo->recurs()) {
+                todo->setPercentComplete(wantDone ? 100 : 0);
+            }
+            persistTodo(cache->item, todo);
+        }
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Status) {
+        const QString nk = TaskLogic::normalizeStatusColumnKey(columnKey);
+        bool ok = false;
+        const int status = nk.toInt(&ok);
+        if (!ok) {
+            return;
+        }
+        const auto kStatus = static_cast<KCalendarCore::Incidence::Status>(status);
+        bool changed = false;
+        if (todo->status() != kStatus) {
+            todo->setStatus(kStatus);
+            changed = true;
+        }
+        if (status == 3) {
+            if (!todo->isCompleted()) {
+                TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime::currentDateTime());
+                changed = true;
+            }
+            if (!todo->recurs() && todo->percentComplete() != 100) {
+                todo->setPercentComplete(100);
+                changed = true;
+            }
+        } else if (todo->isCompleted()) {
+            todo->setCompleted(false);
+            changed = true;
+        }
+        if (changed) {
+            persistTodo(cache->item, todo);
+        }
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Secrecy) {
+        int secrecy = 0;
+        if (columnKey == QLatin1String("private")) {
+            secrecy = 1;
+        } else if (columnKey == QLatin1String("confidential")) {
+            secrecy = 2;
+        }
+        if (static_cast<int>(todo->secrecy()) != secrecy) {
+            todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(secrecy));
+            persistTodo(cache->item, todo);
+        }
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Project) {
+        qint64 collectionId = -1;
+        if (columnKey != QLatin1String("inbox")) {
+            collectionId = columnKey.toLongLong();
+        }
+        if (collectionId >= 0) {
+            moveTaskToCollection(itemId, collectionId);
+        }
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Due) {
+        QString preset;
+        if (columnKey == QLatin1String("today")) {
+            preset = QStringLiteral("today");
+        } else if (columnKey == QLatin1String("tomorrow")) {
+            preset = TaskLogic::ReschedulePreset::Tomorrow;
+        } else if (columnKey == QLatin1String("this-week")) {
+            preset = TaskLogic::ReschedulePreset::NextWeek;
+        } else if (columnKey == QLatin1String("no-date")) {
+            todo->setDtDue(QDateTime());
+            persistTodo(cache->item, todo);
+            return;
+        } else if (columnKey == QLatin1String("overdue") || columnKey == QLatin1String("later")) {
+            preset = columnKey == QLatin1String("overdue") ? QStringLiteral("today") : TaskLogic::ReschedulePreset::NextWeek;
+        }
+        if (!preset.isEmpty()) {
+            // Nested reschedule pushes its own undo — suppress via batch flag (already set from finishKanbanDrop).
+            rescheduleTask(itemId, preset);
+        }
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Priority) {
+        int priority = TaskLogic::PriorityBand::None;
+        if (columnKey == QLatin1String("high")) {
+            priority = TaskLogic::PriorityBand::High;
+        } else if (columnKey == QLatin1String("medium")) {
+            priority = TaskLogic::PriorityBand::Medium;
+        } else if (columnKey == QLatin1String("low")) {
+            priority = TaskLogic::PriorityBand::Low;
+        }
+        if (TaskLogic::priorityBand(todo->priority()) != priority) {
+            todo->setPriority(priority);
+            persistTodo(cache->item, todo);
+        }
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Label) {
+        if (columnKey == QLatin1String("none")) {
+            todo->setCategories(QStringList());
+        } else {
+            // Column membership is first category: move/ensure this label to the front.
+            QStringList cats = before.categories;
+            cats.removeAll(columnKey);
+            cats.prepend(columnKey);
+            todo->setCategories(cats);
+        }
+        persistTodo(cache->item, todo);
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::DaySection) {
+        TaskCalendar::setSection(todo, columnKey == QLatin1String("unscheduled") ? QString() : columnKey);
+        persistTodo(cache->item, todo);
+        return;
+    }
+    if (source == TaskLogic::KanbanSource::Column) {
+        TaskCalendar::setColumn(todo, columnKey);
+        persistTodo(cache->item, todo);
+        return;
+    }
+    if (m_kanbanWriteMode == QLatin1String("both")) {
+        TaskCalendar::setColumn(todo, columnKey);
+        persistTodo(cache->item, todo);
+    }
+}
+
+QVariantList TaskController::kanbanTaskIndicesForColumn(const QString &columnKey) const
+{
+    struct Row {
+        int index = 0;
+        int sort = 0;
+    };
+    QList<Row> rows;
+    const QDate today = QDate::currentDate();
+    const TaskLogic::FilterState filters = filterState();
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        const TaskEntry task = m_taskModel.taskAt(i);
+        if (TaskLogic::kanbanColumnKey(task, m_kanbanColumnSource, filters, today) != columnKey) {
+            continue;
+        }
+        rows.append({i, task.kanbanSortOrder});
+    }
+    std::sort(rows.begin(), rows.end(), [](const Row &left, const Row &right) {
+        if (left.sort != right.sort) {
+            return left.sort < right.sort;
+        }
+        return left.index < right.index;
+    });
+    QVariantList indices;
+    indices.reserve(rows.size());
+    for (const Row &row : rows) {
+        indices.append(row.index);
+    }
+    return indices;
+}
+
+QVariantMap TaskController::taskEntryToVariantMap(const TaskEntry &task) const
+{
+    QVariantMap map;
+    map.insert(QStringLiteral("itemId"), task.itemId);
+    map.insert(QStringLiteral("uid"), task.uid);
+    map.insert(QStringLiteral("parentUid"), task.parentUid);
+    map.insert(QStringLiteral("summary"), task.summary);
+    map.insert(QStringLiteral("description"), task.description);
+    map.insert(QStringLiteral("dueDate"), task.dueDate);
+    map.insert(QStringLiteral("startDate"), task.startDate);
+    map.insert(QStringLiteral("completed"), task.completed);
+    map.insert(QStringLiteral("categories"), task.categories);
+    map.insert(QStringLiteral("collectionId"), task.collectionId);
+    map.insert(QStringLiteral("collectionName"), task.collectionName);
+    map.insert(QStringLiteral("percentComplete"), task.percentComplete);
+    map.insert(QStringLiteral("priority"), task.priority);
+    map.insert(QStringLiteral("status"), task.status);
+    map.insert(QStringLiteral("secrecy"), task.secrecy);
+    map.insert(QStringLiteral("location"), task.location);
+    map.insert(QStringLiteral("recurring"), task.recurring);
+    map.insert(QStringLiteral("joinUrl"), task.joinUrl);
+    map.insert(QStringLiteral("syncing"), task.syncing);
+    return map;
+}
+
+QVariantList TaskController::kanbanTasksForColumn(const QString &columnKey) const
+{
+    QList<TaskEntry> tasks;
+    const QDate today = QDate::currentDate();
+    const TaskLogic::FilterState filters = filterState();
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        const TaskEntry task = m_taskModel.taskAt(i);
+        if (TaskLogic::kanbanColumnKey(task, m_kanbanColumnSource, filters, today) != columnKey) {
+            continue;
+        }
+        tasks.append(task);
+    }
+
+    if (m_sortMode == QLatin1String("custom")) {
+        const QString combo = m_currentView + QLatin1Char('|') + m_kanbanColumnSource;
+        const QVariantMap comboMap = m_kanbanManualOrder.value(combo).toMap();
+        QList<qint64> ids;
+        QHash<qint64, TaskEntry> byId;
+        ids.reserve(tasks.size());
+        for (const TaskEntry &task : tasks) {
+            ids.append(task.itemId);
+            byId.insert(task.itemId, task);
+        }
+        QList<qint64> manual;
+        const QVariantList stored = kanbanManualOrderForColumn(comboMap, m_kanbanColumnSource, columnKey);
+        for (const QVariant &v : stored) {
+            manual.append(v.toLongLong());
+        }
+        ids = TaskLogic::applyManualKanbanOrder(ids, manual);
+        QVariantList out;
+        out.reserve(ids.size());
+        for (qint64 id : ids) {
+            out.append(taskEntryToVariantMap(byId.value(id)));
+        }
+        return out;
+    }
+
+    const QString sortMode = m_sortMode;
+    std::sort(tasks.begin(), tasks.end(), [&](const TaskEntry &left, const TaskEntry &right) {
+        const int cmp = TaskLogic::compareTasks(left, right, sortMode);
+        if (cmp != 0) {
+            return cmp < 0;
+        }
+        return left.itemId < right.itemId;
+    });
+    QVariantList out;
+    out.reserve(tasks.size());
+    for (const TaskEntry &task : tasks) {
+        out.append(taskEntryToVariantMap(task));
+    }
+    return out;
+}
+
+QVariantMap TaskController::taskRowSnapshot(int row) const
+{
+    if (row < 0 || row >= m_taskModel.count()) {
+        return {};
+    }
+    return taskEntryToVariantMap(m_taskModel.taskAt(row));
+}
+
+void TaskController::reorderKanbanCard(qint64 itemId, const QString &columnKey, int targetIndex)
+{
+    QList<qint64> ids;
+    const QDate today = QDate::currentDate();
+    const TaskLogic::FilterState filters = filterState();
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        const TaskEntry task = m_taskModel.taskAt(i);
+        if (task.itemId == itemId) {
+            continue; // may still sit in the old column in the model until rebuild
+        }
+        if (TaskLogic::kanbanColumnKey(task, m_kanbanColumnSource, filters, today) == columnKey) {
+            ids.append(task.itemId);
+        }
+    }
+    // targetIndex = insert position in the list *without* the dragged card.
+    const int insertAt = qBound(0, targetIndex, ids.size());
+    QList<qint64> next = ids;
+    next.insert(insertAt, itemId);
+    if (next == ids && ids.contains(itemId)) {
+        return;
+    }
+    // Also no-op when the only change would re-append the same singleton order.
+    if (ids.size() == next.size() - 1) {
+        // always inserting; compare against previous stored order for this column
+        const QString combo = m_currentView + QLatin1Char('|') + m_kanbanColumnSource;
+        const QVariantList prevStored = kanbanManualOrderForColumn(
+                m_kanbanManualOrder.value(combo).toMap(), m_kanbanColumnSource, columnKey);
+        QList<qint64> prevIds;
+        for (const QVariant &v : prevStored) {
+            prevIds.append(v.toLongLong());
+        }
+        if (prevIds == next) {
+            return;
+        }
+    }
+
+    if (!m_applyingUndo && !m_batchUndo) {
+        TaskLogic::UndoRecord record;
+        record.kind = TaskLogic::UndoRecord::Kind::KanbanLayout;
+        record.restoreLayout = true;
+        record.kanbanManualOrderJson = m_kanbanManualOrderJson;
+        record.sortMode = m_sortMode;
+        pushUndo(record);
+    }
+
+    const QString combo = m_currentView + QLatin1Char('|') + m_kanbanColumnSource;
+    QVariantMap root = m_kanbanManualOrder;
+    QVariantMap comboMap = root.value(combo).toMap();
+    const QString orderKey = kanbanManualOrderColumnKey(m_kanbanColumnSource, columnKey);
+
+    // Drop the id from every other column's stored order so it cannot snap back.
+    for (auto it = comboMap.begin(); it != comboMap.end(); ++it) {
+        if (it.key() == orderKey) {
+            continue;
+        }
+        QVariantList other = it.value().toList();
+        QVariantList cleaned;
+        cleaned.reserve(other.size());
+        for (const QVariant &v : other) {
+            if (v.toLongLong() != itemId) {
+                cleaned.append(v);
+            }
+        }
+        it.value() = cleaned;
+    }
+
+    QVariantList stored;
+    stored.reserve(next.size());
+    for (qint64 id : next) {
+        stored.append(id);
+    }
+    comboMap.insert(orderKey, stored);
+    root.insert(combo, comboMap);
+
+    const QByteArray encoded = QJsonDocument::fromVariant(root).toJson(QJsonDocument::Compact);
+    setKanbanManualOrderJson(QString::fromUtf8(encoded));
+    if (m_sortMode != QLatin1String("custom")) {
+        setSortMode(QStringLiteral("custom"));
+    }
+}
+
+void TaskController::finishKanbanDrop(qint64 itemId, const QString &columnKey, int targetGap,
+                                       const QString &sourceColumnKey, int sourceIndex)
+{
+    if (itemId < 0 || columnKey.isEmpty()) {
+        return;
+    }
+
+    int targetIndex = targetGap;
+    if (targetIndex < 0) {
+        const QVariantList tasks = kanbanTasksForColumn(columnKey);
+        targetIndex = tasks.size();
+    }
+
+    const bool sameColumn = sourceColumnKey == columnKey;
+    // Gap indices include the dragged card's old slot. After removing it, gaps below
+    // the source shift down by one — same as "drop on self / immediately below".
+    if (sameColumn && (targetIndex == sourceIndex || targetIndex == sourceIndex + 1)) {
+        return;
+    }
+
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache || !cache->todo) {
+        return;
+    }
+
+    TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+    record.restoreLayout = true;
+    record.kanbanManualOrderJson = m_kanbanManualOrderJson;
+    record.sortMode = m_sortMode;
+
+    // Insert index in the destination list *without* the dragged card.
+    int insertAt = targetIndex;
+    if (sameColumn && sourceIndex >= 0 && sourceIndex < targetIndex) {
+        --insertAt;
+    }
+    insertAt = qMax(0, insertAt);
+
+    m_batchUndo = true;
+    moveTaskToKanbanColumn(itemId, columnKey);
+    reorderKanbanCard(itemId, columnKey, insertAt);
+    m_batchUndo = false;
+
+    pushUndo(record);
+}
+
+QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
+{
+    QList<TaskEntry> tasks;
+    tasks.reserve(m_taskModel.count());
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        tasks.append(m_taskModel.taskAt(i));
+    }
+    return TaskLogic::buildSwimlaneMatrix(tasks, m_swimlaneLaneAxis, m_swimlaneTimeBucket, QDate::currentDate());
+}
+
+QVariantMap TaskController::planMatrixGridForVisibleTasks() const
+{
+    QList<TaskEntry> tasks;
+    tasks.reserve(m_taskModel.count());
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        tasks.append(m_taskModel.taskAt(i));
+    }
+    return TaskLogic::buildPlanMatrixGrid(tasks, QDate::currentDate());
+}
+
+QStringList TaskController::busyDayStripForVisibleTasks() const
+{
+    QList<TaskEntry> tasks;
+    tasks.reserve(m_taskModel.count());
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        tasks.append(m_taskModel.taskAt(i));
+    }
+    return TaskLogic::busyDayKeys(tasks, QDate::currentDate());
+}
+
+QString TaskController::swimlaneLaneLabelForKey(const QString &key) const
+{
+    if (m_swimlaneLaneAxis == QLatin1String("project")) {
+        if (key == QLatin1String("inbox")) {
+            return tr("Inbox");
+        }
+        const qint64 id = key.toLongLong();
+        if (id > 0) {
+            return m_collectionNames.value(id, key);
+        }
+    }
+    return TaskLogic::swimlaneLaneLabel(key, m_swimlaneLaneAxis);
+}
+
+QString TaskController::swimlaneTimeLabelForKey(const QString &key) const
+{
+    return TaskLogic::swimlaneTimeLabel(key, m_swimlaneTimeBucket);
+}
+
+void TaskController::setPlanPreviewFilter(qint64 collectionId, const QString &weekKey)
+{
+    m_planPreviewProject = collectionId >= 0 ? QString::number(collectionId) : QStringLiteral("inbox");
+    m_planPreviewWeek = weekKey;
+    scheduleRebuild();
+}
+
+void TaskController::clearPlanPreviewFilter()
+{
+    if (m_planPreviewWeek.isEmpty()) {
+        return;
+    }
+    m_planPreviewWeek.clear();
+    m_planPreviewProject.clear();
+    scheduleRebuild();
+}
+
+QVariantMap TaskController::heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const
+{
+    QList<TaskEntry> tasks;
+    tasks.reserve(m_taskModel.count());
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        tasks.append(m_taskModel.taskAt(i));
+    }
+    return TaskLogic::heatmapCounts(tasks, mode, monthStart);
+}
+
+QVariantMap TaskController::planMatrixForVisibleTasks() const
+{
+    QList<TaskEntry> tasks;
+    tasks.reserve(m_taskModel.count());
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        tasks.append(m_taskModel.taskAt(i));
+    }
+    return TaskLogic::planMatrixCounts(tasks, QDate::currentDate());
+}
+
+QVariantList TaskController::agendaEventsForDay(const QDate &day) const
+{
+    QVariantList result;
+    if (!day.isValid()) {
+        return result;
+    }
+    const QDateTime dayStart(day, QTime(0, 0));
+    const QDateTime dayEnd(day.addDays(1), QTime(0, 0));
+    for (const TaskCalendar::BusyInterval &interval : m_busyIntervals) {
+        if (interval.end <= dayStart || interval.start >= dayEnd) {
+            continue;
+        }
+        QVariantMap row;
+        row.insert(QStringLiteral("start"), interval.start);
+        row.insert(QStringLiteral("end"), interval.end);
+        result.append(row);
+    }
+    return result;
+}
+
+void TaskController::bulkCompleteTasks(const QVariantList &itemIds, bool completed)
+{
+    for (const QVariant &id : itemIds) {
+        setTaskCompleted(id.toLongLong(), completed);
+    }
+}
+
+void TaskController::bulkDeleteTasks(const QVariantList &itemIds)
+{
+    for (const QVariant &id : itemIds) {
+        deleteTask(id.toLongLong());
+    }
+    clearTaskSelection();
+}
+
+void TaskController::bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId)
+{
+    for (const QVariant &id : itemIds) {
+        moveTaskToCollection(id.toLongLong(), collectionId);
+    }
+}
+
+void TaskController::bulkAddLabel(const QVariantList &itemIds, const QString &label)
+{
+    for (const QVariant &id : itemIds) {
+        addTaskCategory(id.toLongLong(), label);
+    }
+}
+
+void TaskController::bulkRemoveLabel(const QVariantList &itemIds, const QString &label)
+{
+    for (const QVariant &id : itemIds) {
+        CachedTask *cache = prepareEdit(id.toLongLong());
+        if (!cache || !cache->todo) {
+            continue;
+        }
+        QStringList cats = TaskLogic::removeLabel(cache->todo->categories(), label);
+        cache->todo->setCategories(cats);
+        persistTodo(cache->item, cache->todo);
+    }
+}
+
+void TaskController::bulkSetPriority(const QVariantList &itemIds, int priority)
+{
+    for (const QVariant &id : itemIds) {
+        setTaskPriority(id.toLongLong(), priority);
+    }
+}
+
+void TaskController::bulkRescheduleTasks(const QVariantList &itemIds, const QString &preset)
+{
+    for (const QVariant &id : itemIds) {
+        rescheduleTask(id.toLongLong(), preset);
+    }
+}
+
+QString TaskController::bulkExportUids(const QVariantList &itemIds) const
+{
+    QStringList uids;
+    for (const QVariant &id : itemIds) {
+        const int row = m_taskModel.rowForItemId(id.toLongLong());
+        if (row < 0) {
+            continue;
+        }
+        const QString uid = m_taskModel.uidAt(row);
+        if (!uid.isEmpty()) {
+            uids.append(uid);
+        }
+    }
+    return uids.join(QLatin1Char('\n'));
+}
+
+void TaskController::reloadTask(qint64 itemId)
+{
+    const Akonadi::Item item = itemById(itemId);
+    if (!item.isValid()) {
+        return;
+    }
+    auto *job = new Akonadi::ItemFetchJob(item, this);
+    job->fetchScope().fetchFullPayload();
+    connect(job, &Akonadi::ItemFetchJob::result, this, [this, itemId](KJob *fetchJob) {
+        auto *itemJob = qobject_cast<Akonadi::ItemFetchJob *>(fetchJob);
+        if (!itemJob || itemJob->error() || itemJob->items().isEmpty()) {
+            return;
+        }
+        upsertTask(itemJob->items().constFirst());
+        scheduleRebuildAll();
+        if (m_conflictItemId == itemId) {
+            m_conflictItemId = -1;
+            Q_EMIT conflictItemIdChanged();
+        }
+    });
+}
+
+void TaskController::dismissConflict()
+{
+    if (m_conflictItemId < 0) {
+        return;
+    }
+    m_conflictItemId = -1;
+    Q_EMIT conflictItemIdChanged();
+}
+
+QVariantList TaskController::smartViewsList() const
+{
+    QVariantList result;
+    for (const TaskLogic::SmartViewDef &def : m_smartViews) {
+        QVariantMap row;
+        row.insert(QStringLiteral("id"), def.id);
+        row.insert(QStringLiteral("name"), def.name);
+        row.insert(QStringLiteral("icon"), def.icon);
+        row.insert(QStringLiteral("mode"), def.defaultMode);
+        row.insert(QStringLiteral("sort"), def.sortOverride);
+        row.insert(QStringLiteral("viewId"), QStringLiteral("smart:") + def.id);
+        result.append(row);
+    }
+    return result;
 }
 
 void TaskController::setCatchUpEnabled(bool enabled)
@@ -962,20 +2120,25 @@ TaskController::CachedTask *TaskController::prepareEdit(qint64 itemId)
     }
     auto it = s_tasks.find(itemId);
     if (it == s_tasks.end() || !it->todo) {
+        logAkonadi(QStringLiteral("prepareEdit: no cache for itemId=%1 cacheHit=%2 hasTodo=%3")
+                       .arg(itemId)
+                       .arg(it != s_tasks.end())
+                       .arg(it != s_tasks.end() && bool(it->todo)));
         return nullptr;
     }
     if (!it->revertTodo) {
-        it->revertTodo = KCalendarCore::Todo::Ptr(static_cast<KCalendarCore::Todo *>(it->todo->clone()));
+        it->revertTodo = cloneTodo(it->todo);
         it->revertCollectionId = it->item.parentCollection().id();
     }
     return &*it;
 }
 
-void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &errorString)
+void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &errorString, const Akonadi::Item &ackedItem)
 {
     auto it = s_tasks.find(itemId);
     if (it == s_tasks.end()) {
         if (ok == SyncResult::Error && !errorString.isEmpty()) {
+            logAkonadi(QStringLiteral("finishSync: missing cache itemId=%1 error=%2").arg(itemId).arg(errorString));
             setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
@@ -984,15 +2147,27 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
 
     it->inflight = qMax(0, it->inflight - 1);
     if (it->inflight > 0) {
+        logAkonadi(QStringLiteral("finishSync: still inflight itemId=%1 remaining=%2 ok=%3 error=%4")
+                       .arg(itemId)
+                       .arg(it->inflight)
+                       .arg(ok == SyncResult::Ok)
+                       .arg(errorString));
         if (ok == SyncResult::Error && !errorString.isEmpty()) {
             setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
+        updateSyncingCount();
         return;
     }
 
     if (ok == SyncResult::Error) {
-        // Roll back optimistic edit to the snapshot from prepareEdit().
+        logAkonadi(QStringLiteral("finishSync: ROLLBACK itemId=%1 rev=%2 collection=%3 queued=%4 error=%5")
+                       .arg(itemId)
+                       .arg(it->item.revision())
+                       .arg(it->item.parentCollection().id())
+                       .arg(it->persistQueued)
+                       .arg(errorString));
+        // Roll back optimistic edit to the last acknowledged snapshot.
         if (it->revertTodo) {
             it->todo = it->revertTodo;
             it->item.setPayload<KCalendarCore::Todo::Ptr>(it->todo);
@@ -1001,10 +2176,47 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
             }
         }
         it->pendingDelete = false;
+        it->persistQueued = false;
+        it->persistQueuedMoveId = -1;
+        it->submittedTodo.clear();
         if (!errorString.isEmpty()) {
             setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
+        if (errorString.contains(QLatin1String("conflict"), Qt::CaseInsensitive)
+            || errorString.contains(QLatin1String("Concurrent"), Qt::CaseInsensitive)) {
+            m_conflictItemId = itemId;
+            Q_EMIT conflictItemIdChanged();
+        }
+        it->revertTodo.clear();
+        it->revertCollectionId = -1;
+        it->syncing = false;
+        it->inflight = 0;
+        scheduleRebuildAll();
+        return;
+    }
+
+    if (ackedItem.revision() > 0) {
+        it->item.setRevision(ackedItem.revision());
+    }
+    if (ackedItem.parentCollection().id() > 0) {
+        it->item.setParentCollection(ackedItem.parentCollection());
+    }
+    if (it->submittedTodo) {
+        it->revertTodo = it->submittedTodo;
+        it->revertCollectionId = it->item.parentCollection().id();
+    }
+    it->submittedTodo.clear();
+
+    if (it->persistQueued) {
+        const qint64 moveId = it->persistQueuedMoveId;
+        logAkonadi(QStringLiteral("finishSync: flush queued persist itemId=%1 moveTo=%2")
+                       .arg(itemId)
+                       .arg(moveId));
+        it->persistQueued = false;
+        it->persistQueuedMoveId = -1;
+        persistTodo(it->item, it->todo, moveId);
+        return;
     }
 
     it->revertTodo.clear();
@@ -1016,6 +2228,13 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
 
 void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
 {
+    logAkonadi(QStringLiteral("storeFinished kind=%1 clientId=%2 ok=%3 collection=%4 rev=%5 error=%6")
+                   .arg(storeKindName(result.kind))
+                   .arg(result.clientId)
+                   .arg(result.ok)
+                   .arg(result.collectionId)
+                   .arg(result.item.isValid() ? result.item.revision() : -1)
+                   .arg(result.errorString));
     switch (result.kind) {
     case AbstractTaskStore::Kind::Create:
         s_tasks.remove(result.clientId);
@@ -1048,7 +2267,8 @@ void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
     case AbstractTaskStore::Kind::Move:
         finishSync(result.clientId,
                    result.ok ? SyncResult::Ok : SyncResult::Error,
-                   result.errorString);
+                   result.errorString,
+                   result.item);
         return;
     }
 }
@@ -1057,26 +2277,71 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
 {
     const qint64 itemId = item.id();
     if (itemId < 0 || !todo) {
+        logAkonadi(QStringLiteral("persistTodo: skip invalid itemId=%1 hasTodo=%2").arg(itemId).arg(bool(todo)));
         return;
     }
 
     auto it = s_tasks.find(itemId);
-    if (it != s_tasks.end()) {
-        it->todo = todo;
-        it->item.setPayload<KCalendarCore::Todo::Ptr>(todo);
-        it->syncing = true;
-        it->inflight += 1;
+    if (it == s_tasks.end()) {
+        logAkonadi(QStringLiteral("persistTodo: skip, not in cache itemId=%1 summary=%2")
+                       .arg(itemId)
+                       .arg(todo->summary()));
+        return;
     }
+
+    it->todo = todo;
+    it->item.setPayload<KCalendarCore::Todo::Ptr>(todo);
+    it->syncing = true;
     scheduleRebuildAll();
 
-    Akonadi::Item modifiedItem = item;
-    modifiedItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
+    if (it->inflight > 0) {
+        it->persistQueued = true;
+        it->persistQueuedMoveId = moveToCollectionId;
+        logAkonadi(QStringLiteral("persistTodo: QUEUE while inflight itemId=%1 inflight=%2 rev=%3 collection=%4 akonadi=%5 moveTo=%6 summary=%7")
+                       .arg(itemId)
+                       .arg(it->inflight)
+                       .arg(it->item.revision())
+                       .arg(it->item.parentCollection().id())
+                       .arg(m_akonadiAvailable)
+                       .arg(moveToCollectionId)
+                       .arg(todo->summary()));
+        return;
+    }
+
+    if (!m_akonadiAvailable) {
+        logAkonadi(QStringLiteral("persistTodo: SUBMIT while Akonadi offline itemId=%1 rev=%2 collection=%3 summary=%4")
+                       .arg(itemId)
+                       .arg(it->item.revision())
+                       .arg(it->item.parentCollection().id())
+                       .arg(todo->summary()));
+    }
+
+    submitModify(*it, moveToCollectionId);
+}
+
+void TaskController::submitModify(CachedTask &cached, qint64 moveToCollectionId)
+{
+    KCalendarCore::Todo::Ptr snapshot = cloneTodo(cached.todo);
+    cached.submittedTodo = snapshot;
+    cached.syncing = true;
+    cached.inflight = 1;
+    cached.persistQueued = false;
+
+    Akonadi::Item modifiedItem = cached.item;
+    modifiedItem.setPayload<KCalendarCore::Todo::Ptr>(snapshot);
 
     AbstractTaskStore::Request req;
     req.kind = AbstractTaskStore::Kind::Modify;
-    req.clientId = itemId;
+    req.clientId = cached.item.id();
     req.item = modifiedItem;
     req.moveAfterModifyId = moveToCollectionId;
+    logAkonadi(QStringLiteral("submitModify itemId=%1 rev=%2 collection=%3 moveTo=%4 akonadi=%5 summary=%6")
+                   .arg(cached.item.id())
+                   .arg(modifiedItem.revision())
+                   .arg(modifiedItem.parentCollection().id())
+                   .arg(moveToCollectionId)
+                   .arg(m_akonadiAvailable)
+                   .arg(snapshot ? snapshot->summary() : QString()));
     m_store->submit(req);
 }
 
@@ -1147,6 +2412,10 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.treeHidden = false;
     entry.reminderMinutes = TaskCalendar::reminderMinutesFromTodo(todo);
     entry.section = sectionFromTodo(todo);
+    entry.column = TaskCalendar::columnFromTodo(todo);
+    entry.attendees = TaskCalendar::attendeesFromTodo(todo);
+    entry.kanbanSortOrder = TaskCalendar::kanbanSortOrderFromTodo(todo);
+    entry.geoUrl = TaskCalendar::geoMapUrlFromTodo(todo);
     entry.syncing = cached.syncing;
     entry.pendingDelete = cached.pendingDelete;
     return entry;
@@ -1165,6 +2434,10 @@ void TaskController::updateTask(qint64 itemId,
         setErrorMessage(tr("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
+    }
+
+    if (!m_applyingUndo) {
+        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
@@ -1193,6 +2466,10 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
     const Akonadi::Item originalItem = cache->item;
+
+    if (!m_applyingUndo) {
+        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    }
 
     if (fields.contains(QStringLiteral("summary"))) {
         todo->setSummary(fields.value(QStringLiteral("summary")).toString().trimmed());
@@ -1292,6 +2569,10 @@ void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)
         setErrorMessage(tr("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
+    }
+
+    if (!m_applyingUndo) {
+        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
 
     if (!applyParentUid(cache, parentUid, cache->item.parentCollection().id())) {
@@ -1441,11 +2722,39 @@ void TaskController::addTaskCategory(qint64 itemId, const QString &category)
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
-    QStringList categories = todo->categories();
-    if (categories.contains(trimmed)) {
+    if (!m_applyingUndo) {
+        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    }
+    const QStringList categories = TaskLogic::addLabel(todo->categories(), trimmed);
+    if (categories == todo->categories()) {
         return;
     }
-    categories.append(trimmed);
+    todo->setCategories(categories);
+    persistTodo(cache->item, todo);
+}
+
+void TaskController::removeTaskCategory(qint64 itemId, const QString &category)
+{
+    const QString trimmed = category.trimmed();
+    if (trimmed.isEmpty()) {
+        return;
+    }
+
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache) {
+        setErrorMessage(tr("Task not found."));
+        Q_EMIT error(m_errorMessage);
+        return;
+    }
+
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+    const QStringList categories = TaskLogic::removeLabel(todo->categories(), trimmed);
+    if (categories == todo->categories()) {
+        return;
+    }
+    if (!m_applyingUndo) {
+        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    }
     todo->setCategories(categories);
     persistTodo(cache->item, todo);
 }
@@ -1463,6 +2772,9 @@ void TaskController::setTaskPriority(qint64 itemId, int priority)
     KCalendarCore::Todo::Ptr todo = cache->todo;
     if (TaskLogic::priorityBand(todo->priority()) == normalized) {
         return;
+    }
+    if (!m_applyingUndo) {
+        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
     todo->setPriority(normalized);
     persistTodo(cache->item, todo);
@@ -1587,6 +2899,16 @@ void TaskController::undo()
     Q_EMIT undoChanged();
     m_applyingUndo = true;
 
+    if (record.restoreLayout) {
+        setKanbanManualOrderJson(record.kanbanManualOrderJson);
+        setSortMode(record.sortMode);
+    }
+
+    if (record.kind == TaskLogic::UndoRecord::Kind::KanbanLayout) {
+        m_applyingUndo = false;
+        return;
+    }
+
     if (record.kind == TaskLogic::UndoRecord::Kind::Delete) {
         auto it = s_tasks.find(record.itemId);
         if (it != s_tasks.end() && it->pendingDelete) {
@@ -1616,6 +2938,19 @@ void TaskController::undo()
         return;
     }
 
+    if (record.kind == TaskLogic::UndoRecord::Kind::Edit) {
+        if (record.collectionId > 0) {
+            CachedTask *existing = prepareEdit(record.itemId);
+            if (existing && existing->item.parentCollection().id() != record.collectionId) {
+                moveTaskToCollection(record.itemId, record.collectionId);
+            }
+        }
+        applyTaskUndo(record);
+        persistTodo(cache->item, cache->todo);
+        m_applyingUndo = false;
+        return;
+    }
+
     KCalendarCore::Todo::Ptr todo = cache->todo;
     if (record.kind == TaskLogic::UndoRecord::Kind::Complete) {
         todo->setCompleted(record.completed);
@@ -1638,6 +2973,38 @@ void TaskController::undo()
         persistTodo(cache->item, todo);
     }
     m_applyingUndo = false;
+}
+
+void TaskController::applyTaskUndo(const TaskLogic::UndoRecord &record)
+{
+    CachedTask *cache = prepareEdit(record.itemId);
+    if (!cache || !cache->todo) {
+        return;
+    }
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+    todo->setSummary(record.summary);
+    todo->setDescription(record.description);
+    todo->setLocation(record.location);
+    todo->setPriority(record.priority);
+    todo->setPercentComplete(record.percentComplete);
+    todo->setCategories(record.categories);
+    todo->setRelatedTo(record.parentUid);
+    todo->setCompleted(record.completed);
+    todo->setStatus(static_cast<KCalendarCore::Incidence::Status>(record.status));
+    todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(record.secrecy));
+    TaskCalendar::setSection(todo, record.section);
+    TaskCalendar::setColumn(todo, record.column);
+    if (record.hadDue) {
+        todo->setDtDue(record.due, true);
+        todo->setAllDay(record.allDay);
+    } else {
+        todo->setDtDue(QDateTime());
+    }
+    if (record.start.isValid()) {
+        todo->setDtStart(record.start);
+    } else {
+        todo->setDtStart(QDateTime());
+    }
 }
 
 void TaskController::toggleTreeCollapsed(const QString &uid)
@@ -1675,16 +3042,50 @@ TaskLogic::UndoRecord TaskController::snapshotUndo(TaskLogic::UndoRecord::Kind k
     record.parentUid = cache.todo->relatedTo();
     record.collectionId = cache.item.parentCollection().id();
     record.section = TaskCalendar::sectionFromTodo(cache.todo);
+    record.status = static_cast<int>(cache.todo->status());
+    record.secrecy = static_cast<int>(cache.todo->secrecy());
+    record.column = TaskCalendar::columnFromTodo(cache.todo);
     return record;
 }
 
 void TaskController::pushUndo(TaskLogic::UndoRecord record)
 {
-    if (m_applyingUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
+    if (m_applyingUndo || m_batchUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
         return;
     }
     m_undo.push(record);
     Q_EMIT undoChanged();
+}
+
+QString TaskController::undoLabel() const
+{
+    if (!m_undo.canUndo()) {
+        return tr("Undo");
+    }
+    const TaskLogic::UndoRecord rec = m_undo.peek();
+    const QString title = rec.summary.trimmed().isEmpty() ? tr("(Untitled)") : rec.summary.trimmed();
+    switch (rec.kind) {
+    case TaskLogic::UndoRecord::Kind::Complete:
+        return rec.completed ? tr("Undo marking “%1” incomplete").arg(title)
+                             : tr("Undo complete of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::Reschedule:
+        return tr("Undo reschedule of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::Move:
+        return tr("Undo move of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::Delete:
+        return tr("Undo delete of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::Edit:
+        if (rec.restoreLayout) {
+            return tr("Undo Kanban change of “%1”").arg(title);
+        }
+        return tr("Undo edit of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::KanbanLayout:
+        return title == tr("(Untitled)") ? tr("Undo Kanban order")
+                                         : tr("Undo Kanban order of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::None:
+        break;
+    }
+    return tr("Undo");
 }
 
 void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
@@ -1741,7 +3142,7 @@ void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
 
 void TaskController::logDebug(const QString &message)
 {
-    qCDebug(KURRENT_AKONADI) << message;
+    KurrentLogging::verbose(message);
 }
 
 void TaskController::updateDebugInfo(int builtTasks, int filteredTasks, int filteredOutCompleted, int filteredOutView, int filteredOutSearch)
@@ -1854,6 +3255,13 @@ void TaskController::ensureServerWatch()
     m_serverWatchConnected = true;
     connect(Akonadi::ServerManager::self(), &Akonadi::ServerManager::stateChanged,
             this, [this](Akonadi::ServerManager::State state) {
+                logAkonadi(QStringLiteral("ServerManager stateChanged=%1 monitor=%2 akonadiAvailable=%3")
+                               .arg(serverStateName(state))
+                               .arg(m_monitor != nullptr)
+                               .arg(m_akonadiAvailable));
+                if (state != Akonadi::ServerManager::Running && m_monitor) {
+                    logAkonadi(QStringLiteral("ServerManager: not Running while monitor is attached — ItemModifyJob may stall or fail"));
+                }
                 if (state == Akonadi::ServerManager::Running && !m_monitor) {
                     refresh();
                 }
@@ -1883,9 +3291,10 @@ bool TaskController::initializeAkonadi()
         m_akonadiAvailable = false;
         setLoading(comingUp);
         setErrorMessage(QString());
-        logDebug(QStringLiteral("initializeAkonadi: waiting for Akonadi (state=%1 comingUp=%2)")
-                     .arg(static_cast<int>(state))
-                     .arg(comingUp));
+        logAkonadi(QStringLiteral("initializeAkonadi: waiting for Akonadi (state=%1 comingUp=%2 startOk=%3)")
+                     .arg(serverStateName(state))
+                     .arg(comingUp)
+                     .arg(startOk));
         Q_EMIT akonadiAvailableChanged();
         updateEmptyKind();
         scheduleAkonadiRetry();
@@ -1904,7 +3313,7 @@ bool TaskController::attachAkonadiMonitor()
     m_akonadiRetryTimer.stop();
     m_akonadiAvailable = true;
     setErrorMessage(QString());
-    logDebug(QStringLiteral("initializeAkonadi: Akonadi running, creating monitor"));
+    logAkonadi(QStringLiteral("initializeAkonadi: Akonadi running, creating monitor"));
     Q_EMIT akonadiAvailableChanged();
     updateEmptyKind();
 
@@ -2122,6 +3531,7 @@ void TaskController::loadTasks()
 
     setLoading(true);
     m_pendingFetchJobs = collections.size();
+    updateSyncingCount();
 
     for (const Akonadi::Collection &collection : collections) {
         const qint64 collectionId = collection.id();
@@ -2136,6 +3546,7 @@ void TaskController::loadTasks()
 void TaskController::onItemsFetched(KJob *job, qint64 collectionId)
 {
     --m_pendingFetchJobs;
+    updateSyncingCount();
 
     if (auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(job)) {
         const int itemCount = fetchJob->items().size();
@@ -2231,8 +3642,15 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
     }
 
     const auto existing = s_tasks.find(storedItem.id());
-    if (existing != s_tasks.end() && existing->syncing) {
-        return;
+    if (existing != s_tasks.end()) {
+        if (existing->syncing || existing->inflight > 0 || existing->pendingDelete || existing->persistQueued) {
+            return;
+        }
+        const int incomingRevision = item.revision();
+        const int cachedRevision = existing->item.revision();
+        if (incomingRevision > 0 && cachedRevision > 0 && incomingRevision < cachedRevision) {
+            return;
+        }
     }
 
     if (!todo->uid().isEmpty()) {
@@ -2249,7 +3667,7 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
     ++m_lastFetchAccepted;
     CachedTask cached;
     cached.item = storedItem;
-    cached.todo = todo;
+    cached.todo = cloneTodo(todo);
     s_tasks.insert(storedItem.id(), cached);
     if (m_pendingFetchJobs == 0) {
         scheduleRebuild();
@@ -2291,7 +3709,123 @@ bool TaskController::isCollectionEnabled(qint64 collectionId) const
     return m_collectionModel.enabledIds().contains(collectionId);
 }
 
-void TaskController::rebuildTaskList()
+void TaskController::setListReorganizing(bool reorganizing)
+{
+    if (m_listReorganizing == reorganizing) {
+        return;
+    }
+    m_listReorganizing = reorganizing;
+    Q_EMIT listReorganizingChanged();
+}
+
+void TaskController::maybeShowReorganizing()
+{
+    setListReorganizing(true);
+}
+
+void TaskController::initRebuildPerfDefaults()
+{
+    const int cores = qMax(1, QThread::idealThreadCount());
+    m_rebuildBaseMs = 12;
+    m_rebuildMsPerTask = 0.14 / qMax(1.0, cores / 2.0);
+    m_viewColdLoadMs = 90;
+}
+
+void TaskController::loadRebuildPerfProfile()
+{
+    initRebuildPerfDefaults();
+    const QVariantMap settings = SharedSettings::instance()->values();
+    const QString json = settings.value(QStringLiteral("rebuildPerfProfile")).toString().trimmed();
+    if (json.isEmpty()) {
+        Q_EMIT rebuildPerfChanged();
+        return;
+    }
+    QJsonParseError err;
+    const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8(), &err);
+    if (err.error != QJsonParseError::NoError || !doc.isObject()) {
+        Q_EMIT rebuildPerfChanged();
+        return;
+    }
+    const QJsonObject obj = doc.object();
+    if (obj.contains(QStringLiteral("msPerTask"))) {
+        m_rebuildMsPerTask = qMax(0.01, obj.value(QStringLiteral("msPerTask")).toDouble(0.08));
+    }
+    if (obj.contains(QStringLiteral("baseMs"))) {
+        m_rebuildBaseMs = qMax(0, obj.value(QStringLiteral("baseMs")).toInt(12));
+    }
+    if (obj.contains(QStringLiteral("viewColdLoadMs"))) {
+        m_viewColdLoadMs = qMax(0, obj.value(QStringLiteral("viewColdLoadMs")).toInt(90));
+    }
+    if (obj.contains(QStringLiteral("updatedAt"))) {
+        m_rebuildPerfUpdatedAt = obj.value(QStringLiteral("updatedAt")).toVariant().toLongLong();
+    }
+    Q_EMIT rebuildPerfChanged();
+}
+
+void TaskController::persistRebuildPerfProfile()
+{
+    QJsonObject obj;
+    obj.insert(QStringLiteral("msPerTask"), m_rebuildMsPerTask);
+    obj.insert(QStringLiteral("baseMs"), m_rebuildBaseMs);
+    obj.insert(QStringLiteral("viewColdLoadMs"), m_viewColdLoadMs);
+    obj.insert(QStringLiteral("updatedAt"), m_rebuildPerfUpdatedAt);
+    const QByteArray encoded = QJsonDocument(obj).toJson(QJsonDocument::Compact);
+    SharedSettings::instance()->storeString(QStringLiteral("rebuildPerfProfile"), QString::fromUtf8(encoded));
+}
+
+void TaskController::maybePersistRebuildPerfWeekly()
+{
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    constexpr qint64 kWeekMs = 7LL * 24 * 3600 * 1000;
+    if (m_rebuildPerfUpdatedAt > 0 && now - m_rebuildPerfUpdatedAt < kWeekMs) {
+        return;
+    }
+    if (m_rebuildSampleCount <= 0) {
+        if (m_rebuildPerfUpdatedAt <= 0) {
+            m_rebuildPerfUpdatedAt = now;
+            persistRebuildPerfProfile();
+        }
+        return;
+    }
+
+    const double measured = m_rebuildSampleSumPerTask / m_rebuildSampleCount;
+    if (m_rebuildPerfUpdatedAt > 0) {
+        m_rebuildMsPerTask = m_rebuildMsPerTask * 0.35 + measured * 0.65;
+    } else {
+        m_rebuildMsPerTask = measured;
+    }
+    m_rebuildSampleSumPerTask = 0.0;
+    m_rebuildSampleCount = 0;
+    m_rebuildPerfUpdatedAt = now;
+    persistRebuildPerfProfile();
+    Q_EMIT rebuildPerfChanged();
+}
+
+void TaskController::recordRebuildTiming(qint64 elapsedMs, int taskCount)
+{
+    if (elapsedMs <= 0) {
+        return;
+    }
+    const int n = qMax(1, taskCount);
+    const double perTask = qMax(0.0, static_cast<double>(elapsedMs - m_rebuildBaseMs) / n);
+    m_rebuildSampleSumPerTask += perTask;
+    ++m_rebuildSampleCount;
+    maybePersistRebuildPerfWeekly();
+}
+
+int TaskController::estimatedRebuildMs() const
+{
+    const int n = s_tasks.size();
+    return m_rebuildBaseMs + qRound(n * m_rebuildMsPerTask);
+}
+
+int TaskController::estimatedViewSwitchMs(bool coldLoader) const
+{
+    const int cold = coldLoader ? m_viewColdLoadMs : 0;
+    return qMax(cold, estimatedRebuildMs());
+}
+
+QList<TaskEntry> TaskController::snapshotAllTasks() const
 {
     QList<TaskEntry> allTasks;
     allTasks.reserve(s_tasks.size());
@@ -2301,53 +3835,159 @@ void TaskController::rebuildTaskList()
         }
         allTasks.append(makeTaskEntry(it.value(), 0, false));
     }
+    return allTasks;
+}
 
-    // Filter first (hierarchy-aware for search/sidebar), then flatten. Collapse is
-    // skipped while those filters are active so a matching child under a collapsed
-    // parent still appears with its ancestors.
+TaskLogic::ListGroupOrderContext TaskController::buildListGroupOrderContext() const
+{
+    TaskLogic::ListGroupOrderContext ctx;
+    const QVariantMap settings = SharedSettings::instance()->values();
+    const bool showEmpty = settings.value(QStringLiteral("showEmptyProjects")).toBool();
 
-    TaskLogic::FilterState filters;
-    filters.currentView = m_currentView;
-    filters.searchQuery = m_searchQuery;
-    filters.showCompleted = m_showCompleted;
-    filters.selectedCollectionId = m_selectedCollectionId;
-    filters.selectedLabel = m_selectedLabel;
-    filters.selectedPriority = m_selectedPriority;
-    filters.catchUpEnabled = m_catchUpEnabled;
-    filters.catchUpDays = m_catchUpDays;
-    filters.morningHour = m_morningHour;
-    filters.afternoonHour = m_afternoonHour;
-    filters.eveningHour = m_eveningHour;
-    filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
-    filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
+    QSet<qint64> hiddenProjects;
+    for (const QString &part : settings.value(QStringLiteral("hiddenProjects")).toString().split(QLatin1Char(','))) {
+        bool ok = false;
+        const qint64 id = part.trimmed().toLongLong(&ok);
+        if (ok) {
+            hiddenProjects.insert(id);
+        }
+    }
 
-    const bool hierarchyAware = m_currentView == QLatin1String("completed")
+    const QStringList hiddenLabelTokens =
+            TaskLogic::parseTokens(settings.value(QStringLiteral("hiddenLabels")).toString(),
+                                   QStringLiteral("||"));
+    const QSet<QString> hiddenLabels(hiddenLabelTokens.begin(), hiddenLabelTokens.end());
+
+    const QStringList hiddenLocationTokens =
+            TaskLogic::parseTokens(settings.value(QStringLiteral("hiddenLocations")).toString(),
+                                   QStringLiteral("||"));
+    const QSet<QString> hiddenLocations(hiddenLocationTokens.begin(), hiddenLocationTokens.end());
+
+    for (int row = 0; row < m_collectionModel.rowCount(); ++row) {
+        const qint64 collectionId = m_collectionModel.collectionIdAt(row);
+        if (hiddenProjects.contains(collectionId)) {
+            continue;
+        }
+        if (!showEmpty && m_collectionModel.taskCountAt(row) <= 0) {
+            continue;
+        }
+        ctx.projectKeys.append(QString::number(collectionId));
+    }
+
+    for (const QString &label : m_availableLabels) {
+        if (!hiddenLabels.contains(label)) {
+            ctx.labelKeys.append(label);
+        }
+    }
+
+    for (const QString &location : m_availableLocations) {
+        if (!hiddenLocations.contains(location)) {
+            ctx.locationKeys.append(location);
+        }
+    }
+
+    return ctx;
+}
+
+TaskLogic::TaskRebuildInput TaskController::buildRebuildInput(const QList<TaskEntry> &allTasks) const
+{
+    TaskLogic::TaskRebuildInput input;
+    input.allTasks = allTasks;
+    input.filters = filterState();
+    input.collapsedUids = m_collapsedUids;
+    input.sortMode = m_sortMode;
+    input.listGroupMode = m_listGroupMode;
+    input.listGroupOrder = buildListGroupOrderContext();
+    input.planPreviewWeek = m_planPreviewWeek;
+    input.planPreviewProject = m_planPreviewProject;
+    input.hierarchyAware = m_currentView == QLatin1String("completed")
             || !m_searchQuery.trimmed().isEmpty()
-            || m_selectedCollectionId >= 0
-            || !m_selectedLabel.isEmpty()
-            || m_selectedPriority >= 0;
+            || TaskLogic::hasSidebarFilters(input.filters);
+    return input;
+}
 
-    const TaskLogic::VisibleFilterResult filtered = TaskLogic::filterVisibleTasks(allTasks, filters, QDate::currentDate());
-    const QSet<QString> collapseForList = hierarchyAware ? QSet<QString>() : m_collapsedUids;
-    QList<TaskEntry> tasks = TaskLogic::flattenTree(filtered.tasks, m_sortMode, collapseForList);
-
-    // Sidebar/badge counts: default includes collapsed subtasks so collapsing does not
-    // change numbers. Optional: count only visible (non-collapsed / non-hidden) rows.
-    const QList<TaskEntry> flatForCounts = TaskLogic::flattenTree(allTasks, m_sortMode, m_collapsedUids);
-    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? flatForCounts : allTasks;
+void TaskController::applyRebuildOutput(const TaskLogic::TaskRebuildOutput &output)
+{
+    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? output.flatForCounts : output.allTasks;
     m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(countSource));
-    m_taskModel.setTasks(tasks);
+    m_taskModel.setTasks(output.tasks);
     updatePendingCount(countSource);
-    updateAvailableLabels(allTasks);
+    updateSyncingCount();
+    updateAvailableLabels(output.allTasks);
+    updateAvailableLocations(output.allTasks);
     updateCounts(countSource);
     publishSharedCache();
     updateEmptyKind();
 
-    updateDebugInfo(flatForCounts.size(),
-                    tasks.size(),
-                    filtered.filteredOutCompleted,
-                    filtered.filteredOutView,
-                    filtered.filteredOutSearch);
+    updateDebugInfo(output.flatForCounts.size(),
+                    output.tasks.size(),
+                    output.filtered.filteredOutCompleted,
+                    output.filtered.filteredOutView,
+                    output.filtered.filteredOutSearch);
+    updateKanbanLayout();
+}
+
+void TaskController::startAsyncRebuild(const TaskLogic::TaskRebuildInput &input)
+{
+    ++m_rebuildGeneration;
+    m_pendingRebuildGeneration = m_rebuildGeneration;
+    m_rebuildAgainPending = false;
+    m_lastRebuildTaskCount = input.allTasks.size();
+    m_rebuildTiming.start();
+    setListReorganizing(true);
+    const QDate today = QDate::currentDate();
+    m_rebuildWatcher.setFuture(QtConcurrent::run([input, today]() {
+        return TaskLogic::computeTaskRebuild(input, today);
+    }));
+}
+
+void TaskController::onRebuildFinished()
+{
+    if (m_rebuildWatcher.future().isCanceled()) {
+        if (m_rebuildAgainPending) {
+            m_rebuildAgainPending = false;
+            rebuildTaskList();
+            return;
+        }
+        setListReorganizing(false);
+        return;
+    }
+
+    const quint64 generation = m_pendingRebuildGeneration;
+    if (generation != m_rebuildGeneration) {
+        return;
+    }
+
+    applyRebuildOutput(m_rebuildWatcher.result());
+    recordRebuildTiming(m_rebuildTiming.elapsed(), m_lastRebuildTaskCount);
+
+    if (m_rebuildAgainPending) {
+        m_rebuildAgainPending = false;
+        rebuildTaskList();
+        return;
+    }
+    setListReorganizing(false);
+}
+
+void TaskController::rebuildTaskList()
+{
+    const QList<TaskEntry> allTasks = snapshotAllTasks();
+    const TaskLogic::TaskRebuildInput input = buildRebuildInput(allTasks);
+
+    if (m_rebuildWatcher.isRunning()) {
+        m_rebuildAgainPending = true;
+        ++m_rebuildGeneration;
+        setListReorganizing(true);
+        return;
+    }
+    startAsyncRebuild(input);
+}
+
+void TaskController::updateKanbanLayout()
+{
+    m_kanbanColumnKeys = kanbanColumnKeysForVisibleTasks();
+    ++m_kanbanRevision;
+    Q_EMIT kanbanLayoutChanged();
 }
 
 bool TaskController::wouldCreateParentCycle(qint64 itemId, const QString &parentUid) const
@@ -2373,11 +4013,20 @@ bool TaskController::taskMatchesView(const TaskEntry &task) const
 
 bool TaskController::taskMatchesFilters(const TaskEntry &task) const
 {
-    return TaskLogic::matchesFilters(task, m_selectedCollectionId, m_selectedLabel, m_selectedPriority);
+    return TaskLogic::matchesFilters(task, filterState());
 }
 
 bool TaskController::taskMatchesViewId(const TaskEntry &task, const QString &viewId) const
 {
+    if (viewId.startsWith(QLatin1String("smart:"))) {
+        const QString smartId = viewId.mid(6);
+        for (const TaskLogic::SmartViewDef &def : m_smartViews) {
+            if (def.id == smartId) {
+                return TaskLogic::matchesSmartView(task, def.rules, QDate::currentDate());
+            }
+        }
+        return false;
+    }
     return TaskLogic::matchesView(task, viewId, QDate::currentDate());
 }
 
@@ -2413,6 +4062,21 @@ void TaskController::updatePendingCount(const QList<TaskEntry> &tasks)
     Q_EMIT pendingCountChanged();
 }
 
+void TaskController::updateSyncingCount()
+{
+    int jobs = m_pendingFetchJobs;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (it->syncing || it->pendingDelete || it->inflight > 0) {
+            jobs += qMax(1, it->inflight);
+        }
+    }
+    if (m_syncingCount == jobs) {
+        return;
+    }
+    m_syncingCount = jobs;
+    Q_EMIT syncingCountChanged();
+}
+
 void TaskController::updateAvailableLabels(const QList<TaskEntry> &tasks)
 {
     const QStringList sorted = TaskLogic::collectAvailableLabels(tasks, s_extraLabels);
@@ -2423,22 +4087,29 @@ void TaskController::updateAvailableLabels(const QList<TaskEntry> &tasks)
     Q_EMIT availableLabelsChanged();
 }
 
+void TaskController::updateAvailableLocations(const QList<TaskEntry> &tasks)
+{
+    const QStringList sorted = TaskLogic::collectAvailableLocations(tasks, s_extraLocations);
+    if (m_availableLocations == sorted) {
+        return;
+    }
+    m_availableLocations = sorted;
+    Q_EMIT availableLocationsChanged();
+}
+
 void TaskController::updateCounts(const QList<TaskEntry> &tasks)
 {
-    TaskLogic::FilterState filters;
-    filters.currentView = m_currentView;
-    filters.searchQuery = m_searchQuery;
-    filters.showCompleted = m_showCompleted;
-    filters.selectedCollectionId = m_selectedCollectionId;
-    filters.selectedLabel = m_selectedLabel;
-    filters.selectedPriority = m_selectedPriority;
-    filters.catchUpEnabled = m_catchUpEnabled;
-    filters.catchUpDays = m_catchUpDays;
-    filters.morningHour = m_morningHour;
-    filters.afternoonHour = m_afternoonHour;
-    filters.eveningHour = m_eveningHour;
-    filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
-    filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
+    TaskLogic::FilterState filters = filterState();
+    if (m_currentView.startsWith(QLatin1String("smart:"))) {
+        const QString smartId = m_currentView.mid(6);
+        for (const TaskLogic::SmartViewDef &def : m_smartViews) {
+            if (def.id == smartId) {
+                filters.hasSmartRules = true;
+                filters.smartRules = def.rules;
+                break;
+            }
+        }
+    }
 
     const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts(tasks, filters, s_extraLabels, QDate::currentDate());
 
@@ -2447,11 +4118,17 @@ void TaskController::updateCounts(const QList<TaskEntry> &tasks)
         Q_EMIT labelTaskCountsChanged();
     }
     if (m_viewTaskCounts != counts.viewCounts || m_sidebarProjectCounts != counts.sidebarProjects
-        || m_sidebarLabelCounts != counts.sidebarLabels || m_sidebarPriorityCounts != counts.sidebarPriorities) {
+        || m_sidebarLabelCounts != counts.sidebarLabels || m_sidebarPriorityCounts != counts.sidebarPriorities
+        || m_sidebarProgressCounts != counts.sidebarProgress || m_sidebarStatusCounts != counts.sidebarStatus
+        || m_sidebarSecrecyCounts != counts.sidebarSecrecy || m_sidebarLocationCounts != counts.sidebarLocations) {
         m_viewTaskCounts = counts.viewCounts;
         m_sidebarProjectCounts = counts.sidebarProjects;
         m_sidebarLabelCounts = counts.sidebarLabels;
         m_sidebarPriorityCounts = counts.sidebarPriorities;
+        m_sidebarProgressCounts = counts.sidebarProgress;
+        m_sidebarStatusCounts = counts.sidebarStatus;
+        m_sidebarSecrecyCounts = counts.sidebarSecrecy;
+        m_sidebarLocationCounts = counts.sidebarLocations;
         Q_EMIT sidebarCountsChanged();
     }
 }
@@ -2472,7 +4149,7 @@ void TaskController::scheduleRebuildAll()
 
 bool TaskController::hydrateFromCache()
 {
-    if (s_collections.isEmpty() && s_tasks.isEmpty() && s_extraLabels.isEmpty()) {
+    if (s_collections.isEmpty() && s_tasks.isEmpty() && s_extraLabels.isEmpty() && s_extraLocations.isEmpty()) {
         return false;
     }
     m_collectionNames = s_collectionNames;
@@ -2558,6 +4235,81 @@ void TaskController::renameLabel(const QString &from, const QString &to)
             continue;
         }
         cache->todo->setCategories(TaskLogic::renameLabel(cache->todo->categories(), source, dest));
+        persistTodo(cache->item, cache->todo);
+    }
+    scheduleRebuildAll();
+}
+
+void TaskController::createLocation(const QString &name)
+{
+    if (!TaskLogic::canCreateLabel(name, m_availableLocations, s_extraLocations)) {
+        return;
+    }
+    s_extraLocations.append(name.trimmed());
+    scheduleRebuildAll();
+}
+
+void TaskController::deleteLocation(const QString &name)
+{
+    const QString trimmed = name.trimmed();
+    if (trimmed.isEmpty()) {
+        return;
+    }
+
+    s_extraLocations.removeAll(trimmed);
+
+    if (!m_akonadiAvailable) {
+        initializeAkonadi();
+    }
+
+    QList<qint64> toUpdate;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (it->todo && it->todo->location().trimmed() == trimmed) {
+            toUpdate.append(it.key());
+        }
+    }
+    for (qint64 itemId : toUpdate) {
+        CachedTask *cache = prepareEdit(itemId);
+        if (!cache || !cache->todo) {
+            continue;
+        }
+        cache->todo->setLocation(QString());
+        persistTodo(cache->item, cache->todo);
+    }
+
+    scheduleRebuildAll();
+}
+
+void TaskController::renameLocation(const QString &from, const QString &to)
+{
+    const QString source = from.trimmed();
+    const QString dest = to.trimmed();
+    if (!TaskLogic::canRenameLabel(source, dest, m_availableLocations, s_extraLocations)) {
+        return;
+    }
+
+    for (int i = 0; i < s_extraLocations.size(); ++i) {
+        if (s_extraLocations.at(i) == source) {
+            s_extraLocations[i] = dest;
+        }
+    }
+    s_extraLocations.removeAll(source);
+    if (!s_extraLocations.contains(dest)) {
+        s_extraLocations.append(dest);
+    }
+
+    QList<qint64> toUpdate;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (it->todo && it->todo->location().trimmed() == source) {
+            toUpdate.append(it.key());
+        }
+    }
+    for (qint64 itemId : toUpdate) {
+        CachedTask *cache = prepareEdit(itemId);
+        if (!cache || !cache->todo) {
+            continue;
+        }
+        cache->todo->setLocation(dest);
         persistTodo(cache->item, cache->todo);
     }
     scheduleRebuildAll();
@@ -2661,6 +4413,13 @@ void TaskController::broadcastDbusOpenView(const QString &view)
 {
     for (TaskController *controller : s_instances) {
         Q_EMIT controller->dbusOpenViewRequested(view);
+    }
+}
+
+void TaskController::broadcastDbusSearchAndShow(const QString &query)
+{
+    for (TaskController *controller : s_instances) {
+        Q_EMIT controller->dbusSearchRequested(query);
     }
 }
 

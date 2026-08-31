@@ -107,6 +107,10 @@ PlasmoidItem {
         var collectionId = backend.selectedCollectionId
         var label = backend.selectedLabel
         var priority = backend.selectedPriority
+        var progressBand = backend.selectedProgressBand
+        var status = backend.selectedStatus
+        var secrecy = backend.selectedSecrecy
+        var location = backend.selectedLocation
         var parts = []
         if (collectionId >= 0) {
             var projectName = backend.collectionNameForId(collectionId)
@@ -128,6 +132,26 @@ PlasmoidItem {
             }
             parts.push({ kind: "priority", text: priorityText, key: String(priority) })
         }
+        if (progressBand && progressBand !== "") {
+            parts.push({ kind: "progress", text: progressBand.replace("-", "–") + "%", key: progressBand })
+        }
+        if (status >= 0) {
+            var statusText = i18n("None")
+            if (status === 4) statusText = i18n("Needs action")
+            else if (status === 6) statusText = i18n("In process")
+            else if (status === 3) statusText = i18n("Completed")
+            else if (status === 5) statusText = i18n("Canceled")
+            parts.push({ kind: "status", text: statusText, key: String(status) })
+        }
+        if (secrecy >= 0) {
+            var secrecyText = i18n("Public")
+            if (secrecy === 1) secrecyText = i18n("Private")
+            else if (secrecy === 2) secrecyText = i18n("Confidential")
+            parts.push({ kind: "secrecy", text: secrecyText, key: String(secrecy) })
+        }
+        if (location && location !== "") {
+            parts.push({ kind: "location", text: location, key: location })
+        }
         return parts
     }
 
@@ -135,34 +159,26 @@ PlasmoidItem {
         if (!backend) {
             return "kurrent"
         }
-        switch (backend.currentView) {
-        case "today": return "view-calendar-day"
-        case "overdue": return "chronometer"
-        case "tomorrow": return "go-next"
-        case "scheduled": return "view-calendar"
-        case "anytime": return "view-calendar-tasks"
-        case "recurring": return "media-playlist-repeat"
-        case "unlabeled": return "tag-delete"
-        case "completed": return "checkmark"
-        default: return "mail-folder-inbox"
+        if (backend.currentView.indexOf("smart:") === 0) {
+            var smartId = backend.currentView.slice(6)
+            var smart = smartViewById[smartId]
+            return smart ? (smart.icon || "view-filter") : "view-filter"
         }
+        var icon = builtinViewIconById[backend.currentView]
+        return icon !== undefined ? icon : "mail-folder-inbox"
     }
 
     function activeViewTitle() {
         if (!backend) {
             return i18n("Kurrent")
         }
-        switch (backend.currentView) {
-        case "today": return i18n("Today")
-        case "overdue": return i18n("Overdue")
-        case "tomorrow": return i18n("Tomorrow")
-        case "scheduled": return i18n("Scheduled")
-        case "anytime": return i18n("Anytime")
-        case "recurring": return i18n("Recurring")
-        case "unlabeled": return i18n("Unlabeled")
-        case "completed": return i18n("Completed")
-        default: return i18n("Inbox")
+        if (backend.currentView.indexOf("smart:") === 0) {
+            var smartId = backend.currentView.slice(6)
+            var smart = smartViewById[smartId]
+            return smart ? (smart.name || smartId) : smartId
         }
+        var title = builtinViewTitleById[backend.currentView]
+        return title !== undefined ? title : i18n("Inbox")
     }
 
     Plasmoid.icon: "kurrent"
@@ -172,18 +188,8 @@ PlasmoidItem {
     readonly property var panelViewCounts: backend ? backend.viewTaskCounts : ({})
 
     function viewCountLabel(viewId) {
-        switch (viewId) {
-        case "inbox": return i18n("Inbox")
-        case "today": return i18n("Today")
-        case "overdue": return i18n("Overdue")
-        case "tomorrow": return i18n("Tomorrow")
-        case "scheduled": return i18n("Scheduled")
-        case "anytime": return i18n("Anytime")
-        case "recurring": return i18n("Recurring")
-        case "unlabeled": return i18n("Unlabeled")
-        case "completed": return i18n("Completed")
-        default: return viewId
-        }
+        var label = viewCountLabelById[viewId]
+        return label !== undefined ? label : viewId
     }
 
     readonly property string panelTooltipText: {
@@ -280,6 +286,78 @@ PlasmoidItem {
         return "priority,due,title"
     }
 
+    function parseSmartViews() {
+        return parsedSmartViews
+    }
+
+    readonly property var parsedSmartViews: {
+        try {
+            return JSON.parse(Plasmoid.configuration.smartViews || "[]")
+        } catch (e) {
+            return []
+        }
+    }
+
+    readonly property var smartViewById: {
+        var views = parsedSmartViews
+        var byId = {}
+        for (var i = 0; i < views.length; ++i) {
+            var sv = views[i]
+            if (sv && sv.id) {
+                byId[sv.id] = sv
+            }
+        }
+        return byId
+    }
+
+    readonly property var builtinViewTitleById: ({
+        "inbox": i18n("Inbox"),
+        "today": i18n("Today"),
+        "overdue": i18n("Overdue"),
+        "tomorrow": i18n("Tomorrow"),
+        "scheduled": i18n("Scheduled"),
+        "anytime": i18n("Anytime"),
+        "recurring": i18n("Recurring"),
+        "unlabeled": i18n("Unlabeled"),
+        "completed": i18n("Completed"),
+        "reminder": i18n("Has reminder"),
+        "nolocation": i18n("Has no location"),
+        "nopriority": i18n("No priority"),
+        "nostatus": i18n("No status")
+    })
+
+    readonly property var builtinViewIconById: ({
+        "inbox": "mail-folder-inbox",
+        "today": "view-calendar-day",
+        "overdue": "chronometer",
+        "tomorrow": "go-next",
+        "scheduled": "view-calendar",
+        "anytime": "view-calendar-tasks",
+        "recurring": "media-playlist-repeat",
+        "unlabeled": "tag-delete",
+        "completed": "checkmark",
+        "reminder": "appointment-reminder",
+        "nolocation": "find-location",
+        "nopriority": "flag",
+        "nostatus": "task-new"
+    })
+
+    readonly property var viewCountLabelById: ({
+        "inbox": i18n("Inbox"),
+        "today": i18n("Today"),
+        "overdue": i18n("Overdue"),
+        "tomorrow": i18n("Tomorrow"),
+        "scheduled": i18n("Scheduled"),
+        "anytime": i18n("Anytime"),
+        "recurring": i18n("Recurring"),
+        "unlabeled": i18n("Unlabeled"),
+        "completed": i18n("Completed"),
+        "reminder": i18n("Has reminder"),
+        "nolocation": i18n("Has no location"),
+        "nopriority": i18n("No priority"),
+        "nostatus": i18n("No status")
+    })
+
     function sortModeForView(viewId) {
         var scope = Plasmoid.configuration.sortScope || "global"
         if (scope === "perView") {
@@ -299,7 +377,132 @@ PlasmoidItem {
         return stored !== "" ? stored : defaultSortMode()
     }
 
+    function storedMainPaneMode() {
+        var mode = Plasmoid.configuration.mainPaneMode || ""
+        return mode !== "" ? mode : KurrentUi.Design.viewModeList
+    }
+
+    function isSidebarFilterEnabled(kind, extra) {
+        if (!backend) {
+            return true
+        }
+        var mode = backend.mainPaneMode
+        if (mode === KurrentUi.Design.viewModeKanban) {
+            if (kind === "label" && backend.kanbanColumnSource === "label") {
+                return false
+            }
+            if (kind === "project" && backend.kanbanColumnSource === "project") {
+                return false
+            }
+            if (kind === "priority" && backend.kanbanColumnSource === "priority") {
+                return false
+            }
+            if (kind === "status" && backend.kanbanColumnSource === "status") {
+                return false
+            }
+            if (kind === "secrecy" && backend.kanbanColumnSource === "secrecy") {
+                return false
+            }
+            if (kind === "progress" && backend.kanbanColumnSource === "completion") {
+                return false
+            }
+            if (kind === "view" && extra === "unlabeled" && backend.kanbanColumnSource === "label") {
+                return false
+            }
+        }
+        if (mode === KurrentUi.Design.viewModeSwimlane) {
+            if (kind === "label" && backend.swimlaneLaneAxis === "label") {
+                return false
+            }
+            if (kind === "project" && backend.swimlaneLaneAxis === "project") {
+                return false
+            }
+            if (kind === "priority" && backend.swimlaneLaneAxis === "priority") {
+                return false
+            }
+        }
+        if (mode === KurrentUi.Design.viewModePlan && kind === "project") {
+            return false
+        }
+        return true
+    }
+
+    function sidebarFilterDisabledReason(kind, extra) {
+        if (!backend) {
+            return ""
+        }
+        var mode = backend.mainPaneMode
+        if (mode === KurrentUi.Design.viewModeKanban) {
+            if (kind === "label" && backend.kanbanColumnSource === "label") {
+                return i18n("Labels are already Kanban columns.")
+            }
+            if (kind === "project" && backend.kanbanColumnSource === "project") {
+                return i18n("Projects are already Kanban columns.")
+            }
+            if (kind === "priority" && backend.kanbanColumnSource === "priority") {
+                return i18n("Priorities are already Kanban columns.")
+            }
+            if (kind === "status" && backend.kanbanColumnSource === "status") {
+                return i18n("Status is already used for Kanban columns.")
+            }
+            if (kind === "secrecy" && backend.kanbanColumnSource === "secrecy") {
+                return i18n("Secrecy is already used for Kanban columns.")
+            }
+            if (kind === "progress" && backend.kanbanColumnSource === "completion") {
+                return i18n("Progress is already used for Kanban columns.")
+            }
+            if (kind === "view" && extra === "unlabeled" && backend.kanbanColumnSource === "label") {
+                return i18n("Unlabeled view does not apply when Kanban uses labels as columns.")
+            }
+        }
+        if (mode === KurrentUi.Design.viewModeSwimlane) {
+            if (kind === "label" && backend.swimlaneLaneAxis === "label") {
+                return i18n("Labels are already swimlane rows.")
+            }
+            if (kind === "project" && backend.swimlaneLaneAxis === "project") {
+                return i18n("Projects are already swimlane rows.")
+            }
+            if (kind === "priority" && backend.swimlaneLaneAxis === "priority") {
+                return i18n("Priorities are already swimlane rows.")
+            }
+        }
+        if (mode === KurrentUi.Design.viewModePlan && kind === "project") {
+            return i18n("Projects are already plan rows.")
+        }
+        return i18n("Not available in the current view.")
+    }
+
+    function persistMainPaneMode(mode) {
+        Plasmoid.configuration.mainPaneMode = mode || KurrentUi.Design.viewModeList
+    }
+
+    function applyMainPaneMode() {
+        if (!backend) {
+            return
+        }
+        backend.mainPaneMode = storedMainPaneMode()
+    }
+
+    function setMainPaneMode(mode) {
+        if (!backend) {
+            return
+        }
+        // Persist FIRST: the onMainPaneModeChanged handler calls
+        // applyMainPaneMode() → storedMainPaneMode(), which reads
+        // Plasmoid.configuration.  If we persist after setting the
+        // backend property, the synchronous signal handler reads
+        // the OLD value and immediately resets the mode.
+        persistMainPaneMode(mode)
+        backend.mainPaneMode = mode
+        applySortForCurrentView()
+    }
+
     function persistSortMode(mode) {
+        persistKanbanComboSort(mode)
+        if (mode === "custom") {
+            persistSharedSettings()
+            return
+        }
         var def = defaultSortMode()
         var scope = Plasmoid.configuration.sortScope || "global"
         if (scope === "perView") {
@@ -319,11 +522,46 @@ PlasmoidItem {
         } else {
             Plasmoid.configuration.sortMode = mode === def ? "" : mode
         }
+        persistSharedSettings()
+    }
+
+    function kanbanComboKey() {
+        if (!backend) {
+            return ""
+        }
+        return backend.currentView + "|" + backend.kanbanColumnSource
+    }
+
+    function persistKanbanComboSort(mode) {
+        if (!backend || backend.mainPaneMode !== KurrentUi.Design.viewModeKanban) {
+            return
+        }
+        var map = {}
+        try {
+            map = JSON.parse(Plasmoid.configuration.kanbanSortModeByViewColumn || "{}")
+        } catch (e) {
+            map = {}
+        }
+        map[kanbanComboKey()] = mode
+        Plasmoid.configuration.kanbanSortModeByViewColumn = JSON.stringify(map)
     }
 
     function applySortForCurrentView() {
         if (!backend) {
             return
+        }
+        if (backend.mainPaneMode === KurrentUi.Design.viewModeKanban) {
+            var map = {}
+            try {
+                map = JSON.parse(Plasmoid.configuration.kanbanSortModeByViewColumn || "{}")
+            } catch (e) {
+                map = {}
+            }
+            var combo = kanbanComboKey()
+            if (map[combo]) {
+                backend.sortMode = map[combo]
+                return
+            }
         }
         backend.sortMode = sortModeForView(backend.currentView)
     }
@@ -337,14 +575,18 @@ PlasmoidItem {
     function applyColorsFromConfig() {
         var projects = {}
         var labels = {}
+        var locations = {}
         try {
             projects = JSON.parse(Plasmoid.configuration.projectColors || "{}")
         } catch (e) { projects = {} }
         try {
             labels = JSON.parse(Plasmoid.configuration.labelColors || "{}")
         } catch (e) { labels = {} }
-        Colors.setColorOverrides(projects, labels)
-        KurrentUi.Design.setColorOverrides(projects, labels)
+        try {
+            locations = JSON.parse(Plasmoid.configuration.locationColors || "{}")
+        } catch (e) { locations = {} }
+        Colors.setColorOverrides(projects, labels, locations)
+        KurrentUi.Design.setColorOverrides(projects, labels, locations)
     }
 
     function applyDesignFromConfig() {
@@ -380,6 +622,15 @@ PlasmoidItem {
         }
         applyPopupBackground()
         if (backend) {
+            backend.smartViewsJson = Plasmoid.configuration.smartViews || "[]"
+            backend.kanbanColumnSource = Plasmoid.configuration.kanbanColumnSource || "status"
+            backend.kanbanWriteMode = Plasmoid.configuration.kanbanWriteMode || "fields"
+            backend.kanbanManualOrderJson = Plasmoid.configuration.kanbanManualOrder || "{}"
+            backend.swimlaneLaneAxis = Plasmoid.configuration.swimlaneLaneAxis || "project"
+            backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "day"
+            backend.multiSelectEnabled = Plasmoid.configuration.multiSelectEnabled === true
+            backend.listGroupMode = Plasmoid.configuration.listGroupMode || ""
+            applyMainPaneMode()
             applySortForCurrentView()
         }
     }
@@ -412,6 +663,13 @@ PlasmoidItem {
             if (view) {
                 backend.currentView = view
             }
+        }
+        function onDbusSearchRequested(query) {
+            root.expanded = true
+            if (backend) {
+                backend.searchQuery = query || ""
+            }
+            Qt.callLater(root.focusSearchField)
         }
     }
 
@@ -671,6 +929,72 @@ PlasmoidItem {
         function onSortModeByViewChanged() {
             root.persistSharedSettings()
         }
+        function onViewModeByViewChanged() {
+            root.persistSharedSettings()
+        }
+        function onSmartViewsChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.smartViewsJson = Plasmoid.configuration.smartViews || "[]"
+            }
+        }
+        function onMainPaneModeChanged() {
+            root.persistSharedSettings()
+            root.applyMainPaneMode()
+            root.applySortForCurrentView()
+        }
+        function onKanbanColumnSourceChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.kanbanColumnSource = Plasmoid.configuration.kanbanColumnSource || "status"
+            }
+            root.applySortForCurrentView()
+        }
+        function onKanbanSortModeByViewColumnChanged() {
+            root.persistSharedSettings()
+        }
+        function onKanbanWriteModeChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.kanbanWriteMode = Plasmoid.configuration.kanbanWriteMode || "fields"
+            }
+        }
+        function onKanbanManualOrderChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.kanbanManualOrderJson = Plasmoid.configuration.kanbanManualOrder || "{}"
+            }
+        }
+        function onSwimlaneLaneAxisChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.swimlaneLaneAxis = Plasmoid.configuration.swimlaneLaneAxis || "project"
+            }
+        }
+        function onSwimlaneTimeBucketChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "day"
+            }
+        }
+        function onMultiSelectEnabledChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.multiSelectEnabled = Plasmoid.configuration.multiSelectEnabled === true
+            }
+        }
+        function onVerboseJournalLoggingChanged() {
+            root.persistSharedSettings()
+        }
+        function onInfoJournalLoggingChanged() {
+            root.persistSharedSettings()
+        }
+        function onListGroupModeChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.listGroupMode = Plasmoid.configuration.listGroupMode || ""
+            }
+        }
     }
 
     Connections {
@@ -743,6 +1067,14 @@ PlasmoidItem {
         var item = shell && shell.uiItem ? shell.uiItem : null
         if (item && item.taskListItem && item.taskListItem.focusNewTask) {
             item.taskListItem.focusNewTask()
+        }
+    }
+
+    function focusSearchField() {
+        var shell = fullRepresentationItem
+        var item = shell && shell.uiItem ? shell.uiItem : null
+        if (item && item.taskListItem && item.taskListItem.focusSearch) {
+            item.taskListItem.focusSearch()
         }
     }
 

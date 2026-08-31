@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.0.0 — 2026-08-29
+
+### Added
+
+- Main-pane view modes: List, Kanban, Swimlanes, Project plan, Heatmap, Calendar + tasks — switcher in FullView header; mode persisted globally (`mainPaneMode`)
+- Smart Views: saved filters in sidebar + Views KCM; view ids `smart:<id>`; filter rules in JSON (`smartViews`)
+- Kanban Phase A: computed columns (status, completion, project, due buckets, priority, label, day section, `KURRENT/COLUMN`); drag between columns updates backing fields
+- Multi-select and bulk actions: complete, delete, reschedule (+ toolbar when selection active); Ctrl+click toggle
+- Diagnostics KCM: Akonadi state, versions, debug info, smoke-test log hint
+- Offline / syncing banner polish: “Akonadi offline” and “Syncing…” in main pane header
+- Collaboration: read-only ATTENDEE list in full editor when server sends assignees
+- `KURRENT/COLUMN` read/write via TaskCalendar; unit tests for column mapping and Smart View JSON
+- Undo button in main pane header (all view modes); keyboard shortcuts unchanged in FullView
+
+### Tests
+
+- `kanbanColumnKeyMapping`, `smartViewFilterJson`, `swimlanePlanHeatmapHelpers` in tasklogic tests
+- SharedSettings round-trip for `mainPaneMode`, `smartViews`, `kanbanColumnSource`, `multiSelectEnabled`
+- Calendar column round-trip test
+
 ## 0.3.1 — 2026-08-29
 
 ### Fixed

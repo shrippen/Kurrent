@@ -67,7 +67,7 @@ The **large area right of the sidebar** is one **main pane**. Built-in sidebar e
 
 - In `FullView`, the header row (view title, filters, **Sort**, build label) gains a **View mode** control (`view-mode` icon or segmented control): List · Kanban · Swimlanes · Plan · Heatmap · Calendar.
 - **Sort** applies where meaningful (List; optionally card order inside Kanban columns). Kanban/Swimlanes/Plan/Heatmap use their own layout rules but respect the same **filter** as the active sidebar selection (built-in view or Smart View).
-- Persist last mode **per sidebar view id** in `kurrentrc` (`viewModeByView`), default List.
+- Persist last mode **globally** in `kurrentrc` (`mainPaneMode`), default List; sidebar view switches do not change it.
 
 ### Kanban (1.0)
 

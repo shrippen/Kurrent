@@ -33,7 +33,7 @@ restart_plasmashell() {
     echo "Restarting plasmashell..."
     kquitapp6 plasmashell 2>/dev/null || true
     sleep 1
-    nohup plasmashell --replace >/dev/null 2>&1 &
+    env -u KCURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
     disown >/dev/null 2>&1 || true
     echo "plasmashell restarted."
 }
@@ -83,6 +83,7 @@ cmake -S "${ROOT}" -B "${BUILD_DIR}" \
 
 cmake --build "${BUILD_DIR}" --parallel "$(nproc)"
 
+# Unit tests always; plasmoidviewer smoke tests always unless skipped.
 if [[ "${SKIP_TESTS:-0}" != "1" ]]; then
     echo "Running unit tests..."
     ctest --test-dir "${BUILD_DIR}" --output-on-failure -E kurrent-plasmoidviewer
@@ -94,10 +95,17 @@ verify_plasmoid_install
 
 echo "Installed Kurrent plasmoid and QML plugin to ${PREFIX}"
 
-if [[ "${SKIP_TESTS:-0}" != "1" && "${SKIP_PLASMOIDVIEWER:-0}" != "1" ]]; then
+# Smoke-test BEFORE restarting plasmashell so a failure does not
+# leave the desktop running a broken version.
+if [[ "${SKIP_PLASMOIDVIEWER:-0}" != "1" ]]; then
     echo "Running plasmoidviewer smoke tests..."
     PREFIX="${PREFIX}" "${ROOT}/tests/plasmoidviewer_smoke.sh"
 fi
+
+# Ensure smoke env does not leak into the restarted plasmashell.
+unset KCURRENT_SMOKE
+
+restart_plasmashell
 
 ENV_DIR="${HOME}/.config/plasma-workspace/env"
 mkdir -p "${ENV_DIR}"
@@ -108,5 +116,4 @@ EOF
 echo "Wrote QML import path helper: ${ENV_DIR}/kurrent-qml.sh"
 
 echo ""
-echo ">>> Restarting plasmashell..."
-restart_plasmashell
+echo "Done."

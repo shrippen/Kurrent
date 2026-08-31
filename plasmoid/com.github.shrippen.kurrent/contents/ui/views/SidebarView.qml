@@ -16,8 +16,10 @@ Item {
 
     required property TaskController controller
     property Item dragHost: null
+    property var filterPolicy: null
     property string hiddenProjects: ""
     property string hiddenLabels: ""
+    property string hiddenLocations: ""
     // "auto" | "compact" | "comfortable"
     property string sidebarRowSize: "auto"
     property bool showEmptyProjects: false
@@ -27,15 +29,66 @@ Item {
     property string viewOrder: ""
     property string hiddenViews: ""
 
-    readonly property string sectionDefaults: "views,projects,labels,priorities"
-    readonly property string viewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,recurring,unlabeled,completed"
-    readonly property var visibleSectionIdList: controller
-            ? controller.visibleOrderedKeys(sectionOrder, hiddenSections, sectionDefaults, ",", "||")
-            : ["views", "projects", "labels", "priorities"]
+    readonly property string sectionDefaults: "views,projects,labels,priorities,progress,status,secrecy,location"
+    readonly property string primaryViewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,completed"
+    readonly property string maintenanceViewDefaults: "recurring,unlabeled,reminder,nolocation,nopriority,nostatus"
+    readonly property string viewDefaults: primaryViewDefaults + "," + maintenanceViewDefaults
+    readonly property var maintenanceViewIds: [
+        "recurring", "unlabeled", "reminder", "nolocation", "nopriority", "nostatus"
+    ]
+    readonly property string maintenanceFolderId: "__maintenance__"
+    readonly property string viewsBackId: "__views_back__"
+
+    readonly property string primaryFolder: "primary"
+    readonly property string maintenanceFolder: "maintenance"
+    property string currentSidebarFolder: primaryFolder
+    readonly property var visibleSectionIdList: {
+        var base = controller
+                ? controller.visibleOrderedKeys(sectionOrder, hiddenSections, sectionDefaults, ",", "||")
+                : ["views", "projects", "labels", "priorities", "progress", "status", "secrecy", "location"]
+        var out = []
+        for (var i = 0; i < base.length; ++i) {
+            var id = base[i]
+            if (id === "projects" && !filterEnabled("project")) {
+                continue
+            }
+            if (id === "labels" && !filterEnabled("label")) {
+                continue
+            }
+            if (id === "priorities" && !filterEnabled("priority")) {
+                continue
+            }
+            if (id === "progress" && !filterEnabled("progress")) {
+                continue
+            }
+            if (id === "status" && !filterEnabled("status")) {
+                continue
+            }
+            out.push(id)
+        }
+        return out
+    }
     readonly property int visibleSectionCount: visibleSectionIdList.length
 
     readonly property int sidebarWidth: Design.sidebarWidth
     readonly property bool isDragging: !!(dragHost && dragHost.draggingTask)
+    // Full-editor overlay: no hover highlight under the dim.
+    property bool interactionsSuspended: false
+    readonly property bool rowHoverEnabled: !interactionsSuspended
+
+    function filterEnabled(kind, extra) {
+        if (!filterPolicy || typeof filterPolicy.isSidebarFilterEnabled !== "function") {
+            return true
+        }
+        return filterPolicy.isSidebarFilterEnabled(kind, extra || "")
+    }
+
+    function filterDisabledReason(kind, extra) {
+        if (!filterPolicy || typeof filterPolicy.sidebarFilterDisabledReason !== "function") {
+            return ""
+        }
+        return filterPolicy.sidebarFilterDisabledReason(kind, extra || "")
+    }
 
     implicitWidth: sidebarWidth
     implicitHeight: 0
@@ -81,40 +134,72 @@ Item {
     readonly property int scrollGutter: Design.scrollGutter
     readonly property int sectionRowHeight: rowIconSize + rowVPad * 2 + 4
 
-    // -1: not yet allocated — sections share space (fillHeight) so they can measure.
+    // Not yet allocated — sections share space equally so they can measure.
     property bool sectionsAllocated: false
-    property int viewsAlloc: -1
-    property int projectsAlloc: -1
-    property int labelsAlloc: -1
-    property int prioritiesAlloc: -1
+    property var sectionAlloc: ({})
+
+    function allocFor(id) {
+        if (!sectionsAllocated) {
+            var n = Math.max(1, visibleSectionCount)
+            return Math.max(1, Math.floor(availableHeight / n))
+        }
+        return sectionAlloc[id] || 0
+    }
 
     readonly property string sectionContentKey: JSON.stringify(controller.sidebarProjectCounts)
             + "|" + JSON.stringify(controller.sidebarLabelCounts)
+            + "|" + JSON.stringify(controller.sidebarProgressCounts)
+            + "|" + JSON.stringify(controller.sidebarStatusCounts)
+            + "|" + JSON.stringify(controller.sidebarSecrecyCounts)
+            + "|" + JSON.stringify(controller.sidebarLocationCounts)
             + "|" + (controller.collectionModel ? controller.collectionModel.count : 0)
             + "|" + controller.availableLabels.join("\n")
+            + "|" + controller.availableLocations.join("\n")
             + "|" + hiddenProjects
             + "|" + String(showEmptyProjects)
             + "|" + String(showSidebarCounts)
             + "|" + hiddenLabels
+            + "|" + hiddenLocations
             + "|" + sectionOrder
             + "|" + hiddenSections
             + "|" + viewOrder
             + "|" + hiddenViews
+            + "|" + (controller ? controller.mainPaneMode : "")
+            + "|" + (controller ? controller.kanbanColumnSource : "")
+            + "|" + (controller ? controller.swimlaneLaneAxis : "")
+            + "|" + String(root.currentSidebarFolder)
+
+    // Order/visibility only — do not include counts. Reparenting on every count
+    // refresh (via parent=null) tears down ListView delegates and leaves the
+    // lower sections looking empty while their allocated height remains.
+    readonly property string sectionLayoutKey: sectionOrder
+            + "|" + hiddenSections
+            + "|" + viewOrder
+            + "|" + hiddenViews
+            + "|" + (controller ? controller.mainPaneMode : "")
+            + "|" + (controller ? controller.kanbanColumnSource : "")
+            + "|" + (controller ? controller.swimlaneLaneAxis : "")
+            + "|" + String(root.currentSidebarFolder)
+            + "|" + visibleSectionIdList.join(",")
 
     property var visibleProjects: []
     property var visibleLabelItems: []
+    property var visibleLocationItems: []
 
     onHeightChanged: Qt.callLater(redistributeSections)
     onAvailableHeightChanged: Qt.callLater(redistributeSections)
     onSectionContentKeyChanged: {
         rebuildVisibleLists()
         Qt.callLater(redistributeSections)
-        Qt.callLater(applySectionOrder)
     }
+    onSectionLayoutKeyChanged: Qt.callLater(applySectionOrder)
     Component.onCompleted: {
         rebuildVisibleLists()
         Qt.callLater(applySectionOrder)
         Qt.callLater(redistributeSections)
+        // If the saved view belongs to a non-primary folder, open that folder on startup.
+        root.currentSidebarFolder = root.folderForView(controller.currentView)
+        Qt.callLater(viewsList.syncCurrentIndex)
     }
     onSectionHeaderHeightChanged: Qt.callLater(redistributeSections)
     onSectionRowHeightChanged: Qt.callLater(redistributeSections)
@@ -145,6 +230,15 @@ Item {
             }
         }
         visibleLabelItems = labels
+
+        var locations = []
+        var allLocations = controller.availableLocations
+        for (var loc = 0; loc < allLocations.length; ++loc) {
+            if (!root._isLocationHidden(allLocations[loc])) {
+                locations.push(allLocations[loc])
+            }
+        }
+        visibleLocationItems = locations
     }
 
     function visibleProjectCount() {
@@ -153,6 +247,10 @@ Item {
 
     function visibleLabelCount() {
         return visibleLabelItems.length
+    }
+
+    function visibleLocationCount() {
+        return visibleLocationItems.length
     }
 
     function naturalListHeight(rowCount, hasHeader) {
@@ -174,6 +272,18 @@ Item {
     }
     function naturalHeightPriorities() {
         return root.naturalListHeight(root.priorityItems.length, true)
+    }
+    function naturalHeightProgress() {
+        return root.naturalListHeight(root.progressItems.length, true)
+    }
+    function naturalHeightStatus() {
+        return root.naturalListHeight(root.statusItems.length, true)
+    }
+    function naturalHeightSecrecy() {
+        return root.naturalListHeight(root.secrecyItems.length, true)
+    }
+    function naturalHeightLocation() {
+        return root.naturalListHeight(root.visibleLocationCount(), true)
     }
 
     function sectionFloorHeight(hasHeader) {
@@ -203,18 +313,23 @@ Item {
             return
         }
 
-        var ids = ["views", "projects", "labels", "priorities"]
-        var hasHeader = [false, true, true, true]
+        var ids = ["views", "projects", "labels", "priorities", "progress", "status", "secrecy", "location"]
+        var sectionCount = ids.length
+        var hasHeader = [false, true, true, true, true, true, true, true]
         var naturals = [
             root.naturalHeightViews(),
             root.naturalHeightProjects(),
             root.naturalHeightLabels(),
-            root.naturalHeightPriorities()
+            root.naturalHeightPriorities(),
+            root.naturalHeightProgress(),
+            root.naturalHeightStatus(),
+            root.naturalHeightSecrecy(),
+            root.naturalHeightLocation()
         ]
         var visibleFlags = []
         var visibleCount = 0
         var sumNatural = 0
-        for (var s = 0; s < 4; ++s) {
+        for (var s = 0; s < sectionCount; ++s) {
             var vis = root.sectionVisible(ids[s])
             visibleFlags.push(vis)
             if (vis) {
@@ -223,22 +338,22 @@ Item {
             }
         }
         if (visibleCount <= 0) {
-            viewsAlloc = 0
-            projectsAlloc = 0
-            labelsAlloc = 0
-            prioritiesAlloc = 0
+            sectionAlloc = {}
             sectionsAllocated = true
             return
         }
 
-        var alloc = [0, 0, 0, 0]
+        var alloc = []
+        for (var z = 0; z < sectionCount; ++z) {
+            alloc.push(0)
+        }
         // Slack is only for scrollbar visibility (Design.listNeedsScroll), not allocation —
         // otherwise resizing feels sticky near the fit boundary then jumps.
         if (sumNatural <= available) {
             var leftover = available - sumNatural
             var evenGrow = Math.floor(leftover / visibleCount)
             var extraGrow = leftover - evenGrow * visibleCount
-            for (var i = 0; i < 4; ++i) {
+            for (var i = 0; i < sectionCount; ++i) {
                 if (!visibleFlags[i]) {
                     continue
                 }
@@ -251,17 +366,19 @@ Item {
             // Short widget: keep relative content sizes (not equal floors).
             var mins = []
             var sumMins = 0
-            for (var m = 0; m < 4; ++m) {
+            for (var m = 0; m < sectionCount; ++m) {
                 var floorH = visibleFlags[m] ? root.sectionFloorHeight(hasHeader[m]) : 0
                 mins.push(floorH)
                 sumMins += floorH
             }
 
             if (sumMins >= available) {
-                alloc = mins.slice(0)
+                for (var mc = 0; mc < sectionCount; ++mc) {
+                    alloc[mc] = mins[mc]
+                }
                 var over = sumMins - available
                 if (over > 0) {
-                    for (var t = 0; t < 4 && over > 0; ++t) {
+                    for (var t = 0; t < sectionCount && over > 0; ++t) {
                         if (!visibleFlags[t]) {
                             continue
                         }
@@ -273,13 +390,13 @@ Item {
             } else {
                 var flex = available - sumMins
                 var flexNatural = 0
-                for (var f = 0; f < 4; ++f) {
+                for (var f = 0; f < sectionCount; ++f) {
                     if (visibleFlags[f]) {
                         flexNatural += Math.max(0, naturals[f] - mins[f])
                     }
                 }
                 var remain = flex
-                for (var p = 0; p < 4; ++p) {
+                for (var p = 0; p < sectionCount; ++p) {
                     if (!visibleFlags[p]) {
                         continue
                     }
@@ -290,7 +407,7 @@ Item {
                     alloc[p] = mins[p] + share
                     remain -= share
                 }
-                for (var r = 0; r < 4 && remain > 0; ++r) {
+                for (var r = 0; r < sectionCount && remain > 0; ++r) {
                     if (visibleFlags[r]) {
                         alloc[r] += 1
                         remain--
@@ -302,7 +419,7 @@ Item {
         // Near-fit: if a section is short by at most one row, give it full natural
         // height by stealing from sections that still overflow by more than one row.
         var oneRow = root.sectionRowHeight + 1
-        for (var g = 0; g < 4; ++g) {
+        for (var g = 0; g < sectionCount; ++g) {
             if (!visibleFlags[g]) {
                 continue
             }
@@ -311,7 +428,7 @@ Item {
                 continue
             }
             var need = shortfall
-            for (var donor = 0; donor < 4 && need > 0; ++donor) {
+            for (var donor = 0; donor < sectionCount && need > 0; ++donor) {
                 if (!visibleFlags[donor] || donor === g) {
                     continue
                 }
@@ -334,18 +451,11 @@ Item {
             }
         }
 
-        if (viewsAlloc !== alloc[0]) {
-            viewsAlloc = alloc[0]
+        var newAlloc = {}
+        for (var a = 0; a < sectionCount; ++a) {
+            newAlloc[ids[a]] = alloc[a]
         }
-        if (projectsAlloc !== alloc[1]) {
-            projectsAlloc = alloc[1]
-        }
-        if (labelsAlloc !== alloc[2]) {
-            labelsAlloc = alloc[2]
-        }
-        if (prioritiesAlloc !== alloc[3]) {
-            prioritiesAlloc = alloc[3]
-        }
+        sectionAlloc = newAlloc
         sectionsAllocated = true
     }
 
@@ -359,7 +469,11 @@ Item {
             "views": viewsBlock,
             "projects": projectsBlock,
             "labels": labelsBlock,
-            "priorities": prioritiesBlock
+            "priorities": prioritiesBlock,
+            "progress": progressBlock,
+            "status": statusBlock,
+            "secrecy": secrecyBlock,
+            "location": locationBlock
         }
         var key
         for (key in blocks) {
@@ -368,12 +482,13 @@ Item {
             }
             blocks[key].visible = ids.indexOf(key) >= 0
         }
+        // Re-assigning the same parent appends to the end (Qt Quick). Avoid
+        // parent=null, which drops ListView delegates mid-refresh.
         for (var i = 0; i < ids.length; ++i) {
             var block = blocks[ids[i]]
             if (!block) {
                 continue
             }
-            block.parent = null
             block.parent = sectionColumn
             block.isLastVisible = (i === ids.length - 1)
         }
@@ -396,6 +511,14 @@ Item {
         return parts.indexOf(label) >= 0
     }
 
+    function _isLocationHidden(location) {
+        if (!hiddenLocations) {
+            return false
+        }
+        var parts = hiddenLocations.split("||")
+        return parts.indexOf(location) >= 0
+    }
+
     function dropTaskOnProject(collectionId) {
         if (!dragHost || !dragHost.draggingTask || collectionId <= 0) {
             return false
@@ -411,9 +534,38 @@ Item {
         if (!dragHost || !dragHost.draggingTask || !label) {
             return false
         }
+        if (taskHasLabel(label)) {
+            pendingRemoveItemId = dragHost.draggingTask.itemId
+            pendingRemoveLabel = label
+            confirmRemoveLabelDialog.open()
+            return true
+        }
         controller.addTaskCategory(dragHost.draggingTask.itemId, label)
         return true
     }
+
+    function taskHasLabel(label) {
+        if (!dragHost || !dragHost.draggingTask || !label) {
+            return false
+        }
+        var cats = dragHost.draggingTask.categories || []
+        for (var i = 0; i < cats.length; ++i) {
+            if (cats[i] === label) {
+                return true
+            }
+        }
+        return false
+    }
+
+    function labelDropHint(label) {
+        if (taskHasLabel(label)) {
+            return i18n("Remove label “%1”", label)
+        }
+        return i18n("Add label “%1”", label)
+    }
+
+    property string pendingRemoveLabel: ""
+    property var pendingRemoveItemId: -1
 
     function dropTaskOnPriority(priority) {
         if (!dragHost || !dragHost.draggingTask) {
@@ -423,56 +575,304 @@ Item {
         return true
     }
 
-    readonly property var viewItems: [
+    function progressMidpoint(band) {
+        switch (band) {
+        case "0-25": return 12
+        case "26-50": return 38
+        case "51-75": return 63
+        case "76-100": return 88
+        default: return 0
+        }
+    }
+
+    function progressIconForBand(band) {
+        // Three-bar metaphor via battery fill levels (Breeze).
+        switch (band) {
+        case "0-25": return "battery-000"
+        case "26-50": return "battery-040"
+        case "51-75": return "battery-060"
+        case "76-100": return "battery-100"
+        default: return "battery-000"
+        }
+    }
+
+    function statusIconForValue(value) {
+        switch (Number(value)) {
+        case 4: return "view-task"
+        case 6: return "media-playback-start"
+        case 3: return "task-complete"
+        case 5: return "dialog-cancel"
+        default: return "task-new"
+        }
+    }
+
+    function secrecyIconForValue(value) {
+        switch (Number(value)) {
+        case 1: return "lock"
+        case 2: return "security-high"
+        default: return "unlock"
+        }
+    }
+
+    function dropTaskOnProgress(band) {
+        if (!dragHost || !dragHost.draggingTask || !band) {
+            return false
+        }
+        controller.updateTaskFull(dragHost.draggingTask.itemId, {
+            percentComplete: progressMidpoint(band)
+        })
+        return true
+    }
+
+    function dropTaskOnStatus(status) {
+        if (!dragHost || !dragHost.draggingTask) {
+            return false
+        }
+        var fields = { status: Number(status) }
+        if (Number(status) === 3) {
+            fields.completed = true
+            fields.percentComplete = 100
+        } else {
+            fields.completed = false
+        }
+        controller.updateTaskFull(dragHost.draggingTask.itemId, fields)
+        return true
+    }
+
+    function dropTaskOnSecrecy(secrecy) {
+        if (!dragHost || !dragHost.draggingTask) {
+            return false
+        }
+        controller.updateTaskFull(dragHost.draggingTask.itemId, {
+            secrecy: Number(secrecy)
+        })
+        return true
+    }
+
+    function dropTaskOnLocation(location) {
+        if (!dragHost || !dragHost.draggingTask || location === undefined || location === null) {
+            return false
+        }
+        var current = (dragHost.draggingTask.location || "").trim()
+        var next = String(location).trim()
+        if (current === next) {
+            controller.updateTaskFull(dragHost.draggingTask.itemId, { location: "" })
+        } else {
+            controller.updateTaskFull(dragHost.draggingTask.itemId, { location: next })
+        }
+        return true
+    }
+
+    function locationDropHint(location) {
+        var current = dragHost && dragHost.draggingTask
+                ? String(dragHost.draggingTask.location || "").trim() : ""
+        if (current === String(location).trim()) {
+            return i18n("Clear location “%1”", location)
+        }
+        return i18n("Set location “%1”", location)
+    }
+
+    readonly property var primaryViewItems: [
         { viewId: "inbox", label: i18n("Inbox"), icon: "mail-folder-inbox" },
         { viewId: "today", label: i18n("Today"), icon: "view-calendar-day" },
         { viewId: "overdue", label: i18n("Overdue"), icon: "chronometer" },
         { viewId: "tomorrow", label: i18n("Tomorrow"), icon: "go-next" },
         { viewId: "scheduled", label: i18n("Scheduled"), icon: "view-calendar" },
         { viewId: "anytime", label: i18n("Anytime"), icon: "view-calendar-tasks" },
-        { viewId: "recurring", label: i18n("Recurring"), icon: "media-playlist-repeat" },
-        { viewId: "unlabeled", label: i18n("Unlabeled"), icon: "tag-delete" },
         { viewId: "completed", label: i18n("Completed"), icon: "checkmark" }
     ]
 
-    readonly property var visibleViewItems: {
-        if (!controller) {
-            return viewItems
-        }
-        var order = controller.visibleOrderedKeys(viewOrder, hiddenViews, viewDefaults, ",", "||")
+    readonly property var maintenanceViewItems: [
+        { viewId: "recurring", label: i18n("Recurring"), icon: "media-playlist-repeat" },
+        { viewId: "unlabeled", label: i18n("Unlabeled"), icon: "tag-delete" },
+        { viewId: "reminder", label: i18n("Has reminder"), icon: "appointment-reminder" },
+        { viewId: "nolocation", label: i18n("Has no location"), icon: "find-location" },
+        { viewId: "nopriority", label: i18n("No priority"), icon: "flag" },
+        { viewId: "nostatus", label: i18n("No status"), icon: "task-new" }
+    ]
+
+    readonly property var viewItems: primaryViewItems.concat(maintenanceViewItems)
+
+    readonly property var viewItemsById: {
         var byId = {}
         for (var i = 0; i < viewItems.length; ++i) {
             byId[viewItems[i].viewId] = viewItems[i]
         }
+        return byId
+    }
+
+    function folderForView(viewId) {
+        if (viewId === maintenanceFolderId || root.isMaintenanceViewId(viewId)) {
+            return maintenanceFolder
+        }
+        return primaryFolder
+    }
+
+    function isMaintenanceViewId(viewId) {
+        return maintenanceViewIds.indexOf(viewId) >= 0
+    }
+
+    function orderedViewItems(defaultsCsv) {
+        if (!controller) {
+            return []
+        }
+        var order = controller.visibleOrderedKeys(viewOrder, hiddenViews, defaultsCsv, ",", "||")
+        var byId = viewItemsById
         var out = []
         for (var j = 0; j < order.length; ++j) {
-            if (byId[order[j]]) {
+            if (byId[order[j]] && root.filterEnabled("view", order[j])) {
                 out.push(byId[order[j]])
             }
         }
-        return out.length ? out : viewItems
+        return out
     }
+
+    readonly property var smartViewSidebarItems: {
+        var out = []
+        try {
+            var smartViews = JSON.parse(Plasmoid.configuration.smartViews || "[]")
+            for (var k = 0; k < smartViews.length; ++k) {
+                var sv = smartViews[k]
+                if (!sv || !sv.id) {
+                    continue
+                }
+                out.push({
+                    viewId: "smart:" + sv.id,
+                    label: sv.name || sv.id,
+                    icon: sv.icon || "view-filter"
+                })
+            }
+        } catch (e) {
+        }
+        return out
+    }
+
+    function maintenanceFolderCountLabel() {
+        if (!controller || !showSidebarCounts) {
+            return ""
+        }
+        var sum = 0
+        for (var i = 0; i < maintenanceViewIds.length; ++i) {
+            var n = controller.viewTaskCounts[maintenanceViewIds[i]]
+            if (n !== undefined) {
+                sum += n
+            }
+        }
+        return sum > 0 ? String(sum) : ""
+    }
+
+    readonly property var visiblePrimaryViewItems: orderedViewItems(primaryViewDefaults)
+
+    readonly property var visibleMaintenanceViewItems: orderedViewItems(maintenanceViewDefaults)
+
+    readonly property var visiblePrimaryViewsDisplay: {
+        var out = visiblePrimaryViewItems.slice()
+        out.push({
+            viewId: maintenanceFolderId,
+            label: i18n("Maintenance"),
+            icon: "folder-documents",
+            isNav: true
+        })
+        for (var m = 0; m < smartViewSidebarItems.length; ++m) {
+            out.push(smartViewSidebarItems[m])
+        }
+        return out.length ? out : primaryViewItems
+    }
+
+    readonly property var visibleMaintenanceViewsDisplay: {
+        var out = [{
+            viewId: viewsBackId,
+            label: i18n("Back"),
+            icon: "go-previous",
+            isNav: true
+        }]
+        for (var j = 0; j < visibleMaintenanceViewItems.length; ++j) {
+            out.push(visibleMaintenanceViewItems[j])
+        }
+        return out
+    }
+
+    readonly property var visibleViewItems: currentSidebarFolder === maintenanceFolder
+            ? visibleMaintenanceViewsDisplay
+            : visiblePrimaryViewsDisplay
 
     readonly property var priorityItems: [
         { value: 1, label: i18n("High") },
         { value: 5, label: i18n("Medium") },
-        { value: 9, label: i18n("Low") },
-        { value: 0, label: i18n("None") }
+        { value: 9, label: i18n("Low") }
+    ]
+
+    readonly property var progressItems: [
+        { value: "0-25", label: i18n("0–25%") },
+        { value: "26-50", label: i18n("26–50%") },
+        { value: "51-75", label: i18n("51–75%") },
+        { value: "76-100", label: i18n("76–100%") }
+    ]
+    readonly property var statusItems: [
+        { value: 4, label: i18n("Needs action") },
+        { value: 6, label: i18n("In process") },
+        { value: 3, label: i18n("Completed") },
+        { value: 5, label: i18n("Canceled") }
+    ]
+    readonly property var secrecyItems: [
+        { value: 0, label: i18n("Public") },
+        { value: 1, label: i18n("Private") },
+        { value: 2, label: i18n("Confidential") }
     ]
 
     function indexForView(viewId) {
         for (var i = 0; i < visibleViewItems.length; ++i) {
-            if (visibleViewItems[i].viewId === viewId) {
+            var row = visibleViewItems[i]
+            if (row.viewId === viewId) {
                 return i
             }
         }
-        return 0
+        return -1
+    }
+
+    Connections {
+        target: controller
+        function onCurrentViewChanged() {
+            root.currentSidebarFolder = root.folderForView(controller.currentView)
+            viewsList.syncCurrentIndex()
+        }
+    }
+
+    // Whole-section slide animation for folder entry/exit,
+    // matching the MainPaneHost view-transition style.
+    Connections {
+        target: root
+        function onCurrentSidebarFolderChanged() {
+            if (Design.reducedMotion) {
+                return
+            }
+            viewsSlideAnimation.stop()
+            var slideFrom = root.currentSidebarFolder === maintenanceFolder
+                    ? viewsList.width
+                    : -viewsList.width
+            viewsList.x = slideFrom
+            viewsSlideAnimation.from = slideFrom
+            viewsSlideAnimation.to = 0
+            viewsSlideAnimation.start()
+        }
+    }
+
+    NumberAnimation {
+        id: viewsSlideAnimation
+        target: viewsList
+        property: "x"
+        duration: Design.mainPaneTransitionDuration
+        easing.type: Easing.OutCubic
     }
 
     function clearFilterSelections() {
         controller.selectedCollectionId = -1
         controller.selectedLabel = ""
         controller.selectedPriority = -1
+        controller.selectedProgressBand = ""
+        controller.selectedStatus = -1
+        controller.selectedSecrecy = -1
+        controller.selectedLocation = ""
     }
 
     component SidebarHoverBackground: KSvg.FrameSvgItem {
@@ -481,7 +881,7 @@ Item {
         prefix: "hover"
         anchors.fill: parent
         visible: !Kirigami.Settings.isMobile
-        opacity: control.hovered && !control.down ? 1 : 0
+        opacity: root.rowHoverEnabled && control.hovered && !control.down ? 1 : 0
         Behavior on opacity {
             NumberAnimation {
                 duration: Kirigami.Units.veryShortDuration
@@ -529,13 +929,14 @@ Item {
     Item {
         id: viewsBlock
         width: parent ? parent.width : 0
+        clip: true
         property bool isLastVisible: false
         height: viewsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
 
     ListView {
         id: viewsList
         width: parent ? parent.width : 0
-        height: root.sectionsAllocated ? root.viewsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.allocFor("views")
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -545,7 +946,30 @@ Item {
         leftMargin: 0
         rightMargin: root.scrollMarginFor(viewsList)
         model: root.visibleViewItems
-        currentIndex: root.indexForView(controller.currentView)
+
+        function syncCurrentIndex() {
+            var idx = root.indexForView(controller.currentView)
+            if (idx < 0 || idx >= count) {
+                currentIndex = -1
+                return
+            }
+            var row = model[idx]
+            if (row && (row.viewId === root.maintenanceFolderId
+                    || row.viewId === root.viewsBackId)) {
+                currentIndex = -1
+                return
+            }
+            currentIndex = idx
+        }
+
+        onModelChanged: Qt.callLater(syncCurrentIndex)
+
+        Connections {
+            target: root
+            function onCurrentSidebarFolderChanged() {
+                viewsList.syncCurrentIndex()
+            }
+        }
 
         highlight: PlasmaExtras.Highlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
@@ -554,10 +978,18 @@ Item {
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
         onContentHeightChanged: Qt.callLater(root.redistributeSections)
 
+        displaced: Transition {
+            NumberAnimation {
+                properties: "y"
+                duration: Design.mainPaneTransitionDuration
+                easing.type: Easing.OutCubic
+            }
+        }
+
         delegate: PlasmaComponents3.ItemDelegate {
             id: viewDelegate
             width: root.listContentWidth(viewsList)
-            hoverEnabled: true
+            hoverEnabled: root.rowHoverEnabled
             highlighted: ListView.isCurrentItem
             leftPadding: 0
             rightPadding: Design.spaceSmall
@@ -569,6 +1001,16 @@ Item {
             }
 
             onClicked: {
+                if (modelData.viewId === root.viewsBackId) {
+                    root.currentSidebarFolder = root.primaryFolder
+                    controller.currentView = "inbox"
+                    return
+                }
+                if (modelData.viewId === root.maintenanceFolderId) {
+                    root.currentSidebarFolder = root.maintenanceFolder
+                    return
+                }
+                root.currentSidebarFolder = root.folderForView(modelData.viewId)
                 controller.currentView = modelData.viewId
                 root.clearFilterSelections()
             }
@@ -583,7 +1025,6 @@ Item {
                     Layout.preferredWidth: root.rowIconSize
                     Layout.preferredHeight: root.rowIconSize
                     source: modelData.icon
-                    // Keep icon box fixed so glyphs like mail-folder-inbox don't look top-heavy.
                     width: root.rowIconSize
                     height: root.rowIconSize
                 }
@@ -595,13 +1036,26 @@ Item {
                     selected: viewDelegate.highlighted || viewDelegate.down
                 }
 
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                    visible: modelData.viewId === root.maintenanceFolderId
+                    source: "go-next"
+                    opacity: 0.55
+                }
+
                 QQC2.Label {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
+                        if (modelData.viewId === root.maintenanceFolderId) {
+                            return root.maintenanceFolderCountLabel()
+                        }
                         var n = controller.viewTaskCounts[modelData.viewId]
                         return n === undefined ? "" : String(n)
                     }
                     visible: root.showSidebarCounts && text.length > 0
+                            && modelData.viewId !== root.viewsBackId
                     opacity: 0.55
                     font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 }
@@ -626,7 +1080,7 @@ Item {
     ListView {
         id: projectsList
         width: parent ? parent.width : 0
-        height: root.sectionsAllocated ? root.projectsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.allocFor("projects")
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -665,10 +1119,22 @@ Item {
                     Layout.fillWidth: false
                     Layout.fillHeight: true
                     Layout.preferredHeight: root.sectionHeaderHeight
-                    hoverEnabled: true
+                    hoverEnabled: root.rowHoverEnabled
                     highlighted: controller.selectedCollectionId < 0
+                    readonly property bool filterUsable: root.filterEnabled("project")
+                    enabled: filterUsable
+                    opacity: filterUsable ? 1.0 : 0.45
 
-                    onClicked: controller.selectedCollectionId = -1
+                    onClicked: {
+                        if (filterUsable) {
+                            controller.selectedCollectionId = -1
+                        }
+                    }
+
+                    QQC2.ToolTip {
+                        visible: !allProjectsDelegate.filterUsable && allProjectsDelegate.hovered
+                        text: root.filterDisabledReason("project")
+                    }
 
                     background: SelectionBackground {
                         control: allProjectsDelegate
@@ -690,9 +1156,12 @@ Item {
             delegate: PlasmaComponents3.ItemDelegate {
                 id: projectDelegate
                 width: root.listContentWidth(projectsList)
-                hoverEnabled: true
+                hoverEnabled: root.rowHoverEnabled
+                readonly property bool filterUsable: root.filterEnabled("project")
                 readonly property bool filterSelected: controller.selectedCollectionId === modelData.collectionId
                 highlighted: filterSelected
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
                 leftPadding: 0
                 rightPadding: Design.spaceSmall
                 topPadding: root.rowVPad
@@ -719,7 +1188,8 @@ Item {
                     id: projectDrop
                     anchors.fill: parent
                     keys: ["application/x-kurrent-task"]
-                    enabled: root.isDragging && controller.collectionModel.writableForId(modelData.collectionId)
+                    enabled: root.isDragging && filterUsable
+                            && controller.collectionModel.writableForId(modelData.collectionId)
 
                     readonly property bool alreadyInProject: {
                         var drag = root.dragHost ? root.dragHost.draggingTask : null
@@ -748,11 +1218,19 @@ Item {
                 }
 
                 onClicked: {
+                    if (!filterUsable) {
+                        return
+                    }
                     if (controller.selectedCollectionId === modelData.collectionId) {
                         controller.selectedCollectionId = -1
                     } else {
                         controller.selectedCollectionId = modelData.collectionId
                     }
+                }
+
+                QQC2.ToolTip {
+                    visible: !projectDelegate.filterUsable && projectDelegate.hovered
+                    text: root.filterDisabledReason("project")
                 }
 
                 contentItem: RowLayout {
@@ -809,7 +1287,7 @@ Item {
     ListView {
         id: labelsList
         width: parent ? parent.width : 0
-        height: root.sectionsAllocated ? root.labelsAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.allocFor("labels")
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -848,10 +1326,22 @@ Item {
                     Layout.fillWidth: false
                     Layout.fillHeight: true
                     Layout.preferredHeight: root.sectionHeaderHeight
-                    hoverEnabled: true
+                    hoverEnabled: root.rowHoverEnabled
                     highlighted: controller.selectedLabel === ""
+                    readonly property bool filterUsable: root.filterEnabled("label")
+                    enabled: filterUsable
+                    opacity: filterUsable ? 1.0 : 0.45
 
-                    onClicked: controller.selectedLabel = ""
+                    onClicked: {
+                        if (filterUsable) {
+                            controller.selectedLabel = ""
+                        }
+                    }
+
+                    QQC2.ToolTip {
+                        visible: !allLabelsDelegate.filterUsable && allLabelsDelegate.hovered
+                        text: root.filterDisabledReason("label")
+                    }
 
                     background: SelectionBackground {
                         control: allLabelsDelegate
@@ -873,9 +1363,12 @@ Item {
             delegate: PlasmaComponents3.ItemDelegate {
                 id: labelDelegate
                 width: root.listContentWidth(labelsList)
-                hoverEnabled: true
+                hoverEnabled: root.rowHoverEnabled
+                readonly property bool filterUsable: root.filterEnabled("label")
                 readonly property bool filterSelected: controller.selectedLabel === modelData
                 highlighted: filterSelected
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
                 leftPadding: 0
                 rightPadding: Design.spaceSmall
                 topPadding: root.rowVPad
@@ -904,7 +1397,7 @@ Item {
                     keys: ["application/x-kurrent-task"]
                     enabled: root.isDragging
 
-                    readonly property string hintText: i18n("Add label “%1”", modelData)
+                    readonly property string hintText: root.labelDropHint(modelData)
 
                     onEntered: function(drag) {
                         drag.acceptProposedAction()
@@ -925,11 +1418,19 @@ Item {
                 }
 
                 onClicked: {
+                    if (!filterUsable) {
+                        return
+                    }
                     if (controller.selectedLabel === modelData) {
                         controller.selectedLabel = ""
                     } else {
                         controller.selectedLabel = modelData
                     }
+                }
+
+                QQC2.ToolTip {
+                    visible: !labelDelegate.filterUsable && labelDelegate.hovered
+                    text: root.filterDisabledReason("label")
                 }
 
                 contentItem: RowLayout {
@@ -986,7 +1487,7 @@ Item {
     ListView {
         id: prioritiesList
         width: parent ? parent.width : 0
-        height: root.sectionsAllocated ? root.prioritiesAlloc : Math.max(1, Math.floor(root.availableHeight / 4))
+        height: root.allocFor("priorities")
         clip: true
         implicitHeight: 0
         implicitWidth: width
@@ -1025,10 +1526,22 @@ Item {
                 Layout.fillWidth: false
                 Layout.fillHeight: true
                 Layout.preferredHeight: root.sectionHeaderHeight
-                hoverEnabled: true
+                hoverEnabled: root.rowHoverEnabled
                 highlighted: controller.selectedPriority < 0
+                readonly property bool filterUsable: root.filterEnabled("priority")
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
 
-                onClicked: controller.selectedPriority = -1
+                onClicked: {
+                    if (filterUsable) {
+                        controller.selectedPriority = -1
+                    }
+                }
+
+                QQC2.ToolTip {
+                    visible: !allPrioritiesDelegate.filterUsable && allPrioritiesDelegate.hovered
+                    text: root.filterDisabledReason("priority")
+                }
 
                 background: SelectionBackground {
                     control: allPrioritiesDelegate
@@ -1050,9 +1563,12 @@ Item {
             delegate: PlasmaComponents3.ItemDelegate {
                 id: priorityDelegate
                 width: root.listContentWidth(prioritiesList)
-            hoverEnabled: true
+            hoverEnabled: root.rowHoverEnabled
+            readonly property bool filterUsable: root.filterEnabled("priority")
             readonly property bool filterSelected: controller.selectedPriority === modelData.value
             highlighted: filterSelected
+            enabled: filterUsable
+            opacity: filterUsable ? 1.0 : 0.45
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
@@ -1079,7 +1595,7 @@ Item {
                 id: priorityDrop
                 anchors.fill: parent
                 keys: ["application/x-kurrent-task"]
-                enabled: root.isDragging
+                enabled: root.isDragging && filterUsable
 
                 readonly property bool alreadyPriority: {
                     var drag = root.dragHost ? root.dragHost.draggingTask : null
@@ -1115,11 +1631,19 @@ Item {
             }
 
             onClicked: {
+                if (!filterUsable) {
+                    return
+                }
                 if (controller.selectedPriority === modelData.value) {
                     controller.selectedPriority = -1
                 } else {
                     controller.selectedPriority = modelData.value
                 }
+            }
+
+            QQC2.ToolTip {
+                visible: !priorityDelegate.filterUsable && priorityDelegate.hovered
+                text: root.filterDisabledReason("priority")
             }
 
             contentItem: RowLayout {
@@ -1159,6 +1683,850 @@ Item {
             }
         }
     }
+
+    Kirigami.Separator {
+        width: parent ? parent.width : 0
+        anchors.bottom: parent.bottom
+        visible: !prioritiesBlock.isLastVisible
     }
     }
+
+    // ── Progress section ──
+    Item {
+        id: progressBlock
+        width: parent ? parent.width : 0
+        property bool isLastVisible: false
+        height: progressList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
+    ListView {
+        id: progressList
+        width: parent ? parent.width : 0
+        height: root.allocFor("progress")
+        clip: true
+        implicitHeight: 0
+        implicitWidth: width
+        interactive: root.listNeedsScroll(progressList) || root.comfortableRows
+        boundsBehavior: Flickable.StopAtBounds
+        spacing: 1
+        leftMargin: 0
+        rightMargin: root.scrollMarginFor(progressList)
+        model: root.progressItems
+        currentIndex: -1
+
+        QQC2.ScrollBar.vertical: SidebarScrollBar { view: progressList }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+        onContentHeightChanged: Qt.callLater(root.redistributeSections)
+
+        headerPositioning: ListView.InlineHeader
+        header: RowLayout {
+            width: root.listContentWidth(progressList)
+            height: root.sectionHeaderHeight
+            Layout.leftMargin: Design.spaceSmall
+            Layout.rightMargin: Design.spaceSmall
+            spacing: 0
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: i18n("Progress")
+                font.bold: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.65
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            PlasmaComponents3.ItemDelegate {
+                id: allProgressDelegate
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                Layout.preferredHeight: root.sectionHeaderHeight
+                hoverEnabled: root.rowHoverEnabled
+                highlighted: controller.selectedProgressBand === ""
+                readonly property bool filterUsable: root.filterEnabled("progress")
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
+
+                onClicked: {
+                    if (filterUsable) {
+                        controller.selectedProgressBand = ""
+                    }
+                }
+
+                QQC2.ToolTip {
+                    visible: !allProgressDelegate.filterUsable && allProgressDelegate.hovered
+                    text: root.filterDisabledReason("progress")
+                }
+
+                background: SelectionBackground {
+                    control: allProgressDelegate
+                    selected: allProgressDelegate.highlighted
+                }
+
+                contentItem: QQC2.Label {
+                    text: i18n("All")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: allProgressDelegate.highlighted || allProgressDelegate.down ? 1.0 : 0.75
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    leftPadding: Design.spaceSmall
+                    rightPadding: Design.spaceSmall
+                }
+            }
+        }
+
+        delegate: PlasmaComponents3.ItemDelegate {
+            id: progressDelegate
+            width: root.listContentWidth(progressList)
+            hoverEnabled: root.rowHoverEnabled
+            readonly property bool filterUsable: root.filterEnabled("progress")
+            readonly property bool filterSelected: controller.selectedProgressBand === modelData.value
+            highlighted: filterSelected
+            enabled: filterUsable
+            opacity: filterUsable ? 1.0 : 0.45
+            leftPadding: 0
+            rightPadding: Design.spaceSmall
+            topPadding: root.rowVPad
+            bottomPadding: root.rowVPad
+
+            background: Item {
+                anchors.fill: parent
+
+                SelectionBackground {
+                    control: progressDelegate
+                    selected: progressDelegate.filterSelected
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Design.inputRadius
+                    color: Kirigami.Theme.highlightColor
+                    opacity: progressDrop.containsDrag ? 0.28 : 0
+                    visible: opacity > 0
+                }
+            }
+
+            DropArea {
+                id: progressDrop
+                anchors.fill: parent
+                keys: ["application/x-kurrent-task"]
+                enabled: root.isDragging && filterUsable
+
+                readonly property string hintText: i18n("Set progress to %1", modelData.label)
+
+                onEntered: function(drag) {
+                    drag.acceptProposedAction()
+                    if (root.dragHost) {
+                        root.dragHost.setDropHint(hintText)
+                    }
+                }
+                onExited: {
+                    if (root.dragHost) {
+                        root.dragHost.clearDropHint(hintText)
+                    }
+                }
+                onDropped: function(drop) {
+                    if (root.dropTaskOnProgress(modelData.value)) {
+                        drop.acceptProposedAction()
+                    }
+                }
+            }
+
+            onClicked: {
+                if (!filterUsable) {
+                    return
+                }
+                if (controller.selectedProgressBand === modelData.value) {
+                    controller.selectedProgressBand = ""
+                } else {
+                    controller.selectedProgressBand = modelData.value
+                }
+            }
+
+            QQC2.ToolTip {
+                visible: !progressDelegate.filterUsable && progressDelegate.hovered
+                text: root.filterDisabledReason("progress")
+            }
+
+            contentItem: RowLayout {
+                spacing: Design.spaceSmall
+
+                Item { width: root.rowLeftInset }
+
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: root.rowIconSize
+                    Layout.preferredHeight: root.rowIconSize
+                    source: root.progressIconForBand(modelData.value)
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+
+                KirigamiDelegates.TitleSubtitle {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: root.listContentWidth(progressList)
+                    Layout.alignment: Qt.AlignVCenter
+                    title: modelData.label
+                    selected: progressDelegate.highlighted || progressDelegate.down || progressDrop.containsDrag
+                }
+
+                QQC2.Label {
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                    text: {
+                        var n = controller.sidebarProgressCounts[modelData.value]
+                        return n === undefined ? "" : String(n)
+                    }
+                    visible: root.showSidebarCounts && text.length > 0
+                    opacity: 0.55
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
+            }
+        }
     }
+
+    Kirigami.Separator {
+        width: parent ? parent.width : 0
+        anchors.bottom: parent.bottom
+        visible: !progressBlock.isLastVisible
+    }
+    }
+
+    // ── Status section ──
+    Item {
+        id: statusBlock
+        width: parent ? parent.width : 0
+        property bool isLastVisible: false
+        height: statusList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
+    ListView {
+        id: statusList
+        width: parent ? parent.width : 0
+        height: root.allocFor("status")
+        clip: true
+        implicitHeight: 0
+        implicitWidth: width
+        interactive: root.listNeedsScroll(statusList) || root.comfortableRows
+        boundsBehavior: Flickable.StopAtBounds
+        spacing: 1
+        leftMargin: 0
+        rightMargin: root.scrollMarginFor(statusList)
+        model: root.statusItems
+        currentIndex: -1
+
+        QQC2.ScrollBar.vertical: SidebarScrollBar { view: statusList }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+        onContentHeightChanged: Qt.callLater(root.redistributeSections)
+
+        headerPositioning: ListView.InlineHeader
+        header: RowLayout {
+            width: root.listContentWidth(statusList)
+            height: root.sectionHeaderHeight
+            Layout.leftMargin: Design.spaceSmall
+            Layout.rightMargin: Design.spaceSmall
+            spacing: 0
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: i18n("Status")
+                font.bold: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.65
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            PlasmaComponents3.ItemDelegate {
+                id: allStatusDelegate
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                Layout.preferredHeight: root.sectionHeaderHeight
+                hoverEnabled: root.rowHoverEnabled
+                highlighted: controller.selectedStatus < 0
+                readonly property bool filterUsable: root.filterEnabled("status")
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
+
+                onClicked: {
+                    if (filterUsable) {
+                        controller.selectedStatus = -1
+                    }
+                }
+
+                QQC2.ToolTip {
+                    visible: !allStatusDelegate.filterUsable && allStatusDelegate.hovered
+                    text: root.filterDisabledReason("status")
+                }
+
+                background: SelectionBackground {
+                    control: allStatusDelegate
+                    selected: allStatusDelegate.highlighted
+                }
+
+                contentItem: QQC2.Label {
+                    text: i18n("All")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: allStatusDelegate.highlighted || allStatusDelegate.down ? 1.0 : 0.75
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    leftPadding: Design.spaceSmall
+                    rightPadding: Design.spaceSmall
+                }
+            }
+        }
+
+        delegate: PlasmaComponents3.ItemDelegate {
+            id: statusDelegate
+            width: root.listContentWidth(statusList)
+            hoverEnabled: root.rowHoverEnabled
+            readonly property bool filterUsable: root.filterEnabled("status")
+            readonly property bool filterSelected: controller.selectedStatus === modelData.value
+            highlighted: filterSelected
+            enabled: filterUsable
+            opacity: filterUsable ? 1.0 : 0.45
+            leftPadding: 0
+            rightPadding: Design.spaceSmall
+            topPadding: root.rowVPad
+            bottomPadding: root.rowVPad
+
+            background: Item {
+                anchors.fill: parent
+
+                SelectionBackground {
+                    control: statusDelegate
+                    selected: statusDelegate.filterSelected
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Design.inputRadius
+                    color: Kirigami.Theme.highlightColor
+                    opacity: statusDrop.containsDrag ? 0.28 : 0
+                    visible: opacity > 0
+                }
+            }
+
+            DropArea {
+                id: statusDrop
+                anchors.fill: parent
+                keys: ["application/x-kurrent-task"]
+                enabled: root.isDragging && filterUsable
+
+                readonly property string hintText: i18n("Set status “%1”", modelData.label)
+
+                onEntered: function(drag) {
+                    drag.acceptProposedAction()
+                    if (root.dragHost) {
+                        root.dragHost.setDropHint(hintText)
+                    }
+                }
+                onExited: {
+                    if (root.dragHost) {
+                        root.dragHost.clearDropHint(hintText)
+                    }
+                }
+                onDropped: function(drop) {
+                    if (root.dropTaskOnStatus(modelData.value)) {
+                        drop.acceptProposedAction()
+                    }
+                }
+            }
+
+            onClicked: {
+                if (!filterUsable) {
+                    return
+                }
+                if (controller.selectedStatus === modelData.value) {
+                    controller.selectedStatus = -1
+                } else {
+                    controller.selectedStatus = modelData.value
+                }
+            }
+
+            QQC2.ToolTip {
+                visible: !statusDelegate.filterUsable && statusDelegate.hovered
+                text: root.filterDisabledReason("status")
+            }
+
+            contentItem: RowLayout {
+                spacing: Design.spaceSmall
+
+                Item { width: root.rowLeftInset }
+
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: root.rowIconSize
+                    Layout.preferredHeight: root.rowIconSize
+                    source: root.statusIconForValue(modelData.value)
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+
+                KirigamiDelegates.TitleSubtitle {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: root.listContentWidth(statusList)
+                    Layout.alignment: Qt.AlignVCenter
+                    title: modelData.label
+                    selected: statusDelegate.highlighted || statusDelegate.down || statusDrop.containsDrag
+                }
+
+                QQC2.Label {
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                    text: {
+                        var n = controller.sidebarStatusCounts[String(modelData.value)]
+                        return n === undefined ? "" : String(n)
+                    }
+                    visible: root.showSidebarCounts && text.length > 0
+                    opacity: 0.55
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
+            }
+        }
+    }
+
+    Kirigami.Separator {
+        width: parent ? parent.width : 0
+        anchors.bottom: parent.bottom
+        visible: !statusBlock.isLastVisible
+    }
+    }
+
+    // ── Secrecy section ──
+    Item {
+        id: secrecyBlock
+        width: parent ? parent.width : 0
+        property bool isLastVisible: false
+        height: secrecyList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
+    ListView {
+        id: secrecyList
+        width: parent ? parent.width : 0
+        height: root.allocFor("secrecy")
+        clip: true
+        implicitHeight: 0
+        implicitWidth: width
+        interactive: root.listNeedsScroll(secrecyList) || root.comfortableRows
+        boundsBehavior: Flickable.StopAtBounds
+        spacing: 1
+        leftMargin: 0
+        rightMargin: root.scrollMarginFor(secrecyList)
+        model: root.secrecyItems
+        currentIndex: -1
+
+        QQC2.ScrollBar.vertical: SidebarScrollBar { view: secrecyList }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+        onContentHeightChanged: Qt.callLater(root.redistributeSections)
+
+        headerPositioning: ListView.InlineHeader
+        header: RowLayout {
+            width: root.listContentWidth(secrecyList)
+            height: root.sectionHeaderHeight
+            Layout.leftMargin: Design.spaceSmall
+            Layout.rightMargin: Design.spaceSmall
+            spacing: 0
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: i18n("Secrecy")
+                font.bold: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.65
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            PlasmaComponents3.ItemDelegate {
+                id: allSecrecyDelegate
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                Layout.preferredHeight: root.sectionHeaderHeight
+                hoverEnabled: root.rowHoverEnabled
+                highlighted: controller.selectedSecrecy < 0
+                readonly property bool filterUsable: root.filterEnabled("secrecy")
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
+
+                onClicked: {
+                    if (filterUsable) {
+                        controller.selectedSecrecy = -1
+                    }
+                }
+
+                QQC2.ToolTip {
+                    visible: !allSecrecyDelegate.filterUsable && allSecrecyDelegate.hovered
+                    text: root.filterDisabledReason("secrecy")
+                }
+
+                background: SelectionBackground {
+                    control: allSecrecyDelegate
+                    selected: allSecrecyDelegate.highlighted
+                }
+
+                contentItem: QQC2.Label {
+                    text: i18n("All")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: allSecrecyDelegate.highlighted || allSecrecyDelegate.down ? 1.0 : 0.75
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    leftPadding: Design.spaceSmall
+                    rightPadding: Design.spaceSmall
+                }
+            }
+        }
+
+        delegate: PlasmaComponents3.ItemDelegate {
+            id: secrecyDelegate
+            width: root.listContentWidth(secrecyList)
+            hoverEnabled: root.rowHoverEnabled
+            readonly property bool filterUsable: root.filterEnabled("secrecy")
+            readonly property bool filterSelected: controller.selectedSecrecy === modelData.value
+            highlighted: filterSelected
+            enabled: filterUsable
+            opacity: filterUsable ? 1.0 : 0.45
+            leftPadding: 0
+            rightPadding: Design.spaceSmall
+            topPadding: root.rowVPad
+            bottomPadding: root.rowVPad
+
+            background: Item {
+                anchors.fill: parent
+
+                SelectionBackground {
+                    control: secrecyDelegate
+                    selected: secrecyDelegate.filterSelected
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Design.inputRadius
+                    color: Kirigami.Theme.highlightColor
+                    opacity: secrecyDrop.containsDrag ? 0.28 : 0
+                    visible: opacity > 0
+                }
+            }
+
+            DropArea {
+                id: secrecyDrop
+                anchors.fill: parent
+                keys: ["application/x-kurrent-task"]
+                enabled: root.isDragging && filterUsable
+
+                readonly property string hintText: i18n("Set secrecy “%1”", modelData.label)
+
+                onEntered: function(drag) {
+                    drag.acceptProposedAction()
+                    if (root.dragHost) {
+                        root.dragHost.setDropHint(hintText)
+                    }
+                }
+                onExited: {
+                    if (root.dragHost) {
+                        root.dragHost.clearDropHint(hintText)
+                    }
+                }
+                onDropped: function(drop) {
+                    if (root.dropTaskOnSecrecy(modelData.value)) {
+                        drop.acceptProposedAction()
+                    }
+                }
+            }
+
+            onClicked: {
+                if (!filterUsable) {
+                    return
+                }
+                if (controller.selectedSecrecy === modelData.value) {
+                    controller.selectedSecrecy = -1
+                } else {
+                    controller.selectedSecrecy = modelData.value
+                }
+            }
+
+            QQC2.ToolTip {
+                visible: !secrecyDelegate.filterUsable && secrecyDelegate.hovered
+                text: root.filterDisabledReason("secrecy")
+            }
+
+            contentItem: RowLayout {
+                spacing: Design.spaceSmall
+
+                Item { width: root.rowLeftInset }
+
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: root.rowIconSize
+                    Layout.preferredHeight: root.rowIconSize
+                    source: root.secrecyIconForValue(modelData.value)
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+
+                KirigamiDelegates.TitleSubtitle {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: root.listContentWidth(secrecyList)
+                    Layout.alignment: Qt.AlignVCenter
+                    title: modelData.label
+                    selected: secrecyDelegate.highlighted || secrecyDelegate.down || secrecyDrop.containsDrag
+                }
+
+                QQC2.Label {
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                    text: {
+                        var n = controller.sidebarSecrecyCounts[String(modelData.value)]
+                        return n === undefined ? "" : String(n)
+                    }
+                    visible: root.showSidebarCounts && text.length > 0
+                    opacity: 0.55
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
+            }
+        }
+    }
+
+    Kirigami.Separator {
+        width: parent ? parent.width : 0
+        anchors.bottom: parent.bottom
+        visible: !secrecyBlock.isLastVisible
+    }
+    }
+
+    // ── Location section ──
+    Item {
+        id: locationBlock
+        width: parent ? parent.width : 0
+        property bool isLastVisible: false
+        height: locationList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
+
+    ListView {
+        id: locationList
+        width: parent ? parent.width : 0
+        height: root.allocFor("location")
+        clip: true
+        implicitHeight: 0
+        implicitWidth: width
+        interactive: root.listNeedsScroll(locationList) || root.comfortableRows
+        boundsBehavior: Flickable.StopAtBounds
+        spacing: 1
+        model: root.visibleLocationItems
+        currentIndex: -1
+        leftMargin: 0
+        rightMargin: root.scrollMarginFor(locationList)
+
+        QQC2.ScrollBar.vertical: SidebarScrollBar { view: locationList }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+        onContentHeightChanged: Qt.callLater(root.redistributeSections)
+
+        headerPositioning: ListView.InlineHeader
+        header: RowLayout {
+            width: root.listContentWidth(locationList)
+            height: root.sectionHeaderHeight
+            Layout.leftMargin: Design.spaceSmall
+            Layout.rightMargin: Design.spaceSmall
+            spacing: 0
+
+            QQC2.Label {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: i18n("Location")
+                font.bold: true
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                opacity: 0.65
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            PlasmaComponents3.ItemDelegate {
+                id: allLocationsDelegate
+                Layout.fillWidth: false
+                Layout.fillHeight: true
+                Layout.preferredHeight: root.sectionHeaderHeight
+                hoverEnabled: root.rowHoverEnabled
+                highlighted: controller.selectedLocation === ""
+                readonly property bool filterUsable: root.filterEnabled("location")
+                enabled: filterUsable
+                opacity: filterUsable ? 1.0 : 0.45
+
+                onClicked: {
+                    if (filterUsable) {
+                        controller.selectedLocation = ""
+                    }
+                }
+
+                QQC2.ToolTip {
+                    visible: !allLocationsDelegate.filterUsable && allLocationsDelegate.hovered
+                    text: root.filterDisabledReason("location")
+                }
+
+                background: SelectionBackground {
+                    control: allLocationsDelegate
+                    selected: allLocationsDelegate.highlighted
+                }
+
+                contentItem: QQC2.Label {
+                    text: i18n("All")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: allLocationsDelegate.highlighted || allLocationsDelegate.down ? 1.0 : 0.75
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignHCenter
+                    leftPadding: Design.spaceSmall
+                    rightPadding: Design.spaceSmall
+                }
+            }
+        }
+
+        delegate: PlasmaComponents3.ItemDelegate {
+            id: locationDelegate
+            width: root.listContentWidth(locationList)
+            hoverEnabled: root.rowHoverEnabled
+            readonly property bool filterUsable: root.filterEnabled("location")
+            readonly property bool filterSelected: controller.selectedLocation === modelData
+            highlighted: filterSelected
+            enabled: filterUsable
+            opacity: filterUsable ? 1.0 : 0.45
+            leftPadding: 0
+            rightPadding: Design.spaceSmall
+            topPadding: root.rowVPad
+            bottomPadding: root.rowVPad
+
+            background: Item {
+                anchors.fill: parent
+
+                SelectionBackground {
+                    control: locationDelegate
+                    selected: locationDelegate.filterSelected
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Design.inputRadius
+                    color: Kirigami.Theme.highlightColor
+                    opacity: locationDrop.containsDrag ? 0.28 : 0
+                    visible: opacity > 0
+                }
+            }
+
+            DropArea {
+                id: locationDrop
+                anchors.fill: parent
+                keys: ["application/x-kurrent-task"]
+                enabled: root.isDragging && filterUsable
+
+                readonly property string hintText: root.locationDropHint(modelData)
+
+                onEntered: function(drag) {
+                    drag.acceptProposedAction()
+                    if (root.dragHost) {
+                        root.dragHost.setDropHint(hintText)
+                    }
+                }
+                onExited: {
+                    if (root.dragHost) {
+                        root.dragHost.clearDropHint(hintText)
+                    }
+                }
+                onDropped: function(drop) {
+                    if (root.dropTaskOnLocation(modelData)) {
+                        drop.acceptProposedAction()
+                    }
+                }
+            }
+
+            onClicked: {
+                if (!filterUsable) {
+                    return
+                }
+                if (controller.selectedLocation === modelData) {
+                    controller.selectedLocation = ""
+                } else {
+                    controller.selectedLocation = modelData
+                }
+            }
+
+            QQC2.ToolTip {
+                visible: !locationDelegate.filterUsable && locationDelegate.hovered
+                text: root.filterDisabledReason("location")
+            }
+
+            contentItem: RowLayout {
+                spacing: Design.spaceSmall
+
+                Item { width: root.rowLeftInset }
+
+                Kirigami.Icon {
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: root.rowIconSize
+                    Layout.preferredHeight: root.rowIconSize
+                    source: "mark-location"
+                    color: Design.colorForKey(String(modelData), "location")
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+
+                KirigamiDelegates.TitleSubtitle {
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: root.listContentWidth(locationList)
+                    Layout.alignment: Qt.AlignVCenter
+                    title: modelData
+                    selected: locationDelegate.highlighted || locationDelegate.down || locationDrop.containsDrag
+                }
+
+                QQC2.Label {
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                    text: {
+                        var n = controller.sidebarLocationCounts[modelData]
+                        return n === undefined ? "" : String(n)
+                    }
+                    visible: root.showSidebarCounts && text.length > 0
+                    opacity: 0.55
+                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                }
+            }
+        }
+    }
+
+    Kirigami.Separator {
+        width: parent ? parent.width : 0
+        anchors.bottom: parent.bottom
+        visible: !locationBlock.isLastVisible
+    }
+    }
+
+    }
+
+    QQC2.Dialog {
+        id: confirmRemoveLabelDialog
+        parent: root.dragHost || root
+        anchors.centerIn: parent
+        popupType: QQC2.Popup.Item
+        modal: true
+        title: i18n("Remove label?")
+        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
+        padding: Design.spaceMedium
+
+        readonly property int maxWidth: {
+            var host = parent
+            if (!host) {
+                return Kirigami.Units.gridUnit * 22
+            }
+            return Math.max(Kirigami.Units.gridUnit * 12, host.width - 2 * Design.overlayInset)
+        }
+
+        width: Math.min(maxWidth, Math.max(Kirigami.Units.gridUnit * 14, removeLabelMessage.implicitWidth + leftPadding + rightPadding))
+
+        onAccepted: {
+            if (root.pendingRemoveItemId >= 0 && root.pendingRemoveLabel.length > 0) {
+                controller.removeTaskCategory(root.pendingRemoveItemId, root.pendingRemoveLabel)
+            }
+            root.pendingRemoveItemId = -1
+            root.pendingRemoveLabel = ""
+        }
+        onRejected: {
+            root.pendingRemoveItemId = -1
+            root.pendingRemoveLabel = ""
+        }
+
+        contentItem: QQC2.Label {
+            id: removeLabelMessage
+            text: i18n("Remove label “%1” from this task?", root.pendingRemoveLabel)
+            wrapMode: Text.WordWrap
+            width: confirmRemoveLabelDialog.availableWidth
+        }
+    }
+}

@@ -6,10 +6,14 @@
 
 var _projectColors = {}
 var _labelColors = {}
+var _locationColors = {}
+var _colorForKeyCache = {}
 
-function setColorOverrides(projects, labels) {
+function setColorOverrides(projects, labels, locations) {
     _projectColors = projects || {}
     _labelColors = labels || {}
+    _locationColors = locations || {}
+    _colorForKeyCache = {}
 }
 
 function _hashString(str) {
@@ -25,12 +29,26 @@ function _hashString(str) {
 
 function colorForKey(key, kind) {
     var s = String(key);
-    var map = (kind === "label") ? _labelColors : _projectColors
+    var kindKey = kind || "project"
+    var cacheKey = kindKey + "\0" + s
+    if (_colorForKeyCache[cacheKey] !== undefined) {
+        return _colorForKeyCache[cacheKey]
+    }
+
+    var map = _projectColors
+    if (kind === "label") {
+        map = _labelColors
+    } else if (kind === "location") {
+        map = _locationColors
+    }
     if (map && map[s]) {
+        _colorForKeyCache[cacheKey] = map[s]
         return map[s]
     }
     if (s.length === 0) {
-        return Qt.hsla(0, 0, 0.5, 1);
+        var emptyColor = Qt.hsla(0, 0, 0.5, 1);
+        _colorForKeyCache[cacheKey] = emptyColor
+        return emptyColor;
     }
 
     // Spread hues across the full 360° using the hash.
@@ -41,7 +59,9 @@ function colorForKey(key, kind) {
     var saturation = 0.62;
     var lightness = 0.46;
 
-    return Qt.hsla(hue / 360.0, saturation, lightness, 1);
+    var color = Qt.hsla(hue / 360.0, saturation, lightness, 1);
+    _colorForKeyCache[cacheKey] = color
+    return color;
 }
 
 /*

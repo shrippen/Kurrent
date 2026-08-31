@@ -2,23 +2,17 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "colors.js" as Colors
 import "."
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
-
-    property string cfg_hiddenLabels
-    property string cfg_labelColors
-
-    Loader {
+    ConfigControllerLoader {
         id: configControllerLoader
-        source: Qt.resolvedUrl("PluginController.qml")
-        onLoaded: item.showCompleted = true
+        Component.onCompleted: refresh()
     }
-    readonly property var configController: configControllerLoader.item
+    readonly property var configController: configControllerLoader.controller
 
     function hiddenSet() {
         var raw = cfg_hiddenLabels || ""

@@ -76,6 +76,14 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.section;
     case BucketRole:
         return task.bucket;
+    case ColumnRole:
+        return task.column;
+    case AttendeesRole:
+        return task.attendees;
+    case KanbanSortOrderRole:
+        return task.kanbanSortOrder;
+    case GeoUrlRole:
+        return task.geoUrl;
     case SyncingRole:
         return task.syncing;
     case PendingDeleteRole:
@@ -115,6 +123,10 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
         {ReminderMinutesRole, "reminderMinutes"},
         {SectionRole, "section"},
         {BucketRole, "bucket"},
+        {ColumnRole, "column"},
+        {AttendeesRole, "attendees"},
+        {KanbanSortOrderRole, "kanbanSortOrder"},
+        {GeoUrlRole, "geoUrl"},
         {SyncingRole, "syncing"},
         {PendingDeleteRole, "pendingDelete"},
     };
@@ -281,6 +293,10 @@ bool TaskListModel::taskDataDiffers(const TaskEntry &a, const TaskEntry &b)
         || a.reminderMinutes != b.reminderMinutes
         || a.section != b.section
         || a.bucket != b.bucket
+        || a.column != b.column
+        || a.attendees != b.attendees
+        || a.kanbanSortOrder != b.kanbanSortOrder
+        || a.geoUrl != b.geoUrl
         || a.syncing != b.syncing
         || a.pendingDelete != b.pendingDelete;
 }
@@ -322,6 +338,10 @@ QVector<int> TaskListModel::dataDiffRoles(const TaskEntry &a, const TaskEntry &b
     add(a.reminderMinutes != b.reminderMinutes, ReminderMinutesRole);
     add(a.section != b.section, SectionRole);
     add(a.bucket != b.bucket, BucketRole);
+    add(a.column != b.column, ColumnRole);
+    add(a.attendees != b.attendees, AttendeesRole);
+    add(a.kanbanSortOrder != b.kanbanSortOrder, KanbanSortOrderRole);
+    add(a.geoUrl != b.geoUrl, GeoUrlRole);
     add(a.syncing != b.syncing, SyncingRole);
     add(a.pendingDelete != b.pendingDelete, PendingDeleteRole);
 

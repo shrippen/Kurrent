@@ -167,6 +167,25 @@ Item {
             }
             return
         case 23:
+            if (backend && plasmoidRoot) {
+                plasmoidRoot.setMainPaneMode("kanban")
+            }
+            return
+        case 24:
+            if (backend && plasmoidRoot) {
+                plasmoidRoot.setMainPaneMode("list")
+            }
+            return
+        case 25:
+            backend.listGroupMode = "priority"
+            return
+        case 26:
+            backend.listGroupMode = "none"
+            return
+        case 27:
+            backend.currentView = "scheduled"
+            return
+        case 28:
             backend.currentView = "inbox"
             backend.smokeTrace("KURRENT_SMOKE_DONE")
             runner.stop()

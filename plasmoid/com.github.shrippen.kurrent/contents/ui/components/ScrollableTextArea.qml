@@ -53,6 +53,9 @@ Item {
         QQC2.TextArea {
             id: area
             width: flick.contentWidth
+            // Fill the visible frame so empty space below the text is still
+            // clickable/focusable (TextArea defaults to content height only).
+            height: Math.max(implicitHeight, flick.height)
             wrapMode: TextEdit.Wrap
             selectByMouse: true
             background: Item {}

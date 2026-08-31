@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import org.kde.plasma.plasmoid 2.0
 import "../colors.js" as Colors
 import "../datetime.js" as DateTime
+import "../taskmeta.js" as TaskMeta
 import ".."
 
 Item {
@@ -20,6 +21,8 @@ Item {
     property real editorReserveHeight: 0
     property Item dragHost: null
     property var taskListRoot: null
+    // Full-editor / reduced-motion / scroll: suppress row hover flash.
+    property bool interactionsSuspended: false
 
     signal requestExpand(var itemId)
     signal requestCollapse
@@ -43,20 +46,7 @@ Item {
     readonly property bool showDueChip: Plasmoid.configuration.showDateChip !== false
             && DateTime.isValidDate(task.dueDate)
 
-    readonly property var visibleCategories: {
-        var cats = task.categories || []
-        var selected = controller.selectedLabel || ""
-        if (!selected) {
-            return cats
-        }
-        var out = []
-        for (var i = 0; i < cats.length; ++i) {
-            if (cats[i] !== selected) {
-                out.push(cats[i])
-            }
-        }
-        return out
-    }
+    readonly property var taskCategories: task.categories || []
 
     function taskSnapshot() {
         return {
@@ -191,14 +181,14 @@ Item {
         height: root.expanded ? Math.round(root.collapsedHeight) : parent.height
         radius: Design.inputRadius
         color: dropHighlight ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.highlightColor
-        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && root.reveal >= 1 && hoverHandler.hovered && !Design.reducedMotion)) ? 0.12 : 0)
+        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && root.reveal >= 1 && hoverHandler.hovered && !Design.reducedMotion && !root.interactionsSuspended)) ? 0.12 : 0)
         visible: opacity > 0
         z: 0
     }
 
     HoverHandler {
         id: hoverHandler
-        enabled: !root.listMoving && root.reveal >= 1 && !root.treeHidden
+        enabled: !root.listMoving && root.reveal >= 1 && !root.treeHidden && !root.interactionsSuspended
     }
 
     DragHandler {
@@ -354,6 +344,11 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
                     onTapped: {
+                        if (taskListRoot && taskListRoot.multiSelectEnabled
+                                && (pointingDevice.modifiers & Qt.ControlModifier)) {
+                            controller.toggleTaskSelection(task.itemId, true, false)
+                            return
+                        }
                         var action = Plasmoid.configuration.clickAction || "inline"
                         if (taskListRoot) {
                             taskListRoot.selectedItemId = task.itemId
@@ -409,11 +404,19 @@ Item {
                 RowLayout {
                     id: statusRow
                     Layout.fillWidth: true
+                    Layout.preferredHeight: root.labelIconSize
+                    Layout.maximumHeight: root.labelIconSize
+                    implicitHeight: root.labelIconSize
                     spacing: 2
+                    clip: true
                     visible: root.showDueChip
-                             || (Plasmoid.configuration.showLabelChips !== false && (root.visibleCategories ? root.visibleCategories.length > 0 : false))
+                             || (Plasmoid.configuration.showLabelChips !== false && root.taskCategories.length > 0)
                              || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0)
                              || (Plasmoid.configuration.showRecurringIcon !== false && task.recurring)
+                             || (Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0)
+                             || (Plasmoid.configuration.showStatusChip !== false && (task.status || 0) !== 0)
+                             || (Plasmoid.configuration.showSecrecyChip !== false && (task.secrecy || 0) > 0)
+                             || (Plasmoid.configuration.showLocationChip !== false && !!(task.location && String(task.location).trim().length))
                              || (Plasmoid.configuration.showJoinButton !== false && (task.joinUrl ? task.joinUrl.length > 0 : false))
 
                     QQC2.ToolButton {
@@ -430,7 +433,7 @@ Item {
                     }
 
                     Repeater {
-                        model: Plasmoid.configuration.showLabelChips !== false ? root.visibleCategories : []
+                        model: Plasmoid.configuration.showLabelChips !== false ? root.taskCategories : []
                         delegate: Kirigami.Icon {
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredWidth: root.labelIconSize
@@ -499,6 +502,86 @@ Item {
                         }
                     }
 
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0
+                        source: TaskMeta.progressIconForPercent(task.percentComplete)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: i18n("Progress %1%", task.percentComplete)
+                        QQC2.ToolTip.visible: progressHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: progressHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showStatusChip !== false && (task.status || 0) !== 0
+                        source: TaskMeta.statusIconForValue(task.status)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: {
+                            switch (Number(task.status)) {
+                            case 4: return i18n("Needs action")
+                            case 6: return i18n("In process")
+                            case 3: return i18n("Completed")
+                            case 5: return i18n("Canceled")
+                            default: return i18n("Status")
+                            }
+                        }
+                        QQC2.ToolTip.visible: statusHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: statusHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showSecrecyChip !== false && (task.secrecy || 0) > 0
+                        source: TaskMeta.secrecyIconForValue(task.secrecy)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: {
+                            switch (Number(task.secrecy)) {
+                            case 1: return i18n("Private")
+                            case 2: return i18n("Confidential")
+                            default: return i18n("Public")
+                            }
+                        }
+                        QQC2.ToolTip.visible: secrecyHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: secrecyHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showLocationChip !== false
+                                 && !!(task.location && String(task.location).trim().length)
+                        source: "mark-location"
+                        color: Design.colorForKey(String(task.location), "location")
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: task.location
+                        QQC2.ToolTip.visible: locationHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: locationHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
                     Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
@@ -509,50 +592,25 @@ Item {
                         id: dateChip
                         visible: root.showDueChip
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                        // Use mainColumn.width — statusRow.width here loops with RowLayout.
                         Layout.maximumWidth: Math.max(Kirigami.Units.gridUnit * 6,
-                                                      statusRow.width * 0.45)
+                                                      mainColumn.width * 0.45)
                         elide: Text.ElideLeft
                         horizontalAlignment: Text.AlignRight
                         font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                        text: {
-                            if (!root.showDueChip) {
-                                return ""
-                            }
-                            var due = task.dueDate
-                            var dueDay = Qt.formatDate(due, "yyyy-MM-dd")
-                            var todayDate = new Date()
-                            var today = Qt.formatDate(todayDate, "yyyy-MM-dd")
-                            var label = Qt.formatDate(due, Qt.DefaultLocaleShortDate)
-                            if (Plasmoid.configuration.relativeDates === true) {
-                                if (dueDay === today) {
-                                    label = i18n("Today")
-                                } else {
-                                    var tomorrow = new Date(todayDate)
-                                    tomorrow.setDate(tomorrow.getDate() + 1)
-                                    var yesterday = new Date(todayDate)
-                                    yesterday.setDate(yesterday.getDate() - 1)
-                                    if (dueDay === Qt.formatDate(tomorrow, "yyyy-MM-dd")) {
-                                        label = i18n("Tomorrow")
-                                    } else if (dueDay === Qt.formatDate(yesterday, "yyyy-MM-dd")) {
-                                        label = i18n("Yesterday")
-                                    }
-                                }
-                            }
-                            if (Plasmoid.configuration.showTimeOnRow !== false && task.allDay !== true) {
-                                var timeText = Qt.formatTime(due, Qt.DefaultLocaleShortDate)
-                                if (timeText && timeText.length) {
-                                    label += " " + timeText
-                                }
-                            }
-                            return label
-                        }
+                        text: DateTime.formatDueRowLabel(task.dueDate, {
+                            relativeDates: Plasmoid.configuration.relativeDates === true,
+                            showTime: Plasmoid.configuration.showTimeOnRow !== false,
+                            allDay: task.allDay === true,
+                            today: i18n("Today"),
+                            tomorrow: i18n("Tomorrow"),
+                            yesterday: i18n("Yesterday")
+                        })
                         color: {
                             if (!visible) {
                                 return Kirigami.Theme.textColor
                             }
-                            var dueDay = Qt.formatDate(task.dueDate, "yyyy-MM-dd")
-                            var today = Qt.formatDate(new Date(), "yyyy-MM-dd")
-                            if (dueDay < today) {
+                            if (DateTime.isDueBeforeToday(task.dueDate)) {
                                 return Kirigami.Theme.negativeTextColor
                             }
                             return Kirigami.Theme.highlightColor

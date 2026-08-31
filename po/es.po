@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.3.1\n"
+"Project-Id-Version: kurrent 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -20,11 +20,17 @@ msgstr ""
 msgid "%1 grid units"
 msgstr "%1 unidades de cuadrícula"
 
+msgid "%1% complete"
+msgstr "%1 % completado"
+
 msgid "%1:00"
 msgstr "%1:00"
 
 msgid "(Untitled)"
 msgstr "(Sin título)"
+
+msgid "+1 day"
+msgstr "+1 día"
 
 msgid "1 day before"
 msgstr "1 día antes"
@@ -43,6 +49,9 @@ msgstr "2 líneas"
 
 msgid "Accent (highlight)"
 msgstr "Acento (resaltado)"
+
+msgid "Add"
+msgstr "Añadir"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "Añadir una tarea…  tomorrow 18:00 !high #tag @project"
@@ -64,6 +73,9 @@ msgstr "La tarde empieza"
 
 msgid "Akonadi"
 msgstr "Akonadi"
+
+msgid "Akonadi and plugin diagnostics"
+msgstr "Diagnóstico de Akonadi y del complemento"
 
 msgid "Akonadi is not running"
 msgstr "Akonadi no está en ejecución"
@@ -95,6 +107,15 @@ msgstr "Ya está en el proyecto “%1”"
 msgid "Already priority “%1”"
 msgstr "Ya tiene prioridad “%1”"
 
+msgid "Any due date"
+msgstr "Cualquier fecha de vencimiento"
+
+msgid "Any priority"
+msgstr "Cualquier prioridad"
+
+msgid "Any status"
+msgstr "Cualquier estado"
+
 msgid "Anytime"
 msgstr "En cualquier momento"
 
@@ -112,6 +133,9 @@ msgstr "Preguntar antes de eliminar una tarea"
 
 msgid "Ask which project to use"
 msgstr "Preguntar qué proyecto usar"
+
+msgid "Assignees:"
+msgstr "Asignados:"
 
 msgid "At due time"
 msgstr "A la hora de vencimiento"
@@ -137,8 +161,17 @@ msgstr "Básicos"
 msgid "Blurred wallpaper behind the widget"
 msgstr "Fondo de pantalla desenfocado detrás del widget"
 
+msgid "Both"
+msgstr "Ambos"
+
 msgid "Build"
 msgstr "Compilación"
+
+msgid "Busy days:"
+msgstr "Días ocupados:"
+
+msgid "Calendar + tasks"
+msgstr "Calendario + tareas"
 
 msgid "Calendars for event suppression"
 msgstr "Calendarios para suprimir eventos"
@@ -148,6 +181,9 @@ msgstr "Cancelar"
 
 msgid "Canceled"
 msgstr "Cancelada"
+
+msgid "Cancelled"
+msgstr "Cancelado"
 
 msgid "Case sensitive"
 msgstr "Distinguir mayúsculas y minúsculas"
@@ -170,6 +206,9 @@ msgstr "Elige qué calendarios de eventos de Akonadi bloquean recordatorios. Las
 msgid "Classification"
 msgstr "Clasificación"
 
+msgid "Clear cell filter"
+msgstr "Quitar filtro de celda"
+
 msgid "Clear due date"
 msgstr "Borrar fecha de vencimiento"
 
@@ -187,6 +226,9 @@ msgstr "Borrar filtro de proyecto"
 
 msgid "Clear search"
 msgstr "Borrar búsqueda"
+
+msgid "Clear selection"
+msgstr "Borrar selección"
 
 msgid "Clear start"
 msgstr "Borrar inicio"
@@ -206,6 +248,9 @@ msgstr "Cómodo (táctil)"
 msgid "Compact"
 msgstr "Compacto"
 
+msgid "Complete"
+msgstr "Completar"
+
 msgid "Complete only with Shift or Ctrl held"
 msgstr "Completar solo con Mayús o Ctrl pulsado"
 
@@ -221,6 +266,12 @@ msgstr "Completada:"
 msgid "Completing a parent also completes its children"
 msgstr "Completar una tarea principal también completa sus subtareas"
 
+msgid "Completion"
+msgstr "Completadas"
+
+msgid "Completions"
+msgstr "Completadas"
+
 msgid "Confidential"
 msgstr "Confidencial"
 
@@ -230,8 +281,17 @@ msgstr "Configura CalDAV/Nextcloud en KOrganizer o Merkuro (recurso DAV groupwar
 msgid "Connecting to Akonadi…"
 msgstr "Conectando con Akonadi…"
 
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Copy UIDs"
+msgstr "Copiar UIDs"
+
 msgid "Copy command"
 msgstr "Copiar comando"
+
+msgid "Copy debug bundle"
+msgstr "Copiar paquete de depuración"
 
 msgid "Could not load tasks"
 msgstr "No se pudieron cargar las tareas"
@@ -242,11 +302,29 @@ msgstr "Recuentos"
 msgid "Create label “%1”"
 msgstr "Crear etiqueta “%1”"
 
+msgid "Custom column (KURRENT/COLUMN)"
+msgstr "Columna personalizada (KURRENT/COLUMN)"
+
 msgid "Daily"
 msgstr "Diario"
 
 msgid "Dates"
 msgstr "Fechas"
+
+msgid "Day"
+msgstr "Día"
+
+msgid "Day agenda"
+msgstr "Agenda del día"
+
+msgid "Day section"
+msgstr "Sección del día"
+
+msgid "Debug info"
+msgstr "Info de depuración"
+
+msgid "Default column source"
+msgstr "Origen de columnas predeterminado"
 
 msgid "Default due date"
 msgstr "Fecha de vencimiento predeterminada"
@@ -293,6 +371,12 @@ msgstr "Descripción:"
 msgid "Desktop notifications"
 msgstr "Notificaciones de escritorio"
 
+msgid "Diagnostics"
+msgstr "Diagnóstico"
+
+msgid "Dismiss"
+msgstr "Descartar"
+
 msgid "Dot"
 msgstr "Punto"
 
@@ -308,14 +392,26 @@ msgstr "Fecha de vencimiento"
 msgid "Due date (latest first)"
 msgstr "Fecha de vencimiento (más reciente primero)"
 
+msgid "Due date buckets"
+msgstr "Grupos de vencimiento"
+
+msgid "Due dates"
+msgstr "Fechas de vencimiento"
+
 msgid "Due:"
 msgstr "Vencimiento:"
+
+msgid "Duplicate built-in view…"
+msgstr "Duplicar vista integrada…"
 
 msgid "During events"
 msgstr "Durante eventos"
 
 msgid "Each sidebar view keeps its own sort. Views you have not changed start with Priority › Due › Title A–Z."
 msgstr "Cada vista de la barra lateral conserva su propio orden. Las vistas sin cambios empiezan con Prioridad › Vencimiento › Título A–Z."
+
+msgid "Edit Smart View"
+msgstr "Editar vista inteligente"
 
 msgid "Edit task"
 msgstr "Editar tarea"
@@ -331,6 +427,9 @@ msgstr "Activar todo"
 
 msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
 msgstr "Activa un calendario en Configurar Kurrent → Proyectos, o añade un recurso CalDAV en Merkuro o KOrganizer."
+
+msgid "Enable multi-select (Ctrl+click) and bulk actions"
+msgstr "Activar selección múltiple (Ctrl+clic) y acciones en lote"
 
 msgid "Enabled"
 msgstr "Activado"
@@ -362,6 +461,9 @@ msgstr "General"
 msgid "Heading on the list"
 msgstr "Encabezado en la lista"
 
+msgid "Heatmap"
+msgstr "Mapa de calor"
+
 msgid "Hidden"
 msgstr "Oculto"
 
@@ -373,6 +475,9 @@ msgstr "Prioridad alta"
 
 msgid "High priority (%1)"
 msgstr "Prioridad alta (%1)"
+
+msgid "Icon name (Plasma icon)"
+msgstr "Nombre del icono (icono de Plasma)"
 
 msgid "In 1 hour"
 msgstr "En 1 hora"
@@ -398,8 +503,26 @@ msgstr "Incluir este calendario al comprobar eventos en curso"
 msgid "Include this calendar when fetching tasks"
 msgstr "Incluir este calendario al obtener tareas"
 
+msgid "KURRENT/COLUMN"
+msgstr "KURRENT/COLUMN"
+
+msgid "KURRENT/COLUMN only"
+msgstr "Solo KURRENT/COLUMN"
+
+msgid "KURRENT/LIST (day section)"
+msgstr "KURRENT/LIST (sección del día)"
+
+msgid "Kanban"
+msgstr "Kanban"
+
+msgid "Kanban writes"
+msgstr "Kanban escribe"
+
 msgid "Kurrent"
 msgstr "Kurrent"
+
+msgid "Label"
+msgstr "Etiqueta"
 
 msgid "Labels"
 msgstr "Etiquetas"
@@ -413,8 +536,14 @@ msgstr "Las etiquetas salen de las categorías de Akonadi. Las ocultas no aparec
 msgid "Labels:"
 msgstr "Etiquetas:"
 
+msgid "Lane axis (rows)"
+msgstr "Eje de carriles (filas)"
+
 msgid "Light"
 msgstr "Claro"
+
+msgid "List"
+msgstr "Lista"
 
 msgid "Loading tasks…"
 msgstr "Cargando tareas…"
@@ -455,6 +584,12 @@ msgstr "Prioridad media (%1)"
 msgid "Meetings"
 msgstr "Reuniones"
 
+msgid "Mode:"
+msgstr "Modo:"
+
+msgid "Month"
+msgstr "Mes"
+
 msgid "Monthly"
 msgstr "Mensual"
 
@@ -470,11 +605,20 @@ msgstr "La mañana empieza"
 msgid "Motion"
 msgstr "Movimiento"
 
+msgid "Move to project"
+msgstr "Mover al proyecto"
+
 msgid "Move to project “%1”"
 msgstr "Mover al proyecto “%1”"
 
+msgid "Name"
+msgstr "Nombre"
+
 msgid "Needs action"
 msgstr "Requiere acción"
+
+msgid "New Smart View"
+msgstr "Nueva vista inteligente"
 
 msgid "New label"
 msgstr "Nueva etiqueta"
@@ -484,6 +628,15 @@ msgstr "Tareas nuevas"
 
 msgid "Next week"
 msgstr "Próxima semana"
+
+msgid "No busy events for this day."
+msgstr "No hay eventos ocupados este día."
+
+msgid "No date"
+msgstr "Sin fecha"
+
+msgid "No dated open tasks in this view."
+msgstr "No hay tareas abiertas con fecha en esta vista."
 
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "No se encontraron calendarios de eventos. Comprueba que Akonadi esté en ejecución y que los calendarios CalDAV estén configurados."
@@ -524,6 +677,9 @@ msgstr "No se encontraron calendarios Akonadi editables. Comprueba que Akonadi e
 msgid "None"
 msgstr "Ninguno"
 
+msgid "Not loaded"
+msgstr "No cargado"
+
 msgid "Nothing due today"
 msgstr "Nada vence hoy"
 
@@ -539,11 +695,20 @@ msgstr "Número"
 msgid "Off"
 msgstr "Desactivado"
 
+msgid "Offline"
+msgstr "Desconectado"
+
 msgid "One sort order for every view. The default is Priority › Due › Title A–Z until you change it in the task list."
 msgstr "Un orden para todas las vistas. El predeterminado es Prioridad › Vencimiento › Título A–Z hasta que lo cambies en la lista de tareas."
 
+msgid "Online"
+msgstr "En línea"
+
 msgid "Only opaque (busy) events count. Transparent events are ignored."
 msgstr "Solo cuentan los eventos opacos (ocupados). Los eventos transparentes se ignoran."
+
+msgid "Open"
+msgstr "Abierto"
 
 msgid "Open / Join"
 msgstr "Abrir / Unirse"
@@ -554,11 +719,17 @@ msgstr "Abrir GitHub"
 msgid "Open first"
 msgstr "Abiertas primero"
 
+msgid "Open map"
+msgstr "Abrir mapa"
+
 msgid "Open root tasks"
 msgstr "Tareas principales abiertas"
 
 msgid "Open tasks"
 msgstr "Tareas abiertas"
+
+msgid "Open tasks by project and week"
+msgstr "Tareas abiertas por proyecto y semana"
 
 msgid "Open the full editor"
 msgstr "Abrir el editor completo"
@@ -590,8 +761,17 @@ msgstr "Insignia del panel"
 msgid "Panel tooltip"
 msgstr "Información emergente del panel"
 
+msgid "Parent task"
+msgstr "Tarea principal"
+
+msgid "Pending jobs"
+msgstr "Trabajos pendientes"
+
 msgid "Pick date"
 msgstr "Elegir fecha"
+
+msgid "Plugin version"
+msgstr "Versión del complemento"
 
 msgid "Priorities"
 msgstr "Prioridades"
@@ -616,6 +796,12 @@ msgstr "Progreso % (alto primero)"
 
 msgid "Progress:"
 msgstr "Progreso:"
+
+msgid "Project"
+msgstr "Proyecto"
+
+msgid "Project plan"
+msgstr "Plan de proyecto"
 
 msgid "Project:"
 msgstr "Proyecto:"
@@ -644,6 +830,9 @@ msgstr "Icono de recurrencia"
 msgid "Recurring last"
 msgstr "Recurrentes al final"
 
+msgid "Recurring only"
+msgstr "Solo recurrentes"
+
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "Movimiento reducido (sin indicador, hover más discreto)"
 
@@ -652,6 +841,12 @@ msgstr "Actualizar"
 
 msgid "Relative dates (Today, Tomorrow)"
 msgstr "Fechas relativas (Hoy, Mañana)"
+
+msgid "Release"
+msgstr "Versión"
+
+msgid "Reload"
+msgstr "Recargar"
 
 msgid "Remember globally (all views)"
 msgstr "Recordar globalmente (todas las vistas)"
@@ -698,6 +893,9 @@ msgstr "Tamaño de fila"
 msgid "Save"
 msgstr "Guardar"
 
+msgid "Saved filters appear in the sidebar. Each can set filter rules and a default main-pane mode."
+msgstr "Los filtros guardados aparecen en la barra lateral. Cada uno puede definir reglas y un modo principal predeterminado."
+
 msgid "Schedule"
 msgstr "Programación"
 
@@ -740,11 +938,23 @@ msgstr "Selecciona un proyecto para filtrar tareas."
 msgid "Select only (double-click opens the full editor)"
 msgstr "Solo seleccionar (doble clic abre el editor completo)"
 
+msgid "Selection"
+msgstr "Selección"
+
+msgid "Set KURRENT_SMOKE=1 and check ~/.cache/kurrent-smoke/ for logs."
+msgstr "Establece KURRENT_SMOKE=1 y revisa ~/.cache/kurrent-smoke/ para los registros."
+
+msgid "Set priority"
+msgstr "Establecer prioridad"
+
 msgid "Set priority “%1”"
 msgstr "Establecer prioridad “%1”"
 
 msgid "Setup"
 msgstr "Configuración"
+
+msgid "Show %1 tasks"
+msgstr "Mostrar %1 tareas"
 
 msgid "Show All"
 msgstr "Mostrar todo"
@@ -779,17 +989,29 @@ msgstr "Mostrar hora en el chip de vencimiento"
 msgid "Sidebar"
 msgstr "Barra lateral"
 
+msgid "Smart Views"
+msgstr "Vistas inteligentes"
+
+msgid "Smoke test"
+msgstr "Prueba de humo"
+
 msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
 msgstr "Posponer desde la notificación (15 minutos, 1 hora, mañana) reescribe el VALARM. La fecha de vencimiento no cambia; usa Reprogramar para eso."
 
 msgid "Sort order"
 msgstr "Orden de clasificación"
 
+msgid "Sort override (e.g. priority,due,title)"
+msgstr "Orden personalizado (p. ej. priority,due,title)"
+
 msgid "Sort tasks"
 msgstr "Ordenar tareas"
 
 msgid "Sort: %1"
 msgstr "Orden: %1"
+
+msgid "Standard VTODO fields"
+msgstr "Campos VTODO estándar"
 
 msgid "Start date"
 msgstr "Fecha de inicio"
@@ -824,14 +1046,26 @@ msgstr "Suprimir recordatorios en esta franja horaria"
 msgid "Suppress reminders while a calendar event is in progress"
 msgstr "Suprimir recordatorios mientras hay un evento de calendario en curso"
 
+msgid "Swimlanes"
+msgstr "Carriles"
+
 msgid "Sync now"
 msgstr "Sincronizar ahora"
+
+msgid "Syncing…"
+msgstr "Sincronizando…"
 
 msgid "Tasks"
 msgstr "Tareas"
 
 msgid "Tasks are loaded from your existing Akonadi setup."
 msgstr "Las tareas se cargan desde tu configuración Akonadi existente."
+
+msgid "Tasks due this day"
+msgstr "Tareas que vencen este día"
+
+msgid "Text contains"
+msgstr "El texto contiene"
 
 msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
 msgstr "El paquete de KDE Store es solo el widget. Ejecuta esto en una terminal para instalar el complemento:"
@@ -845,8 +1079,17 @@ msgstr "El editor completo sigue siendo una superposición dentro del widget. La
 msgid "Third sort"
 msgstr "Tercer orden"
 
+msgid "This task was changed on the server. Reload to discard your edit."
+msgstr "Esta tarea cambió en el servidor. Recarga para descartar tu edición."
+
+msgid "This week"
+msgstr "Esta semana"
+
 msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
 msgstr "Este widget es la versión %1 pero el backend instalado es %2. Reinstala el backend para que coincidan."
+
+msgid "Time axis (columns)"
+msgstr "Eje temporal (columnas)"
 
 msgid "Title"
 msgstr "Título"
@@ -905,6 +1148,12 @@ msgstr "Usar un proyecto concreto"
 msgid "Use the top project in the sidebar"
 msgstr "Usar el primer proyecto de la barra lateral"
 
+msgid "View mode"
+msgstr "Modo de vista"
+
+msgid "View mode: %1"
+msgstr "Modo de vista: %1"
+
 msgid "Views"
 msgstr "Vistas"
 
@@ -913,6 +1162,9 @@ msgstr "Visible"
 
 msgid "Waiting for Akonadi…"
 msgstr "Esperando a Akonadi…"
+
+msgid "Week"
+msgstr "Semana"
 
 msgid "Weekly"
 msgstr "Semanal"
@@ -925,6 +1177,9 @@ msgstr "Anual"
 
 msgid "Yesterday"
 msgstr "Ayer"
+
+msgid "tasks"
+msgstr "tareas"
 
 msgid "unknown"
 msgstr "desconocido"

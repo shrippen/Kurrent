@@ -2,27 +2,11 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kcmutils as KCM
 import "components"
 
-KCM.SimpleKCM {
+ConfigPageBase {
     id: root
 
-    property alias cfg_catchUpEnabled: catchUpCheck.checked
-    property alias cfg_showJoinButton: showJoinCheck.checked
-    property alias cfg_searchTitleOnly: searchTitleCheck.checked
-    property alias cfg_searchCaseSensitive: searchCaseCheck.checked
-    property alias cfg_completeChildren: completeChildrenCheck.checked
-    property alias cfg_relativeDates: relativeDatesCheck.checked
-    property string cfg_sortScope
-    property alias cfg_showTimeOnRow: showTimeCheck.checked
-    property alias cfg_showDateChip: dateChipCheck.checked
-    property alias cfg_showLabelChips: labelChipCheck.checked
-    property alias cfg_showPriorityChip: priorityChipCheck.checked
-    property alias cfg_showRecurringIcon: recurringIconCheck.checked
-    property int cfg_morningHour
-    property int cfg_afternoonHour
-    property int cfg_eveningHour
 
     function selectCombo(combo, value) {
         for (var i = 0; i < combo.model.length; ++i) {
@@ -44,13 +28,6 @@ KCM.SimpleKCM {
 
         Kirigami.FormLayout {
             Layout.fillWidth: true
-
-            QQC2.CheckBox {
-                id: catchUpCheck
-                Kirigami.FormData.label: i18n("Catch-up")
-                text: i18n("Show overdue tasks at the top of Today")
-                Component.onCompleted: checked = plasmoid.configuration.catchUpEnabled !== false
-            }
 
             QQC2.ComboBox {
                 id: sortScopeCombo
@@ -114,72 +91,117 @@ KCM.SimpleKCM {
                 id: dateChipCheck
                 Kirigami.FormData.label: i18n("Row chips")
                 text: i18n("Due date")
-                Component.onCompleted: checked = plasmoid.configuration.showDateChip !== false
+                checked: root.cfg_showDateChip
+                onCheckedChanged: root.cfg_showDateChip = checked
             }
 
             QQC2.CheckBox {
                 id: labelChipCheck
                 text: i18n("Labels")
-                Component.onCompleted: checked = plasmoid.configuration.showLabelChips !== false
+                checked: root.cfg_showLabelChips
+                onCheckedChanged: root.cfg_showLabelChips = checked
             }
 
             QQC2.CheckBox {
                 id: priorityChipCheck
                 text: i18n("Priority")
-                Component.onCompleted: checked = plasmoid.configuration.showPriorityChip !== false
+                checked: root.cfg_showPriorityChip
+                onCheckedChanged: root.cfg_showPriorityChip = checked
             }
 
             QQC2.CheckBox {
                 id: recurringIconCheck
                 text: i18n("Recurring icon")
-                Component.onCompleted: checked = plasmoid.configuration.showRecurringIcon !== false
+                checked: root.cfg_showRecurringIcon
+                onCheckedChanged: root.cfg_showRecurringIcon = checked
+            }
+
+            QQC2.CheckBox {
+                id: progressChipCheck
+                text: i18n("Progress")
+                checked: root.cfg_showProgressChip
+                onCheckedChanged: root.cfg_showProgressChip = checked
+            }
+
+            QQC2.CheckBox {
+                id: statusChipCheck
+                text: i18n("Status")
+                checked: root.cfg_showStatusChip
+                onCheckedChanged: root.cfg_showStatusChip = checked
+            }
+
+            QQC2.CheckBox {
+                id: secrecyChipCheck
+                text: i18n("Secrecy")
+                checked: root.cfg_showSecrecyChip
+                onCheckedChanged: root.cfg_showSecrecyChip = checked
+            }
+
+            QQC2.CheckBox {
+                id: locationChipCheck
+                text: i18n("Location")
+                checked: root.cfg_showLocationChip
+                onCheckedChanged: root.cfg_showLocationChip = checked
             }
 
             QQC2.CheckBox {
                 id: showJoinCheck
                 Kirigami.FormData.label: i18n("Meetings")
                 text: i18n("Show a Join button for http(s) links")
-                Component.onCompleted: checked = plasmoid.configuration.showJoinButton !== false
+                checked: root.cfg_showJoinButton
+                onCheckedChanged: root.cfg_showJoinButton = checked
+            }
+
+            QQC2.CheckBox {
+                id: multiSelectCheck
+                Kirigami.FormData.label: i18n("Selection")
+                text: i18n("Enable multi-select (Ctrl+click) and bulk actions")
+                checked: root.cfg_multiSelectEnabled
+                onCheckedChanged: root.cfg_multiSelectEnabled = checked
             }
 
             QQC2.CheckBox {
                 id: searchTitleCheck
                 Kirigami.FormData.label: i18n("Search")
                 text: i18n("Search titles only")
-                Component.onCompleted: checked = plasmoid.configuration.searchTitleOnly === true
+                checked: root.cfg_searchTitleOnly
+                onCheckedChanged: root.cfg_searchTitleOnly = checked
             }
 
             QQC2.CheckBox {
                 id: searchCaseCheck
                 text: i18n("Case sensitive")
-                Component.onCompleted: checked = plasmoid.configuration.searchCaseSensitive === true
+                checked: root.cfg_searchCaseSensitive
+                onCheckedChanged: root.cfg_searchCaseSensitive = checked
             }
 
             QQC2.CheckBox {
                 id: relativeDatesCheck
                 Kirigami.FormData.label: i18n("Dates")
                 text: i18n("Relative dates (Today, Tomorrow)")
-                Component.onCompleted: checked = plasmoid.configuration.relativeDates === true
+                checked: root.cfg_relativeDates
+                onCheckedChanged: root.cfg_relativeDates = checked
             }
 
             QQC2.CheckBox {
                 id: showTimeCheck
                 text: i18n("Show time on the due chip")
-                Component.onCompleted: checked = plasmoid.configuration.showTimeOnRow !== false
+                checked: root.cfg_showTimeOnRow
+                onCheckedChanged: root.cfg_showTimeOnRow = checked
             }
 
             QQC2.CheckBox {
                 id: completeChildrenCheck
                 Kirigami.FormData.label: i18n("Subtasks")
                 text: i18n("Completing a parent also completes its children")
-                Component.onCompleted: checked = plasmoid.configuration.completeChildren === true
+                checked: root.cfg_completeChildren
+                onCheckedChanged: root.cfg_completeChildren = checked
             }
 
             ConfigResetButton {
                 Kirigami.FormData.label: ""
                 page: root
                 defaults: ({
-                    catchUpEnabled: true,
                     morningHour: 6,
                     afternoonHour: 12,
                     eveningHour: 18,
@@ -187,6 +209,10 @@ KCM.SimpleKCM {
                     showLabelChips: true,
                     showPriorityChip: true,
                     showRecurringIcon: true,
+                    showProgressChip: true,
+                    showStatusChip: true,
+                    showSecrecyChip: true,
+                    showLocationChip: true,
                     showJoinButton: true,
                     searchTitleOnly: false,
                     searchCaseSensitive: false,

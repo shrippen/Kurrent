@@ -97,38 +97,127 @@ function timeTokens() {
 
 /**
  * True for a usable date from C++ QDateTime (model roles) or JS Date.
- * Qt 6 no longer documents Date.isValid; prefer getTime(), keep isValid as fallback.
+ * Must agree with Qt.formatDate — a value that passes here must not throw in safeFormatDate.
  */
 function isValidDate(dt) {
     if (dt === undefined || dt === null) {
         return false
     }
-    if (typeof dt.isValid === "boolean") {
-        return dt.isValid
+    if (typeof dt === "string") {
+        if (!String(dt).trim().length) {
+            return false
+        }
     }
-    if (typeof dt.getTime === "function") {
-        return !isNaN(dt.getTime())
-    }
-    // QML date value type without Date methods: try formatting.
-    try {
-        return Qt.formatDate(dt, "yyyy-MM-dd").length > 0
-    } catch (e) {
+    if (typeof dt.isValid === "boolean" && !dt.isValid) {
         return false
     }
+    if (typeof dt.getTime === "function" && isNaN(dt.getTime())) {
+        return false
+    }
+    return isoDateKey(dt).length >= 10
+}
+
+function safeFormatDate(dt, fmt) {
+    if (!isValidDate(dt)) {
+        return ""
+    }
+    try {
+        return Qt.formatDate(dt, fmt)
+    } catch (e) {
+        return ""
+    }
+}
+
+function safeFormatTime(dt, fmt) {
+    if (!isValidDate(dt)) {
+        return ""
+    }
+    try {
+        return Qt.formatTime(dt, fmt)
+    } catch (e) {
+        return ""
+    }
+}
+
+/** ISO calendar day for comparisons (yyyy-MM-dd); empty when invalid. */
+function isoDateKey(dt) {
+    if (dt === undefined || dt === null) {
+        return ""
+    }
+    if (typeof dt.isValid === "boolean" && !dt.isValid) {
+        return ""
+    }
+    if (typeof dt.getTime === "function" && isNaN(dt.getTime())) {
+        return ""
+    }
+    try {
+        var key = Qt.formatDate(dt, "yyyy-MM-dd")
+        if (!key || key.length < 10 || key.indexOf("Invalid") >= 0) {
+            return ""
+        }
+        return key
+    } catch (e) {
+        return ""
+    }
+}
+
+function isDueBeforeToday(due) {
+    var dueDay = isoDateKey(due)
+    if (!dueDay.length) {
+        return false
+    }
+    return dueDay < isoDateKey(new Date())
+}
+
+/**
+ * Task row due chip: locale short date, optional relative Today/Tomorrow/Yesterday, optional time.
+ * labels: { today, tomorrow, yesterday } — pass i18n strings from QML.
+ */
+function formatDueRowLabel(due, options) {
+    if (!isValidDate(due)) {
+        return ""
+    }
+    options = options || {}
+    var dueDay = isoDateKey(due)
+    var label = safeFormatDate(due, Qt.DefaultLocaleShortDate)
+    if (options.relativeDates === true && dueDay.length) {
+        var todayDate = new Date()
+        var today = isoDateKey(todayDate)
+        if (dueDay === today && options.today) {
+            label = options.today
+        } else {
+            var tomorrow = new Date(todayDate)
+            tomorrow.setDate(tomorrow.getDate() + 1)
+            var yesterday = new Date(todayDate)
+            yesterday.setDate(yesterday.getDate() - 1)
+            if (dueDay === isoDateKey(tomorrow) && options.tomorrow) {
+                label = options.tomorrow
+            } else if (dueDay === isoDateKey(yesterday) && options.yesterday) {
+                label = options.yesterday
+            }
+        }
+    }
+    if (options.showTime !== false && options.allDay !== true) {
+        var timeText = safeFormatTime(due, Qt.DefaultLocaleShortDate)
+        if (timeText && timeText.length) {
+            label += " " + timeText
+        }
+    }
+    return label
 }
 
 function formatDate(dt) {
     if (!isValidDate(dt)) {
         return ""
     }
-    return Qt.formatDate(dt, dateFormatString())
+    return safeFormatDate(dt, dateFormatString())
 }
 
 function formatTime(dt) {
     if (!isValidDate(dt)) {
         return ""
     }
-    return Qt.formatTime(dt, timeFormatString())
+    return safeFormatTime(dt, timeFormatString())
 }
 
 function datePlaceholder() {
@@ -320,4 +409,22 @@ function combineDateTime(dateStr, timeStr, allDay) {
     }
     d.setHours(t.hours, t.minutes, 0, 0)
     return d
+}
+
+/**
+ * Editor save helper: { clear: true } | { clear: false, date: Date } | null on invalid input.
+ */
+function resolveDateFields(dateStr, timeStr, allDay, clearRequested) {
+    if (clearRequested) {
+        return { clear: true }
+    }
+    var ds = String(dateStr || "").trim()
+    if (!ds.length) {
+        return { clear: true }
+    }
+    var combined = combineDateTime(dateStr, timeStr, allDay)
+    if (!combined) {
+        return null
+    }
+    return { clear: false, date: combined }
 }

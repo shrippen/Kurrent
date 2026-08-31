@@ -32,6 +32,10 @@ struct TaskEntry {
     int reminderMinutes = -1;
     QString section;
     QString bucket;
+    QString column;
+    QStringList attendees;
+    int kanbanSortOrder = 0;
+    QString geoUrl;
     bool syncing = false;
     bool pendingDelete = false;
 };
@@ -70,6 +74,10 @@ public:
         ReminderMinutesRole,
         SectionRole,
         BucketRole,
+        ColumnRole,
+        AttendeesRole,
+        KanbanSortOrderRole,
+        GeoUrlRole,
         SyncingRole,
         PendingDeleteRole,
     };

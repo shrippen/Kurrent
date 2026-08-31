@@ -41,6 +41,10 @@ inline const QString Anytime = QStringLiteral("anytime");
 inline const QString Recurring = QStringLiteral("recurring");
 inline const QString Unlabeled = QStringLiteral("unlabeled");
 inline const QString Completed = QStringLiteral("completed");
+inline const QString Reminder = QStringLiteral("reminder");
+inline const QString NoLocation = QStringLiteral("nolocation");
+inline const QString NoPriority = QStringLiteral("nopriority");
+inline const QString NoStatus = QStringLiteral("nostatus");
 }
 
 namespace ReschedulePreset
@@ -50,6 +54,7 @@ inline const QString Hour1 = QStringLiteral("1h");
 inline const QString Hour4 = QStringLiteral("4h");
 inline const QString Tomorrow = QStringLiteral("tomorrow");
 inline const QString NextWeek = QStringLiteral("next-week");
+inline const QString Plus1Day = QStringLiteral("1d");
 constexpr int Sec15m = 15 * 60;
 constexpr int Sec1h = 60 * 60;
 constexpr int Sec4h = 4 * 60 * 60;
@@ -63,6 +68,27 @@ constexpr int Medium = 5;
 constexpr int Low = 9;
 }
 
+struct SmartViewRules {
+    QString text;
+    qint64 projectId = -1;
+    QString label;
+    int priority = -1;
+    QString dueWindow;
+    QString statusFilter;
+    bool recurringOnly = false;
+    QString kurrentList;
+    QString kurrentColumn;
+};
+
+struct SmartViewDef {
+    QString id;
+    QString name;
+    QString icon;
+    QString defaultMode;
+    QString sortOverride;
+    SmartViewRules rules;
+};
+
 struct FilterState {
     QString currentView;
     QString searchQuery;
@@ -70,6 +96,10 @@ struct FilterState {
     qint64 selectedCollectionId = -1;
     QString selectedLabel;
     int selectedPriority = -1;
+    QString selectedProgressBand;
+    int selectedStatus = -1;
+    int selectedSecrecy = -1;
+    QString selectedLocation;
     bool catchUpEnabled = true;
     int catchUpDays = 14;
     int morningHour = 6;
@@ -77,6 +107,10 @@ struct FilterState {
     int eveningHour = 18;
     SearchScope searchScope = SearchScope::All;
     SearchCase searchCase = SearchCase::Insensitive;
+    bool hasSmartRules = false;
+    SmartViewRules smartRules;
+    /** List view section grouping (empty/none = use view-native buckets only). */
+    QString listGroupMode;
 };
 
 struct QuickAddProject {
@@ -130,7 +164,12 @@ struct SidebarCounts {
     QVariantMap sidebarProjects;
     QVariantMap sidebarLabels;
     QVariantMap sidebarPriorities;
+    QVariantMap sidebarProgress;
+    QVariantMap sidebarStatus;
+    QVariantMap sidebarSecrecy;
+    QVariantMap sidebarLocations;
     QVariantMap totalLabels;
+    QVariantMap totalLocations;
 };
 
 struct ProjectCandidate {
@@ -146,13 +185,13 @@ struct NewTaskTarget {
 
 int priorityBand(int priority);
 
+bool matchesViewFilter(const TaskEntry &task, const FilterState &filters, const QDate &today);
+
 bool matchesSearch(const TaskEntry &task, const QString &query, SearchScope scope = SearchScope::All, SearchCase cs = SearchCase::Insensitive);
 
 bool matchesView(const TaskEntry &task, const QString &viewId, const QDate &today);
 
 /** True for incomplete tasks due before today (same set as the Overdue view). lookbackDays is unused. */
-bool isCatchUp(const TaskEntry &task, const QDate &today, int lookbackDays = -1);
-
 bool matchesTodayList(const TaskEntry &task, const FilterState &filters, const QDate &today);
 
 QString dayPart(const QDateTime &when, const FilterState &filters);
@@ -167,7 +206,51 @@ QuickAdd parseQuickAdd(const QString &raw, const QDate &today, const QTime &now)
 QuickAdd parseQuickAdd(const QString &raw, const QDate &today, const QTime &now, const QuickAddContext &ctx);
 QuickAddSuggestResult suggestQuickAdd(const QString &raw, int cursor, const QuickAddContext &ctx);
 
-bool matchesFilters(const TaskEntry &task, qint64 selectedCollectionId, const QString &selectedLabel, int selectedPriority);
+bool matchesFilters(const TaskEntry &task, const FilterState &filters);
+
+bool hasSidebarFilters(const FilterState &filters);
+
+/** Progress band keys: "0-25", "26-50", "51-75", "76-100". Empty if unused. */
+QString progressBandKey(int percentComplete);
+
+QStringList progressBandKeys();
+
+/** Section key for list grouping; empty when mode is none/empty. */
+QString listGroupKey(const TaskEntry &task, const QString &mode, const FilterState &filters, const QDate &today);
+
+QString listGroupLabel(const QString &key, const QString &mode);
+
+/** Locale-aware A–Z label used to order list groups (project uses collectionName). */
+QString listGroupAlphaLabel(const TaskEntry &task, const QString &mode);
+
+/** Sidebar-visible keys for variable list-group dimensions (project/label/location). */
+struct ListGroupOrderContext {
+    QStringList projectKeys;
+    QStringList labelKeys;
+    QStringList locationKeys;
+};
+
+/** Compare group keys: sidebar order first; unknown keys last, A–Z among themselves. */
+int compareListGroupKeys(const QString &leftKey,
+                         const QString &rightKey,
+                         const QString &mode,
+                         const ListGroupOrderContext &ctx);
+
+/**
+ * When list grouping is active: reorder root task trees so groups follow sidebar
+ * order; within a group apply sortMode to roots only. Subtasks stay under their
+ * parent; group membership follows the root task only (see applyListGroupTreeBuckets).
+ */
+QList<TaskEntry> sortFlatForListGroup(const QList<TaskEntry> &tasks,
+                                      const QString &groupMode,
+                                      const QString &sortMode,
+                                      const ListGroupOrderContext &ctx = {});
+
+/** Assign each flattened subtree the list-group bucket of its root row. */
+void applyListGroupTreeBuckets(QList<TaskEntry> &tasks,
+                               const QString &groupMode,
+                               const FilterState &filters,
+                               const QDate &today);
 
 int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &sortMode);
 
@@ -201,6 +284,27 @@ struct VisibleFilterResult {
     int filteredOutSearch = 0;
 };
 
+struct TaskRebuildInput {
+    QList<TaskEntry> allTasks;
+    FilterState filters;
+    QSet<QString> collapsedUids;
+    QString sortMode;
+    QString listGroupMode;
+    ListGroupOrderContext listGroupOrder;
+    QString planPreviewWeek;
+    QString planPreviewProject;
+    bool hierarchyAware = false;
+};
+
+struct TaskRebuildOutput {
+    QList<TaskEntry> tasks;
+    QList<TaskEntry> flatForCounts;
+    QList<TaskEntry> allTasks;
+    VisibleFilterResult filtered;
+};
+
+TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate &today);
+
 QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode, const QSet<QString> &collapsedUids = {});
 
 QString emptyKind(LoadState loading,
@@ -218,7 +322,7 @@ int clampSidebarWidthUnits(int units);
 qreal overlayDimForStep(int step);
 
 struct UndoRecord {
-    enum class Kind { None, Complete, Reschedule, Move, Delete };
+    enum class Kind { None, Complete, Reschedule, Move, Delete, Edit, KanbanLayout };
     Kind kind = Kind::None;
     qint64 itemId = -1;
     QString summary;
@@ -231,10 +335,17 @@ struct UndoRecord {
     bool completed = false;
     int priority = 0;
     int percentComplete = 0;
+    int status = 0;
+    int secrecy = 0;
     QStringList categories;
     QString parentUid;
     qint64 collectionId = -1;
     QString section;
+    QString column;
+    /** When true, undo restores kanbanManualOrderJson + sortMode (local kurrentrc). */
+    bool restoreLayout = false;
+    QString kanbanManualOrderJson;
+    QString sortMode;
 };
 
 QString undoKindName(UndoRecord::Kind kind);
@@ -259,6 +370,9 @@ QHash<qint64, int> collectionTaskCounts(const QList<TaskEntry> &tasks);
 int pendingRootCount(const QList<TaskEntry> &tasks);
 
 QStringList collectAvailableLabels(const QList<TaskEntry> &tasks, const QStringList &extraLabels);
+
+QStringList collectAvailableLocations(const QList<TaskEntry> &tasks,
+                                      const QStringList &extraLocations = {});
 
 bool canCreateLabel(const QString &name, const QStringList &available, const QStringList &extraLabels);
 
@@ -326,6 +440,9 @@ int indexForString(const QStringList &values, const QString &value);
 
 int normalizeStatus(int status);
 
+/** Kanban/list status column key (0/4/6/3/5); maps legacy slug keys (needs-action, …). */
+QString normalizeStatusColumnKey(const QString &key);
+
 int recurrenceIndexFor(const QString &preset);
 
 QString recurrenceValueFor(int index);
@@ -372,5 +489,87 @@ TextSegment segmentAtPosition(const QString &text, const QList<FormatToken> &tok
 QDate parseIsoDate(const QString &str);
 
 bool parseHmsTime(const QString &str, int *hours, int *minutes);
+
+namespace MainPaneMode
+{
+inline const QString List = QStringLiteral("list");
+inline const QString Kanban = QStringLiteral("kanban");
+inline const QString Swimlane = QStringLiteral("swimlane");
+inline const QString Plan = QStringLiteral("plan");
+inline const QString Heatmap = QStringLiteral("heatmap");
+inline const QString Calendar = QStringLiteral("calendar");
+}
+
+namespace KanbanSource
+{
+inline const QString Status = QStringLiteral("status");
+inline const QString Completion = QStringLiteral("completion");
+inline const QString Project = QStringLiteral("project");
+inline const QString Due = QStringLiteral("due");
+inline const QString Priority = QStringLiteral("priority");
+inline const QString Label = QStringLiteral("label");
+inline const QString DaySection = QStringLiteral("daysection");
+inline const QString Secrecy = QStringLiteral("secrecy");
+inline const QString Column = QStringLiteral("column");
+}
+
+namespace ListGroupSource
+{
+inline const QString None = QStringLiteral("none");
+inline const QString Project = KanbanSource::Project;
+inline const QString Label = KanbanSource::Label;
+inline const QString Priority = KanbanSource::Priority;
+inline const QString Progress = QStringLiteral("progress");
+inline const QString Status = KanbanSource::Status;
+inline const QString Secrecy = KanbanSource::Secrecy;
+inline const QString Location = QStringLiteral("location");
+}
+
+QList<SmartViewDef> parseSmartViews(const QString &json);
+SmartViewDef parseSmartViewObject(const QJsonObject &obj);
+bool matchesSmartView(const TaskEntry &task, const SmartViewRules &rules, const QDate &today);
+
+QString kanbanColumnKey(const TaskEntry &task,
+                        const QString &source,
+                        const FilterState &filters,
+                        const QDate &today);
+
+QString kanbanColumnLabel(const QString &key, const QString &source);
+
+/** Canonical keys for fixed-vocabulary column sources (always shown, even empty). */
+QStringList fixedKanbanColumnKeys(const QString &source);
+
+/** Stable column order independent of task sort. Label/project: alphabetical (inbox/none last).
+ *  Fixed sources (status, completion, …): always all vocabulary columns, then any extras.
+ *  Others: low urgency left, high right; dates: past → today → future. */
+QStringList orderKanbanColumnKeys(const QStringList &keys, const QString &source,
+                                   const QHash<QString, QString> &displayNames = {});
+
+QList<qint64> applyManualKanbanOrder(const QList<qint64> &ids, const QList<qint64> &manualOrder);
+
+QString swimlaneTimeBucket(const TaskEntry &task, const QString &bucketMode, const QDate &today);
+
+QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis);
+
+QString planWeekKey(const TaskEntry &task, const QDate &today);
+
+QString heatmapDayKey(const TaskEntry &task, const QString &mode, const QDate &today);
+
+QVariantMap heatmapCounts(const QList<TaskEntry> &tasks, const QString &mode, const QDate &monthStart);
+
+QVariantMap planMatrixCounts(const QList<TaskEntry> &tasks, const QDate &today);
+
+QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,
+                                const QString &laneAxis,
+                                const QString &timeBucket,
+                                const QDate &today);
+
+QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks, const QDate &today);
+
+QString swimlaneLaneLabel(const QString &key, const QString &laneAxis);
+
+QString swimlaneTimeLabel(const QString &key, const QString &timeBucket);
+
+QStringList busyDayKeys(const QList<TaskEntry> &tasks, const QDate &today);
 
 } // namespace TaskLogic

@@ -57,6 +57,7 @@ scan_log() {
     hits="$(printf '%s\n' "${plain}" | grep -F 'com.github.shrippen.kurrent' | grep -Ei \
         -e 'TypeError' \
         -e 'ReferenceError' \
+        -e 'SyntaxError' \
         -e 'is not a type' \
         -e 'is not installed' \
         -e 'Cannot assign' \
@@ -66,6 +67,9 @@ scan_log() {
         -e 'Unable to assign' \
         -e 'Error loading QML' \
         -e 'Binding loop' \
+        -e 'Invalid argument passed to formatDate' \
+        -e 'Invalid argument passed to formatTime' \
+        -e ': Error:' \
         || true)"
 
     local fatal
