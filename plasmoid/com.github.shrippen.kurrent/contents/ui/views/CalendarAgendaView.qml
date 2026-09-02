@@ -241,8 +241,6 @@ ColumnLayout {
                 anchors.fill: parent
                 radius: Design.buttonRadius
                 color: Kirigami.Theme.backgroundColor
-                border.color: Kirigami.Theme.separatorColor
-                border.width: 1
             }
             Row {
                 anchors.fill: parent
