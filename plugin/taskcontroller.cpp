@@ -2704,8 +2704,8 @@ void TaskController::testMergeConflict()
     auto userTodo = cloneTodo(cached.todo);
     auto serverTodo = cloneTodo(cached.todo);
 
-    userTodo->setSummary(QStringLiteral("[USER] %1").arg(baseTodo->summary()));
-    serverTodo->setSummary(QStringLiteral("[SERVER] %1").arg(baseTodo->summary()));
+    userTodo->setSummary(baseTodo->summary() + QStringLiteral(" (edited)"));
+    serverTodo->setSummary(baseTodo->summary() + QStringLiteral(" (changed)"));
     userTodo->setPriority(1);
     serverTodo->setPriority(9);
 
