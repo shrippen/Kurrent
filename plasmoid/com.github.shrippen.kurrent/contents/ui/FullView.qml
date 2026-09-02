@@ -88,6 +88,17 @@ Item {
                 backend.dismissConflict()
             }
         }
+        onEditRequested: {
+            // Open FullEditor with the conflict task so user can edit manually.
+            if (backend && backend.conflictItemId >= 0) {
+                // Build a minimal task object from the backend for the editor
+                var taskObj = { itemId: backend.conflictItemId }
+                fullRoot.openFullEditor(taskObj)
+            } else {
+                // Fallback: just advance
+                mergeDialog.editorClosed()
+            }
+        }
     }
 
     readonly property var hostWindow: Window.window
@@ -1618,6 +1629,11 @@ Item {
         hostPadBottom: (fullRoot.overlayHost && fullRoot.overlayHost !== fullRoot)
                        ? (fullRoot.overlayHost.bottomPadding || 0) : 0
         anchors.fill: parent
+        onVisibleChanged: {
+            if (!visible && mergeDialog.waitingForEditor) {
+                mergeDialog.editorClosed()
+            }
+        }
     }
 
     SmokeTest {

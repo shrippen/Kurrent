@@ -3,14 +3,17 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.components as PC3
+import "../colors.js" as Colors
 
 Item {
     id: root
 
     property var controller: null
     property var fields: []
+    property int currentIndex: 0
     property var resolution: ({})
     property Item overlayHost: null
+    property bool waitingForEditor: false
 
     signal accepted(var resolution)
     signal dismissed()
@@ -21,18 +24,35 @@ Item {
     parent: overlayHost || null
     anchors.fill: parent
 
+    readonly property var currentField: fields.length > 0 && currentIndex < fields.length ? fields[currentIndex] : null
+    readonly property int totalFields: fields.length
+    readonly property bool hasMore: currentIndex < fields.length - 1
+
     function openDialog(conflictFields) {
         fields = conflictFields || []
         resolution = {}
-        for (var i = 0; i < fields.length; i++)
-            resolution[fields[i].key] = "server"
+        currentIndex = 0
+        waitingForEditor = false
         visible = true
     }
 
     function closeDialog() {
         visible = false
-        fields = []
-        resolution = {}
+        waitingForEditor = false
+    }
+
+    function advanceToNext() {
+        if (currentIndex < fields.length - 1) {
+            currentIndex++
+        } else {
+            accepted(resolution)
+            closeDialog()
+        }
+    }
+
+    function editorClosed() {
+        waitingForEditor = false
+        advanceToNext()
     }
 
     function selectAll(choice) {
@@ -40,19 +60,8 @@ Item {
         for (var i = 0; i < fields.length; i++)
             r[fields[i].key] = choice
         resolution = r
-    }
-
-    function fmtVal(key, value) {
-        if (value === undefined || value === null || value === "")
-            return "(empty)"
-        if (key === "priority") {
-            var p = parseInt(value)
-            if (p === 1) return "1 (Highest)"
-            if (p === 5) return "5 (Normal)"
-            if (p === 9) return "9 (Lowest)"
-            return "" + p
-        }
-        return value.toString()
+        accepted(resolution)
+        closeDialog()
     }
 
     // Dim
@@ -67,8 +76,8 @@ Item {
     Rectangle {
         id: card
         anchors.centerIn: parent
-        width: Math.min(parent.width * 0.9, 600)
-        height: Math.min(parent.height * 0.9, scrollCol.implicitHeight + 40)
+        width: Math.min(parent.width * 0.9, 550)
+        height: Math.min(parent.height * 0.9, cardCol.implicitHeight + 40)
         radius: 12
         color: Kirigami.Theme.backgroundColor
         border.color: Qt.alpha(Kirigami.Theme.textColor, 0.15)
@@ -76,7 +85,7 @@ Item {
         z: 1
 
         ColumnLayout {
-            id: scrollCol
+            id: cardCol
             anchors.fill: parent
             anchors.margins: 20
             spacing: 0
@@ -84,7 +93,7 @@ Item {
             // Header
             RowLayout {
                 Layout.fillWidth: true
-                Layout.bottomMargin: 12
+                Layout.bottomMargin: 8
                 Kirigami.Icon {
                     source: "dialog-warning"
                     Layout.preferredWidth: Kirigami.Units.iconSizes.medium
@@ -102,234 +111,235 @@ Item {
                 }
             }
 
+            // Progress
+            PC3.Label {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 4
+                text: "Conflict " + (root.currentIndex + 1) + " of " + root.totalFields
+                color: Kirigami.Theme.disabledTextColor
+                font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.9
+            }
+
+            // Progress bar
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 4
+                Layout.bottomMargin: 16
+                radius: 2
+                color: Qt.alpha(Kirigami.Theme.textColor, 0.1)
+                Rectangle {
+                    width: parent.width * ((root.currentIndex + 1) / Math.max(1, root.totalFields))
+                    height: parent.height
+                    radius: 2
+                    color: Kirigami.Theme.highlightColor
+                }
+            }
+
+            // Waiting overlay
             PC3.Label {
                 Layout.fillWidth: true
                 Layout.bottomMargin: 16
-                wrapMode: Text.Wrap
-                text: "The task was modified on the server while you were editing."
+                visible: root.waitingForEditor
+                text: "Editor is open. Close it to continue."
                 color: Kirigami.Theme.disabledTextColor
+                font.italic: true
+                horizontalAlignment: Text.AlignHCenter
             }
 
-            // Scrollable conflict fields
-            Flickable {
+            // Content (only when not waiting)
+            ColumnLayout {
                 Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.preferredHeight: Math.min(root.height * 0.65, fieldCol.implicitHeight + 10)
-                contentHeight: fieldCol.implicitHeight
-                clip: true
-                PC3.ScrollBar.vertical: PC3.ScrollBar { policy: PC3.ScrollBar.AsNeeded }
+                spacing: 0
+                visible: !root.waitingForEditor && root.currentField
 
-                ColumnLayout {
-                    id: fieldCol
-                    width: parent.width
-                    spacing: 20
+                // Original state
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: origCol.implicitHeight + 20
+                    radius: 8
+                    color: Qt.alpha(Kirigami.Theme.textColor, 0.06)
+                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
+                    border.width: 1
 
-                    Repeater {
-                        model: root.fields
-                        delegate: ColumnLayout {
-                            required property var modelData
-                            required property int index
+                    ColumnLayout {
+                        id: origCol
+                        anchors.fill: parent
+                        anchors.margins: 12
+                        spacing: 4
+                        PC3.Label {
+                            text: root.currentField ? root.currentField.label : ""
+                            font.bold: true
+                            color: Kirigami.Theme.disabledTextColor
+                        }
+                        Loader {
                             Layout.fillWidth: true
-                            spacing: 0
+                            active: root.currentField !== null
+                            sourceComponent: root.currentField ? valueDisplayComponent : null
+                            property var field: root.currentField
+                            property string mode: "original"
+                        }
+                    }
+                }
 
-                            // Original state (top of tree)
-                            Rectangle {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: origContent.implicitHeight + 20
-                                radius: 8
-                                color: Qt.alpha(Kirigami.Theme.textColor, 0.06)
-                                border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
-                                border.width: 1
+                // Arrows
+                Item {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 36
 
-                                ColumnLayout {
-                                    id: origContent
-                                    anchors.fill: parent
-                                    anchors.margins: 10
-                                    spacing: 2
-                                    PC3.Label {
-                                        text: modelData.label
-                                        font.bold: true
-                                        font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.9
-                                        color: Kirigami.Theme.disabledTextColor
-                                    }
-                                    PC3.Label {
-                                        Layout.fillWidth: true
-                                        text: root.fmtVal(modelData.key, modelData.baseValue)
-                                        wrapMode: Text.Wrap
-                                        maximumLineCount: 4
-                                        elide: Text.ElideRight
-                                    }
-                                }
-                            }
+                    Canvas {
+                        anchors.fill: parent
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            var cx = width / 2
+                            var topY = 2
+                            var botY = height - 2
+                            var leftX = width * 0.28
+                            var rightX = width * 0.72
+                            ctx.strokeStyle = Qt.alpha(Kirigami.Theme.textColor, 0.3)
+                            ctx.lineWidth = 2
+                            ctx.setLineDash([4, 3])
+                            ctx.beginPath(); ctx.moveTo(cx, topY); ctx.lineTo(leftX, botY); ctx.stroke()
+                            ctx.beginPath(); ctx.moveTo(cx, topY); ctx.lineTo(rightX, botY); ctx.stroke()
+                            ctx.setLineDash([])
+                            ctx.fillStyle = Qt.alpha(Kirigami.Theme.textColor, 0.3)
+                            ctx.beginPath(); ctx.moveTo(leftX, botY); ctx.lineTo(leftX + 6, botY - 8); ctx.lineTo(leftX - 6, botY - 8); ctx.closePath(); ctx.fill()
+                            ctx.beginPath(); ctx.moveTo(rightX, botY); ctx.lineTo(rightX + 6, botY - 8); ctx.lineTo(rightX - 6, botY - 8); ctx.closePath(); ctx.fill()
+                        }
+                    }
+                }
 
-                            // Arrows
-                            Item {
-                                Layout.fillWidth: true
-                                Layout.preferredHeight: 30
+                // Two branches
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
 
-                                Canvas {
-                                    anchors.fill: parent
-                                    onPaint: {
-                                        var ctx = getContext("2d")
-                                        ctx.reset()
-                                        ctx.strokeStyle = Qt.alpha(Kirigami.Theme.textColor, 0.3)
-                                        ctx.lineWidth = 2
-                                        ctx.setLineDash([4, 3])
-                                        var cx = width / 2
-                                        var topY = 0
-                                        var botY = height
-                                        var leftX = width * 0.28
-                                        var rightX = width * 0.72
-                                        // Left arrow
-                                        ctx.beginPath()
-                                        ctx.moveTo(cx, topY)
-                                        ctx.lineTo(leftX, botY)
-                                        ctx.stroke()
-                                        // Right arrow
-                                        ctx.beginPath()
-                                        ctx.moveTo(cx, topY)
-                                        ctx.lineTo(rightX, botY)
-                                        ctx.stroke()
-                                        // Arrowheads
-                                        ctx.setLineDash([])
-                                        ctx.fillStyle = Qt.alpha(Kirigami.Theme.textColor, 0.3)
-                                        // Left head
-                                        ctx.beginPath()
-                                        ctx.moveTo(leftX, botY)
-                                        ctx.lineTo(leftX + 6, botY - 8)
-                                        ctx.lineTo(leftX - 6, botY - 8)
-                                        ctx.closePath()
-                                        ctx.fill()
-                                        // Right head
-                                        ctx.beginPath()
-                                        ctx.moveTo(rightX, botY)
-                                        ctx.lineTo(rightX + 6, botY - 8)
-                                        ctx.lineTo(rightX - 6, botY - 8)
-                                        ctx.closePath()
-                                        ctx.fill()
-                                    }
-                                }
-                            }
+                    // Kurrent (left)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.max(60, leftCol.implicitHeight + 20)
+                        radius: 8
+                        color: root.resolution[root.currentField.key] === "user"
+                               ? Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
+                               : "transparent"
+                        border.color: root.resolution[root.currentField.key] === "user"
+                                      ? Kirigami.Theme.highlightColor
+                                      : Qt.alpha(Kirigami.Theme.textColor, 0.15)
+                        border.width: 1
 
-                            // Two branches side by side
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 12
-
-                                // Left: User change
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: Math.max(60, leftCol.implicitHeight + 20)
-                                    radius: 8
-                                    color: root.resolution[modelData.key] === "user"
-                                           ? Qt.alpha(Kirigami.Theme.highlightColor, 0.1)
-                                           : "transparent"
-                                    border.color: root.resolution[modelData.key] === "user"
-                                                  ? Kirigami.Theme.highlightColor
-                                                  : Qt.alpha(Kirigami.Theme.textColor, 0.15)
-                                    border.width: 1
-
-                                    ColumnLayout {
-                                        id: leftCol
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 2
-                                        PC3.Label {
-                                            text: "Widget"
-                                            font.bold: true
-                                            font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
-                                            color: Kirigami.Theme.highlightColor
-                                        }
-                                        PC3.Label {
-                                            Layout.fillWidth: true
-                                            text: root.fmtVal(modelData.key, modelData.userValue)
-                                            wrapMode: Text.Wrap
-                                        }
-                                    }
-                                }
-
-                                // Right: Server change
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: Math.max(60, rightCol.implicitHeight + 20)
-                                    radius: 8
-                                    color: root.resolution[modelData.key] === "server"
-                                           ? Qt.alpha(Kirigami.Theme.highlightColor, 0.1)
-                                           : "transparent"
-                                    border.color: root.resolution[modelData.key] === "server"
-                                                  ? Kirigami.Theme.highlightColor
-                                                  : Qt.alpha(Kirigami.Theme.textColor, 0.15)
-                                    border.width: 1
-
-                                    ColumnLayout {
-                                        id: rightCol
-                                        anchors.fill: parent
-                                        anchors.margins: 10
-                                        spacing: 2
-                                        PC3.Label {
-                                            text: "Akonadi"
-                                            font.bold: true
-                                            font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
-                                            color: Qt.rgba(0.6, 0.8, 1, 1)
-                                        }
-                                        PC3.Label {
-                                            Layout.fillWidth: true
-                                            text: root.fmtVal(modelData.key, modelData.serverValue)
-                                            wrapMode: Text.Wrap
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Question + buttons
+                        ColumnLayout {
+                            id: leftCol
+                            anchors.fill: parent
+                            anchors.margins: 10
+                            spacing: 4
                             PC3.Label {
-                                Layout.fillWidth: true
-                                Layout.topMargin: 8
-                                text: "Which version do you want to keep?"
-                                color: Kirigami.Theme.disabledTextColor
-                                font.italic: true
-                                horizontalAlignment: Text.AlignHCenter
+                                text: "Kurrent"
+                                font.bold: true
+                                font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
+                                color: Kirigami.Theme.highlightColor
                             }
-
-                            RowLayout {
+                            Loader {
                                 Layout.fillWidth: true
-                                Layout.topMargin: 4
-                                spacing: 8
-                                PC3.Button {
-                                    text: "My version"
-                                    icon.name: "edit-undo"
-                                    highlighted: root.resolution[modelData.key] === "user"
-                                    onClicked: root.setField(modelData.key, "user")
-                                    Layout.fillWidth: true
-                                }
-                                PC3.Button {
-                                    text: "Akonadi"
-                                    icon.name: "view-refresh"
-                                    highlighted: root.resolution[modelData.key] === "server"
-                                    onClicked: root.setField(modelData.key, "server")
-                                    Layout.fillWidth: true
-                                }
-                                PC3.Button {
-                                    text: "New"
-                                    icon.name: "document-edit"
-                                    highlighted: root.resolution[modelData.key] === "edit"
-                                    onClicked: root.setField(modelData.key, "edit")
-                                    Layout.fillWidth: true
-                                }
-                            }
-
-                            Kirigami.Separator {
-                                Layout.fillWidth: true
-                                Layout.topMargin: 12
-                                visible: index < root.fields.length - 1
+                                active: root.currentField !== null
+                                sourceComponent: root.currentField ? valueDisplayComponent : null
+                                property var field: root.currentField
+                                property string mode: "user"
                             }
                         }
+                    }
+
+                    // Akonadi (right)
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.max(60, rightCol.implicitHeight + 20)
+                        radius: 8
+                        color: root.resolution[root.currentField.key] === "server"
+                               ? Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
+                               : "transparent"
+                        border.color: root.resolution[root.currentField.key] === "server"
+                                      ? Kirigami.Theme.highlightColor
+                                      : Qt.alpha(Kirigami.Theme.textColor, 0.15)
+                        border.width: 1
+
+                        ColumnLayout {
+                            id: rightCol
+                            anchors.fill: parent
+                            anchors.margins: 10
+                            spacing: 4
+                            PC3.Label {
+                                text: "Akonadi"
+                                font.bold: true
+                                font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
+                                color: Qt.rgba(0.6, 0.8, 1, 1)
+                            }
+                            Loader {
+                                Layout.fillWidth: true
+                                active: root.currentField !== null
+                                sourceComponent: root.currentField ? valueDisplayComponent : null
+                                property var field: root.currentField
+                                property string mode: "server"
+                            }
+                        }
+                    }
+                }
+
+                // Buttons
+                PC3.Label {
+                    Layout.fillWidth: true
+                    Layout.topMargin: 16
+                    text: "Which version do you want to keep?"
+                    color: Kirigami.Theme.disabledTextColor
+                    font.italic: true
+                    horizontalAlignment: Text.AlignHCenter
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: 8
+                    spacing: 8
+                    PC3.Button {
+                        text: "Mine"
+                        icon.name: "edit-undo"
+                        highlighted: root.currentField && root.resolution[root.currentField.key] === "user"
+                        onClicked: {
+                            var r = root.resolution
+                            r[root.currentField.key] = "user"
+                            root.resolution = r
+                            root.advanceToNext()
+                        }
+                        Layout.fillWidth: true
+                    }
+                    PC3.Button {
+                        text: "Akonadi"
+                        icon.name: "view-refresh"
+                        highlighted: root.currentField && root.resolution[root.currentField.key] === "server"
+                        onClicked: {
+                            var r = root.resolution
+                            r[root.currentField.key] = "server"
+                            root.resolution = r
+                            root.advanceToNext()
+                        }
+                        Layout.fillWidth: true
+                    }
+                    PC3.Button {
+                        text: "New"
+                        icon.name: "document-edit"
+                        highlighted: root.currentField && root.resolution[root.currentField.key] === "edit"
+                        onClicked: {
+                            // Accept server value for current field, then open editor for manual changes
+                            var r = root.resolution
+                            r[root.currentField.key] = "edit"
+                            root.resolution = r
+                            root.waitingForEditor = true
+                            root.editRequested()
+                        }
+                        Layout.fillWidth: true
                     }
                 }
             }
 
             // Bottom bar
-            Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: 8 }
+            Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: 12 }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -343,24 +353,98 @@ Item {
                     text: "All: Akonadi"
                     onClicked: root.selectAll("server")
                 }
-                Item { Layout.fillWidth: true }
-                PC3.Button {
-                    text: "Apply"
-                    icon.name: "dialog-ok-apply"
-                    highlighted: true
-                    enabled: Object.keys(root.resolution).length > 0
-                    onClicked: {
-                        root.accepted(root.resolution)
-                        root.closeDialog()
-                    }
-                }
             }
         }
     }
 
-    function setField(key, val) {
-        var r = resolution
-        r[key] = val
-        resolution = r
+    // Value display component with chip rendering
+    Component {
+        id: valueDisplayComponent
+        Loader {
+            Layout.fillWidth: true
+            property var fld: field
+            property string valMode: mode
+            sourceComponent: {
+                if (!fld) return null
+                if (fld.key === "categories") return chipDisplay
+                if (fld.key === "priority") return priorityDisplay
+                return textDisplay
+            }
+
+            Component {
+                id: textDisplay
+                PC3.Label {
+                    text: {
+                        if (!fld) return ""
+                        var val = valMode === "user" ? fld.userValue
+                                : valMode === "server" ? fld.serverValue
+                                : fld.baseValue
+                        if (val === undefined || val === null || val === "") return "(empty)"
+                        return val.toString()
+                    }
+                    wrapMode: Text.Wrap
+                }
+            }
+
+            Component {
+                id: chipDisplay
+                Flow {
+                    spacing: 4
+                    Repeater {
+                        model: {
+                            if (!fld) return []
+                            var val = valMode === "user" ? fld.userValue
+                                    : valMode === "server" ? fld.serverValue
+                                    : fld.baseValue
+                            if (!val || val === "") return []
+                            return val.toString().split(",")
+                        }
+                        Rectangle {
+                            width: chipLabel.implicitWidth + 12
+                            height: chipLabel.implicitHeight + 6
+                            radius: height / 2
+                            color: Qt.alpha(Colors.colorForKey(modelData, "label"), 0.15)
+                            border.color: Colors.colorForKey(modelData, "label")
+                            border.width: 1
+                            PC3.Label {
+                                id: chipLabel
+                                anchors.centerIn: parent
+                                text: modelData
+                                font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
+                                color: Colors.colorForKey(modelData, "label")
+                            }
+                        }
+                    }
+                }
+            }
+
+            Component {
+                id: priorityDisplay
+                RowLayout {
+                    spacing: 4
+                    Kirigami.Icon {
+                        source: "flag"
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        property var fldRef: fld
+                        property string priMode: valMode
+                        color: Colors.colorForPriority(priMode === "user" ? fldRef.userValue : priMode === "server" ? fldRef.serverValue : fldRef.baseValue)
+                    }
+                    PC3.Label {
+                        text: {
+                            if (!fld) return ""
+                            var val = valMode === "user" ? fld.userValue
+                                    : valMode === "server" ? fld.serverValue
+                                    : fld.baseValue
+                            var p = parseInt(val)
+                            if (p === 1) return "1 (Highest)"
+                            if (p === 5) return "5 (Normal)"
+                            if (p === 9) return "9 (Lowest)"
+                            return "" + p
+                        }
+                    }
+                }
+            }
+        }
     }
 }
