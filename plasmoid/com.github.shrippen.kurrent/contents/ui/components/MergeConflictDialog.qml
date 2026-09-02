@@ -55,15 +55,6 @@ Item {
         advanceToNext()
     }
 
-    function selectAll(choice) {
-        var r = {}
-        for (var i = 0; i < fields.length; i++)
-            r[fields[i].key] = choice
-        resolution = r
-        accepted(resolution)
-        closeDialog()
-    }
-
     // Dim
     Rectangle {
         anchors.fill: parent
@@ -335,23 +326,6 @@ Item {
                         }
                         Layout.fillWidth: true
                     }
-                }
-            }
-
-            // Bottom bar
-            Kirigami.Separator { Layout.fillWidth: true; Layout.topMargin: 12 }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.topMargin: 8
-                spacing: 8
-                PC3.Button {
-                    text: "All: Mine"
-                    onClicked: root.selectAll("user")
-                }
-                PC3.Button {
-                    text: "All: Akonadi"
-                    onClicked: root.selectAll("server")
                 }
             }
         }
