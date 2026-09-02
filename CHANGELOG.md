@@ -4,77 +4,77 @@
 
 ### Added
 
-#### Ansichtsmodi
-- **Swimlanes**: Matrix-Ansicht Spur × Zeit; konfigurierbare Achsen (Projekt, Label, Priorität, Übergeordnete Aufgabe × Tag/Woche/Monat)
-- **Projektplan**: Projekt × Zeit-Grid mit konfigurierbarem Zeitbucket (Tag/Woche/Monat), Planungshorizont (0–52), Überfällig-Spalte (konsolidiert), undatierte Tasks als letzte Spalte, Anzeige erledigter Aufgaben optional
-- **Heatmap**: Tageszellen nach Fälligkeit/Completion umschaltbar
-- **Calendar + tasks**: Event-Chips + Tasks für gewählten Tag; Day/Week-Modus
+#### View modes
+- **Swimlanes**: lane × time matrix with configurable axes (Project, Label, Priority, Parent task × Day/Week/Month)
+- **Project plan**: project × time grid with configurable time bucket (Day/Week/Month), planning horizon (0–52), consolidated overdue column, undated tasks column, optional completed task display
+- **Heatmap**: day cells toggled by due date / completions
+- **Calendar + tasks**: event chips + tasks for selected day; Day/Week mode
 
 #### Smart Views
-- Filter-Bug behoben: projectId wurde bei fehlendem Key fälschlich 0 statt -1 geparst → Smart Views zeigten keine Ergebnisse
-- Smart Views zählen korrekt in Sidebar-Badges (berechnet beim Laden, nicht erst beim Klick)
-- Eigener „Smart Views"-Ordner in der Sidebar (unter Maintenance) mit Badge und Navigation
-- Alphabetische Sortierung der Smart Views in Sidebar und KCM
-- KCM Ansichten: Reihenfolge korrigiert — Smart Views über Kanban
+- Filter bug fixed: `projectId` parsed to 0 instead of -1 when key was missing → smart views showed no results
+- Smart views count correctly in sidebar badges (computed on load, not on click)
+- Dedicated "Smart Views" folder in sidebar (below Maintenance) with badge and navigation
+- Alphabetical sorting of smart views in sidebar and KCM
+- KCM Views: section order corrected — Smart Views above Kanban
 
-#### KCM Ansichten — Swimlanes
-- Zeilenachse: Projekt / Label / Priorität / Übergeordnete Aufgabe
-- Spaltenachse: Tag / Woche / Monat
+#### KCM Views — Swimlanes
+- Row axis: Project / Label / Priority / Parent task
+- Column axis: Day / Week / Month
 
-#### KCM Ansichten — Projektplan
-- Zeiteinteilung: Tag / Woche / Monat
-- Planungshorizont: 0–52 Zeiträume (0 = unbegrenzt)
-- Undatierte Tasks anzeigen (eigene Spalte)
-- Erledigte Aufgaben anzeigen (optional)
+#### KCM Views — Project plan
+- Time grouping: Day / Week / Month
+- Planning horizon: 0–52 periods (0 = unlimited)
+- Show undated tasks (own column)
+- Show completed tasks (optional)
 
-#### Merge-Konflikt-Dialog
-- Wizard-Style: ein Feld pro Schritt, Kurrent/Akonadi-Spalten, Chip-Rendering
-- Overlay-Card (wie FullEditor), D-Bus testMergeConflict zum Testen
-- Null-Guards, Auto-Resolve, Stale-Echo-Guard
+#### Merge conflict dialog
+- Wizard style: one field at a time, Kurrent/Akonadi columns, chip rendering
+- Overlay card (like FullEditor), D-Bus `testMergeConflict` for testing
+- Null guards, auto-resolve, stale echo guard
 
-#### Sonstiges
-- Project Chip im TaskDelegate (sichtbar wenn kein Projekt-Filter aktiv)
-- Diagnose KCM nur im Dev-Build sichtbar (DevBuildMarker.qml via CMake generiert)
-- Auto-Check AllDay wenn Datum ohne Uhrzeit eingegeben wird
-- Quick-Add: voller Editor öffnet bei leerem Klick auf Button
+#### Other
+- Project chip in task delegate (visible when no project filter active)
+- Diagnostics KCM visible in dev builds only (`DevBuildMarker.qml` generated via CMake)
+- Auto-check allDay when date is entered without a time
+- Quick-add: full editor opens when button is clicked with empty text
 
 ### Fixed
 
-- Smart View Editor: freitext-basierte Felder durch Dropdowns ersetzt (Projekt, Label, Status, Due, Priorität)
-- upsertTask: revision-0 Monitor-Updates werden abgelehnt wenn Cache reale Revision hat
-- persistTodo: Refetch vor Modify bei revision 0
-- configViews.qml: Dialog-Inhalt füllt Dialog-Platz korrekt (anchors.fill statt Layout)
-- Sidebar: Smart-View-Counts werden vorgerechnet (nicht erst beim Klick)
-- computeCounts: Smart-View-Badge-Count korrekt berechnet; matchesViewFilter delegiert an Smart Rules
+- Smart View editor: replaced free-text fields with dropdowns (Project, Label, Status, Due, Priority)
+- `upsertTask`: reject revision-0 monitor updates when cache has a real revision
+- `persistTodo`: refetch before modify when revision is 0
+- `configViews.qml`: dialog content fills dialog space correctly (anchors.fill instead of Layout)
+- Sidebar: smart view counts precomputed (not only on click)
+- `computeCounts`: smart view badge count calculated correctly; `matchesViewFilter` delegates to smart rules
 
 ### Changed
 
-- CalendarAgendaView: stabile Toolbar mit fester Label-Breite, icon-only Today-Button, animierter Day/Week-Toggle
-- Chunksweise Model-Anwendung für flüssigere Animationen
-- Sidebar-Highlight-Animation, Dimming entfernt
-- Kalender-Event-Integration (opaque/busy Events)
+- CalendarAgendaView: stable toolbar with fixed label width, icon-only Today button, animated Day/Week toggle
+- Chunked model application for smoother animations
+- Sidebar highlight animation, dimming removed
+- Calendar event integration (opaque/busy events)
 - Version 0.4.0 (CMakeLists.txt + metadata.json)
 
 ### Tests
 
-- planMatrixGridOverdueConsolidationAndHorizon: Überfällig-Konsolidierung, Horizon-Clipping, showCompleted, undated, day-bucket
-- smartViewFilterAppliesInComputeCounts: Smart-View-Regeln wirken auf Sidebar-Counts
-- Bestehende 69 Tests bestanden (100%)
+- `planMatrixGridOverdueConsolidationAndHorizon`: overdue consolidation, horizon clipping, showCompleted, undated, day-bucket
+- `smartViewFilterAppliesInComputeCounts`: smart view rules affect sidebar counts
+- All 69 tests passing (100%)
 
-### Noch nicht manuell getestet
+### Not yet manually tested
 
-> Die folgenden Funktionen sind implementiert und unit-getestet, wurden aber noch nicht manuell in einer Live-Umgebung geprüft. Für einen Release als Zwischenversion akzeptabel, aber vor 1.0 sollte der gesamte Abschnitt „Kurz-Checkliste" in to-test.md durchlaufen werden.
+> The following features are implemented and unit-tested but have not been manually verified in a live environment. Acceptable for an interim release, but the full "Quick checklist" section in `to-test.md` should be completed before 1.0.
 
-- **Swimlanes-Modus**: Matrix-Darstellung, Achsen-Umschaltung, Touch-Interaktion
-- **Projektplan**: Überfällig-Spalte, Horizon-Clipping, Undatiert-Spalte, Erledigte ein/aus
-- **Kanban-DnD**: Karten-Ziehen zwischen Spalten, Feld-Schreibung je nach Quelle
-- **Merge-Konflikt-Dialog**: Wizard-Flow, DBus-Test, Editor-Integration
-- **Multi-Select + Bulk-Aktionen**: Complete/Delete/Reschedule/Move/Copy UIDs
-- **KRunner**: task today, task Suchbegriff, Add-Task
-- **Globale Shortcuts**: Meta+Shift+K/N, D-Bus show/addTask
-- **Offline/Syncing-Banner**: Akonadi offline (rot), Syncing… (gelb)
-- **KCM Swimlanes/Projektplan**: Einstellungen werden korrekt übernommen und nach Neustart wiederhergestellt
-- **i18n**: Deutsche Strings für neue Swimlanes/Plan-Optionen; Fallback-Checks in de/es/fr/ja/zh_CN
+- **Swimlanes mode**: matrix display, axis switching, touch interaction
+- **Project plan**: overdue column, horizon clipping, undated column, show completed toggle
+- **Kanban DnD**: card dragging between columns, field writes per source
+- **Merge conflict dialog**: wizard flow, DBus test, editor integration
+- **Multi-select + bulk actions**: complete/delete/reschedule/move/copy UIDs
+- **KRunner**: `task today`, `task <search>`, add task
+- **Global shortcuts**: Meta+Shift+K/N, D-Bus show/addTask
+- **Offline/syncing banner**: Akonadi offline (red), Syncing… (yellow)
+- **KCM Swimlanes/Project plan**: settings applied correctly and restored after restart
+- **i18n**: German strings for new swimlanes/plan options; fallback checks in de/es/fr/ja/zh_CN
 
 ## 0.3.1 — 2026-08-29
 
