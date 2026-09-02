@@ -210,10 +210,10 @@ Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: Math.max(60, leftCol.implicitHeight + 20)
                         radius: 8
-                        color: root.resolution[root.currentField.key] === "user"
+                        color: root.resolution[(root.currentField || {}).key || ""] === "user"
                                ? Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
                                : "transparent"
-                        border.color: root.resolution[root.currentField.key] === "user"
+                        border.color: root.resolution[(root.currentField || {}).key || ""] === "user"
                                       ? Kirigami.Theme.highlightColor
                                       : Qt.alpha(Kirigami.Theme.textColor, 0.15)
                         border.width: 1
@@ -244,10 +244,10 @@ Item {
                         Layout.fillWidth: true
                         Layout.preferredHeight: Math.max(60, rightCol.implicitHeight + 20)
                         radius: 8
-                        color: root.resolution[root.currentField.key] === "server"
+                        color: root.resolution[(root.currentField || {}).key || ""] === "server"
                                ? Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
                                : "transparent"
-                        border.color: root.resolution[root.currentField.key] === "server"
+                        border.color: root.resolution[(root.currentField || {}).key || ""] === "server"
                                       ? Kirigami.Theme.highlightColor
                                       : Qt.alpha(Kirigami.Theme.textColor, 0.15)
                         border.width: 1
@@ -291,7 +291,7 @@ Item {
                     PC3.Button {
                         text: "Mine"
                         icon.name: "edit-undo"
-                        highlighted: root.currentField && root.resolution[root.currentField.key] === "user"
+                        highlighted: root.currentField && root.resolution[(root.currentField || {}).key || ""] === "user"
                         onClicked: {
                             var r = root.resolution
                             r[root.currentField.key] = "user"
@@ -303,7 +303,7 @@ Item {
                     PC3.Button {
                         text: "Akonadi"
                         icon.name: "view-refresh"
-                        highlighted: root.currentField && root.resolution[root.currentField.key] === "server"
+                        highlighted: root.currentField && root.resolution[(root.currentField || {}).key || ""] === "server"
                         onClicked: {
                             var r = root.resolution
                             r[root.currentField.key] = "server"
@@ -315,7 +315,7 @@ Item {
                     PC3.Button {
                         text: "New"
                         icon.name: "document-edit"
-                        highlighted: root.currentField && root.resolution[root.currentField.key] === "edit"
+                        highlighted: root.currentField && root.resolution[(root.currentField || {}).key || ""] === "edit"
                         onClicked: {
                             // Accept server value for current field, then open editor for manual changes
                             var r = root.resolution
