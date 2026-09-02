@@ -77,6 +77,7 @@ Item {
     MergeConflictDialog {
         id: mergeDialog
         controller: backend
+        overlayHost: fullRoot.overlayHost
         onAccepted: function(resolution) {
             if (backend) {
                 backend.resolveMergeConflict(resolution)

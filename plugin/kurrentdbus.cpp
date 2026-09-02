@@ -26,3 +26,11 @@ void KurrentDBusAdaptor::searchAndShow(const QString &query)
 {
     TaskController::broadcastDbusSearchAndShow(query);
 }
+
+void KurrentDBusAdaptor::testMergeConflict()
+{
+    auto *ctrl = qobject_cast<TaskController *>(parent());
+    if (ctrl) {
+        ctrl->testMergeConflict();
+    }
+}
