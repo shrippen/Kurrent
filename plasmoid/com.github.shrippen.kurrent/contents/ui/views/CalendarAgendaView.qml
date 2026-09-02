@@ -232,16 +232,24 @@ ColumnLayout {
             onClicked: datePicker.open()
         }
 
-        // Day / Week segmented control
+        // Day / Week segmented control — fixed width, visual highlight on active segment
         QQC2.ButtonGroup { id: viewModeGroup }
         Item {
-            Layout.preferredWidth: dayBtn.implicitWidth + weekBtn.implicitWidth + 4
-            Layout.preferredHeight: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight) + 4
+            Layout.preferredWidth: Math.max(dayBtn.implicitWidth, weekBtn.implicitWidth) * 2 + 6
+            Layout.preferredHeight: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight) + 6
             Rectangle {
                 anchors.fill: parent
                 radius: Design.buttonRadius
+                color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
+            }
+            Rectangle {
+                x: root.weekMode ? parent.width / 2 + 1 : 1
+                width: parent.width / 2 - 2
+                height: parent.height - 2
+                y: 1
+                radius: Design.buttonRadius
                 color: Kirigami.Theme.backgroundColor
-                border.width: 0
+                Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
             }
             Row {
                 anchors.fill: parent
@@ -269,6 +277,7 @@ ColumnLayout {
             }
         }
 
+        // Week-only buttons: always reserve space to prevent toolbar jumping
         QQC2.ToolButton {
             visible: root.weekMode
             icon.name: root.weekStacked ? "view-split-left-right" : "view-list-details"
@@ -276,6 +285,7 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
             onClicked: root.weekStacked = !root.weekStacked
         }
+        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing; Layout.fillHeight: true }
 
         QQC2.ToolButton {
             visible: root.weekMode
@@ -286,6 +296,7 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
             onClicked: root.includeWeekend = !root.includeWeekend
         }
+        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing; Layout.fillHeight: true }
 
         QQC2.ToolButton {
             icon.name: "text-calendar"
