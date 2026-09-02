@@ -42,6 +42,8 @@ QDateTime startDateFromTodo(const KCalendarCore::Todo::Ptr &todo);
 struct BusyInterval {
     QDateTime start;
     QDateTime end;
+    QString summary;
+    qint64 collectionId = 0;
 };
 
 /** Expand opaque (busy) occurrences of an incidence into [start, end) intervals. */

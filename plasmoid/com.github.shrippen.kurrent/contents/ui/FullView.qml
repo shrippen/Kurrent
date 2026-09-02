@@ -425,7 +425,7 @@ Item {
         { id: KurrentUi.Design.viewModeSwimlane, label: i18n("Swimlanes"), icon: "view-split-left-right" },
         { id: KurrentUi.Design.viewModePlan, label: i18n("Project plan"), icon: "view-pim-tasks" },
         { id: KurrentUi.Design.viewModeHeatmap, label: i18n("Heatmap"), icon: "view-statistics" },
-        { id: KurrentUi.Design.viewModeCalendar, label: i18n("Calendar + tasks"), icon: "view-calendar-day" }
+        { id: KurrentUi.Design.viewModeCalendar, label: i18n("Agenda"), icon: "view-calendar-day" }
     ]
 
     function viewModeLabel(mode) {

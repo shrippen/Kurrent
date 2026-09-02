@@ -557,6 +557,9 @@ QString heatmapDayKey(const TaskEntry &task, const QString &mode, const QDate &t
 
 QVariantMap heatmapCounts(const QList<TaskEntry> &tasks, const QString &mode, const QDate &monthStart);
 
+/** Per-day counts for a whole year (GitHub-style year heatmap). */
+QVariantMap heatmapCountsForYear(const QList<TaskEntry> &tasks, const QString &mode, const QDate &anyDayInYear);
+
 QVariantMap planMatrixCounts(const QList<TaskEntry> &tasks, const QDate &today);
 
 QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,

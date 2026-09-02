@@ -244,6 +244,12 @@ Item {
         color: (highlightLabel.visible && !hasSelection) ? "transparent" : Kirigami.Theme.textColor
         selectedTextColor: Kirigami.Theme.highlightedTextColor
         selectionColor: Kirigami.Theme.highlightColor
+        cursorDelegate: Rectangle {
+            width: 2
+            color: Kirigami.Theme.textColor
+            visible: field.activeFocus
+            Behavior on y { NumberAnimation { duration: 100 } }
+        }
         Keys.priority: Keys.BeforeItem
 
         onTextChanged: root.refresh()

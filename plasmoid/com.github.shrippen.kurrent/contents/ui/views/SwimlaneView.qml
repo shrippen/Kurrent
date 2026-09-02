@@ -9,7 +9,6 @@ ColumnLayout {
     id: root
 
     required property TaskController controller
-    // Full-editor overlay: no cell hover/tooltips under the dim.
     property bool interactionsSuspended: false
 
     clip: true
@@ -24,6 +23,16 @@ ColumnLayout {
     readonly property var lanes: matrix.lanes || []
     readonly property var times: matrix.times || []
     readonly property var cells: matrix.cells || ({})
+
+    function laneCount(laneKey) {
+        var total = 0
+        for (var i = 0; i < times.length; ++i) {
+            var cellKey = laneKey + "|" + times[i]
+            var ids = cells[cellKey] || []
+            total += ids.length
+        }
+        return total
+    }
 
     RowLayout {
         Layout.fillWidth: true
@@ -45,7 +54,9 @@ ColumnLayout {
                     text: modelData.slice(5)
                     display: QQC2.AbstractButton.TextOnly
                     onClicked: {
-                        controller.currentView = "today"
+                        var parts = modelData.split("-")
+                        controller.agendaSelectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+                        controller.mainPaneMode = "calendar"
                         controller.searchQuery = ""
                     }
                     QQC2.ToolTip.text: modelData
@@ -99,7 +110,7 @@ ColumnLayout {
                     QQC2.Label {
                         Layout.preferredWidth: Design.kanbanColumnMinWidth
                         Layout.minimumWidth: Design.kanbanColumnMinWidth
-                        text: controller.swimlaneLaneLabelForKey(laneKey)
+                        text: controller.swimlaneLaneLabelForKey(laneKey) + " (" + root.laneCount(laneKey) + ")"
                         font.bold: true
                         wrapMode: Text.WordWrap
                     }
@@ -140,6 +151,12 @@ ColumnLayout {
                                 id: ma
                                 anchors.fill: parent
                                 hoverEnabled: !root.interactionsSuspended
+                                cursorShape: taskIds.length > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                onClicked: {
+                                    if (taskIds.length > 0 && controller) {
+                                        controller.currentView = "list"
+                                    }
+                                }
                             }
                         }
                     }

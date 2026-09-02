@@ -90,6 +90,8 @@ class TaskController : public QObject
     Q_PROPERTY(int quietHoursEnd READ quietHoursEnd WRITE setQuietHoursEnd NOTIFY quietHoursChanged)
     Q_PROPERTY(bool suppressRemindersDuringEvents READ suppressRemindersDuringEvents WRITE setSuppressRemindersDuringEvents NOTIFY eventBusySettingsChanged)
     Q_PROPERTY(QString busyCalendarIds READ busyCalendarIds WRITE setBusyCalendarIds NOTIFY eventBusySettingsChanged)
+    Q_PROPERTY(QVariantList eventCalendars READ eventCalendars NOTIFY eventBusySettingsChanged)
+    Q_PROPERTY(QDate agendaSelectedDate READ agendaSelectedDate WRITE setAgendaSelectedDate NOTIFY agendaSelectedDateChanged)
     Q_PROPERTY(bool canUndo READ canUndo NOTIFY undoChanged)
     Q_PROPERTY(QString undoKind READ undoKind NOTIFY undoChanged)
     Q_PROPERTY(QString undoLabel READ undoLabel NOTIFY undoChanged)
@@ -173,6 +175,9 @@ public:
     int quietHoursEnd() const { return m_quietHoursEnd; }
     bool suppressRemindersDuringEvents() const { return m_suppressRemindersDuringEvents; }
     QString busyCalendarIds() const { return m_busyCalendarIds; }
+    QVariantList eventCalendars() const;
+    QDate agendaSelectedDate() const { return m_agendaSelectedDate; }
+    void setAgendaSelectedDate(const QDate &date);
     bool canUndo() const { return m_undo.canUndo(); }
     QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
     QString undoLabel() const;
@@ -253,6 +258,9 @@ public:
     Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
     Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
+    Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
+    Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
+    Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
     Q_INVOKABLE void bulkCompleteTasks(const QVariantList &itemIds, bool completed);
     Q_INVOKABLE void bulkDeleteTasks(const QVariantList &itemIds);
     Q_INVOKABLE void bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId);
@@ -370,6 +378,7 @@ signals:
     void currentViewChanged();
     void managementViewChanged();
     void searchQueryChanged();
+    void agendaSelectedDateChanged();
     void showCompletedChanged();
     void selectedCollectionIdChanged();
     void selectedLabelChanged();
@@ -461,6 +470,7 @@ enum class SyncResult { Error, Ok };
     TaskLogic::TaskRebuildInput buildRebuildInput(const QList<TaskEntry> &allTasks) const;
     TaskLogic::ListGroupOrderContext buildListGroupOrderContext() const;
     void applyRebuildOutput(const TaskLogic::TaskRebuildOutput &output);
+    void applyDeferredRebuildTail();
     void startAsyncRebuild(const TaskLogic::TaskRebuildInput &input);
     void maybeShowReorganizing();
     void loadRebuildPerfProfile();
@@ -520,6 +530,17 @@ enum class SyncResult { Error, Ok };
     int m_lastRebuildTaskCount = 0;
     QElapsedTimer m_rebuildTiming;
     bool m_rebuildAgainPending = false;
+    // Deferred rebuild tail (counts, labels/locations, kanban layout, ...)
+    // applied one event-loop iteration after setTasks so the model update
+    // renders first and animations stay uninterrupted.
+    bool m_deferredTailPending = false;
+    QList<TaskEntry> m_deferredCountSource;
+    QList<TaskEntry> m_deferredAllTasks;
+    int m_deferredFlatCount = 0;
+    int m_deferredVisibleCount = 0;
+    int m_deferredOutCompleted = 0;
+    int m_deferredOutView = 0;
+    int m_deferredOutSearch = 0;
     quint64 m_rebuildGeneration = 0;
     quint64 m_pendingRebuildGeneration = 0;
     QFutureWatcher<TaskLogic::TaskRebuildOutput> m_rebuildWatcher;
@@ -623,6 +644,7 @@ enum class SyncResult { Error, Ok };
     QTimer m_busyEventTimer;
     int m_pendingBusyFetchJobs = 0;
     QVector<TaskCalendar::BusyInterval> m_busyFetchIntervals;
+    QDate m_agendaSelectedDate = QDate::currentDate();
 
     static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
     static QList<Akonadi::Collection> s_collections;

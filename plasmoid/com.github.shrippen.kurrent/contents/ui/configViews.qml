@@ -373,7 +373,7 @@ ConfigPageBase {
                             { text: i18n("Swimlanes"), value: "swimlane" },
                             { text: i18n("Project plan"), value: "plan" },
                             { text: i18n("Heatmap"), value: "heatmap" },
-                            { text: i18n("Calendar + tasks"), value: "calendar" }
+                            { text: i18n("Agenda"), value: "calendar" }
                         ]
                         QQC2.ToolTip.text: i18n("The main-pane view mode used when this Smart View is active.")
                         QQC2.ToolTip.visible: hovered

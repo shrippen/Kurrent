@@ -398,8 +398,9 @@ TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate 
     TaskRebuildOutput out;
     out.allTasks = input.allTasks;
     out.filtered = filterVisibleTasks(input.allTasks, input.filters, today);
-    const QSet<QString> collapseForList = input.hierarchyAware ? QSet<QString>() : input.collapsedUids;
-    out.tasks = flattenTree(out.filtered.tasks, input.sortMode, collapseForList);
+    // Always honour collapsedUids — flattenTree marks hidden children with
+    // treeHidden=true so the ListView can animate height without row removal.
+    out.tasks = flattenTree(out.filtered.tasks, input.sortMode, input.collapsedUids);
     if (!input.listGroupMode.isEmpty()) {
         applyListGroupTreeBuckets(out.tasks, input.listGroupMode, input.filters, today);
         out.tasks = sortFlatForListGroup(out.tasks, input.listGroupMode, input.sortMode, input.listGroupOrder);
@@ -1004,8 +1005,12 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
 
     QList<TaskEntry> out;
     QSet<QString> walking;
-    std::function<void(const QString &, int)> walk =
-        [&](const QString &parent, int indent) {
+
+    // Walk the tree depth-first.  Collapsed children stay in the list with
+    // treeHidden = true so the ListView can animate their height to 0
+    // (TaskDelegate "reveal" binding) without insert/remove row operations.
+    std::function<void(const QString &, int, bool)> walk =
+        [&](const QString &parent, int indent, bool parentHidden) {
         QList<int> kids = children.value(parent);
         sortKids(kids);
         for (int idx : kids) {
@@ -1017,15 +1022,14 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
             entry.indentLevel = indent;
             entry.hasChildren = children.contains(entry.uid) && !children.value(entry.uid).isEmpty();
             entry.treeCollapsed = entry.hasChildren && collapsedUids.contains(entry.uid);
-            entry.treeHidden = false;
+            entry.treeHidden = parentHidden;
             out.append(entry);
-            if (!entry.treeCollapsed) {
-                walk(entry.uid, indent + 1);
-            }
+            // Always walk children so hidden rows stay in the model.
+            walk(entry.uid, indent + 1, parentHidden || entry.treeCollapsed);
             walking.remove(entry.uid);
         }
     };
-    walk(QString(), 0);
+    walk(QString(), 0, false);
 
     if (out.isEmpty() && !input.isEmpty()) {
         for (TaskEntry entry : input) {
@@ -1036,6 +1040,38 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
             out.append(entry);
         }
     }
+
+    // Prune hidden rows whose parent is not in this list (e.g. parent was
+    // filtered out by search).  Keep hidden children when the parent is
+    // present so the ListView can animate height without insert/remove.
+    {
+        QSet<QString> present;
+        present.reserve(out.size());
+        for (const TaskEntry &task : out) {
+            present.insert(task.uid);
+        }
+        QList<TaskEntry> pruned;
+        pruned.reserve(out.size());
+        for (const TaskEntry &task : out) {
+            if (task.treeHidden && !present.contains(task.parentUid)) {
+                continue;
+            }
+            pruned.append(task);
+        }
+        out = pruned;
+    }
+
+    // Hidden rows inherit the nearest visible ancestor's bucket so Today
+    // section headers do not grow empty from collapsed subtasks alone.
+    QString lastVisibleBucket;
+    for (TaskEntry &task : out) {
+        if (task.treeHidden) {
+            task.bucket = lastVisibleBucket;
+        } else {
+            lastVisibleBucket = task.bucket;
+        }
+    }
+
     return out;
 }
 
@@ -2670,14 +2706,10 @@ QString heatmapDayKey(const TaskEntry &task, const QString &mode, const QDate &t
 {
     Q_UNUSED(today)
     if (mode == QLatin1String("completed")) {
-        if (!task.completed) {
+        if (!task.completed || !task.completedDate.isValid()) {
             return {};
         }
-        QDate anchor = task.dueDate.isValid() ? task.dueDate.date() : QDate();
-        if (!anchor.isValid() && task.startDate.isValid()) {
-            anchor = task.startDate.date();
-        }
-        return anchor.isValid() ? anchor.toString(Qt::ISODate) : QString();
+        return task.completedDate.date().toString(Qt::ISODate);
     }
     if (task.completed || !task.dueDate.isValid()) {
         return QString();
@@ -2696,6 +2728,28 @@ QVariantMap heatmapCounts(const QList<TaskEntry> &tasks, const QString &mode, co
         }
         const QDate day = QDate::fromString(key, Qt::ISODate);
         if (!day.isValid() || day < monthStart || day > monthEnd) {
+            continue;
+        }
+        counts.insert(key, counts.value(key, 0).toInt() + 1);
+    }
+    return counts;
+}
+
+QVariantMap heatmapCountsForYear(const QList<TaskEntry> &tasks, const QString &mode, const QDate &anyDayInYear)
+{
+    if (!anyDayInYear.isValid()) {
+        return {};
+    }
+    const QDate yearStart(anyDayInYear.year(), 1, 1);
+    const QDate yearEnd(anyDayInYear.year(), 12, 31);
+    QVariantMap counts;
+    for (const TaskEntry &task : tasks) {
+        const QString key = heatmapDayKey(task, mode, anyDayInYear);
+        if (key.isEmpty()) {
+            continue;
+        }
+        const QDate day = QDate::fromString(key, Qt::ISODate);
+        if (!day.isValid() || day < yearStart || day > yearEnd) {
             continue;
         }
         counts.insert(key, counts.value(key, 0).toInt() + 1);

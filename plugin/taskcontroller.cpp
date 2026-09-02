@@ -1537,6 +1537,10 @@ void TaskController::clearPlanPreviewFilter()
 
 QVariantMap TaskController::heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const
 {
+    if (mode == QLatin1String("completed")) {
+        const QDate monthEnd = monthStart.addMonths(1).addDays(-1);
+        return heatmapCountsAll(monthStart, monthEnd, mode);
+    }
     QList<TaskEntry> tasks;
     tasks.reserve(m_taskModel.count());
     for (int i = 0; i < m_taskModel.count(); ++i) {
@@ -1570,9 +1574,118 @@ QVariantList TaskController::agendaEventsForDay(const QDate &day) const
         QVariantMap row;
         row.insert(QStringLiteral("start"), interval.start);
         row.insert(QStringLiteral("end"), interval.end);
+        row.insert(QStringLiteral("summary"), interval.summary);
+        row.insert(QStringLiteral("calendarId"), interval.collectionId);
+        const QString calName = s_collectionNames.value(interval.collectionId);
+        row.insert(QStringLiteral("calendarName"), calName);
+        const bool allDay = interval.start.time() == QTime(0, 0) && interval.end.time() == QTime(0, 0);
+        row.insert(QStringLiteral("allDay"), allDay);
+        result.append(row);
+    }
+    std::sort(result.begin(), result.end(), [](const QVariant &a, const QVariant &b) {
+        return a.toMap().value(QStringLiteral("start")).toDateTime()
+               < b.toMap().value(QStringLiteral("start")).toDateTime();
+    });
+    return result;
+}
+
+QVariantMap TaskController::heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const
+{
+    QVariantMap counts;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        const CachedTask &cached = it.value();
+        if (!cached.todo) continue;
+        TaskEntry entry;
+        entry.itemId = it.key();
+        entry.completed = cached.todo->isCompleted();
+        entry.completedDate = cached.todo->completed();
+        entry.dueDate = TaskCalendar::dueDateFromTodo(cached.todo);
+        entry.startDate = cached.todo->dtStart();
+        const QString key = TaskLogic::heatmapDayKey(entry, mode, start);
+        if (key.isEmpty()) continue;
+        const QDate day = QDate::fromString(key, Qt::ISODate);
+        if (!day.isValid() || day < start || day > end) continue;
+        counts.insert(key, counts.value(key, 0).toInt() + 1);
+    }
+    return counts;
+}
+
+QVariantList TaskController::agendaTasksForRange(const QDate &from, const QDate &to) const
+{
+    QVariantList result;
+    if (!from.isValid() || !to.isValid() || from > to) {
+        return result;
+    }
+    // Iterate ALL Akonadi tasks (s_tasks) so completed tasks are always included,
+    // regardless of the current sidebar filter state.
+    const QDateTime rangeStart(from, QTime(0, 0));
+    const QDateTime rangeEnd(to.addDays(1), QTime(0, 0));
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        const CachedTask &cached = it.value();
+        if (!cached.todo) continue;
+        const bool isCompleted = cached.todo->isCompleted();
+        const QDateTime dueDt = TaskCalendar::dueDateFromTodo(cached.todo);
+        const QDateTime compDt = cached.todo->completed();
+        // Uncompleted tasks: match by dueDate
+        bool matchUncompleted = !isCompleted && dueDt.isValid()
+                && dueDt >= rangeStart && dueDt < rangeEnd;
+        // Completed tasks: match by completedDate; fallback to dueDate if completedDate is invalid
+        bool matchCompleted = isCompleted
+                && ((compDt.isValid() && compDt >= rangeStart && compDt < rangeEnd)
+                    || (!compDt.isValid() && dueDt.isValid() && dueDt >= rangeStart && dueDt < rangeEnd));
+        if (!matchUncompleted && !matchCompleted) {
+            continue;
+        }
+        QVariantMap row;
+        row.insert(QStringLiteral("itemId"), it.key());
+        row.insert(QStringLiteral("uid"), cached.todo->uid());
+        row.insert(QStringLiteral("summary"), cached.todo->summary());
+        row.insert(QStringLiteral("completed"), isCompleted);
+        row.insert(QStringLiteral("completedDate"), compDt);
+        row.insert(QStringLiteral("due"), dueDt);
+        row.insert(QStringLiteral("priority"), cached.todo->priority());
+        row.insert(QStringLiteral("categories"), cached.todo->categories());
         result.append(row);
     }
     return result;
+}
+
+QVariantMap TaskController::heatmapCountsForYear(int year, const QString &mode) const
+{
+    // For completions, iterate all Akonadi tasks (not just filtered model)
+    // because completed tasks are excluded from the filtered model by default.
+    if (mode == QLatin1String("completed")) {
+        return heatmapCountsAll(QDate(year, 1, 1), QDate(year, 12, 31), mode);
+    }
+    QList<TaskEntry> tasks;
+    tasks.reserve(m_taskModel.count());
+    for (int i = 0; i < m_taskModel.count(); ++i) {
+        tasks.append(m_taskModel.taskAt(i));
+    }
+    return TaskLogic::heatmapCountsForYear(tasks, mode, QDate(year, 1, 1));
+}
+
+QVariantList TaskController::eventCalendars() const
+{
+    QVariantList result;
+    result.reserve(s_eventCollections.size());
+    for (const Akonadi::Collection &collection : s_eventCollections) {
+        QVariantMap row;
+        row.insert(QStringLiteral("id"), collection.id());
+        row.insert(QStringLiteral("name"), collection.displayName());
+        row.insert(QStringLiteral("enabled"), TaskLogic::isEnabledCsv(m_busyCalendarIds, collection.id()));
+        result.append(row);
+    }
+    return result;
+}
+
+void TaskController::setAgendaSelectedDate(const QDate &date)
+{
+    if (date == m_agendaSelectedDate) {
+        return;
+    }
+    m_agendaSelectedDate = date;
+    Q_EMIT agendaSelectedDateChanged();
 }
 
 void TaskController::bulkCompleteTasks(const QVariantList &itemIds, bool completed)
@@ -1853,15 +1966,10 @@ void TaskController::setSuppressRemindersDuringEvents(bool enabled)
         return;
     }
     m_suppressRemindersDuringEvents = enabled;
-    if (enabled) {
-        m_busyEventTimer.start();
-        scheduleRefreshBusyEvents();
-    } else {
-        m_busyEventTimer.stop();
-        m_pendingBusyFetchJobs = 0;
-        m_busyFetchIntervals.clear();
-        m_busyIntervals.clear();
-    }
+    // Keep the timer running and intervals populated: the Agenda view and
+    // reminder suppression share the same busy-event cache.
+    m_busyEventTimer.start();
+    scheduleRefreshBusyEvents();
     Q_EMIT eventBusySettingsChanged();
 }
 
@@ -1871,7 +1979,7 @@ void TaskController::setBusyCalendarIds(const QString &ids)
         return;
     }
     m_busyCalendarIds = ids;
-    if (m_suppressRemindersDuringEvents) {
+    if (m_akonadiAvailable) {
         scheduleRefreshBusyEvents();
     }
     Q_EMIT eventBusySettingsChanged();
@@ -2396,6 +2504,7 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.startDate = TaskCalendar::startDateFromTodo(todo);
     entry.priority = todo->priority();
     entry.completed = todo->isCompleted();
+    entry.completedDate = todo->completed();
     entry.recurring = todo->recurs();
     entry.allDay = todo->allDay();
     entry.percentComplete = todo->percentComplete();
@@ -3420,6 +3529,8 @@ bool TaskController::attachAkonadiMonitor()
     logAkonadi(QStringLiteral("initializeAkonadi: Akonadi running, creating monitor"));
     Q_EMIT akonadiAvailableChanged();
     updateEmptyKind();
+    m_busyEventTimer.start();
+    scheduleRefreshBusyEvents();
 
     m_monitor = new Akonadi::Monitor(this);
     m_monitor->setMimeTypeMonitored(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
@@ -3573,6 +3684,9 @@ void TaskController::loadCollections()
                 other->m_eventCalendarModel.setCollections(s_eventCollections);
             }
         }
+        for (TaskController *inst : s_instances) {
+            Q_EMIT inst->eventBusySettingsChanged();
+        }
 
         if (collections.isEmpty()) {
             setErrorMessage(tr("No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."));
@@ -3586,9 +3700,7 @@ void TaskController::loadCollections()
             return;
         }
 
-        if (m_suppressRemindersDuringEvents) {
-            scheduleRefreshBusyEvents();
-        }
+        scheduleRefreshBusyEvents();
 
         loadTasks();
     });
@@ -4015,19 +4127,47 @@ void TaskController::applyRebuildOutput(const TaskLogic::TaskRebuildOutput &outp
     const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? output.flatForCounts : output.allTasks;
     m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(countSource));
     m_taskModel.setTasks(output.tasks);
-    updatePendingCount(countSource);
+
+    // Defer the remaining updates by one event-loop iteration: the model
+    // update renders first and animations (sidebar highlight, view
+    // transitions) are not interrupted by the follow-up main-thread work.
+    m_deferredCountSource = countSource;
+    m_deferredAllTasks = output.allTasks;
+    m_deferredFlatCount = output.flatForCounts.size();
+    m_deferredVisibleCount = output.tasks.size();
+    m_deferredOutCompleted = output.filtered.filteredOutCompleted;
+    m_deferredOutView = output.filtered.filteredOutView;
+    m_deferredOutSearch = output.filtered.filteredOutSearch;
+    if (!m_deferredTailPending) {
+        m_deferredTailPending = true;
+        QTimer::singleShot(0, this, &TaskController::applyDeferredRebuildTail);
+    }
+}
+
+void TaskController::applyDeferredRebuildTail()
+{
+    if (!m_deferredTailPending) {
+        return;
+    }
+    // If the model is still applying chunked row operations, defer again —
+    // updateEmptyKind and updateCounts would read intermediate row counts.
+    if (m_taskModel.chunksActive()) {
+        QTimer::singleShot(0, this, &TaskController::applyDeferredRebuildTail);
+        return;
+    }
+    m_deferredTailPending = false;
+    updatePendingCount(m_deferredCountSource);
     updateSyncingCount();
-    updateAvailableLabels(output.allTasks);
-    updateAvailableLocations(output.allTasks);
-    updateCounts(countSource);
+    updateAvailableLabels(m_deferredAllTasks);
+    updateAvailableLocations(m_deferredAllTasks);
+    updateCounts(m_deferredCountSource);
     publishSharedCache();
     updateEmptyKind();
-
-    updateDebugInfo(output.flatForCounts.size(),
-                    output.tasks.size(),
-                    output.filtered.filteredOutCompleted,
-                    output.filtered.filteredOutView,
-                    output.filtered.filteredOutSearch);
+    updateDebugInfo(m_deferredFlatCount,
+                    m_deferredVisibleCount,
+                    m_deferredOutCompleted,
+                    m_deferredOutView,
+                    m_deferredOutSearch);
     updateKanbanLayout();
 }
 
@@ -4579,7 +4719,7 @@ bool TaskController::isInBusyEvent(const QDateTime &when) const
 
 void TaskController::scheduleRefreshBusyEvents()
 {
-    if (!m_suppressRemindersDuringEvents || !m_akonadiAvailable) {
+    if (!m_akonadiAvailable) {
         return;
     }
     QTimer::singleShot(0, this, &TaskController::refreshBusyEvents);
@@ -4587,7 +4727,9 @@ void TaskController::scheduleRefreshBusyEvents()
 
 void TaskController::refreshBusyEvents()
 {
-    if (!m_suppressRemindersDuringEvents || !m_akonadiAvailable) {
+    // Busy events feed both reminder suppression and the Agenda view,
+    // so they are fetched whenever Akonadi is available.
+    if (!m_akonadiAvailable) {
         m_busyIntervals.clear();
         return;
     }
@@ -4603,8 +4745,9 @@ void TaskController::refreshBusyEvents()
     }
 
     const QDateTime now = QDateTime::currentDateTime();
-    const QDateTime rangeStart = now.addDays(-1);
-    const QDateTime rangeEnd = now.addDays(2);
+    // Wide enough for agenda week navigation and heatmap click-through.
+    const QDateTime rangeStart = now.addDays(-35);
+    const QDateTime rangeEnd = now.addDays(70);
 
     m_busyFetchIntervals.clear();
     m_pendingBusyFetchJobs = collections.size();
@@ -4620,10 +4763,6 @@ void TaskController::refreshBusyEvents()
 
 void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd)
 {
-    if (!m_suppressRemindersDuringEvents) {
-        return;
-    }
-
     --m_pendingBusyFetchJobs;
 
     if (auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(job)) {
@@ -4637,7 +4776,11 @@ void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart,
                     continue;
                 }
                 const KCalendarCore::Event::Ptr event = item.payload<KCalendarCore::Event::Ptr>();
+                const int before = m_busyFetchIntervals.size();
                 TaskCalendar::appendBusyIntervals(event, rangeStart, rangeEnd, &m_busyFetchIntervals);
+                for (int i = before; i < m_busyFetchIntervals.size(); ++i) {
+                    m_busyFetchIntervals[i].collectionId = item.parentCollection().id();
+                }
             }
         }
     }

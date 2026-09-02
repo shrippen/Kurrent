@@ -115,6 +115,25 @@ ColumnLayout {
 
     property var pendingDeleteId: -1
 
+    Timer {
+        id: searchDebounce
+        interval: 150
+        onTriggered: controller.searchQuery = searchField.text
+    }
+
+    // Show animated gear after 500ms of reorganization.
+    Timer {
+        id: reorgGearTimer
+        interval: 500
+        repeat: false
+        running: controller && controller.listReorganizing
+        onTriggered: reorgGearTimer.triggered = true
+        property bool triggered: false
+        onRunningChanged: {
+            if (!running) triggered = false
+        }
+    }
+
     RowLayout {
         Layout.fillWidth: true
 
@@ -122,7 +141,7 @@ ColumnLayout {
             id: searchField
             Layout.fillWidth: true
             placeholderText: i18n("Search tasks…")
-            onTextChanged: controller.searchQuery = text
+            onTextChanged: searchDebounce.restart()
             rightActions: [
                 Kirigami.Action {
                     icon.name: "edit-clear"
@@ -134,6 +153,24 @@ ColumnLayout {
                     }
                 }
             ]
+        }
+
+        Kirigami.Icon {
+            id: reorgGear
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+            source: "view-refresh"
+            visible: reorgGearTimer.triggered && searchField.text.length > 0
+        }
+
+        RotationAnimator {
+            target: reorgGear
+            running: reorgGear.visible
+            from: 0
+            to: 360
+            duration: Kirigami.Units.longDuration * 6
+            loops: Animation.Infinite
         }
 
         QQC2.ToolButton {
@@ -354,10 +391,26 @@ ColumnLayout {
         // Prefetch ~2 viewports so scroll rarely instantiates rows mid-gesture.
         cacheBuffer: Math.max(Math.round(height * 2), Math.round(Kirigami.Units.gridUnit * 24))
         spacing: 0
+
+        // When the model is applying chunked row operations, snap rows
+        // instantly (duration 0) to prevent displaced-transition overlap
+        // artifacts.  Normal animated repositioning resumes when chunks
+        // finish.
+        readonly property bool chunksActive: controller.taskModel
+                                             ? controller.taskModel.chunksActive : false
+
         // Allow flick/touchpad overshoot with rebound (StopAtBounds left the list
         // stuck past the edge when inertia ran out without a bounce-back).
         boundsBehavior: Flickable.OvershootBounds
         flickableDirection: Flickable.VerticalFlick
+
+        displaced: Transition {
+            NumberAnimation {
+                properties: "y"
+                duration: taskList.chunksActive ? 0 : Kirigami.Units.shortDuration
+                easing.type: Easing.OutCubic
+            }
+        }
 
         function settleScrollBounds() {
             var maxY = Math.max(0, contentHeight - height)

@@ -680,14 +680,19 @@ void TaskLogicTest::flattenTreeHidesCollapsedChildren()
     const QList<TaskEntry> collapsed = TaskLogic::flattenTree({root, child, grand, sibling},
                                                               QStringLiteral("title"),
                                                               {QStringLiteral("root")});
-    QCOMPARE(collapsed.size(), 2);
+    QCOMPARE(collapsed.size(), 4);
     QCOMPARE(collapsed.at(0).uid, QStringLiteral("root"));
     QVERIFY(collapsed.at(0).hasChildren);
     QVERIFY(collapsed.at(0).treeCollapsed);
     QVERIFY(!collapsed.at(0).treeHidden);
-    QCOMPARE(collapsed.at(1).uid, QStringLiteral("other"));
-    QVERIFY(!collapsed.at(1).treeCollapsed);
-    QVERIFY(!collapsed.at(1).treeHidden);
+    // Children of collapsed root remain in the list with treeHidden = true
+    // so the ListView can animate height without row removal.
+    QCOMPARE(collapsed.at(1).uid, QStringLiteral("child"));
+    QVERIFY(collapsed.at(1).treeHidden);
+    QCOMPARE(collapsed.at(2).uid, QStringLiteral("grand"));
+    QVERIFY(collapsed.at(2).treeHidden);
+    QCOMPARE(collapsed.at(3).uid, QStringLiteral("other"));
+    QVERIFY(!collapsed.at(3).treeHidden);
 
     const QList<TaskEntry> open = TaskLogic::flattenTree({root, child, grand, sibling},
                                                          QStringLiteral("title"),
@@ -1419,6 +1424,7 @@ void TaskLogicTest::swimlanePlanHeatmapHelpers()
     QVERIFY(!TaskLogic::planWeekKey(task, today).isEmpty());
 
     task.completed = true;
+    task.completedDate = QDateTime(today, QTime(12, 0));
     const QVariantMap heat = TaskLogic::heatmapCounts({task}, QStringLiteral("completed"), today);
     QVERIFY(heat.contains(today.toString(Qt::ISODate)));
 }

@@ -1,8 +1,32 @@
 #include "tasklistmodel.h"
 
+#include <QElapsedTimer>
+
+namespace {
+constexpr int kSyncRowThreshold = 48;
+constexpr int kChunkRowsPerCall = 64;
+constexpr int kChunkBudgetMs = 6;
+}
+
 TaskListModel::TaskListModel(QObject *parent)
     : QAbstractListModel(parent)
 {
+    m_chunkTimer.setSingleShot(true);
+    m_chunkTimer.setInterval(0);
+    connect(&m_chunkTimer, &QTimer::timeout, this, &TaskListModel::chunkStep);
+}
+
+void TaskListModel::setChunkPhase(ChunkPhase phase)
+{
+    if (phase == m_chunkPhase) {
+        return;
+    }
+    const bool wasActive = (m_chunkPhase != ChunkPhase::None);
+    m_chunkPhase = phase;
+    const bool isActive = (phase != ChunkPhase::None);
+    if (wasActive != isActive) {
+        Q_EMIT chunksActiveChanged();
+    }
 }
 
 int TaskListModel::rowCount(const QModelIndex &parent) const
@@ -40,6 +64,8 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.priority;
     case CompletedRole:
         return task.completed;
+    case CompletedDateRole:
+        return task.completedDate.isValid() ? task.completedDate : QVariant();
     case RecurringRole:
         return task.recurring;
     case AllDayRole:
@@ -105,6 +131,7 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
         {StartDateRole, "startDate"},
         {PriorityRole, "priority"},
         {CompletedRole, "completed"},
+        {CompletedDateRole, "completedDate"},
         {RecurringRole, "recurring"},
         {AllDayRole, "allDay"},
         {PercentCompleteRole, "percentComplete"},
@@ -132,8 +159,18 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
     };
 }
 
-void TaskListModel::setTasks(const QList<TaskEntry> &tasks)
+void TaskListModel::setTasks(const QList<TaskEntry> &tasks, bool /*forceReset*/)
 {
+    // If chunking is still active, queue the new target instead of cancelling
+    // mid-flight.  This completely eliminates the re-entrant cancellation that
+    // caused the previous SIGSEGV (destruction of m_chunkTarget during an
+    // active endRemoveRows/endInsertRows call chain).
+    if (m_chunkPhase != ChunkPhase::None) {
+        m_queuedTarget = tasks;
+        m_queuedPending = true;
+        return;
+    }
+
     // Fast path: first population or empty model
     if (m_tasks.isEmpty()) {
         if (!tasks.isEmpty()) {
@@ -167,17 +204,6 @@ void TaskListModel::setTasks(const QList<TaskEntry> &tasks)
         newSuf--;
     }
 
-    // Complete model change (e.g., view switch): use reset so ListView transitions
-    // don't overlap and create duplicate-looking delegates.
-    // When neither the first nor the last item matches, all items have changed.
-    if (prefix == 0 && oldSuf == m_tasks.size() - 1 && newSuf == tasks.size() - 1) {
-        beginResetModel();
-        m_tasks = tasks;
-        endResetModel();
-        Q_EMIT countChanged();
-        return;
-    }
-
     const int oldRemoveStart = prefix;
     const int oldRemoveEnd = oldSuf;
     const int newInsertStart = prefix;
@@ -185,28 +211,75 @@ void TaskListModel::setTasks(const QList<TaskEntry> &tasks)
     const int insertCount = (newInsertEnd >= newInsertStart) ? (newInsertEnd - newInsertStart + 1) : 0;
 
     // Capture data changes BEFORE we mutate m_tasks.
-    QVector<QPair<int, QVector<int>>> prefixChanges;
+    QVector<QPair<int, QPair<int, QVector<int>>>> pendingData;
     for (int i = 0; i < prefix; ++i) {
         QVector<int> roles = dataDiffRoles(m_tasks[i], tasks[i]);
         if (!roles.isEmpty()) {
-            prefixChanges.append(qMakePair(i, roles));
+            pendingData.append(qMakePair(i, qMakePair(i, roles)));
         }
     }
 
-    // For suffix, record {destIndex, roles}. destIndex is where the item lands after insert.
-    QVector<QPair<int, QVector<int>>> suffixChanges;
+    // For suffix, record {destIndex, {targetIndex, roles}}. destIndex is where
+    // the item lands after the insert phase.
     const int suffixCount = tasks.size() - (newInsertEnd + 1);
-    for (int s = 0; s < suffixCount; ++s) {
-        const int newIdx = newInsertEnd + 1 + s;
-        const int oldIdx = oldRemoveEnd + 1 + s;
+    for (int sIdx = 0; sIdx < suffixCount; ++sIdx) {
+        const int newIdx = newInsertEnd + 1 + sIdx;
+        const int oldIdx = oldRemoveEnd + 1 + sIdx;
         if (oldIdx >= 0 && oldIdx < m_tasks.size()) {
             QVector<int> roles = dataDiffRoles(m_tasks[oldIdx], tasks[newIdx]);
             if (!roles.isEmpty()) {
                 const int destIndex = prefix + insertCount + (oldIdx - (oldRemoveEnd + 1));
-                suffixChanges.append(qMakePair(destIndex, roles));
+                pendingData.append(qMakePair(destIndex, qMakePair(newIdx, roles)));
             }
         }
     }
+
+    const int removeCount = qMax(0, oldRemoveEnd - oldRemoveStart + 1);
+    const int changedRows = removeCount + qMax(0, insertCount)
+            + pendingData.size();
+
+    // Small changes apply synchronously — keeps unit tests deterministic.
+    if (changedRows <= kSyncRowThreshold) {
+        applyGranularSync(tasks, prefix, oldRemoveStart, oldRemoveEnd,
+                          newInsertStart, newInsertEnd, pendingData);
+        Q_EMIT countChanged();
+        return;
+    }
+
+    // Large change: chunked apply across event-loop iterations so the
+    // animation driver keeps producing frames while the list updates.
+    ++m_chunkGeneration;
+    m_chunkTarget = tasks;
+    m_rmPos = oldRemoveStart;
+    m_rmEnd = oldRemoveEnd;
+    m_inPos = newInsertStart;
+    m_inEnd = newInsertEnd;
+    m_pendingDataChanges = pendingData;
+    m_dataIdx = 0;
+    setChunkPhase((m_rmEnd >= m_rmPos) ? ChunkPhase::Removing
+                 : (m_inEnd >= m_inPos) ? ChunkPhase::Inserting
+                 : ChunkPhase::Data);
+    m_chunkTimer.start();
+}
+
+void TaskListModel::processQueuedSetTasks()
+{
+    if (!m_queuedPending) {
+        return;
+    }
+    m_queuedPending = false;
+    QList<TaskEntry> queued = m_queuedTarget;
+    m_queuedTarget.clear();
+    setTasks(queued);
+}
+
+void TaskListModel::applyGranularSync(
+        const QList<TaskEntry> &tasks, int prefix,
+        int oldRemoveStart, int oldRemoveEnd,
+        int newInsertStart, int newInsertEnd,
+        const QVector<QPair<int, QPair<int, QVector<int>>>> &pendingData)
+{
+    const int insertCount = (newInsertEnd >= newInsertStart) ? (newInsertEnd - newInsertStart + 1) : 0;
 
     // Step 1: Remove old differing region
     if (oldRemoveEnd >= oldRemoveStart) {
@@ -241,27 +314,89 @@ void TaskListModel::setTasks(const QList<TaskEntry> &tasks)
         endInsertRows();
     }
 
-    // Step 3: Apply saved prefix changes
-    for (const auto &change : prefixChanges) {
-        const int idx = change.first;
-        m_tasks[idx] = tasks[idx];
-        emit dataChanged(index(idx), index(idx), change.second);
+    // Step 3 + 4: prefix and suffix data changes
+    for (const auto &change : pendingData) {
+        const int destIdx = change.first;
+        const int srcIdx = change.second.first;
+        if (destIdx >= 0 && destIdx < m_tasks.size() && srcIdx >= 0 && srcIdx < tasks.size()) {
+            m_tasks[destIdx] = tasks[srcIdx];
+            emit dataChanged(index(destIdx), index(destIdx), change.second.second);
+        }
+    }
+}
+
+void TaskListModel::chunkStep()
+{
+    if (m_chunkPhase == ChunkPhase::None) {
+        return;
     }
 
-    // Step 4: Apply saved suffix changes
-    for (const auto &change : suffixChanges) {
-        const int destIdx = change.first;
-        if (destIdx >= 0 && destIdx < m_tasks.size()) {
-            // Map destIdx back to tasks index to get the new data
-            const int tasksIdx = newInsertEnd + 1 + (destIdx - (prefix + insertCount));
-            if (tasksIdx >= 0 && tasksIdx < tasks.size()) {
-                m_tasks[destIdx] = tasks[tasksIdx];
-                emit dataChanged(index(destIdx), index(destIdx), change.second);
+    QElapsedTimer budget;
+    budget.start();
+    bool finished = false;
+
+    while (budget.elapsed() < kChunkBudgetMs) {
+        switch (m_chunkPhase) {
+        case ChunkPhase::None:
+            return;
+        case ChunkPhase::Removing: {
+            const int end = m_rmEnd;
+            const int start = qMax(m_rmPos, end - kChunkRowsPerCall + 1);
+            beginRemoveRows(QModelIndex(), start, end);
+            m_tasks.erase(m_tasks.begin() + start, m_tasks.begin() + end + 1);
+            endRemoveRows();
+            m_rmEnd = start - 1;
+            if (m_rmEnd < m_rmPos) {
+                setChunkPhase((m_inEnd >= m_inPos) ? ChunkPhase::Inserting : ChunkPhase::Data);
             }
+            break;
+        }
+        case ChunkPhase::Inserting: {
+            const int start = m_inPos;
+            const int cnt = qMin(kChunkRowsPerCall, m_inEnd - start + 1);
+            beginInsertRows(QModelIndex(), start, start + cnt - 1);
+            for (int i = 0; i < cnt; ++i) {
+                m_tasks.insert(start + i, m_chunkTarget.at(start + i));
+            }
+            endInsertRows();
+            m_inPos = start + cnt;
+            if (m_inPos > m_inEnd) {
+                setChunkPhase(ChunkPhase::Data);
+            }
+            break;
+        }
+        case ChunkPhase::Data: {
+            if (m_dataIdx >= m_pendingDataChanges.size()) {
+                setChunkPhase(ChunkPhase::None);
+                finished = true;
+                break;
+            }
+            const auto &change = m_pendingDataChanges.at(m_dataIdx);
+            const int destIdx = change.first;
+            const int srcIdx = change.second.first;
+            if (destIdx >= 0 && destIdx < m_tasks.size()
+                    && srcIdx >= 0 && srcIdx < m_chunkTarget.size()) {
+                m_tasks[destIdx] = m_chunkTarget.at(srcIdx);
+                emit dataChanged(index(destIdx), index(destIdx), change.second.second);
+            }
+            ++m_dataIdx;
+            break;
+        }
+        }
+
+        if (finished) {
+            break;
         }
     }
 
-    Q_EMIT countChanged();
+    if (finished) {
+        Q_EMIT countChanged();
+        // Process any setTasks() that arrived while we were chunking.
+        processQueuedSetTasks();
+        return;
+    }
+    // Budget exhausted — schedule next tick.
+    m_chunkTimer.start();
 }
 
 bool TaskListModel::taskDataDiffers(const TaskEntry &a, const TaskEntry &b)
@@ -320,6 +455,7 @@ QVector<int> TaskListModel::dataDiffRoles(const TaskEntry &a, const TaskEntry &b
     add(a.startDate != b.startDate, StartDateRole);
     add(a.priority != b.priority, PriorityRole);
     add(a.completed != b.completed, CompletedRole);
+    add(a.completedDate != b.completedDate, CompletedDateRole);
     add(a.recurring != b.recurring, RecurringRole);
     add(a.allDay != b.allDay, AllDayRole);
     add(a.percentComplete != b.percentComplete, PercentCompleteRole);

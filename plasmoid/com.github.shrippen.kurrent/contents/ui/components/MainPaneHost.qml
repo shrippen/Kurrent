@@ -19,14 +19,19 @@ Item {
 
     property alias taskList: taskListView
 
-    // Editor-style dim + gear over main pane only (not sidebar).
-    readonly property bool widgetOverlayActive: !Design.reducedMotion
+    // Master switch for the editor-style dim + gear over main pane (not sidebar).
+    // Disabled — kept as code path: flip to true to re-enable dimming during
+    // view transitions (_workPending / isTransitioning) or sorting (_sortOverlayHold).
+    readonly property bool dimOverlayEnabled: false
+    readonly property bool widgetOverlayActive: dimOverlayEnabled && !Design.reducedMotion
             && (sortOverlayActive
                 || (chromeWarranted && (_workPending || isTransitioning)))
     readonly property bool widgetOverlayDim: widgetOverlayActive && controller
             && controller.taskModel.count > 0
-    readonly property bool sortOverlayActive: _sortOverlayHold
-            || (controller && controller.listReorganizing)
+    // Dim overlay ONLY for explicit sort (requestSortFeedback sets the hold).
+    // Rebuilds alone (subtask collapse, search, data updates) never dim.
+    // Dim effect disabled — kept as code path for future use.
+    readonly property bool sortOverlayActive: false // _sortOverlayHold
 
     property int _settledModeIdx: 0
     property int _fromModeIdx: 0
@@ -48,7 +53,11 @@ Item {
         if (!controller || Design.reducedMotion) {
             return false
         }
+        var searchActive = controller.searchQuery && controller.searchQuery.length > 0
         if (controller.listReorganizing || _sortOverlayHold) {
+            if (searchActive) {
+                return false
+            }
             return controller.estimatedRebuildMs >= Design.mainPaneBlurMinEstimateMs
         }
         if (isTransitioning || _workPending) {
@@ -206,9 +215,9 @@ Item {
                 return
             }
             if (controller.listReorganizing) {
-                sortOverlayHoldTimer.stop()
-                _sortOverlayHold = true
-                _workPending = true
+                // Don't set _sortOverlayHold/_workPending here.
+                // Dimming is only for explicit sort (requestSortFeedback)
+                // and view transitions (beginViewTransition).
             } else {
                 sortOverlayHoldTimer.restart()
                 settleWorkPending()

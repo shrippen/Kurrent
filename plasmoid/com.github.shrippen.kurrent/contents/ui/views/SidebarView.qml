@@ -836,6 +836,13 @@ Item {
             root.currentSidebarFolder = root.folderForView(controller.currentView)
             viewsList.syncCurrentIndex()
         }
+        function onSelectedCollectionIdChanged() { projectsList.syncIndex() }
+        function onSelectedLabelChanged() { labelsList.syncIndex() }
+        function onSelectedPriorityChanged() { prioritiesList.syncIndex() }
+        function onSelectedProgressBandChanged() { progressList.syncIndex() }
+        function onSelectedStatusChanged() { statusList.syncIndex() }
+        function onSelectedSecrecyChanged() { secrecyList.syncIndex() }
+        function onSelectedLocationChanged() { locationList.syncIndex() }
     }
 
     // Whole-section slide animation for folder entry/exit,
@@ -1089,8 +1096,24 @@ Item {
         spacing: 1
         model: root.visibleProjects
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
         leftMargin: 0
         rightMargin: root.scrollMarginFor(projectsList)
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            if (controller.selectedCollectionId < 0) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (Number(m[i].collectionId) === controller.selectedCollectionId) {
+                    currentIndex = i; return
+                }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: projectsList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
@@ -1158,8 +1181,7 @@ Item {
                 width: root.listContentWidth(projectsList)
                 hoverEnabled: root.rowHoverEnabled
                 readonly property bool filterUsable: root.filterEnabled("project")
-                readonly property bool filterSelected: controller.selectedCollectionId === modelData.collectionId
-                highlighted: filterSelected
+                highlighted: ListView.isCurrentItem
                 enabled: filterUsable
                 opacity: filterUsable ? 1.0 : 0.45
                 leftPadding: 0
@@ -1170,9 +1192,8 @@ Item {
                 background: Item {
                     anchors.fill: parent
 
-                    SelectionBackground {
+                    SidebarHoverBackground {
                         control: projectDelegate
-                        selected: projectDelegate.filterSelected
                     }
 
                     Rectangle {
@@ -1296,8 +1317,23 @@ Item {
         spacing: 1
         model: root.visibleLabelItems
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
         leftMargin: 0
         rightMargin: root.scrollMarginFor(labelsList)
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            var sel = controller.selectedLabel || ""
+            if (!sel.length) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (String(m[i]) === sel) { currentIndex = i; return }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: labelsList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
@@ -1365,8 +1401,7 @@ Item {
                 width: root.listContentWidth(labelsList)
                 hoverEnabled: root.rowHoverEnabled
                 readonly property bool filterUsable: root.filterEnabled("label")
-                readonly property bool filterSelected: controller.selectedLabel === modelData
-                highlighted: filterSelected
+                highlighted: ListView.isCurrentItem
                 enabled: filterUsable
                 opacity: filterUsable ? 1.0 : 0.45
                 leftPadding: 0
@@ -1377,9 +1412,8 @@ Item {
                 background: Item {
                     anchors.fill: parent
 
-                    SelectionBackground {
+                    SidebarHoverBackground {
                         control: labelDelegate
-                        selected: labelDelegate.filterSelected
                     }
 
                     Rectangle {
@@ -1498,6 +1532,20 @@ Item {
         rightMargin: root.scrollMarginFor(prioritiesList)
         model: root.priorityItems
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            if (controller.selectedPriority < 0) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (m[i].value === controller.selectedPriority) { currentIndex = i; return }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: prioritiesList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
@@ -1565,8 +1613,7 @@ Item {
                 width: root.listContentWidth(prioritiesList)
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("priority")
-            readonly property bool filterSelected: controller.selectedPriority === modelData.value
-            highlighted: filterSelected
+            highlighted: ListView.isCurrentItem
             enabled: filterUsable
             opacity: filterUsable ? 1.0 : 0.45
             leftPadding: 0
@@ -1577,10 +1624,9 @@ Item {
             background: Item {
                 anchors.fill: parent
 
-                SelectionBackground {
-                    control: priorityDelegate
-                    selected: priorityDelegate.filterSelected
-                }
+                SidebarHoverBackground {
+                        control: priorityDelegate
+                    }
 
                 Rectangle {
                     anchors.fill: parent
@@ -1712,6 +1758,20 @@ Item {
         rightMargin: root.scrollMarginFor(progressList)
         model: root.progressItems
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            if (!controller.selectedProgressBand || !controller.selectedProgressBand.length) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (m[i].value === controller.selectedProgressBand) { currentIndex = i; return }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: progressList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
@@ -1779,8 +1839,7 @@ Item {
             width: root.listContentWidth(progressList)
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("progress")
-            readonly property bool filterSelected: controller.selectedProgressBand === modelData.value
-            highlighted: filterSelected
+            highlighted: ListView.isCurrentItem
             enabled: filterUsable
             opacity: filterUsable ? 1.0 : 0.45
             leftPadding: 0
@@ -1791,10 +1850,9 @@ Item {
             background: Item {
                 anchors.fill: parent
 
-                SelectionBackground {
-                    control: progressDelegate
-                    selected: progressDelegate.filterSelected
-                }
+                SidebarHoverBackground {
+                        control: progressDelegate
+                    }
 
                 Rectangle {
                     anchors.fill: parent
@@ -1911,6 +1969,20 @@ Item {
         rightMargin: root.scrollMarginFor(statusList)
         model: root.statusItems
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            if (controller.selectedStatus < 0) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (m[i].value === controller.selectedStatus) { currentIndex = i; return }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: statusList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
@@ -1978,8 +2050,7 @@ Item {
             width: root.listContentWidth(statusList)
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("status")
-            readonly property bool filterSelected: controller.selectedStatus === modelData.value
-            highlighted: filterSelected
+            highlighted: ListView.isCurrentItem
             enabled: filterUsable
             opacity: filterUsable ? 1.0 : 0.45
             leftPadding: 0
@@ -1990,10 +2061,9 @@ Item {
             background: Item {
                 anchors.fill: parent
 
-                SelectionBackground {
-                    control: statusDelegate
-                    selected: statusDelegate.filterSelected
-                }
+                SidebarHoverBackground {
+                        control: statusDelegate
+                    }
 
                 Rectangle {
                     anchors.fill: parent
@@ -2110,6 +2180,20 @@ Item {
         rightMargin: root.scrollMarginFor(secrecyList)
         model: root.secrecyItems
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            if (controller.selectedSecrecy < 0) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (m[i].value === controller.selectedSecrecy) { currentIndex = i; return }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: secrecyList }
         QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
@@ -2177,8 +2261,7 @@ Item {
             width: root.listContentWidth(secrecyList)
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("secrecy")
-            readonly property bool filterSelected: controller.selectedSecrecy === modelData.value
-            highlighted: filterSelected
+            highlighted: ListView.isCurrentItem
             enabled: filterUsable
             opacity: filterUsable ? 1.0 : 0.45
             leftPadding: 0
@@ -2189,10 +2272,9 @@ Item {
             background: Item {
                 anchors.fill: parent
 
-                SelectionBackground {
-                    control: secrecyDelegate
-                    selected: secrecyDelegate.filterSelected
-                }
+                SidebarHoverBackground {
+                        control: secrecyDelegate
+                    }
 
                 Rectangle {
                     anchors.fill: parent
@@ -2307,6 +2389,22 @@ Item {
         spacing: 1
         model: root.visibleLocationItems
         currentIndex: -1
+        highlight: PlasmaExtras.Highlight {}
+        highlightMoveDuration: Kirigami.Units.longDuration
+
+        function syncIndex() {
+            if (!controller) { currentIndex = -1; return }
+            var sel = controller.selectedLocation || ""
+            if (!sel.length) { currentIndex = -1; return }
+            var m = model || []
+            for (var i = 0; i < m.length; ++i) {
+                if (String(m[i]) === sel) { currentIndex = i; return }
+            }
+            currentIndex = -1
+        }
+        Component.onCompleted: syncIndex()
+        onModelChanged: Qt.callLater(syncIndex)
+
         leftMargin: 0
         rightMargin: root.scrollMarginFor(locationList)
 
@@ -2376,8 +2474,7 @@ Item {
             width: root.listContentWidth(locationList)
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("location")
-            readonly property bool filterSelected: controller.selectedLocation === modelData
-            highlighted: filterSelected
+            highlighted: ListView.isCurrentItem
             enabled: filterUsable
             opacity: filterUsable ? 1.0 : 0.45
             leftPadding: 0
@@ -2388,10 +2485,9 @@ Item {
             background: Item {
                 anchors.fill: parent
 
-                SelectionBackground {
-                    control: locationDelegate
-                    selected: locationDelegate.filterSelected
-                }
+                SidebarHoverBackground {
+                        control: locationDelegate
+                    }
 
                 Rectangle {
                     anchors.fill: parent

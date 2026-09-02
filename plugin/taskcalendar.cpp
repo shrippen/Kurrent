@@ -407,7 +407,7 @@ void appendBusyIntervals(const KCalendarCore::Incidence::Ptr &incidence,
         const QDateTime start = incidence->dtStart();
         const QDateTime end = event->dtEnd();
         if (start.isValid() && end.isValid() && end > rangeStart && start < rangeEnd) {
-            out->append({start, end});
+            out->append({start, end, incidence->summary()});
         }
         return;
     }
@@ -420,7 +420,7 @@ void appendBusyIntervals(const KCalendarCore::Incidence::Ptr &incidence,
         const QDateTime start = it.occurrenceStartDate();
         const QDateTime end = it.occurrenceEndDate();
         if (start.isValid() && end.isValid() && end > rangeStart && start < rangeEnd) {
-            out->append({start, end});
+            out->append({start, end, incidence->summary()});
         }
     }
 }
