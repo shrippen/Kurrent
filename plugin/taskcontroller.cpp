@@ -2432,10 +2432,41 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
 
     if (!m_akonadiAvailable) {
         logAkonadi(QStringLiteral("persistTodo: SUBMIT while Akonadi offline itemId=%1 rev=%2 collection=%3 summary=%4")
-                       .arg(itemId)
-                       .arg(it->item.revision())
-                       .arg(it->item.parentCollection().id())
-                       .arg(todo->summary()));
+                       .arg(itemId).arg(it->item.revision())
+                       .arg(it->item.parentCollection().id()).arg(todo->summary()));
+    }
+
+    // FIX: If the cached item has revision 0, the DAV resource will send a broken
+    // modify (no If-Match ETag → server rejects with 412). Refetch the item first
+    // to get the correct Akonadi revision before submitting.
+    if (m_akonadiAvailable && it->item.revision() == 0) {
+        logAkonadi(QStringLiteral("persistTodo: revision=0 for itemId=%1, refetching before submit").arg(itemId));
+        auto refetchItem = it->item;
+        auto desiredTodo = todo;
+        auto moveId = moveToCollectionId;
+        auto *job = new Akonadi::ItemFetchJob(refetchItem, this);
+        configureItemFetchJob(job);
+        connect(job, &Akonadi::ItemFetchJob::result, this,
+                [this, itemId, desiredTodo, moveId](KJob *kjob) {
+            auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(kjob);
+            auto it2 = s_tasks.find(itemId);
+            if (!fetchJob || fetchJob->error() || fetchJob->items().isEmpty() || it2 == s_tasks.end()) {
+                // Refetch failed: submit anyway, let autoResolveConflict handle it
+                auto it3 = s_tasks.find(itemId);
+                if (it3 != s_tasks.end()) {
+                    submitModify(*it3, moveId);
+                }
+                return;
+            }
+            // Update cache with fresh item (correct revision)
+            auto freshItem = fetchJob->items().constFirst();
+            it2->item = freshItem;
+            it2->item.setPayload<KCalendarCore::Todo::Ptr>(desiredTodo);
+            logAkonadi(QStringLiteral("persistTodo: refetched itemId=%1, now rev=%2")
+                           .arg(itemId).arg(freshItem.revision()));
+            submitModify(*it2, moveId);
+        });
+        return;
     }
 
     submitModify(*it, moveToCollectionId);
