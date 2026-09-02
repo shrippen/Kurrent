@@ -69,6 +69,10 @@ class TaskController : public QObject
     Q_PROPERTY(int kanbanRevision READ kanbanRevision NOTIFY kanbanLayoutChanged)
     Q_PROPERTY(QString swimlaneLaneAxis READ swimlaneLaneAxis WRITE setSwimlaneLaneAxis NOTIFY swimlaneSettingsChanged)
     Q_PROPERTY(QString swimlaneTimeBucket READ swimlaneTimeBucket WRITE setSwimlaneTimeBucket NOTIFY swimlaneSettingsChanged)
+    Q_PROPERTY(QString planTimeBucket READ planTimeBucket WRITE setPlanTimeBucket NOTIFY planSettingsChanged)
+    Q_PROPERTY(int planHorizon READ planHorizon WRITE setPlanHorizon NOTIFY planSettingsChanged)
+    Q_PROPERTY(bool planShowUndated READ planShowUndated WRITE setPlanShowUndated NOTIFY planSettingsChanged)
+    Q_PROPERTY(bool planShowCompleted READ planShowCompleted WRITE setPlanShowCompleted NOTIFY planSettingsChanged)
     Q_PROPERTY(bool multiSelectEnabled READ multiSelectEnabled WRITE setMultiSelectEnabled NOTIFY multiSelectEnabledChanged)
     Q_PROPERTY(QStringList selectedTaskIds READ selectedTaskIds NOTIFY selectedTaskIdsChanged)
     Q_PROPERTY(QString smartViewsJson READ smartViewsJson WRITE setSmartViewsJson NOTIFY smartViewsJsonChanged)
@@ -154,6 +158,10 @@ public:
     int kanbanRevision() const { return m_kanbanRevision; }
     QString swimlaneLaneAxis() const { return m_swimlaneLaneAxis; }
     QString swimlaneTimeBucket() const { return m_swimlaneTimeBucket; }
+    QString planTimeBucket() const { return m_planTimeBucket; }
+    int planHorizon() const { return m_planHorizon; }
+    bool planShowUndated() const { return m_planShowUndated; }
+    bool planShowCompleted() const { return m_planShowCompleted; }
     bool multiSelectEnabled() const { return m_multiSelectEnabled; }
     QStringList selectedTaskIds() const { return m_selectedTaskIds; }
     QString smartViewsJson() const { return m_smartViewsJson; }
@@ -232,6 +240,10 @@ public:
     void setKanbanManualOrderJson(const QString &json);
     void setSwimlaneLaneAxis(const QString &axis);
     void setSwimlaneTimeBucket(const QString &bucket);
+    void setPlanTimeBucket(const QString &bucket);
+    void setPlanHorizon(int horizon);
+    void setPlanShowUndated(bool show);
+    void setPlanShowCompleted(bool show);
     void setMultiSelectEnabled(bool enabled);
     void setSmartViewsJson(const QString &json);
     Q_INVOKABLE void setSelectedTaskIds(const QStringList &ids);
@@ -401,6 +413,7 @@ signals:
     void kanbanManualOrderJsonChanged();
     void kanbanLayoutChanged();
     void swimlaneSettingsChanged();
+    void planSettingsChanged();
     void multiSelectEnabledChanged();
     void selectedTaskIdsChanged();
     void smartViewsJsonChanged();
@@ -579,6 +592,10 @@ enum class SyncResult { Error, Ok };
     int m_kanbanRevision = 0;
     QString m_swimlaneLaneAxis = QStringLiteral("project");
     QString m_swimlaneTimeBucket = QStringLiteral("day");
+    QString m_planTimeBucket = QStringLiteral("week");
+    int m_planHorizon = 8;
+    bool m_planShowUndated = true;
+    bool m_planShowCompleted = false;
     bool m_multiSelectEnabled = false;
     QStringList m_selectedTaskIds;
     QString m_smartViewsJson = QStringLiteral("[]");

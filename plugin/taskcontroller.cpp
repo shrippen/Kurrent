@@ -829,6 +829,43 @@ void TaskController::setSwimlaneTimeBucket(const QString &bucket)
     Q_EMIT swimlaneSettingsChanged();
 }
 
+void TaskController::setPlanTimeBucket(const QString &bucket)
+{
+    const QString normalized = bucket.isEmpty() ? QStringLiteral("week") : bucket;
+    if (m_planTimeBucket == normalized) {
+        return;
+    }
+    m_planTimeBucket = normalized;
+    Q_EMIT planSettingsChanged();
+}
+
+void TaskController::setPlanHorizon(int horizon)
+{
+    if (m_planHorizon == horizon) {
+        return;
+    }
+    m_planHorizon = horizon;
+    Q_EMIT planSettingsChanged();
+}
+
+void TaskController::setPlanShowUndated(bool show)
+{
+    if (m_planShowUndated == show) {
+        return;
+    }
+    m_planShowUndated = show;
+    Q_EMIT planSettingsChanged();
+}
+
+void TaskController::setPlanShowCompleted(bool show)
+{
+    if (m_planShowCompleted == show) {
+        return;
+    }
+    m_planShowCompleted = show;
+    Q_EMIT planSettingsChanged();
+}
+
 void TaskController::setMultiSelectEnabled(bool enabled)
 {
     if (m_multiSelectEnabled == enabled) {
@@ -909,6 +946,23 @@ TaskLogic::FilterState TaskController::filterState() const
     filters.searchScope = m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All;
     filters.searchCase = m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive;
     filters.listGroupMode = m_listGroupMode;
+    // Inject smart view rules so that buildRebuildInput() and
+    // matchesViewFilter() apply the saved filter criteria.
+    if (m_currentView.startsWith(QLatin1String("smart:"))) {
+        const QString smartId = m_currentView.mid(6);
+        for (const TaskLogic::SmartViewDef &def : m_smartViews) {
+            if (def.id == smartId) {
+                filters.hasSmartRules = true;
+                filters.smartRules = def.rules;
+                break;
+            }
+        }
+    }
+    // Provide all smart views so computeCounts can pre-compute sidebar badges.
+    filters.allSmartViews.clear();
+    for (const TaskLogic::SmartViewDef &def : m_smartViews) {
+        filters.allSmartViews.append({def.id, def.rules});
+    }
     return filters;
 }
 
@@ -1488,7 +1542,7 @@ QVariantMap TaskController::planMatrixGridForVisibleTasks() const
     for (int i = 0; i < m_taskModel.count(); ++i) {
         tasks.append(m_taskModel.taskAt(i));
     }
-    return TaskLogic::buildPlanMatrixGrid(tasks, QDate::currentDate());
+    return TaskLogic::buildPlanMatrixGrid(tasks, m_planTimeBucket, m_planHorizon, m_planShowUndated, m_planShowCompleted, QDate::currentDate());
 }
 
 QStringList TaskController::busyDayStripForVisibleTasks() const
@@ -4654,18 +4708,7 @@ void TaskController::updateAvailableLocations(const QList<TaskEntry> &tasks)
 
 void TaskController::updateCounts(const QList<TaskEntry> &tasks)
 {
-    TaskLogic::FilterState filters = filterState();
-    if (m_currentView.startsWith(QLatin1String("smart:"))) {
-        const QString smartId = m_currentView.mid(6);
-        for (const TaskLogic::SmartViewDef &def : m_smartViews) {
-            if (def.id == smartId) {
-                filters.hasSmartRules = true;
-                filters.smartRules = def.rules;
-                break;
-            }
-        }
-    }
-
+    const TaskLogic::FilterState filters = filterState();
     const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts(tasks, filters, s_extraLabels, QDate::currentDate());
 
     if (m_labelTaskCounts != counts.totalLabels) {

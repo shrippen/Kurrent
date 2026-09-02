@@ -728,8 +728,8 @@ msgstr "Offene Hauptaufgaben"
 msgid "Open tasks"
 msgstr "Offene Aufgaben"
 
-msgid "Open tasks by project and week"
-msgstr "Offene Aufgaben nach Projekt und Woche"
+msgid "Open tasks by project and time"
+msgstr "Offene Aufgaben nach Projekt und Zeit"
 
 msgid "Open the full editor"
 msgstr "Vollständigen Editor öffnen"
@@ -1193,3 +1193,21 @@ msgid "%1 task"
 msgid_plural "%1 tasks"
 msgstr[0] "%1 Aufgabe"
 msgstr[1] "%1 Aufgaben"
+
+msgid "Column axis"
+msgstr "Spaltenachse"
+
+msgid "Planning horizon"
+msgstr "Planungshorizont"
+
+msgid "Row axis"
+msgstr "Zeilenachse"
+
+msgid "Show undated tasks"
+msgstr "Undatierte Aufgaben anzeigen"
+
+msgid "Time grouping"
+msgstr "Zeiteinteilung"
+
+msgid "Undated"
+msgstr "Undatiert"

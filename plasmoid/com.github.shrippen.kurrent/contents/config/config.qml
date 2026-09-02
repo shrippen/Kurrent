@@ -1,5 +1,6 @@
 import QtQuick
 import org.kde.plasma.configuration 2.0
+import "DevBuildMarker.qml" as DevBuild
 
 ConfigModel {
     ConfigCategory {
@@ -61,5 +62,6 @@ ConfigModel {
         name: i18n("Diagnostics")
         icon: "tools-report-bug"
         source: "configDiagnostics.qml"
+        visible: DevBuild.isDevBuild
     }
 }

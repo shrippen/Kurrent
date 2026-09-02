@@ -89,6 +89,8 @@ private Q_SLOTS:
 
     void kanbanColumnKeyMapping();
     void smartViewFilterJson();
+    void smartViewFilterAppliesInComputeCounts();
+    void planMatrixGridOverdueConsolidationAndHorizon();
     void swimlanePlanHeatmapHelpers();
 };
 
@@ -1411,6 +1413,134 @@ void TaskLogicTest::smartViewFilterJson()
     const QDate today(2026, 8, 29);
     QVERIFY(TaskLogic::matchesSmartView(match, views.first().rules, today));
     QVERIFY(!TaskLogic::matchesSmartView(miss, views.first().rules, today));
+}
+
+void TaskLogicTest::smartViewFilterAppliesInComputeCounts()
+{
+    const QDate today(2026, 8, 29);
+
+    // Two tasks: one has label "work", the other doesn't.
+    TaskEntry workTask;
+    workTask.summary = QStringLiteral("Write report");
+    workTask.categories = {QStringLiteral("work")};
+    workTask.completed = false;
+    workTask.collectionId = 10;
+
+    TaskEntry homeTask;
+    homeTask.summary = QStringLiteral("Buy groceries");
+    homeTask.categories = {QStringLiteral("home")};
+    homeTask.completed = false;
+    homeTask.collectionId = 20;
+
+    // Configure a smart view that filters by label "work".
+    TaskLogic::SmartViewRules rules;
+    rules.label = QStringLiteral("work");
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("smart:work-label");
+    filters.hasSmartRules = true;
+    filters.smartRules = rules;
+    filters.allSmartViews.append({QStringLiteral("work-label"), rules});
+
+    const TaskLogic::SidebarCounts counts =
+        TaskLogic::computeCounts({workTask, homeTask}, filters, {}, today);
+
+    // The smart view badge count should include only the matching task.
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("smart:work-label")).toInt(), 1);
+
+    // The sidebar project breakdown within the smart view should also be
+    // filtered — only the work task's project appears.
+    QCOMPARE(counts.sidebarProjects.value(QStringLiteral("10")).toInt(), 1);
+    QVERIFY(!counts.sidebarProjects.contains(QStringLiteral("20")));
+
+    // Verify matchesViewFilter delegates to smart rules.
+    QVERIFY(TaskLogic::matchesViewFilter(workTask, filters, today));
+    QVERIFY(!TaskLogic::matchesViewFilter(homeTask, filters, today));
+}
+
+
+
+void TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon()
+{
+    const QDate today(2026, 8, 29); // Saturday
+
+    // Overdue task: due last week
+    TaskEntry overdue;
+    overdue.summary = QStringLiteral("Overdue task");
+    overdue.dueDate = QDateTime(today.addDays(-10), QTime(10, 0));
+    overdue.collectionId = 10;
+    overdue.completed = false;
+
+    // Current week task
+    TaskEntry current;
+    current.summary = QStringLiteral("Current task");
+    current.dueDate = QDateTime(today.addDays(2), QTime(10, 0));
+    current.collectionId = 10;
+    current.completed = false;
+
+    // Future task (beyond horizon)
+    TaskEntry farFuture;
+    farFuture.summary = QStringLiteral("Far future");
+    farFuture.dueDate = QDateTime(today.addDays(90), QTime(10, 0));
+    farFuture.collectionId = 10;
+    farFuture.completed = false;
+
+    // Undated task
+    TaskEntry undated;
+    undated.summary = QStringLiteral("No date");
+    undated.collectionId = 10;
+    undated.completed = false;
+
+    // Completed task (should be excluded by default)
+    TaskEntry done;
+    done.summary = QStringLiteral("Done");
+    done.dueDate = QDateTime(today, QTime(10, 0));
+    done.collectionId = 10;
+    done.completed = true;
+
+    // Default: week bucket, horizon=8, showUndated=true, showCompleted=false
+    const QVariantMap grid = TaskLogic::buildPlanMatrixGrid(
+        {overdue, current, farFuture, undated, done},
+        QStringLiteral("week"), 8, true, false, today);
+
+    const QStringList weeks = grid.value(QStringLiteral("weeks")).toStringList();
+
+    // Should have overdue + current week + undated (farFuture clipped)
+    QVERIFY(weeks.contains(QStringLiteral("overdue")));
+    QVERIFY(weeks.contains(QStringLiteral("undated"))); // undated is always last
+    QVERIFY(weeks.last() == QStringLiteral("undated")); // undated is always last
+    QVERIFY(weeks.indexOf(QStringLiteral("overdue")) < weeks.indexOf(weeks.value(weeks.indexOf("overdue") + 1)));
+
+    // Overdue task should be under "overdue" key
+    const QVariantMap counts = grid.value(QStringLiteral("counts")).toMap();
+    const QString overdueCell = QStringLiteral("10|overdue");
+    QCOMPARE(counts.value(overdueCell).toInt(), 1);
+
+    // Far future task should be clipped (horizon=8)
+    QString farFutureBucket = TaskLogic::swimlaneTimeBucket(farFuture, QStringLiteral("week"), today);
+    const QString farFutureCell = QStringLiteral("10|") + farFutureBucket;
+    QCOMPARE(counts.value(farFutureCell).toInt(), 0); // clipped
+
+    // showCompleted=true should include the done task
+    const QVariantMap gridWithDone = TaskLogic::buildPlanMatrixGrid(
+        {overdue, current, done},
+        QStringLiteral("week"), 8, true, true, today);
+    const QVariantMap countsDone = gridWithDone.value(QStringLiteral("counts")).toMap();
+    QVERIFY(countsDone.value(QStringLiteral("10|") + TaskLogic::swimlaneTimeBucket(done, QStringLiteral("week"), today)).toInt() == 1);
+
+    // horizon=0 means no clipping
+    const QVariantMap gridNoClip = TaskLogic::buildPlanMatrixGrid(
+        {overdue, farFuture},
+        QStringLiteral("week"), 0, false, false, today);
+    const QVariantMap countsNoClip = gridNoClip.value(QStringLiteral("counts")).toMap();
+    QString ffBucket = TaskLogic::swimlaneTimeBucket(farFuture, QStringLiteral("week"), today);
+    QCOMPARE(countsNoClip.value(QStringLiteral("10|") + ffBucket).toInt(), 1);
+
+    // Day bucket test
+    const QVariantMap dayGrid = TaskLogic::buildPlanMatrixGrid(
+        {current},
+        QStringLiteral("day"), 7, false, false, today);
+    QVERIFY(!dayGrid.value(QStringLiteral("weeks")).toStringList().isEmpty());
 }
 
 void TaskLogicTest::swimlanePlanHeatmapHelpers()

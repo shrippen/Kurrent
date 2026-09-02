@@ -16,6 +16,12 @@ ConfigPageBase {
 
     property int editingIndex: -1
 
+    readonly property var smartViewsListModel: {
+        // Re-evaluate whenever cfg_smartViews changes.
+        var _unused = cfg_smartViews
+        return root.smartViewsArray()
+    }
+
     // ── Available data from live controller ──
     readonly property var availableProjectItems: {
         var items = [{ text: i18n("Any project"), value: -1 }]
@@ -101,98 +107,107 @@ ConfigPageBase {
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Kirigami.Heading {
+            Kirigami.Separator {
+                Kirigami.FormData.isSection: true
                 Kirigami.FormData.label: i18n("Smart Views")
-                text: i18n("Saved filters appear in the sidebar. Each can set filter rules and a default main-pane mode.")
-                level: 4
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
             }
 
-            Repeater {
-                model: root.smartViewsArray()
-                delegate: RowLayout {
-                    required property var modelData
-                    required property int index
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Label {
+                    text: i18n("Saved filters appear in the sidebar. Each can set filter rules and a default main-pane mode.")
+                    opacity: 0.65
+                    wrapMode: Text.WordWrap
                     Layout.fillWidth: true
+                }
 
-                    Kirigami.Icon {
-                        source: modelData.icon || "view-filter"
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                    }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Design.spaceSmall
 
-                    QQC2.Label {
-                        Layout.fillWidth: true
-                        text: modelData.name || modelData.id
-                        elide: Text.ElideRight
-                    }
-
-                    QQC2.ToolButton {
-                        icon.name: "document-edit"
-                        display: QQC2.AbstractButton.IconOnly
+                    QQC2.Button {
+                        text: i18n("New Smart View")
+                        icon.name: "list-add"
                         onClicked: {
-                            root.editingIndex = index
+                            var arr = root.smartViewsArray()
+                            var id = "view" + String(Date.now())
+                            arr.push({
+                                id: id,
+                                name: i18n("New Smart View"),
+                                icon: "view-filter",
+                                mode: "list",
+                                sort: "",
+                                rules: { status: "open" }
+                            })
+                            root.writeSmartViews(arr)
+                            root.editingIndex = arr.length - 1
                             editorDialog.open()
                         }
                     }
 
-                    QQC2.ToolButton {
-                        icon.name: "edit-delete"
-                        display: QQC2.AbstractButton.IconOnly
-                        onClicked: {
-                            var arr = root.smartViewsArray()
-                            if (index >= 0 && index < arr.length) {
-                                arr.splice(index, 1)
-                                root.writeSmartViews(arr)
+                    QQC2.ComboBox {
+                        id: duplicateCombo
+                        Layout.fillWidth: true
+                        textRole: "text"
+                        model: [
+                            { text: i18n("Duplicate built-in view…"), value: "" },
+                            { text: i18n("Today"), value: "today" },
+                            { text: i18n("Overdue"), value: "overdue" },
+                            { text: i18n("Tomorrow"), value: "tomorrow" },
+                            { text: i18n("Inbox"), value: "inbox" },
+                            { text: i18n("Scheduled"), value: "scheduled" },
+                            { text: i18n("Recurring"), value: "recurring" },
+                            { text: i18n("Completed"), value: "completed" }
+                        ]
+                        onActivated: {
+                            if (model[currentIndex].value) {
+                                root.duplicateBuiltinView(model[currentIndex].value)
+                                currentIndex = 0
                             }
                         }
                     }
                 }
-            }
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Design.spaceSmall
+                Repeater {
+                    model: root.smartViewsListModel
+                    delegate: RowLayout {
+                        required property var modelData
+                        required property int index
+                        Layout.fillWidth: true
 
-                QQC2.Button {
-                    text: i18n("New Smart View")
-                    icon.name: "list-add"
-                    onClicked: {
-                        var arr = root.smartViewsArray()
-                        var id = "view" + String(Date.now())
-                        arr.push({
-                            id: id,
-                            name: i18n("New Smart View"),
-                            icon: "view-filter",
-                            mode: "list",
-                            sort: "",
-                            rules: { status: "open" }
-                        })
-                        root.writeSmartViews(arr)
-                        root.editingIndex = arr.length - 1
-                        editorDialog.open()
-                    }
-                }
+                        Kirigami.Icon {
+                            source: modelData.icon || "view-filter"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                        }
 
-                QQC2.ComboBox {
-                    id: duplicateCombo
-                    Layout.fillWidth: true
-                    textRole: "text"
-                    model: [
-                        { text: i18n("Duplicate built-in view…"), value: "" },
-                        { text: i18n("Today"), value: "today" },
-                        { text: i18n("Overdue"), value: "overdue" },
-                        { text: i18n("Tomorrow"), value: "tomorrow" },
-                        { text: i18n("Inbox"), value: "inbox" },
-                        { text: i18n("Scheduled"), value: "scheduled" },
-                        { text: i18n("Recurring"), value: "recurring" },
-                        { text: i18n("Completed"), value: "completed" }
-                    ]
-                    onActivated: {
-                        if (model[currentIndex].value) {
-                            root.duplicateBuiltinView(model[currentIndex].value)
-                            currentIndex = 0
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            text: modelData.name || modelData.id
+                            elide: Text.ElideRight
+                        }
+
+                        QQC2.ToolButton {
+                            icon.name: "document-edit"
+                            display: QQC2.AbstractButton.IconOnly
+                            onClicked: {
+                                root.editingIndex = index
+                                editorDialog.open()
+                            }
+                        }
+
+                        QQC2.ToolButton {
+                            icon.name: "edit-delete"
+                            display: QQC2.AbstractButton.IconOnly
+                            onClicked: {
+                                var arr = root.smartViewsArray()
+                                if (index >= 0 && index < arr.length) {
+                                    arr.splice(index, 1)
+                                    root.writeSmartViews(arr)
+                                }
+                            }
                         }
                     }
                 }
@@ -241,6 +256,94 @@ ConfigPageBase {
                     currentIndex = Math.max(0, indexOfValue(cfg_kanbanWriteMode || "fields"))
                 }
                 onActivated: cfg_kanbanWriteMode = model[currentIndex].value
+            }
+
+            // Swimlanes section
+            Kirigami.Separator {
+                Kirigami.FormData.isSection: true
+                Kirigami.FormData.label: i18n("Swimlanes")
+            }
+
+            QQC2.ComboBox {
+                id: swimlaneAxisCombo
+                Kirigami.FormData.label: i18n("Row axis")
+                Layout.fillWidth: true
+                textRole: "text"
+                valueRole: "value"
+                model: [
+                    { text: i18n("Project"), value: "project" },
+                    { text: i18n("Label"), value: "label" },
+                    { text: i18n("Priority"), value: "priority" },
+                    { text: i18n("Parent task"), value: "parent" }
+                ]
+                Component.onCompleted: {
+                    currentIndex = Math.max(0, indexOfValue(cfg_swimlaneLaneAxis || "project"))
+                }
+                onActivated: cfg_swimlaneLaneAxis = model[currentIndex].value
+            }
+
+            QQC2.ComboBox {
+                id: swimlaneTimeCombo
+                Kirigami.FormData.label: i18n("Column axis")
+                Layout.fillWidth: true
+                textRole: "text"
+                valueRole: "value"
+                model: [
+                    { text: i18n("Day"), value: "day" },
+                    { text: i18n("Week"), value: "week" },
+                    { text: i18n("Month"), value: "month" }
+                ]
+                Component.onCompleted: {
+                    currentIndex = Math.max(0, indexOfValue(cfg_swimlaneTimeBucket || "day"))
+                }
+                onActivated: cfg_swimlaneTimeBucket = model[currentIndex].value
+            }
+
+            // Project plan section
+            Kirigami.Separator {
+                Kirigami.FormData.isSection: true
+                Kirigami.FormData.label: i18n("Project plan")
+            }
+
+            QQC2.ComboBox {
+                id: planTimeCombo
+                Kirigami.FormData.label: i18n("Time grouping")
+                Layout.fillWidth: true
+                textRole: "text"
+                valueRole: "value"
+                model: [
+                    { text: i18n("Day"), value: "day" },
+                    { text: i18n("Week"), value: "week" },
+                    { text: i18n("Month"), value: "month" }
+                ]
+                Component.onCompleted: {
+                    currentIndex = Math.max(0, indexOfValue(cfg_planTimeBucket || "week"))
+                }
+                onActivated: cfg_planTimeBucket = model[currentIndex].value
+            }
+
+            QQC2.SpinBox {
+                id: planHorizonSpin
+                Kirigami.FormData.label: i18n("Planning horizon")
+                Layout.fillWidth: true
+                from: 0
+                to: 52
+                value: cfg_planHorizon !== undefined ? cfg_planHorizon : 8
+                onValueModified: cfg_planHorizon = value
+                QQC2.ToolTip.text: i18n("0 = show all time periods")
+                QQC2.ToolTip.visible: hovered
+            }
+
+            QQC2.CheckBox {
+                Kirigami.FormData.label: i18n("Show undated tasks")
+                checked: cfg_planShowUndated !== undefined ? cfg_planShowUndated : true
+                onCheckedChanged: cfg_planShowUndated = checked
+            }
+
+            QQC2.CheckBox {
+                Kirigami.FormData.label: i18n("Show completed tasks")
+                checked: cfg_planShowCompleted === true
+                onCheckedChanged: cfg_planShowCompleted = checked
             }
         }
     }
@@ -296,9 +399,8 @@ ConfigPageBase {
 
         QQC2.ScrollView {
             id: scrollView
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            implicitHeight: dialogLayout.implicitHeight + Kirigami.Units.largeSpacing
+            anchors.fill: parent
+            anchors.margins: Kirigami.Units.smallSpacing
             contentWidth: availableWidth
             QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AsNeeded
 

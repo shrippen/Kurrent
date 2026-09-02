@@ -235,60 +235,10 @@ ColumnLayout {
 
         QQC2.ToolButton {
             id: pickerBtn
-            icon.name: "calendar"
+            icon.name: "view-calendar-day"
             QQC2.ToolTip.text: i18n("Pick date")
             QQC2.ToolTip.visible: hovered
             onClicked: datePicker.open()
-        }
-
-        // ── Day / Week segmented control ───────────────────────
-        QQC2.ButtonGroup { id: viewModeGroup }
-        Item {
-            id: segCtrl
-            Layout.preferredWidth: segBtnW * 2 + 8
-            Layout.preferredHeight: segBtnH + 8
-            readonly property int segBtnW: Math.max(dayBtn.implicitWidth, weekBtn.implicitWidth)
-            readonly property int segBtnH: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight)
-
-            Rectangle {
-                anchors.fill: parent
-                radius: Design.inputRadius
-                color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
-            }
-            Rectangle {
-                id: segSlider
-                x: root.weekMode ? segCtrl.width / 2 + 1 : 1
-                y: 1
-                width: segCtrl.width / 2 - 2
-                height: segCtrl.height - 2
-                radius: Design.inputRadius
-                color: Kirigami.Theme.backgroundColor
-                Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-            }
-            Row {
-                anchors.fill: parent
-                anchors.margins: 2
-                QQC2.ToolButton {
-                    id: dayBtn
-                    width: (parent.width - 4) / 2
-                    height: parent.height
-                    text: i18n("Day")
-                    QQC2.ButtonGroup.group: viewModeGroup
-                    checkable: true
-                    checked: !root.weekMode
-                    onClicked: root.weekMode = false
-                }
-                QQC2.ToolButton {
-                    id: weekBtn
-                    width: (parent.width - 4) / 2
-                    height: parent.height
-                    text: i18n("Week")
-                    QQC2.ButtonGroup.group: viewModeGroup
-                    checkable: true
-                    checked: root.weekMode
-                    onClicked: root.weekMode = true
-                }
-            }
         }
 
         // Week-only: reserve fixed space to prevent toolbar jumping
@@ -310,6 +260,47 @@ ColumnLayout {
             QQC2.ToolTip.text: i18n("Include weekend")
             QQC2.ToolTip.visible: hovered
             onClicked: root.includeWeekend = !root.includeWeekend
+        }
+
+        // ── Day / Week segmented control ───────────────────────
+        QQC2.ButtonGroup { id: viewModeGroup }
+        Item {
+            id: segCtrl
+            Layout.preferredWidth: segBtnW * 2 + 8
+            Layout.preferredHeight: segBtnH + 8
+            readonly property int segBtnW: Math.max(dayBtn.implicitWidth, weekBtn.implicitWidth)
+            readonly property int segBtnH: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight)
+
+            Rectangle {
+                anchors.fill: parent
+                radius: Design.inputRadius
+                color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
+            }
+            Row {
+                anchors.fill: parent
+                anchors.margins: 2
+                spacing: 0
+                QQC2.ToolButton {
+                    id: dayBtn
+                    width: parent.width / 2
+                    height: parent.height
+                    text: i18n("Day")
+                    QQC2.ButtonGroup.group: viewModeGroup
+                    checkable: true
+                    checked: !root.weekMode
+                    onClicked: root.weekMode = false
+                }
+                QQC2.ToolButton {
+                    id: weekBtn
+                    width: parent.width / 2
+                    height: parent.height
+                    text: i18n("Week")
+                    QQC2.ButtonGroup.group: viewModeGroup
+                    checkable: true
+                    checked: root.weekMode
+                    onClicked: root.weekMode = true
+                }
+            }
         }
 
         QQC2.ToolButton {
@@ -683,10 +674,10 @@ ColumnLayout {
             orientation: Qt.Horizontal
             visible: weekFlick.contentWidth > weekFlick.width + 1
             size: weekFlick.width / weekFlick.contentWidth
-            position: weekFlick.originX / weekFlick.contentWidth
+            position: weekFlick.contentX / weekFlick.contentWidth
             onPositionChanged: {
                 if (weekScrollBar.pressed)
-                    weekFlick.originX = weekScrollBar.position * weekFlick.contentWidth
+                    weekFlick.contentX = weekScrollBar.position * weekFlick.contentWidth
             }
         }
     }

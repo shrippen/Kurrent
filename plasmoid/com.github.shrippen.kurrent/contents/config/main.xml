@@ -228,6 +228,18 @@
         <entry name="swimlaneTimeBucket" type="String">
             <default>day</default>
         </entry>
+        <entry name="planTimeBucket" type="String">
+            <default>week</default>
+        </entry>
+        <entry name="planHorizon" type="Int">
+            <default>8</default>
+        </entry>
+        <entry name="planShowUndated" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="planShowCompleted" type="Bool">
+            <default>false</default>
+        </entry>
         <entry name="multiSelectEnabled" type="Bool">
             <default>false</default>
         </entry>

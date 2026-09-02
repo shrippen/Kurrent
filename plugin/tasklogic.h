@@ -109,6 +109,8 @@ struct FilterState {
     SearchCase searchCase = SearchCase::Insensitive;
     bool hasSmartRules = false;
     SmartViewRules smartRules;
+    /** All registered smart views — used to pre-compute sidebar counts. */
+    QList<QPair<QString, SmartViewRules>> allSmartViews;
     /** List view section grouping (empty/none = use view-native buckets only). */
     QString listGroupMode;
 };
@@ -567,7 +569,12 @@ QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,
                                 const QString &timeBucket,
                                 const QDate &today);
 
-QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks, const QDate &today);
+QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
+                                const QString &bucketMode,
+                                int horizon,
+                                bool showUndated,
+                                bool showCompleted,
+                                const QDate &today);
 
 QString swimlaneLaneLabel(const QString &key, const QString &laneAxis);
 

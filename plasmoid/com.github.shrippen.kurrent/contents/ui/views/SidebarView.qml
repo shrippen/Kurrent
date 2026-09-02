@@ -28,6 +28,7 @@ Item {
     property string hiddenSections: ""
     property string viewOrder: ""
     property string hiddenViews: ""
+    property string smartViewsJson: "[]"
 
     readonly property string sectionDefaults: "views,projects,labels,priorities,progress,status,secrecy,location"
     readonly property string primaryViewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,completed"
@@ -37,10 +38,12 @@ Item {
         "recurring", "unlabeled", "reminder", "nolocation", "nopriority", "nostatus"
     ]
     readonly property string maintenanceFolderId: "__maintenance__"
+    readonly property string smartViewsFolderId: "__smart__"
     readonly property string viewsBackId: "__views_back__"
 
     readonly property string primaryFolder: "primary"
     readonly property string maintenanceFolder: "maintenance"
+    readonly property string smartViewsFolder: "smartviews"
     property string currentSidebarFolder: primaryFolder
     readonly property var visibleSectionIdList: {
         var base = controller
@@ -194,6 +197,7 @@ Item {
     }
     onSectionLayoutKeyChanged: Qt.callLater(applySectionOrder)
     Component.onCompleted: {
+        rebuildSmartViewItems()
         rebuildVisibleLists()
         Qt.callLater(applySectionOrder)
         Qt.callLater(redistributeSections)
@@ -705,11 +709,18 @@ Item {
         if (viewId === maintenanceFolderId || root.isMaintenanceViewId(viewId)) {
             return maintenanceFolder
         }
+        if (viewId === smartViewsFolderId || root.isSmartViewId(viewId)) {
+            return smartViewsFolder
+        }
         return primaryFolder
     }
 
     function isMaintenanceViewId(viewId) {
         return maintenanceViewIds.indexOf(viewId) >= 0
+    }
+
+    function isSmartViewId(viewId) {
+        return viewId.indexOf("smart:") === 0
     }
 
     function orderedViewItems(defaultsCsv) {
@@ -727,10 +738,14 @@ Item {
         return out
     }
 
-    readonly property var smartViewSidebarItems: {
+    property var smartViewSidebarItems: []
+
+    onSmartViewsJsonChanged: Qt.callLater(rebuildSmartViewItems)
+
+    function rebuildSmartViewItems() {
         var out = []
         try {
-            var smartViews = JSON.parse(Plasmoid.configuration.smartViews || "[]")
+            var smartViews = JSON.parse(root.smartViewsJson || "[]")
             for (var k = 0; k < smartViews.length; ++k) {
                 var sv = smartViews[k]
                 if (!sv || !sv.id) {
@@ -742,9 +757,12 @@ Item {
                     icon: sv.icon || "view-filter"
                 })
             }
+            out.sort(function(a, b) {
+                return a.label.localeCompare(b.label)
+            })
         } catch (e) {
         }
-        return out
+        smartViewSidebarItems = out
     }
 
     function maintenanceFolderCountLabel() {
@@ -773,8 +791,13 @@ Item {
             icon: "folder-documents",
             isNav: true
         })
-        for (var m = 0; m < smartViewSidebarItems.length; ++m) {
-            out.push(smartViewSidebarItems[m])
+        if (smartViewSidebarItems.length > 0) {
+            out.push({
+                viewId: smartViewsFolderId,
+                label: i18n("Smart Views"),
+                icon: "view-filter",
+                isNav: true
+            })
         }
         return out.length ? out : primaryViewItems
     }
@@ -792,8 +815,23 @@ Item {
         return out
     }
 
+    readonly property var visibleSmartViewsDisplay: {
+        var out = [{
+            viewId: viewsBackId,
+            label: i18n("Back"),
+            icon: "go-previous",
+            isNav: true
+        }]
+        for (var m = 0; m < smartViewSidebarItems.length; ++m) {
+            out.push(smartViewSidebarItems[m])
+        }
+        return out
+    }
+
     readonly property var visibleViewItems: currentSidebarFolder === maintenanceFolder
             ? visibleMaintenanceViewsDisplay
+            : currentSidebarFolder === smartViewsFolder
+            ? visibleSmartViewsDisplay
             : visiblePrimaryViewsDisplay
 
     readonly property var priorityItems: [
@@ -854,9 +892,9 @@ Item {
                 return
             }
             viewsSlideAnimation.stop()
-            var slideFrom = root.currentSidebarFolder === maintenanceFolder
-                    ? viewsList.width
-                    : -viewsList.width
+            var slideFrom = root.currentSidebarFolder === primaryFolder
+                    ? -viewsList.width
+                    : viewsList.width
             viewsList.x = slideFrom
             viewsSlideAnimation.from = slideFrom
             viewsSlideAnimation.to = 0
@@ -962,6 +1000,7 @@ Item {
             }
             var row = model[idx]
             if (row && (row.viewId === root.maintenanceFolderId
+                    || row.viewId === root.smartViewsFolderId
                     || row.viewId === root.viewsBackId)) {
                 currentIndex = -1
                 return
@@ -1010,11 +1049,14 @@ Item {
             onClicked: {
                 if (modelData.viewId === root.viewsBackId) {
                     root.currentSidebarFolder = root.primaryFolder
-                    controller.currentView = "inbox"
                     return
                 }
                 if (modelData.viewId === root.maintenanceFolderId) {
                     root.currentSidebarFolder = root.maintenanceFolder
+                    return
+                }
+                if (modelData.viewId === root.smartViewsFolderId) {
+                    root.currentSidebarFolder = root.smartViewsFolder
                     return
                 }
                 root.currentSidebarFolder = root.folderForView(modelData.viewId)
@@ -1048,6 +1090,7 @@ Item {
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small
                     Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     visible: modelData.viewId === root.maintenanceFolderId
+                            || modelData.viewId === root.smartViewsFolderId
                     source: "go-next"
                     opacity: 0.55
                 }
@@ -1055,9 +1098,6 @@ Item {
                 QQC2.Label {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
-                        if (modelData.viewId === root.maintenanceFolderId) {
-                            return root.maintenanceFolderCountLabel()
-                        }
                         var n = controller.viewTaskCounts[modelData.viewId]
                         return n === undefined ? "" : String(n)
                     }

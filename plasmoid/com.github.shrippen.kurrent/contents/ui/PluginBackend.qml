@@ -39,6 +39,10 @@ Item {
         kanbanWriteMode: Plasmoid.configuration.kanbanWriteMode || "fields"
         swimlaneLaneAxis: Plasmoid.configuration.swimlaneLaneAxis || "project"
         swimlaneTimeBucket: Plasmoid.configuration.swimlaneTimeBucket || "day"
+        planTimeBucket: Plasmoid.configuration.planTimeBucket || "week"
+        planHorizon: Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
+        planShowUndated: Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
+        planShowCompleted: Plasmoid.configuration.planShowCompleted === true
         multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
 
         Component.onCompleted: {

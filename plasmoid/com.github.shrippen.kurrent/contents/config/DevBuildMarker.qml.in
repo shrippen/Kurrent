@@ -1,0 +1,1 @@
+readonly property bool isDevBuild: @KCURRENT_DEV_BUILD_BOOL@

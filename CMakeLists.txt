@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(kurrent VERSION 1.0.0 LANGUAGES CXX)
+project(kurrent VERSION 0.4.0 LANGUAGES CXX)
 
 set(KURRENT_RELEASE_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 add_compile_definitions(KURRENT_RELEASE_VERSION="${KURRENT_RELEASE_VERSION}")
@@ -27,10 +27,12 @@ endif()
 file(WRITE "${_KURRENT_COUNTER_FILE}" "${_kurrent_counter}")
 
 add_compile_definitions(KURRENT_BUILD_NUMBER=${_kurrent_counter})
-if(KURRENT_DEV_BUILD)
-    add_compile_definitions(KURRENT_DEV_BUILD=1)
+if(KCURRENT_DEV_BUILD)
+    add_compile_definitions(KCURRENT_DEV_BUILD=1)
+    set(KCURRENT_DEV_BUILD_BOOL "true")
 else()
     add_compile_definitions(KURRENT_DEV_BUILD=0)
+    set(KCURRENT_DEV_BUILD_BOOL "false")
 endif()
 
 find_package(ECM REQUIRED NO_MODULE)
@@ -84,6 +86,14 @@ else()
     message(WARNING "msgfmt not found; translations will not be installed.")
 endif()
 
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/plasmoid/com.github.shrippen.kurrent/contents/config/DevBuildMarker.qml.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/DevBuildMarker.qml"
+    @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DevBuildMarker.qml"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent/contents/config"
+)
 install(DIRECTORY plasmoid/com.github.shrippen.kurrent/
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
 )

@@ -420,7 +420,7 @@ Item {
                              || (Plasmoid.configuration.showJoinButton !== false && (task.joinUrl ? task.joinUrl.length > 0 : false))
                              || (Plasmoid.configuration.showProjectChip !== false
                                  && root.controller && root.controller.selectedCollectionId <= 0
-                                 && !!(task.collectionName && String(task.collectionName).trim().length))
+                                 && task.collectionId > 0)
 
                     QQC2.ToolButton {
                         visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
@@ -433,6 +433,27 @@ Item {
                         QQC2.ToolTip.text: i18n("Open / Join")
                         QQC2.ToolTip.visible: joinHover.hovered && !root.listMoving
                         HoverHandler { id: joinHover }
+                    }
+
+                    // Project chip: visible only when no project filter is active
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && task.collectionId > 0
+                        source: "folder"
+                        color: Design.colorForKey(String(task.collectionId))
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: task.collectionName
+                        QQC2.ToolTip.visible: projectHover.hovered && !root.listMoving
+                        QQC2.ToolTip.delay: 400
+                        HoverHandler {
+                            id: projectHover
+                            enabled: !root.listMoving
+                        }
                     }
 
                     Repeater {
@@ -454,27 +475,6 @@ Item {
                                 id: tagHover
                                 enabled: !root.listMoving
                             }
-                        }
-                    }
-
-                    // Project chip: visible only when no project filter is active
-                    Kirigami.Icon {
-                        visible: Plasmoid.configuration.showProjectChip !== false
-                                 && root.controller && root.controller.selectedCollectionId <= 0
-                                 && !!(task.collectionName && String(task.collectionName).trim().length)
-                        source: "folder"
-                        color: Design.colorForKey(String(task.collectionName), "project")
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: root.labelIconSize
-                        Layout.preferredHeight: root.labelIconSize
-                        width: root.labelIconSize
-                        height: root.labelIconSize
-                        QQC2.ToolTip.text: task.collectionName
-                        QQC2.ToolTip.visible: projectHover.hovered && !root.listMoving
-                        QQC2.ToolTip.delay: 400
-                        HoverHandler {
-                            id: projectHover
-                            enabled: !root.listMoving
                         }
                     }
 

@@ -153,6 +153,14 @@ KCM.SimpleKCM {
     property string cfg_swimlaneLaneAxisDefault
     property string cfg_swimlaneTimeBucket
     property string cfg_swimlaneTimeBucketDefault
+    property string cfg_planTimeBucket
+    property string cfg_planTimeBucketDefault
+    property int cfg_planHorizon
+    property int cfg_planHorizonDefault
+    property bool cfg_planShowUndated
+    property bool cfg_planShowUndatedDefault
+    property bool cfg_planShowCompleted
+    property bool cfg_planShowCompletedDefault
     property bool cfg_multiSelectEnabled
     property bool cfg_multiSelectEnabledDefault
     property bool cfg_verboseJournalLogging

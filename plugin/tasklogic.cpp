@@ -516,7 +516,8 @@ bool hasSidebarFilters(const FilterState &filters)
             || !filters.selectedProgressBand.isEmpty()
             || filters.selectedStatus >= 0
             || filters.selectedSecrecy >= 0
-            || !filters.selectedLocation.isEmpty();
+            || !filters.selectedLocation.isEmpty()
+            || filters.hasSmartRules;
 }
 
 QStringList progressBandKeys()
@@ -841,9 +842,19 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
             }
         }
 
+        // Smart view count badges — iterate all registered smart views.
+        if (passCompleted && passSearch) {
+            for (const auto &sv : filters.allSmartViews) {
+                if (matchesSmartView(task, sv.second, today)) {
+                    const QString svKey = QStringLiteral("smart:") + sv.first;
+                    out.viewCounts.insert(svKey, out.viewCounts.value(svKey).toInt() + 1);
+                }
+            }
+        }
+
         const bool inCurrentView = (filters.currentView == QLatin1String("completed"))
-            ? task.completed && matchesView(task, filters.currentView, today)
-            : passCompleted && matchesView(task, filters.currentView, today);
+            ? task.completed && matchesViewFilter(task, filters, today)
+            : passCompleted && matchesViewFilter(task, filters, today);
 
         if (inCurrentView && passSearch
             && passExcept(task, true, false, false, false, false, false, false)) {
@@ -2364,7 +2375,8 @@ SmartViewDef parseSmartViewObject(const QJsonObject &obj)
 
     const QJsonObject rules = obj.value(QStringLiteral("rules")).toObject();
     def.rules.text = rules.value(QStringLiteral("text")).toString();
-    def.rules.projectId = rules.value(QStringLiteral("projectId")).toVariant().toLongLong();
+    const QJsonValue projectIdVal = rules.value(QStringLiteral("projectId"));
+    def.rules.projectId = (projectIdVal.isUndefined() || projectIdVal.isNull()) ? -1 : projectIdVal.toVariant().toLongLong();
     def.rules.label = rules.value(QStringLiteral("label")).toString();
     def.rules.priority = rules.value(QStringLiteral("priority")).toInt(-1);
     def.rules.dueWindow = rules.value(QStringLiteral("dueWindow")).toString();
@@ -2821,39 +2833,110 @@ QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,
     return result;
 }
 
-QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks, const QDate &today)
+QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
+                                const QString &bucketMode,
+                                int horizon,
+                                bool showUndated,
+                                bool showCompleted,
+                                const QDate &today)
 {
+    // Current bucket key for overdue consolidation.
+    TaskEntry anchorEntry;
+    anchorEntry.dueDate = QDateTime(today, QTime(0, 0));
+    const QString currentBucket = swimlaneTimeBucket(anchorEntry, bucketMode, today);
+
+    // First pass: collect all future buckets, then apply horizon clipping
+    // to build the set of allowed buckets.
+    QSet<QString> allowedBuckets;
+    allowedBuckets.insert(currentBucket);
+    if (horizon > 0) {
+        QDate futureEnd = today;
+        if (bucketMode == QLatin1String("day")) {
+            futureEnd = today.addDays(horizon);
+        } else if (bucketMode == QLatin1String("week")) {
+            futureEnd = today.addDays(horizon * 7);
+        } else if (bucketMode == QLatin1String("month")) {
+            futureEnd = today.addMonths(horizon);
+        }
+        // Enumerate buckets from today to futureEnd
+        QDate step = today;
+        while (step <= futureEnd) {
+            TaskEntry e;
+            e.dueDate = QDateTime(step, QTime(0, 0));
+            allowedBuckets.insert(swimlaneTimeBucket(e, bucketMode, today));
+            if (bucketMode == QLatin1String("day")) {
+                step = step.addDays(1);
+            } else if (bucketMode == QLatin1String("week")) {
+                step = step.addDays(7);
+            } else {
+                step = step.addMonths(1);
+            }
+        }
+    }
+
     QStringList projects;
-    QStringList weeks;
+    QStringList timeKeys;
     QSet<QString> projectSeen;
-    QSet<QString> weekSeen;
+    QSet<QString> timeSeen;
     QVariantMap counts;
     QVariantMap taskIds;
+    bool hasUndated = false;
 
     for (const TaskEntry &task : tasks) {
-        if (task.completed) {
+        if (!showCompleted && task.completed) {
             continue;
         }
-        const QString week = planWeekKey(task, today);
-        if (week.isEmpty()) {
-            continue;
-        }
+        const QString bucket = swimlaneTimeBucket(task, bucketMode, today);
         const QString project = task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
+
+        if (bucket == QLatin1String("unscheduled")) {
+            if (showUndated) {
+                hasUndated = true;
+            }
+            continue;
+        }
+
+        // Overdue: bucket < currentBucket → always shown
+        if (bucket < currentBucket) {
+            const QString timeKey = QStringLiteral("overdue");
+            if (!projectSeen.contains(project)) {
+                projectSeen.insert(project);
+                projects.append(project);
+            }
+            if (!timeSeen.contains(timeKey)) {
+                timeSeen.insert(timeKey);
+                timeKeys.append(timeKey);
+            }
+            const QString key = project + QLatin1Char('|') + timeKey;
+            counts.insert(key, counts.value(key, 0).toInt() + 1);
+            QVariantList ids = taskIds.value(key).toList();
+            ids.append(task.itemId);
+            taskIds.insert(key, ids);
+            continue;
+        }
+
+        // Horizon clipping: skip buckets beyond the allowed range
+        if (horizon > 0 && !allowedBuckets.contains(bucket)) {
+            continue;
+        }
+
+        const QString timeKey = bucket;
         if (!projectSeen.contains(project)) {
             projectSeen.insert(project);
             projects.append(project);
         }
-        if (!weekSeen.contains(week)) {
-            weekSeen.insert(week);
-            weeks.append(week);
+        if (!timeSeen.contains(timeKey)) {
+            timeSeen.insert(timeKey);
+            timeKeys.append(timeKey);
         }
-        const QString key = project + QLatin1Char('|') + week;
+        const QString key = project + QLatin1Char('|') + timeKey;
         counts.insert(key, counts.value(key, 0).toInt() + 1);
         QVariantList ids = taskIds.value(key).toList();
         ids.append(task.itemId);
         taskIds.insert(key, ids);
     }
 
+    // Sort projects (inbox first, then by collection id ascending)
     std::sort(projects.begin(), projects.end(), [](const QString &left, const QString &right) {
         if (left == QLatin1String("inbox")) {
             return true;
@@ -2863,11 +2946,31 @@ QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks, const QDate &toda
         }
         return left.toLongLong() < right.toLongLong();
     });
-    std::sort(weeks.begin(), weeks.end());
+
+    // Sort time keys: overdue first, then chronological, undated last
+    QStringList sortedTimes;
+    QString overdueKey;
+    QList<QString> futureKeys;
+    for (const QString &tk : std::as_const(timeKeys)) {
+        if (tk == QLatin1String("overdue")) {
+            overdueKey = tk;
+        } else {
+            futureKeys.append(tk);
+        }
+    }
+    std::sort(futureKeys.begin(), futureKeys.end());
+
+    if (!overdueKey.isEmpty()) {
+        sortedTimes.append(overdueKey);
+    }
+    sortedTimes.append(futureKeys);
+    if (hasUndated) {
+        sortedTimes.append(QStringLiteral("undated"));
+    }
 
     QVariantMap result;
     result.insert(QStringLiteral("projects"), projects);
-    result.insert(QStringLiteral("weeks"), weeks);
+    result.insert(QStringLiteral("weeks"), sortedTimes);
     result.insert(QStringLiteral("counts"), counts);
     result.insert(QStringLiteral("taskIds"), taskIds);
     return result;

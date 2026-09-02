@@ -1002,6 +1002,7 @@ Item {
             hiddenSections: Plasmoid.configuration.hiddenSidebarSections ?? "progress||status||secrecy||location"
             viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
             hiddenViews: Plasmoid.configuration.hiddenViews || ""
+            smartViewsJson: Plasmoid.configuration.smartViews || "[]"
         }
 
         Kirigami.Separator {

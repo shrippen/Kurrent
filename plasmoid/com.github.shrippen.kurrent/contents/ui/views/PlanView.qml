@@ -23,10 +23,29 @@ ColumnLayout {
     readonly property var weeks: grid.weeks || []
     readonly property var counts: grid.counts || ({})
 
+    // Labels for time columns: "Overdue", "Undated", or format by bucket
+    function timeLabel(key) {
+        if (key === "overdue") return i18n("Overdue")
+        if (key === "undated") return i18n("Undated")
+        return key
+    }
+
+    // Column width varies by bucket
+    readonly property real colWidth: {
+        if (!controller) return Kirigami.Units.gridUnit * 7
+        var bucket = controller.planTimeBucket || "week"
+        if (bucket === "day") return Kirigami.Units.gridUnit * 5
+        if (bucket === "month") return Kirigami.Units.gridUnit * 9
+        return Kirigami.Units.gridUnit * 7
+    }
+
+    readonly property bool hasOverdue: weeks.indexOf("overdue") >= 0
+    readonly property bool hasUndated: weeks.indexOf("undated") >= 0
+
     Kirigami.Heading {
         Layout.fillWidth: true
         level: 4
-        text: i18n("Open tasks by project and week")
+        text: i18n("Open tasks by project and time")
     }
 
     QQC2.Label {
@@ -57,11 +76,14 @@ ColumnLayout {
                     model: root.weeks
                     delegate: QQC2.Label {
                         required property string modelData
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+                        Layout.preferredWidth: root.colWidth
                         horizontalAlignment: Text.AlignHCenter
-                        text: modelData
+                        text: root.timeLabel(modelData)
                         font.bold: true
                         font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        color: modelData === "overdue" ? Kirigami.Theme.negativeTextColor
+                               : modelData === "undated" ? Kirigami.Theme.disabledTextColor
+                               : Kirigami.Theme.textColor
                     }
                 }
             }
@@ -89,13 +111,20 @@ ColumnLayout {
                             readonly property string weekKey: modelData
                             readonly property string cellKey: projectKey + "|" + weekKey
                             readonly property int count: root.counts[cellKey] || 0
+                            readonly property bool isOverdue: weekKey === "overdue"
+                            readonly property bool isUndated: weekKey === "undated"
 
-                            Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+                            Layout.preferredWidth: root.colWidth
                             Layout.preferredHeight: Kirigami.Units.gridUnit * 3
                             radius: 2
-                            color: count > 0 ? Kirigami.Theme.highlightColor : Kirigami.Theme.backgroundColor
+                            color: count > 0
+                                   ? isOverdue ? Kirigami.Theme.negativeTextColor
+                                   : Kirigami.Theme.highlightColor
+                                   : Kirigami.Theme.backgroundColor
                             opacity: count > 0 ? Math.min(0.9, 0.25 + count * 0.1) : 0.3
-                            border.color: Kirigami.Theme.disabledTextColor
+                            border.color: isOverdue && count > 0
+                                          ? Kirigami.Theme.negativeTextColor
+                                          : Kirigami.Theme.disabledTextColor
 
                             QQC2.Label {
                                 anchors.centerIn: parent

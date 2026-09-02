@@ -628,6 +628,10 @@ PlasmoidItem {
             backend.kanbanManualOrderJson = Plasmoid.configuration.kanbanManualOrder || "{}"
             backend.swimlaneLaneAxis = Plasmoid.configuration.swimlaneLaneAxis || "project"
             backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "day"
+            backend.planTimeBucket = Plasmoid.configuration.planTimeBucket || "week"
+            backend.planHorizon = Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
+            backend.planShowUndated = Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
+            backend.planShowCompleted = Plasmoid.configuration.planShowCompleted === true
             backend.multiSelectEnabled = Plasmoid.configuration.multiSelectEnabled === true
             backend.listGroupMode = Plasmoid.configuration.listGroupMode || ""
             applyMainPaneMode()
@@ -977,6 +981,30 @@ PlasmoidItem {
                 backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "day"
             }
         }
+        function onPlanTimeBucketChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.planTimeBucket = Plasmoid.configuration.planTimeBucket || "week"
+            }
+        }
+        function onPlanHorizonChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.planHorizon = Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
+            }
+        }
+        function onPlanShowUndatedChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.planShowUndated = Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
+            }
+        }
+        function onPlanShowCompletedChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.planShowCompleted = Plasmoid.configuration.planShowCompleted === true
+            }
+        }
         function onMultiSelectEnabledChanged() {
             root.persistSharedSettings()
             if (backend) {
@@ -1002,6 +1030,21 @@ PlasmoidItem {
         function onCurrentViewChanged() {
             if (Plasmoid.configuration.rememberLastView && backend) {
                 Plasmoid.configuration.lastView = backend.currentView
+            }
+            // Apply smart view default mode if set.
+            if (backend && backend.currentView.indexOf("smart:") === 0) {
+                var smartId = backend.currentView.slice(6)
+                var smart = smartViewById[smartId]
+                if (smart && smart.mode && smart.mode !== backend.mainPaneMode) {
+                    setMainPaneMode(smart.mode)
+                }
+                // Apply smart view sort override if set.
+                if (smart && smart.sort) {
+                    var currentSort = sortModeForView(backend.currentView)
+                    if (currentSort === defaultSortMode()) {
+                        backend.sortMode = smart.sort
+                    }
+                }
             }
             root.applySortForCurrentView()
         }
