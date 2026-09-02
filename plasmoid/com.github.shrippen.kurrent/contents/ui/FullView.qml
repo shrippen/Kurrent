@@ -67,6 +67,28 @@ Item {
         }
     }
 
+    Connections {
+        target: backend
+        function onMergeConflictAvailable(fields, itemId) {
+            mergeDialog.openDialog(fields)
+        }
+    }
+
+    MergeConflictDialog {
+        id: mergeDialog
+        controller: backend
+        onAccepted: function(resolution) {
+            if (backend) {
+                backend.resolveMergeConflict(resolution)
+            }
+        }
+        onDismissed: {
+            if (backend) {
+                backend.dismissConflict()
+            }
+        }
+    }
+
     readonly property var hostWindow: Window.window
     onHostWindowChanged: plasmoidRoot.applyPopupBackground()
 

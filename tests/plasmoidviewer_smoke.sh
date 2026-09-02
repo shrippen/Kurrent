@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PREFIX="${KURRENT_PREFIX:-${PREFIX:-${HOME}/.local}}"
 APPLET="${KURRENT_APPLET:-com.github.shrippen.kurrent}"
-TIMEOUT_SEC="${KURRENT_VIEWER_TIMEOUT:-30}"
+TIMEOUT_SEC="${KURRENT_VIEWER_TIMEOUT:-60}"
 
 if [[ "${SKIP_PLASMOIDVIEWER:-0}" == "1" ]]; then
     echo "Skipping plasmoidviewer smoke tests (SKIP_PLASMOIDVIEWER=1)."

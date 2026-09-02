@@ -338,6 +338,12 @@ public:
     Q_INVOKABLE QString toggleToken(const QString &raw, const QString &token, const QString &separator) const;
     Q_INVOKABLE bool hydrateFromCache();
 
+    // Merge conflict resolution
+    Q_PROPERTY(QVariantList mergeFields READ mergeFields NOTIFY mergeConflictAvailable)
+    QVariantList mergeFields() const { return m_pendingMergeFields; }
+    Q_INVOKABLE void resolveMergeConflict(const QVariantMap &resolution);
+    Q_INVOKABLE void testMergeConflict(); // Debug: simulate a conflict
+
     // Test hooks: swap MemoryTaskStore and seed cache without Akonadi server.
     void setTaskStore(AbstractTaskStore *store);
     void resetSharedStateForTest();
@@ -399,6 +405,7 @@ signals:
     void selectedTaskIdsChanged();
     void smartViewsJsonChanged();
     void conflictItemIdChanged();
+    void mergeConflictAvailable(QVariantList fields, qint64 itemId);
     void catchUpSettingsChanged();
     void defaultDueModeChanged();
     void searchSettingsChanged();
@@ -502,6 +509,10 @@ enum class SyncResult { Error, Ok };
     void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
     void submitModify(CachedTask &cached, qint64 moveToCollectionId);
+    void autoResolveConflict(qint64 itemId);
+    QVariantList computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
+                                   const KCalendarCore::Todo::Ptr &user,
+                                   const KCalendarCore::Todo::Ptr &server) const;
     void submitCreate(const Akonadi::Item &jobItem, const Akonadi::Collection &collection, qint64 tempId);
     Akonadi::Collection collectionById(qint64 collectionId) const;
     Akonadi::Collection firstWritableCollection() const;
@@ -615,6 +626,10 @@ enum class SyncResult { Error, Ok };
     QVariantMap m_sidebarLocationCounts;
 
     Akonadi::Monitor *m_monitor = nullptr;
+    // Merge conflict state
+    qint64 m_pendingMergeItemId = -1;
+    QVariantList m_pendingMergeFields;
+    KCalendarCore::Todo::Ptr m_pendingMergeFreshTodo;
     bool m_serverWatchConnected = false;
     Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
     bool m_collectionsReloadPending = false;

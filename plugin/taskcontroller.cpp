@@ -18,6 +18,8 @@
 #include <KCalendarCore/Event>
 #include <KCalendarCore/Todo>
 
+#include <KLocalizedString>
+
 #include <KJob>
 
 #include <QByteArray>
@@ -2276,6 +2278,18 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
                        .arg(it->item.parentCollection().id())
                        .arg(it->persistQueued)
                        .arg(errorString));
+
+        const bool isConflict = errorString.contains(QLatin1String("conflict"), Qt::CaseInsensitive)
+                                || errorString.contains(QLatin1String("Concurrent"), Qt::CaseInsensitive);
+
+        // FIX 2: Auto-resolve conflict — refetch fresh item, reapply user changes, resubmit.
+        // Must happen BEFORE rollback clears submittedTodo/revertTodo.
+        if (isConflict && it->submittedTodo) {
+            logAkonadi(QStringLiteral("finishSync: conflict detected on itemId=%1, auto-resolving").arg(itemId));
+            autoResolveConflict(itemId);
+            return;
+        }
+
         // Roll back optimistic edit to the last acknowledged snapshot.
         if (it->revertTodo) {
             it->todo = it->revertTodo;
@@ -2292,8 +2306,7 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
             setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
-        if (errorString.contains(QLatin1String("conflict"), Qt::CaseInsensitive)
-            || errorString.contains(QLatin1String("Concurrent"), Qt::CaseInsensitive)) {
+        if (isConflict) {
             m_conflictItemId = itemId;
             Q_EMIT conflictItemIdChanged();
         }
@@ -2439,11 +2452,6 @@ void TaskController::submitModify(CachedTask &cached, qint64 moveToCollectionId)
     Akonadi::Item modifiedItem = cached.item;
     modifiedItem.setPayload<KCalendarCore::Todo::Ptr>(snapshot);
 
-    AbstractTaskStore::Request req;
-    req.kind = AbstractTaskStore::Kind::Modify;
-    req.clientId = cached.item.id();
-    req.item = modifiedItem;
-    req.moveAfterModifyId = moveToCollectionId;
     logAkonadi(QStringLiteral("submitModify itemId=%1 rev=%2 collection=%3 moveTo=%4 akonadi=%5 summary=%6")
                    .arg(cached.item.id())
                    .arg(modifiedItem.revision())
@@ -2451,7 +2459,264 @@ void TaskController::submitModify(CachedTask &cached, qint64 moveToCollectionId)
                    .arg(moveToCollectionId)
                    .arg(m_akonadiAvailable)
                    .arg(snapshot ? snapshot->summary() : QString()));
+
+    AbstractTaskStore::Request req;
+    req.kind = AbstractTaskStore::Kind::Modify;
+    req.clientId = cached.item.id();
+    req.item = modifiedItem;
+    req.moveAfterModifyId = moveToCollectionId;
     m_store->submit(req);
+}
+
+void TaskController::autoResolveConflict(qint64 itemId)
+{
+    auto it = s_tasks.find(itemId);
+    if (it == s_tasks.end()) {
+        return;
+    }
+
+    if (!it->submittedTodo) {
+        logAkonadi(QStringLiteral("autoResolveConflict: no submittedTodo for itemId=%1, surfacing error").arg(itemId));
+        it->syncing = false;
+        it->inflight = 0;
+        m_conflictItemId = itemId;
+        Q_EMIT conflictItemIdChanged();
+        scheduleRebuildAll();
+        return;
+    }
+
+    // Save the user's desired state
+    auto desiredTodo = cloneTodo(it->submittedTodo);
+
+    logAkonadi(QStringLiteral("autoResolveConflict: refetching itemId=%1 to reapply changes").arg(itemId));
+
+    // Fetch the item fresh from Akonadi to get the current revision
+    Akonadi::Item fetchItem(itemId);
+    auto *job = new Akonadi::ItemFetchJob(fetchItem, this);
+    configureItemFetchJob(job);
+    connect(job, &Akonadi::ItemFetchJob::result, this,
+            [this, itemId, desiredTodo](KJob *kjob) {
+        auto *itemJob = qobject_cast<Akonadi::ItemFetchJob *>(kjob);
+        if (!itemJob || itemJob->error() || itemJob->items().isEmpty()) {
+            logAkonadi(QStringLiteral("autoResolveConflict: refetch failed for itemId=%1, surfacing error").arg(itemId));
+            auto it2 = s_tasks.find(itemId);
+            if (it2 != s_tasks.end()) {
+                it2->submittedTodo.clear();
+                it2->syncing = false;
+                it2->inflight = 0;
+                it2->revertTodo.clear();
+                it2->revertCollectionId = -1;
+            }
+            m_conflictItemId = itemId;
+            Q_EMIT conflictItemIdChanged();
+            scheduleRebuildAll();
+            return;
+        }
+
+        auto freshItem = itemJob->items().constFirst();
+        auto it3 = s_tasks.find(itemId);
+        if (it3 == s_tasks.end()) {
+            return;
+        }
+
+        // Update cache with fresh Akonadi state (correct revision)
+        KCalendarCore::Todo::Ptr freshTodo = todoFromItem(freshItem);
+        it3->item = freshItem;
+        if (freshTodo) {
+            it3->todo = freshTodo;
+        }
+
+        it3->revertCollectionId = freshItem.parentCollection().id();
+
+        // 3-way diff: base (revertTodo), user (desiredTodo), server (freshTodo)
+        KCalendarCore::Todo::Ptr baseTodo = it3->revertTodo ? it3->revertTodo : freshTodo;
+        QVariantList conflicts = computeMergeDiff(baseTodo, desiredTodo, freshTodo);
+
+        if (!conflicts.isEmpty()) {
+            // Fields conflict → show merge dialog
+            logAkonadi(QStringLiteral("autoResolveConflict: %1 conflicts for itemId=%2, showing dialog")
+                           .arg(conflicts.size()).arg(itemId));
+            m_pendingMergeItemId = itemId;
+            m_pendingMergeFields = conflicts;
+            m_pendingMergeFreshTodo = freshTodo;
+            m_conflictItemId = itemId;
+            Q_EMIT conflictItemIdChanged();
+            Q_EMIT mergeConflictAvailable(conflicts, itemId);
+            return;
+        }
+
+        // No field conflicts → safe to auto-apply user changes
+        logAkonadi(QStringLiteral("autoResolveConflict: no field conflicts, auto-applying itemId=%1 with fresh rev=%2")
+                       .arg(itemId).arg(freshItem.revision()));
+
+        it3->todo = desiredTodo;
+        it3->item.setPayload<KCalendarCore::Todo::Ptr>(desiredTodo);
+        it3->revertTodo = freshTodo ? cloneTodo(freshTodo) : KCalendarCore::Todo::Ptr();
+
+        const qint64 moveId = it3->persistQueuedMoveId;
+        it3->persistQueuedMoveId = -1;
+        submitModify(*it3, moveId);
+    });
+}
+
+QVariantList TaskController::computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
+                                              const KCalendarCore::Todo::Ptr &user,
+                                              const KCalendarCore::Todo::Ptr &server) const
+{
+    QVariantList conflicts;
+    auto addIfConflict = [&](const QString &key, const QString &label,
+                              const QVariant &baseVal, const QVariant &userVal, const QVariant &serverVal) {
+        if (userVal != baseVal && serverVal != baseVal) {
+            QVariantMap m;
+            m[QStringLiteral("key")] = key;
+            m[QStringLiteral("label")] = label;
+            m[QStringLiteral("userValue")] = userVal;
+            m[QStringLiteral("serverValue")] = serverVal;
+            m[QStringLiteral("baseValue")] = baseVal;
+            conflicts.append(m);
+        }
+    };
+    if (base && user && server) {
+        addIfConflict(QStringLiteral("summary"), i18n("Summary"),
+                       base->summary(), user->summary(), server->summary());
+        addIfConflict(QStringLiteral("description"), i18n("Description"),
+                       base->description(), user->description(), server->description());
+        addIfConflict(QStringLiteral("priority"), i18n("Priority"),
+                       base->priority(), user->priority(), server->priority());
+        addIfConflict(QStringLiteral("percentComplete"), i18n("Progress"),
+                       base->percentComplete(), user->percentComplete(), server->percentComplete());
+        addIfConflict(QStringLiteral("categories"), i18n("Labels"),
+                       base->categories().join(QStringLiteral(",")),
+                       user->categories().join(QStringLiteral(",")),
+                       server->categories().join(QStringLiteral(",")));
+        addIfConflict(QStringLiteral("location"), i18n("Location"),
+                       base->location(), user->location(), server->location());
+        addIfConflict(QStringLiteral("dueDate"), i18n("Due date"),
+                       base->hasDueDate() ? QVariant(base->dtDue()) : QVariant(),
+                       user->hasDueDate() ? QVariant(user->dtDue()) : QVariant(),
+                       server->hasDueDate() ? QVariant(server->dtDue()) : QVariant());
+        addIfConflict(QStringLiteral("startDate"), i18n("Start date"),
+                       base->hasStartDate() ? QVariant(base->dtStart()) : QVariant(),
+                       user->hasStartDate() ? QVariant(user->dtStart()) : QVariant(),
+                       server->hasStartDate() ? QVariant(server->dtStart()) : QVariant());
+    }
+    return conflicts;
+}
+
+void TaskController::resolveMergeConflict(const QVariantMap &resolution)
+{
+    const qint64 itemId = m_pendingMergeItemId;
+    if (itemId < 0 || !m_pendingMergeFreshTodo) {
+        return;
+    }
+
+    auto it = s_tasks.find(itemId);
+    if (it == s_tasks.end()) {
+        m_pendingMergeItemId = -1;
+        m_pendingMergeFields.clear();
+        m_pendingMergeFreshTodo.clear();
+        return;
+    }
+
+    logAkonadi(QStringLiteral("resolveMergeConflict: applying resolution for itemId=%1 fields=%2")
+                   .arg(itemId).arg(resolution.size()));
+
+    KCalendarCore::Todo::Ptr merged = KCalendarCore::Todo::Ptr(new KCalendarCore::Todo(*m_pendingMergeFreshTodo));
+
+    for (auto it2 = resolution.constBegin(); it2 != resolution.constEnd(); ++it2) {
+        const QString key = it2.key();
+        const QString choice = it2.value().toString();
+        if (choice == QLatin1String("user")) {
+            for (const QVariant &fv : m_pendingMergeFields) {
+                QVariantMap field = fv.toMap();
+                if (field.value(QStringLiteral("key")).toString() != key) continue;
+                const QVariant uv = field.value(QStringLiteral("userValue"));
+                if (key == QLatin1String("summary")) merged->setSummary(uv.toString());
+                else if (key == QLatin1String("description")) merged->setDescription(uv.toString());
+                else if (key == QLatin1String("priority")) merged->setPriority(uv.toInt());
+                else if (key == QLatin1String("percentComplete")) merged->setPercentComplete(uv.toInt());
+                else if (key == QLatin1String("categories")) merged->setCategories(uv.toString().split(QLatin1Char(','), Qt::SkipEmptyParts));
+                else if (key == QLatin1String("location")) merged->setLocation(uv.toString());
+                else if (key == QLatin1String("dueDate")) {
+                    if (uv.toDateTime().isValid()) merged->setDtDue(uv.toDateTime());
+                    else merged->setDtDue(QDateTime());
+                } else if (key == QLatin1String("startDate")) {
+                    if (uv.toDateTime().isValid()) merged->setDtStart(uv.toDateTime());
+                    else merged->setDtStart(QDateTime());
+                }
+                break;
+            }
+        }
+        // "server" → keep fresh todo value (already set above)
+    }
+
+    // Check if any "edit" choices remain
+    bool needsEditor = false;
+    for (auto it2 = resolution.constBegin(); it2 != resolution.constEnd(); ++it2) {
+        if (it2.value().toString() == QLatin1String("edit")) {
+            needsEditor = true;
+            break;
+        }
+    }
+
+    if (needsEditor) {
+        it->todo = merged;
+        it->item.setPayload<KCalendarCore::Todo::Ptr>(merged);
+        it->revertTodo = cloneTodo(m_pendingMergeFreshTodo);
+        it->revertCollectionId = it->item.parentCollection().id();
+        m_pendingMergeItemId = -1;
+        m_pendingMergeFields.clear();
+        m_pendingMergeFreshTodo.clear();
+        m_conflictItemId = -1;
+        Q_EMIT conflictItemIdChanged();
+        scheduleRebuildAll();
+        return;
+    }
+
+    it->todo = merged;
+    it->item.setPayload<KCalendarCore::Todo::Ptr>(merged);
+    it->submittedTodo = cloneTodo(merged);
+    it->revertTodo = cloneTodo(m_pendingMergeFreshTodo);
+    it->revertCollectionId = it->item.parentCollection().id();
+    it->syncing = true;
+
+    m_pendingMergeItemId = -1;
+    m_pendingMergeFields.clear();
+    m_pendingMergeFreshTodo.clear();
+    m_conflictItemId = -1;
+    Q_EMIT conflictItemIdChanged();
+
+    submitModify(*it, -1);
+}
+
+void TaskController::testMergeConflict()
+{
+    if (s_tasks.isEmpty()) {
+        logAkonadi(QStringLiteral("testMergeConflict: no tasks in cache"));
+        return;
+    }
+    auto it = s_tasks.constBegin();
+    const qint64 itemId = it.key();
+    const auto &cached = it.value();
+    if (!cached.todo) return;
+
+    auto baseTodo = cloneTodo(cached.todo);
+    auto userTodo = cloneTodo(cached.todo);
+    auto serverTodo = cloneTodo(cached.todo);
+
+    userTodo->setSummary(QStringLiteral("[USER] %1").arg(baseTodo->summary()));
+    serverTodo->setSummary(QStringLiteral("[SERVER] %1").arg(baseTodo->summary()));
+    userTodo->setPriority(1);
+    serverTodo->setPriority(9);
+
+    m_pendingMergeItemId = itemId;
+    m_pendingMergeFreshTodo = serverTodo;
+    m_pendingMergeFields = computeMergeDiff(baseTodo, userTodo, serverTodo);
+
+    logAkonadi(QStringLiteral("testMergeConflict: showing %1 conflicting fields for itemId=%2")
+                   .arg(m_pendingMergeFields.size()).arg(itemId));
+
+    Q_EMIT mergeConflictAvailable(m_pendingMergeFields, itemId);
 }
 
 Akonadi::Collection TaskController::collectionById(qint64 collectionId) const
@@ -3865,6 +4130,15 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
         const int incomingRevision = item.revision();
         const int cachedRevision = existing->item.revision();
         if (incomingRevision > 0 && cachedRevision > 0 && incomingRevision < cachedRevision) {
+            return;
+        }
+        // FIX 1: Reject same-revision stale echoes from DAV resource sync races.
+        // If revision matches but the todo summary differs, the incoming payload
+        // is stale (the resource fetched before our modify propagated). Our local
+        // optimistic state is more current.
+        if (incomingRevision > 0 && cachedRevision > 0 && incomingRevision == cachedRevision
+            && existing->todo && todo
+            && existing->todo->summary() != todo->summary()) {
             return;
         }
     }
