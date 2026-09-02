@@ -189,6 +189,9 @@ ColumnLayout {
         }
 
         QQC2.Label {
+            id: dayLabel
+            Layout.fillWidth: true
+            Layout.minimumWidth: dayLabelMetrics.advanceWidth
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideMiddle
             text: {
@@ -197,6 +200,11 @@ ColumnLayout {
                 return Qt.formatDate(root.selectedDay, "dddd, d. MMMM yyyy")
             }
             font.bold: true
+            TextMetrics {
+                id: dayLabelMetrics
+                text: Qt.formatDate(new Date(), "dddd, d. MMMM yyyy")
+                font: dayLabel.font
+            }
         }
 
         QQC2.ToolButton {
@@ -211,7 +219,10 @@ ColumnLayout {
         }
 
         QQC2.ToolButton {
-            text: root.weekMode ? i18n("This week") : i18n("Today")
+            display: QQC2.AbstractButton.IconOnly
+            icon.name: "go-jump-today"
+            QQC2.ToolTip.text: root.weekMode ? i18n("This week") : i18n("Today")
+            QQC2.ToolTip.visible: hovered
             onClicked: {
                 if (root.weekMode) {
                     root.selectedDay = mondayOf(new Date())
@@ -224,32 +235,35 @@ ColumnLayout {
 
         QQC2.ToolButton {
             id: pickerBtn
-            icon.name: "go-jump-today"
-            icon.width: Kirigami.Units.iconSizes.small
-            icon.height: Kirigami.Units.iconSizes.small
+            icon.name: "calendar"
             QQC2.ToolTip.text: i18n("Pick date")
             QQC2.ToolTip.visible: hovered
             onClicked: datePicker.open()
         }
 
-        // Day / Week segmented control — fixed width, visual highlight on active segment
+        // ── Day / Week segmented control ───────────────────────
         QQC2.ButtonGroup { id: viewModeGroup }
         Item {
-            Layout.preferredWidth: Math.max(dayBtn.implicitWidth, weekBtn.implicitWidth) * 2 + 6
-            Layout.preferredHeight: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight) + 6
+            id: segCtrl
+            Layout.preferredWidth: segBtnW * 2 + 8
+            Layout.preferredHeight: segBtnH + 8
+            readonly property int segBtnW: Math.max(dayBtn.implicitWidth, weekBtn.implicitWidth)
+            readonly property int segBtnH: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight)
+
             Rectangle {
                 anchors.fill: parent
-                radius: Design.buttonRadius
+                radius: Design.inputRadius
                 color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
             }
             Rectangle {
-                x: root.weekMode ? parent.width / 2 + 1 : 1
-                width: parent.width / 2 - 2
-                height: parent.height - 2
+                id: segSlider
+                x: root.weekMode ? segCtrl.width / 2 + 1 : 1
                 y: 1
-                radius: Design.buttonRadius
+                width: segCtrl.width / 2 - 2
+                height: segCtrl.height - 2
+                radius: Design.inputRadius
                 color: Kirigami.Theme.backgroundColor
-                Behavior on x { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
             }
             Row {
                 anchors.fill: parent
@@ -277,7 +291,8 @@ ColumnLayout {
             }
         }
 
-        // Week-only buttons: always reserve space to prevent toolbar jumping
+        // Week-only: reserve fixed space to prevent toolbar jumping
+        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing * 2; Layout.fillHeight: true }
         QQC2.ToolButton {
             visible: root.weekMode
             icon.name: root.weekStacked ? "view-split-left-right" : "view-list-details"
@@ -285,8 +300,8 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
             onClicked: root.weekStacked = !root.weekStacked
         }
-        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing; Layout.fillHeight: true }
 
+        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing * 2; Layout.fillHeight: true }
         QQC2.ToolButton {
             visible: root.weekMode
             icon.name: "edit-select-all"
@@ -296,7 +311,6 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
             onClicked: root.includeWeekend = !root.includeWeekend
         }
-        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing; Layout.fillHeight: true }
 
         QQC2.ToolButton {
             icon.name: "text-calendar"
