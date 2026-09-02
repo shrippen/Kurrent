@@ -4141,6 +4141,12 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
             && existing->todo->summary() != todo->summary()) {
             return;
         }
+        // FIX 1b: If the incoming item has revision 0 (DAV resource notification without
+        // revision), never overwrite a cached item that has a real revision. Revision 0
+        // means "I don't know the version" — keeping the cached revision is safer.
+        if (incomingRevision == 0 && cachedRevision > 0) {
+            return;
+        }
     }
 
     if (!todo->uid().isEmpty()) {
