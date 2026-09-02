@@ -418,6 +418,9 @@ Item {
                              || (Plasmoid.configuration.showSecrecyChip !== false && (task.secrecy || 0) > 0)
                              || (Plasmoid.configuration.showLocationChip !== false && !!(task.location && String(task.location).trim().length))
                              || (Plasmoid.configuration.showJoinButton !== false && (task.joinUrl ? task.joinUrl.length > 0 : false))
+                             || (Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && !!(task.collectionName && String(task.collectionName).trim().length))
 
                     QQC2.ToolButton {
                         visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
@@ -451,6 +454,27 @@ Item {
                                 id: tagHover
                                 enabled: !root.listMoving
                             }
+                        }
+                    }
+
+                    // Project chip: visible only when no project filter is active
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && !!(task.collectionName && String(task.collectionName).trim().length)
+                        source: "folder"
+                        color: Design.colorForKey(String(task.collectionName), "project")
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: task.collectionName
+                        QQC2.ToolTip.visible: projectHover.hovered && !root.listMoving
+                        QQC2.ToolTip.delay: 400
+                        HoverHandler {
+                            id: projectHover
+                            enabled: !root.listMoving
                         }
                     }
 
