@@ -329,6 +329,12 @@ FocusScope {
                     mode: "date"
                     popupParent: root.popupAnchor
                     onTextEdited: root.clearStartRequested = false
+                    onTextChanged: {
+                        // Auto-check allDay when a date is entered but no time is set
+                        if (text.length > 0 && startTimeField.text.length === 0 && !allDayCheck.checked) {
+                            allDayCheck.checked = true
+                        }
+                    }
                 }
                 DateTimeInput {
                     id: startTimeField
@@ -361,6 +367,12 @@ FocusScope {
                     mode: "date"
                     popupParent: root.popupAnchor
                     onTextEdited: root.clearDueRequested = false
+                    onTextChanged: {
+                        // Auto-check allDay when a date is entered but no time is set
+                        if (text.length > 0 && dueTimeField.text.length === 0 && !allDayCheck.checked) {
+                            allDayCheck.checked = true
+                        }
+                    }
                 }
                 DateTimeInput {
                     id: dueTimeField

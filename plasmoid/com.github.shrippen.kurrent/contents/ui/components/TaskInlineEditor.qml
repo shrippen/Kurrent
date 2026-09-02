@@ -121,6 +121,11 @@ Item {
                 mode: "date"
                 popupParent: root.popupParent
                 onTextEdited: root.clearDueRequested = false
+                onTextChanged: {
+                    if (text.length > 0 && dueTimeField.text.length === 0 && !allDayCheck.checked) {
+                        allDayCheck.checked = true
+                    }
+                }
             }
 
             DateTimeInput {
