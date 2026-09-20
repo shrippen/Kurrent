@@ -1,0 +1,99 @@
+# Baut .plasmoid und Linux-Binary-Tarball und hängt sie an das Gitea-Release.
+# Token: Secret RELEASE_TOKEN (write:repository), sonst der Job-Token.
+
+name: Release packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach artifacts to (empty = build only)"
+        required: false
+        default: ""
+
+jobs:
+  plasmoid:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext zip
+
+      - name: Build .plasmoid
+        run: |
+          chmod +x scripts/package-plasmoid.sh
+          scripts/package-plasmoid.sh
+          ls -lh dist/*.plasmoid
+
+      - name: Attach to Gitea release
+        if: github.event_name != 'workflow_dispatch' || inputs.tag != ''
+        env:
+          GITEA_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          case "${EVENT_NAME}" in
+            release) TAG="${RELEASE_TAG}" ;;
+            workflow_dispatch) TAG="${INPUT_TAG}" ;;
+            *) TAG="${REF_NAME}" ;;
+          esac
+          chmod +x install-linux.sh scripts/gitea-release-upload.sh
+          scripts/gitea-release-upload.sh "${TAG}" dist/*.plasmoid install-linux.sh
+
+  linux-binary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Der Runner spricht mit dem Docker-Daemon des Hosts; ein Bind-Mount von
+      # $PWD würde dort ins Leere zeigen. Deshalb Quellen per docker cp hinein
+      # und Ergebnis wieder heraus kopieren.
+      - name: Build plugin tarball (Arch)
+        run: |
+          cid="$(docker create -w /src archlinux:latest bash -lc '
+            set -euo pipefail
+            pacman -Syu --noconfirm
+            pacman -S --noconfirm --needed \
+              base-devel cmake extra-cmake-modules python gettext \
+              qt6-base qt6-declarative \
+              kcalendarcore ki18n kconfig knotifications kglobalaccel \
+              akonadi akonadi-calendar
+            chmod +x scripts/package-linux-bin.sh
+            scripts/package-linux-bin.sh
+            ls -lh dist/kurrent-linux-*.tar.gz
+          ')"
+          docker cp . "${cid}:/src"
+          docker start -a "${cid}" || { docker rm "${cid}" >/dev/null; exit 1; }
+          mkdir -p dist
+          docker cp "${cid}:/src/dist/." dist/
+          docker rm "${cid}" >/dev/null
+          ls -lh dist/kurrent-linux-*.tar.gz
+
+      - name: Attach to Gitea release
+        if: github.event_name != 'workflow_dispatch' || inputs.tag != ''
+        env:
+          GITEA_TOKEN: ${{ secrets.RELEASE_TOKEN || github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          case "${EVENT_NAME}" in
+            release) TAG="${RELEASE_TAG}" ;;
+            workflow_dispatch) TAG="${INPUT_TAG}" ;;
+            *) TAG="${REF_NAME}" ;;
+          esac
+          chmod +x scripts/gitea-release-upload.sh
+          scripts/gitea-release-upload.sh "${TAG}" dist/kurrent-*.tar.gz
