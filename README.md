@@ -7,7 +7,7 @@
 <h1 align="center">Kurrent</h1>
 
 <p align="center">
-  A KDE Plasma 6 task manager plasmoid powered by <strong>Akonadi</strong> and Nextcloud CalDAV.
+  A KDE Plasma 6 task manager plasmoid powered by <strong>Akonadi</strong>, so it works with every account Akonadi supports.
 </p>
 
 <p align="center">
@@ -16,12 +16,12 @@
   <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey?labelColor=1c1c20">
 </p>
 
-Inbox, Today, Scheduled, Projects, and Labels with a native Plasma / Kirigami UI. No separate CalDAV login — Kurrent uses your existing KDE PIM setup.
+Inbox, Today, Scheduled, Projects, and Labels with a native Plasma / Kirigami UI. No separate login — Kurrent uses your existing KDE PIM setup.
 
 ## Prerequisites
 
 - KDE Plasma 6
-- Akonadi running with a configured DAV groupware resource (KOrganizer or Merkuro)
+- Akonadi running with at least one configured resource that provides task (VTODO) collections, set up in KOrganizer or Merkuro
 - Build dependencies on Arch Linux:
 
 ```bash
@@ -29,12 +29,12 @@ sudo pacman -S cmake extra-cmake-modules qt6-declarative \
     kcalendarcore akonadi akonadi-calendar kirigami plasma-workspace
 ```
 
-## Setup CalDAV / Nextcloud
+## Set up your accounts
 
-Configure your account in **KOrganizer** or **Merkuro**:
+Kurrent works with whatever Akonadi supports. Configure your account in **KOrganizer** or **Merkuro**:
 
-1. Add Calendar → **DAV groupware resource**
-2. Choose **Nextcloud**, enter server URL, username, and app password
+1. Add Calendar → choose a resource type for your account (for example a **DAV groupware resource**)
+2. Enter the connection details for that resource
 3. Enable task (VTODO) collections
 
 Verify Akonadi is running:
