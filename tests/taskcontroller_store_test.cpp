@@ -30,6 +30,7 @@ private Q_SLOTS:
     void kanbanStatusAndSecrecyDrop();
     void kanbanLabelColumnDrop();
     void sidebarPriorityAndLocationMutations();
+    void matrixDropWritesLaneAndDue();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -335,6 +336,48 @@ void TaskControllerStoreTest::kanbanLabelColumnDrop()
     waitStore(spy, 3);
     QVERIFY(m_controller->testTaskCategories(22).isEmpty());
     QCOMPARE(m_controller->testKanbanColumnKey(22), QStringLiteral("none"));
+}
+
+void TaskControllerStoreTest::matrixDropWritesLaneAndDue()
+{
+    m_controller->setSwimlaneTimeBucket(QStringLiteral("week"));
+    m_controller->setSwimlaneLaneAxis(QStringLiteral("priority"));
+    m_controller->installTestTask(31, QStringLiteral("swim"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    const QDate today = QDate::currentDate();
+    const QString nextWeek = TaskLogic::matrixBucketKey(today.addDays(7), QStringLiteral("week"));
+
+    // Priority lane + next week in one drop: both fields change, no due date before.
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::High), nextWeek);
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskPriority(31), TaskLogic::PriorityBand::High);
+    QVERIFY(m_controller->testTaskDue(31).isValid());
+    QCOMPARE(TaskLogic::matrixBucketKey(m_controller->testTaskDue(31).date(), QStringLiteral("week")), nextWeek);
+
+    // One undo step restores both.
+    m_controller->undo();
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->testTaskPriority(31), 0);
+    QVERIFY(!m_controller->testTaskDue(31).isValid());
+
+    // "unscheduled" clears an existing due date.
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::None), nextWeek);
+    waitStore(spy, 3);
+    QVERIFY(m_controller->testTaskDue(31).isValid());
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::None), QStringLiteral("unscheduled"));
+    waitStore(spy, 4);
+    QVERIFY(!m_controller->testTaskDue(31).isValid());
+
+    // Overdue / Later are not drop targets.
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::None), QStringLiteral("overdue"));
+    QVERIFY(!m_controller->testTaskDue(31).isValid());
+
+    // Label axis: the target lane becomes the first label.
+    m_controller->setSwimlaneLaneAxis(QStringLiteral("label"));
+    m_controller->moveTaskToMatrixCell(31, QStringLiteral("work"), QStringLiteral("unscheduled"));
+    waitStore(spy, 5);
+    QCOMPARE(m_controller->testTaskCategories(31), QStringList({QStringLiteral("work")}));
 }
 
 void TaskControllerStoreTest::sidebarPriorityAndLocationMutations()

@@ -92,6 +92,7 @@ private Q_SLOTS:
     void smartViewFilterAppliesInComputeCounts();
     void planMatrixGridOverdueConsolidationAndHorizon();
     void swimlanePlanHeatmapHelpers();
+    void matrixBucketsAndSwimlane();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1501,14 +1502,15 @@ void TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon()
     // Default: week bucket, horizon=8, showUndated=true, showCompleted=false
     const QVariantMap grid = TaskLogic::buildPlanMatrixGrid(
         {overdue, current, farFuture, undated, done},
-        QStringLiteral("week"), 8, true, false, today);
+        QStringLiteral("week"), 8, true, false, {}, today);
 
     const QStringList weeks = grid.value(QStringLiteral("weeks")).toStringList();
 
     // Should have overdue + current week + undated (farFuture clipped)
     QVERIFY(weeks.contains(QStringLiteral("overdue")));
-    QVERIFY(weeks.contains(QStringLiteral("undated"))); // undated is always last
-    QVERIFY(weeks.last() == QStringLiteral("undated")); // undated is always last
+    QVERIFY(weeks.contains(QStringLiteral("unscheduled")));
+    QVERIFY(weeks.last() == QStringLiteral("unscheduled")); // unscheduled is always last
+    QVERIFY(weeks.contains(QStringLiteral("later"))); // farFuture collected beyond horizon
     QVERIFY(weeks.indexOf(QStringLiteral("overdue")) < weeks.indexOf(weeks.value(weeks.indexOf("overdue") + 1)));
 
     // Overdue task should be under "overdue" key
@@ -1519,19 +1521,20 @@ void TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon()
     // Far future task should be clipped (horizon=8)
     QString farFutureBucket = TaskLogic::swimlaneTimeBucket(farFuture, QStringLiteral("week"), today);
     const QString farFutureCell = QStringLiteral("10|") + farFutureBucket;
-    QCOMPARE(counts.value(farFutureCell).toInt(), 0); // clipped
+    QCOMPARE(counts.value(farFutureCell).toInt(), 0); // not its own column
+    QCOMPARE(counts.value(QStringLiteral("10|later")).toInt(), 1);
 
     // showCompleted=true should include the done task
     const QVariantMap gridWithDone = TaskLogic::buildPlanMatrixGrid(
         {overdue, current, done},
-        QStringLiteral("week"), 8, true, true, today);
+        QStringLiteral("week"), 8, true, true, {}, today);
     const QVariantMap countsDone = gridWithDone.value(QStringLiteral("counts")).toMap();
     QVERIFY(countsDone.value(QStringLiteral("10|") + TaskLogic::swimlaneTimeBucket(done, QStringLiteral("week"), today)).toInt() == 1);
 
     // horizon=0 means no clipping
     const QVariantMap gridNoClip = TaskLogic::buildPlanMatrixGrid(
         {overdue, farFuture},
-        QStringLiteral("week"), 0, false, false, today);
+        QStringLiteral("week"), 0, false, false, {}, today);
     const QVariantMap countsNoClip = gridNoClip.value(QStringLiteral("counts")).toMap();
     QString ffBucket = TaskLogic::swimlaneTimeBucket(farFuture, QStringLiteral("week"), today);
     QCOMPARE(countsNoClip.value(QStringLiteral("10|") + ffBucket).toInt(), 1);
@@ -1539,8 +1542,73 @@ void TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon()
     // Day bucket test
     const QVariantMap dayGrid = TaskLogic::buildPlanMatrixGrid(
         {current},
-        QStringLiteral("day"), 7, false, false, today);
+        QStringLiteral("day"), 7, false, false, {}, today);
     QVERIFY(!dayGrid.value(QStringLiteral("weeks")).toStringList().isEmpty());
+}
+
+void TaskLogicTest::matrixBucketsAndSwimlane()
+{
+    // ISO week across a year boundary: 2026-12-31 is in 2026-W53, 2027-01-01 too.
+    QCOMPARE(TaskLogic::matrixBucketKey(QDate(2026, 12, 31), QStringLiteral("week")), QStringLiteral("2026-W53"));
+    QCOMPARE(TaskLogic::matrixBucketKey(QDate(2027, 1, 1), QStringLiteral("week")), QStringLiteral("2026-W53"));
+    QCOMPARE(TaskLogic::matrixBucketKey(QDate(2024, 12, 30), QStringLiteral("week")), QStringLiteral("2025-W01"));
+    QCOMPARE(TaskLogic::matrixBucketStart(QStringLiteral("2025-W01"), QStringLiteral("week")), QDate(2024, 12, 30));
+    QCOMPARE(TaskLogic::matrixBucketEnd(QStringLiteral("2025-W01"), QStringLiteral("week")), QDate(2025, 1, 5));
+    QCOMPARE(TaskLogic::matrixBucketStart(QStringLiteral("2026-09"), QStringLiteral("month")), QDate(2026, 9, 1));
+    QCOMPARE(TaskLogic::matrixBucketEnd(QStringLiteral("2026-09"), QStringLiteral("month")), QDate(2026, 9, 30));
+
+    QCOMPARE(TaskLogic::matrixHorizon(QStringLiteral("week"), 0, true), 8);
+    QCOMPARE(TaskLogic::matrixHorizon(QStringLiteral("week"), 3, true), 3);
+    QCOMPARE(TaskLogic::matrixHorizon(QStringLiteral("week"), 0, false), 104);
+
+    const QDate today(2026, 9, 16); // Wednesday, ISO week 38
+    TaskEntry task;
+    task.itemId = 1;
+    task.collectionId = 5;
+    task.dueDate = QDateTime(today.addDays(-14), QTime(9, 0));
+    QCOMPARE(TaskLogic::matrixTimeKey(task, QStringLiteral("week"), 4, today), QStringLiteral("overdue"));
+    task.dueDate = QDateTime(today.addDays(200), QTime(9, 0));
+    QCOMPARE(TaskLogic::matrixTimeKey(task, QStringLiteral("week"), 4, today), QStringLiteral("later"));
+    task.dueDate = QDateTime();
+    QCOMPARE(TaskLogic::matrixTimeKey(task, QStringLiteral("week"), 4, today), QStringLiteral("unscheduled"));
+
+    // Swimlane: empty periods up to the horizon exist as drop targets, known lanes stay visible.
+    task.dueDate = QDateTime(today.addDays(1), QTime(9, 0));
+    const QVariantMap matrix = TaskLogic::buildSwimlaneMatrix({task}, QStringLiteral("project"),
+                                                              QStringLiteral("week"), 3,
+                                                              {QStringLiteral("7"), QStringLiteral("5")}, today);
+    const QStringList times = matrix.value(QStringLiteral("times")).toStringList();
+    QCOMPARE(times.size(), 5); // current + 3 ahead + unscheduled
+    QCOMPARE(times.first(), QStringLiteral("2026-W38"));
+    QCOMPARE(times.last(), QStringLiteral("unscheduled"));
+    QCOMPARE(matrix.value(QStringLiteral("lanes")).toStringList(),
+             (QStringList{QStringLiteral("7"), QStringLiteral("5")}));
+    QCOMPARE(matrix.value(QStringLiteral("cells")).toMap().value(QStringLiteral("5|2026-W38")).toList().size(), 1);
+
+    // Drop onto another week keeps the weekday and time, clamped to today in the running period.
+    const QDateTime due(QDate(2026, 9, 14), QTime(9, 30)); // Monday of W38
+    QCOMPARE(TaskLogic::dueForBucketDrop(due, QStringLiteral("2026-W39"), QStringLiteral("week"), today),
+             QDateTime(QDate(2026, 9, 21), QTime(9, 30)));
+    QCOMPARE(TaskLogic::dueForBucketDrop(due, QStringLiteral("2026-W38"), QStringLiteral("week"), today).date(), today);
+    QCOMPARE(TaskLogic::dueForBucketDrop({}, QStringLiteral("2026-10"), QStringLiteral("month"), today).date(),
+             QDate(2026, 10, 1));
+    QVERIFY(!TaskLogic::dueForBucketDrop(due, QStringLiteral("unscheduled"), QStringLiteral("week"), today).isValid());
+
+    // Drill filter: only the requested lane × time cell survives.
+    TaskLogic::TaskRebuildInput input;
+    TaskEntry other = task;
+    other.itemId = 2;
+    other.collectionId = 6;
+    input.allTasks = {task, other};
+    input.matrixDrillActive = true;
+    input.matrixDrillAxis = QStringLiteral("project");
+    input.matrixDrillLane = QStringLiteral("5");
+    input.matrixDrillBucket = QStringLiteral("week");
+    input.matrixDrillHorizon = 3;
+    input.matrixDrillTime = QStringLiteral("2026-W38");
+    const TaskLogic::TaskRebuildOutput out = TaskLogic::computeTaskRebuild(input, today);
+    QCOMPARE(out.tasks.size(), 1);
+    QCOMPARE(out.tasks.first().itemId, qint64(1));
 }
 
 void TaskLogicTest::swimlanePlanHeatmapHelpers()

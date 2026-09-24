@@ -627,7 +627,8 @@ PlasmoidItem {
             backend.kanbanWriteMode = Plasmoid.configuration.kanbanWriteMode || "fields"
             backend.kanbanManualOrderJson = Plasmoid.configuration.kanbanManualOrder || "{}"
             backend.swimlaneLaneAxis = Plasmoid.configuration.swimlaneLaneAxis || "project"
-            backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "day"
+            backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "week"
+            backend.swimlaneHorizon = Plasmoid.configuration.swimlaneHorizon || 0
             backend.planTimeBucket = Plasmoid.configuration.planTimeBucket || "week"
             backend.planHorizon = Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
             backend.planShowUndated = Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
@@ -653,6 +654,9 @@ PlasmoidItem {
         target: backend
         function onDbusShowRequested() {
             root.expanded = true
+        }
+        function onMainPaneModeRequested(mode) {
+            root.setMainPaneMode(mode)
         }
         function onDbusAddTaskRequested(summary) {
             root.expanded = true
@@ -978,7 +982,13 @@ PlasmoidItem {
         function onSwimlaneTimeBucketChanged() {
             root.persistSharedSettings()
             if (backend) {
-                backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "day"
+                backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "week"
+            }
+        }
+        function onSwimlaneHorizonChanged() {
+            root.persistSharedSettings()
+            if (backend) {
+                backend.swimlaneHorizon = Plasmoid.configuration.swimlaneHorizon || 0
             }
         }
         function onPlanTimeBucketChanged() {

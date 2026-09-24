@@ -20,11 +20,14 @@ Kirigami.AbstractCard {
     property string columnKey: ""
     // Full-editor overlay: suppress card hover under the dim.
     property bool interactionsSuspended: false
+    // Dense variant for matrix cells (Swimlanes): no description / action row,
+    // a plain click opens the full editor instead.
+    property bool compact: false
 
     signal requestFullEditor(var task)
 
     width: parent ? parent.width : implicitWidth
-    opacity: (task && task.completed ? 0.65 : 1)
+    opacity: (task && task.completed ? 0.65 : (task && task.syncing ? 0.75 : 1))
     hoverEnabled: !interactionsSuspended
 
     property Item dragHomeParent: null
@@ -93,6 +96,11 @@ Kirigami.AbstractCard {
             }
             syncDragPosition()
         }
+    }
+
+    TapHandler {
+        enabled: root.compact && !root.interactionsSuspended
+        onTapped: root.requestFullEditor(root.task)
     }
 
     contentItem: ColumnLayout {
@@ -211,13 +219,15 @@ Kirigami.AbstractCard {
             Layout.fillWidth: true
             text: task.summary || i18n("(Untitled)")
             wrapMode: Text.WordWrap
+            maximumLineCount: root.compact ? 3 : 0
+            elide: root.compact ? Text.ElideRight : Text.ElideNone
             font.strikeout: task.completed === true
             font.bold: true
         }
 
         QQC2.Label {
             Layout.fillWidth: true
-            visible: (Plasmoid.configuration.descriptionPreviewLines || 0) > 0
+            visible: !root.compact && (Plasmoid.configuration.descriptionPreviewLines || 0) > 0
                      && !!(task.description && String(task.description).trim().length)
             text: task.description || ""
             opacity: 0.75
@@ -229,6 +239,7 @@ Kirigami.AbstractCard {
 
         RowLayout {
             Layout.fillWidth: true
+            visible: !root.compact
             spacing: Design.spaceSmall
 
             QQC2.ToolButton {

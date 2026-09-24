@@ -293,8 +293,14 @@ struct TaskRebuildInput {
     QString sortMode;
     QString listGroupMode;
     ListGroupOrderContext listGroupOrder;
-    QString planPreviewWeek;
-    QString planPreviewProject;
+    /** Matrix drill-down (Swimlanes / Project plan cell → list). Empty lane/time = wildcard. */
+    bool matrixDrillActive = false;
+    QString matrixDrillAxis;
+    QString matrixDrillLane;
+    QString matrixDrillBucket;
+    int matrixDrillHorizon = 0;
+    QString matrixDrillTime;
+    bool matrixDrillIncludeCompleted = true;
     bool hierarchyAware = false;
 };
 
@@ -551,7 +557,12 @@ QList<qint64> applyManualKanbanOrder(const QList<qint64> &ids, const QList<qint6
 
 QString swimlaneTimeBucket(const TaskEntry &task, const QString &bucketMode, const QDate &today);
 
-QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis);
+/** Lane for a task. Parent axis: the parent's uid; a root that has children is its own lane;
+ *  every other root falls into "none". Pass `parentUids` (see parentUidSet) for that axis. */
+QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis,
+                        const QSet<QString> *parentUids = nullptr);
+
+QSet<QString> parentUidSet(const QList<TaskEntry> &tasks);
 
 QString planWeekKey(const TaskEntry &task, const QDate &today);
 
@@ -564,9 +575,30 @@ QVariantMap heatmapCountsForYear(const QList<TaskEntry> &tasks, const QString &m
 
 QVariantMap planMatrixCounts(const QList<TaskEntry> &tasks, const QDate &today);
 
+/** Bucket key for a calendar day: ISO date (day), ISO year-week "YYYY-Www" (week), "YYYY-MM" (month). */
+QString matrixBucketKey(const QDate &date, const QString &bucketMode);
+
+/** First / last calendar day covered by a bucket key; invalid QDate for non-bucket keys. */
+QDate matrixBucketStart(const QString &key, const QString &bucketMode);
+QDate matrixBucketEnd(const QString &key, const QString &bucketMode);
+
+/** Periods shown ahead of the current one. `configured` 0 → `autoDefault` (>0) or the hard cap. */
+int matrixHorizon(const QString &bucketMode, int configured, bool autoWhenZero);
+
+/** Column key for a task: "overdue", "later" (beyond horizon), "unscheduled" or the bucket key. */
+QString matrixTimeKey(const TaskEntry &task, const QString &bucketMode, int horizon, const QDate &today);
+
+/** New due date when a task is dropped onto a time column; invalid for "unscheduled" (clear due). */
+QDateTime dueForBucketDrop(const QDateTime &currentDue, const QString &timeKey,
+                           const QString &bucketMode, const QDate &today);
+
+/** Rows × time matrix. `rowOrder` lists preferred row order; with `includeAllRows` every listed row
+ *  is shown even when empty (drop targets). `fillHorizon` keeps empty periods up to the horizon. */
 QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,
                                 const QString &laneAxis,
                                 const QString &timeBucket,
+                                int horizon,
+                                const QStringList &rowOrder,
                                 const QDate &today);
 
 QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
@@ -574,12 +606,7 @@ QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
                                 int horizon,
                                 bool showUndated,
                                 bool showCompleted,
+                                const QStringList &rowOrder,
                                 const QDate &today);
-
-QString swimlaneLaneLabel(const QString &key, const QString &laneAxis);
-
-QString swimlaneTimeLabel(const QString &key, const QString &timeBucket);
-
-QStringList busyDayKeys(const QList<TaskEntry> &tasks, const QDate &today);
 
 } // namespace TaskLogic

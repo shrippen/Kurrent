@@ -137,6 +137,19 @@ ColumnLayout {
         return activeCounts[key] !== undefined ? activeCounts[key] : 0
     }
 
+    function heatmapTooltip(d, count) {
+        if (!d) {
+            return ""
+        }
+        if (count === 0) {
+            return Qt.formatDate(d, "ddd, MMM d")
+        }
+        var noun = heatmapMode === "completed"
+            ? (count === 1 ? i18n("task completed") : i18n("tasks completed"))
+            : (count === 1 ? i18n("task due") : i18n("tasks due"))
+        return i18n("%1 %2 on %3", count, noun, Qt.formatDate(d, "ddd, MMM d"))
+    }
+
     // ── Year block component (used in year mode Flickable) ─────────
     component YearBlock: ColumnLayout {
         required property int yearNumber
@@ -200,8 +213,10 @@ ColumnLayout {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             controller.agendaSelectedDate = modelData
-                            controller.mainPaneMode = "calendar"
+                            controller.requestMainPaneMode("calendar")
                         }
+                        QQC2.ToolTip.text: root.heatmapTooltip(modelData, count)
+                        QQC2.ToolTip.visible: containsMouse && modelData !== null
                     }
                 }
             }
@@ -337,8 +352,10 @@ ColumnLayout {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             controller.agendaSelectedDate = modelData
-                            controller.mainPaneMode = "calendar"
+                            controller.requestMainPaneMode("calendar")
                         }
+                        QQC2.ToolTip.text: root.heatmapTooltip(modelData, count)
+                        QQC2.ToolTip.visible: containsMouse && modelData !== null
                     }
                 }
             }

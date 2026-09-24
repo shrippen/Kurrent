@@ -186,6 +186,49 @@ Item {
             backend.currentView = "scheduled"
             return
         case 28:
+            // Matrix views: every axis / bucket combination must build and render.
+            backend.currentView = "inbox"
+            plasmoidRoot.setMainPaneMode("swimlane")
+            return
+        case 29:
+            backend.swimlaneLaneAxis = "priority"
+            return
+        case 30:
+            backend.swimlaneLaneAxis = "label"
+            return
+        case 31:
+            backend.swimlaneLaneAxis = "parent"
+            return
+        case 32:
+            backend.swimlaneLaneAxis = "project"
+            backend.swimlaneTimeBucket = "day"
+            return
+        case 33:
+            backend.swimlaneTimeBucket = "month"
+            return
+        case 34:
+            backend.swimlaneTimeBucket = "week"
+            backend.setMatrixDrilldown("swimlane", "", "unscheduled", "smoke")
+            plasmoidRoot.setMainPaneMode("list")
+            return
+        case 35:
+            backend.clearMatrixDrilldown()
+            plasmoidRoot.setMainPaneMode("plan")
+            return
+        case 36:
+            backend.planTimeBucket = "day"
+            return
+        case 37:
+            backend.planTimeBucket = "month"
+            backend.planShowCompleted = true
+            return
+        case 38:
+            backend.planTimeBucket = "week"
+            backend.planShowCompleted = false
+            plasmoidRoot.setMainPaneMode("heatmap")
+            return
+        case 39:
+            plasmoidRoot.setMainPaneMode("list")
             backend.currentView = "inbox"
             backend.smokeTrace("KURRENT_SMOKE_DONE")
             runner.stop()

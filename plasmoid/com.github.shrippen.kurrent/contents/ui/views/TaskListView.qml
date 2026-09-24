@@ -783,24 +783,24 @@ ColumnLayout {
         QQC2.ToolButton {
             icon.name: "list-add"
             onClicked: {
-                if (!newTaskField.text.trim()) {
-                    var colId = controller.selectedCollectionId
-                    if (colId <= 0) {
-                        var projs = root.writableProjects
-                        if (projs && projs.length > 0) {
-                            colId = projs[0].collectionId
-                        }
+                var text = newTaskField.text.trim()
+                var colId = controller.selectedCollectionId
+                if (colId <= 0) {
+                    var projs = root.writableProjects
+                    if (projs && projs.length > 0) {
+                        colId = projs[0].collectionId
                     }
-                    if (dragHost && dragHost.openNewTaskEditor) {
-                        dragHost.openNewTaskEditor(colId)
-                    }
-                } else {
-                    addTask()
+                }
+                var parsedQA = null
+                if (text) {
+                    parsedQA = controller.parseQuickAdd(text,
+                        Qt.locale().name, root.writableProjects)
+                }
+                if (dragHost && dragHost.openNewTaskEditor) {
+                    dragHost.openNewTaskEditor(colId, parsedQA)
                 }
             }
-            QQC2.ToolTip.text: newTaskField.text.trim()
-                ? i18n("Add task")
-                : i18n("Open full editor")
+            QQC2.ToolTip.text: i18n("Open full editor")
             QQC2.ToolTip.visible: hovered
         }
     }

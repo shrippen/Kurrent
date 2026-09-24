@@ -405,18 +405,26 @@ TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate 
         applyListGroupTreeBuckets(out.tasks, input.listGroupMode, input.filters, today);
         out.tasks = sortFlatForListGroup(out.tasks, input.listGroupMode, input.sortMode, input.listGroupOrder);
     }
-    if (!input.planPreviewWeek.isEmpty()) {
-        QList<TaskEntry> preview;
-        preview.reserve(out.tasks.size());
+    if (input.matrixDrillActive) {
+        const QSet<QString> parents = parentUidSet(input.allTasks);
+        QList<TaskEntry> drilled;
+        drilled.reserve(out.tasks.size());
         for (const TaskEntry &task : out.tasks) {
-            const QString week = planWeekKey(task, today);
-            const QString project = task.collectionId >= 0 ? QString::number(task.collectionId)
-                                                           : QStringLiteral("inbox");
-            if (week == input.planPreviewWeek && project == input.planPreviewProject) {
-                preview.append(task);
+            if (task.completed && !input.matrixDrillIncludeCompleted) {
+                continue;
             }
+            if (!input.matrixDrillLane.isEmpty()
+                && swimlaneLaneKey(task, input.matrixDrillAxis, &parents) != input.matrixDrillLane) {
+                continue;
+            }
+            if (!input.matrixDrillTime.isEmpty()
+                && matrixTimeKey(task, input.matrixDrillBucket, input.matrixDrillHorizon, today)
+                    != input.matrixDrillTime) {
+                continue;
+            }
+            drilled.append(task);
         }
-        out.tasks = preview;
+        out.tasks = drilled;
     }
     out.flatForCounts = flattenTree(input.allTasks, input.sortMode, input.collapsedUids);
     return out;
@@ -2667,6 +2675,54 @@ QString kanbanColumnLabel(const QString &key, const QString &source)
     return labels.value(key, key);
 }
 
+QString matrixBucketKey(const QDate &date, const QString &bucketMode)
+{
+    if (bucketMode == QLatin1String("week")) {
+        int isoYear = 0;
+        const int week = date.weekNumber(&isoYear);
+        return QStringLiteral("%1-W%2").arg(isoYear).arg(week, 2, 10, QChar('0'));
+    }
+    if (bucketMode == QLatin1String("month")) {
+        return QStringLiteral("%1-%2").arg(date.year()).arg(date.month(), 2, 10, QChar('0'));
+    }
+    return date.toString(Qt::ISODate);
+}
+
+QDate matrixBucketStart(const QString &key, const QString &bucketMode)
+{
+    if (bucketMode == QLatin1String("week")) {
+        const int year = key.left(4).toInt();
+        const int week = key.mid(6).toInt();
+        if (year < 1 || week < 1) {
+            return {};
+        }
+        // ISO week 1 contains January 4th; step back to its Monday, then forward.
+        const QDate jan4(year, 1, 4);
+        const QDate week1Monday = jan4.addDays(-(jan4.dayOfWeek() - 1));
+        return week1Monday.addDays((week - 1) * 7);
+    }
+    if (bucketMode == QLatin1String("month")) {
+        const QDate d(key.left(4).toInt(), key.mid(5).toInt(), 1);
+        return d;
+    }
+    return QDate::fromString(key, Qt::ISODate);
+}
+
+QDate matrixBucketEnd(const QString &key, const QString &bucketMode)
+{
+    const QDate start = matrixBucketStart(key, bucketMode);
+    if (!start.isValid()) {
+        return {};
+    }
+    if (bucketMode == QLatin1String("week")) {
+        return start.addDays(6);
+    }
+    if (bucketMode == QLatin1String("month")) {
+        return start.addMonths(1).addDays(-1);
+    }
+    return start;
+}
+
 QString swimlaneTimeBucket(const TaskEntry &task, const QString &bucketMode, const QDate &today)
 {
     QDate anchor;
@@ -2677,16 +2733,22 @@ QString swimlaneTimeBucket(const TaskEntry &task, const QString &bucketMode, con
     } else {
         return QStringLiteral("unscheduled");
     }
-    if (bucketMode == QLatin1String("week")) {
-        return QStringLiteral("%1-W%2").arg(anchor.year()).arg(anchor.weekNumber(), 2, 10, QChar('0'));
-    }
-    if (bucketMode == QLatin1String("month")) {
-        return QStringLiteral("%1-%2").arg(anchor.year()).arg(anchor.month(), 2, 10, QChar('0'));
-    }
-    return anchor.toString(Qt::ISODate);
+    Q_UNUSED(today)
+    return matrixBucketKey(anchor, bucketMode);
 }
 
-QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis)
+QSet<QString> parentUidSet(const QList<TaskEntry> &tasks)
+{
+    QSet<QString> uids;
+    for (const TaskEntry &task : tasks) {
+        if (!task.parentUid.isEmpty()) {
+            uids.insert(task.parentUid);
+        }
+    }
+    return uids;
+}
+
+QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis, const QSet<QString> *parentUids)
 {
     if (laneAxis == QLatin1String("label")) {
         return task.categories.isEmpty() ? QStringLiteral("none") : task.categories.first();
@@ -2695,7 +2757,10 @@ QString swimlaneLaneKey(const TaskEntry &task, const QString &laneAxis)
         return QString::number(priorityBand(task.priority));
     }
     if (laneAxis == QLatin1String("parent")) {
-        return task.parentUid.isEmpty() ? task.uid : task.parentUid;
+        if (!task.parentUid.isEmpty()) {
+            return task.parentUid;
+        }
+        return (parentUids && parentUids->contains(task.uid)) ? task.uid : QStringLiteral("none");
     }
     return task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
 }
@@ -2711,7 +2776,7 @@ QString planWeekKey(const TaskEntry &task, const QDate &today)
     } else {
         return {};
     }
-    return QStringLiteral("%1-W%2").arg(anchor.year()).arg(anchor.weekNumber(), 2, 10, QChar('0'));
+    return matrixBucketKey(anchor, QStringLiteral("week"));
 }
 
 QString heatmapDayKey(const TaskEntry &task, const QString &mode, const QDate &today)
@@ -2787,49 +2852,308 @@ QVariantMap planMatrixCounts(const QList<TaskEntry> &tasks, const QDate &today)
     return matrix;
 }
 
+namespace {
+
+QDate advanceBucket(const QDate &from, const QString &bucketMode, int periods)
+{
+    if (bucketMode == QLatin1String("week")) {
+        return from.addDays(periods * 7);
+    }
+    if (bucketMode == QLatin1String("month")) {
+        return from.addMonths(periods);
+    }
+    return from.addDays(periods);
+}
+
+int matrixHorizonCap(const QString &bucketMode)
+{
+    if (bucketMode == QLatin1String("week")) {
+        return 104;
+    }
+    if (bucketMode == QLatin1String("month")) {
+        return 60;
+    }
+    return 366;
+}
+
+bool rowLess(const QString &left, const QString &right)
+{
+    if (left == QLatin1String("inbox")) {
+        return right != QLatin1String("inbox");
+    }
+    if (right == QLatin1String("inbox")) {
+        return false;
+    }
+    bool okLeft = false;
+    bool okRight = false;
+    const qlonglong l = left.toLongLong(&okLeft);
+    const qlonglong r = right.toLongLong(&okRight);
+    if (okLeft && okRight) {
+        return l < r;
+    }
+    return QString::localeAwareCompare(left, right) < 0;
+}
+
+struct MatrixOptions {
+    QString bucketMode;
+    int horizon = 0;
+    bool fillHorizon = false;
+    bool includeAllRows = false;
+    bool alwaysUnscheduled = false;
+    bool showUnscheduled = true;
+    bool showCompleted = true;
+    QStringList rowOrder;
+};
+
+QVariantMap buildMatrix(const QList<TaskEntry> &tasks,
+                        const std::function<QString(const TaskEntry &)> &rowKeyFn,
+                        const MatrixOptions &opt,
+                        const QDate &today)
+{
+    const QString currentKey = matrixBucketKey(today, opt.bucketMode);
+    const QString endKey = matrixBucketKey(advanceBucket(today, opt.bucketMode, opt.horizon), opt.bucketMode);
+
+    struct Stat {
+        int count = 0;
+        int open = 0;
+        int done = 0;
+        int overdue = 0;
+        int high = 0;
+    };
+
+    QSet<QString> rowSeen;
+    QSet<QString> populated;
+    QHash<QString, QVariantList> cellIds;
+    QHash<QString, Stat> stats;
+    QHash<QString, int> rowTotals;
+    QHash<QString, int> timeTotals;
+    QHash<QString, QVariantList> tasksIds;
+    bool hasOverdue = false;
+    bool hasLater = false;
+    bool hasUnscheduled = false;
+    QString lastPopulated = currentKey;
+
+    for (const TaskEntry &task : tasks) {
+        if (!opt.showCompleted && task.completed) {
+            continue;
+        }
+        const QString time = matrixTimeKey(task, opt.bucketMode, opt.horizon, today);
+        if (time == QLatin1String("unscheduled") && !opt.showUnscheduled) {
+            continue;
+        }
+        const QString row = rowKeyFn(task);
+        rowSeen.insert(row);
+        if (time == QLatin1String("overdue")) {
+            hasOverdue = true;
+        } else if (time == QLatin1String("later")) {
+            hasLater = true;
+        } else if (time == QLatin1String("unscheduled")) {
+            hasUnscheduled = true;
+        } else {
+            populated.insert(time);
+            if (time > lastPopulated) {
+                lastPopulated = time;
+            }
+        }
+        const QString cell = row + QLatin1Char('|') + time;
+        cellIds[cell].append(task.itemId);
+        Stat &st = stats[cell];
+        ++st.count;
+        if (task.completed) {
+            ++st.done;
+        } else {
+            ++st.open;
+            const QDate anchor = task.dueDate.isValid() ? task.dueDate.date()
+                               : task.startDate.isValid() ? task.startDate.date() : QDate();
+            if (anchor.isValid() && anchor < today) {
+                ++st.overdue;
+            }
+            if (priorityBand(task.priority) == PriorityBand::High) {
+                ++st.high;
+            }
+        }
+        rowTotals[row] += 1;
+        timeTotals[time] += 1;
+    }
+
+    // Rows: preferred order first, then leftovers.
+    QStringList rows;
+    QSet<QString> added;
+    for (const QString &key : opt.rowOrder) {
+        if ((opt.includeAllRows || rowSeen.contains(key)) && !added.contains(key)) {
+            added.insert(key);
+            rows.append(key);
+        }
+    }
+    QStringList extras;
+    for (const QString &key : std::as_const(rowSeen)) {
+        if (!added.contains(key)) {
+            extras.append(key);
+        }
+    }
+    std::sort(extras.begin(), extras.end(), rowLess);
+    rows.append(extras);
+
+    // Columns.
+    QStringList times;
+    if (hasOverdue) {
+        times.append(QStringLiteral("overdue"));
+    }
+    QVariantMap timeStart;
+    QVariantMap timeEnd;
+    QString stepKey = currentKey;
+    QDate step = today;
+    int guard = 0;
+    while (guard++ <= matrixHorizonCap(opt.bucketMode)) {
+        stepKey = matrixBucketKey(step, opt.bucketMode);
+        if (stepKey > endKey) {
+            break;
+        }
+        if (!opt.fillHorizon && stepKey > lastPopulated) {
+            break;
+        }
+        times.append(stepKey);
+        timeStart.insert(stepKey, matrixBucketStart(stepKey, opt.bucketMode).toString(Qt::ISODate));
+        timeEnd.insert(stepKey, matrixBucketEnd(stepKey, opt.bucketMode).toString(Qt::ISODate));
+        step = advanceBucket(step, opt.bucketMode, 1);
+    }
+    if (hasLater) {
+        times.append(QStringLiteral("later"));
+    }
+    if (hasUnscheduled || (opt.alwaysUnscheduled && opt.showUnscheduled)) {
+        times.append(QStringLiteral("unscheduled"));
+    }
+
+    QVariantMap cells;
+    QVariantMap statsOut;
+    QVariantMap counts;
+    for (auto it = cellIds.cbegin(); it != cellIds.cend(); ++it) {
+        cells.insert(it.key(), it.value());
+        counts.insert(it.key(), it.value().size());
+        const Stat &st = stats.value(it.key());
+        QVariantMap m;
+        m.insert(QStringLiteral("count"), st.count);
+        m.insert(QStringLiteral("open"), st.open);
+        m.insert(QStringLiteral("done"), st.done);
+        m.insert(QStringLiteral("overdue"), st.overdue);
+        m.insert(QStringLiteral("high"), st.high);
+        statsOut.insert(it.key(), m);
+    }
+    QVariantMap rowTotalsOut;
+    for (auto it = rowTotals.cbegin(); it != rowTotals.cend(); ++it) {
+        rowTotalsOut.insert(it.key(), it.value());
+    }
+    QVariantMap timeTotalsOut;
+    for (auto it = timeTotals.cbegin(); it != timeTotals.cend(); ++it) {
+        timeTotalsOut.insert(it.key(), it.value());
+    }
+
+    QVariantMap result;
+    result.insert(QStringLiteral("lanes"), rows);
+    result.insert(QStringLiteral("projects"), rows);
+    result.insert(QStringLiteral("times"), times);
+    result.insert(QStringLiteral("weeks"), times);
+    result.insert(QStringLiteral("cells"), cells);
+    result.insert(QStringLiteral("taskIds"), cells);
+    result.insert(QStringLiteral("counts"), counts);
+    result.insert(QStringLiteral("stats"), statsOut);
+    result.insert(QStringLiteral("rowTotals"), rowTotalsOut);
+    result.insert(QStringLiteral("timeTotals"), timeTotalsOut);
+    result.insert(QStringLiteral("timeStart"), timeStart);
+    result.insert(QStringLiteral("timeEnd"), timeEnd);
+    result.insert(QStringLiteral("currentTime"), currentKey);
+    result.insert(QStringLiteral("bucket"), opt.bucketMode);
+    result.insert(QStringLiteral("today"), today.toString(Qt::ISODate));
+    return result;
+}
+
+} // namespace
+
+int matrixHorizon(const QString &bucketMode, int configured, bool autoWhenZero)
+{
+    if (configured > 0) {
+        return qMin(configured, matrixHorizonCap(bucketMode));
+    }
+    if (autoWhenZero) {
+        if (bucketMode == QLatin1String("week")) {
+            return 8;
+        }
+        if (bucketMode == QLatin1String("month")) {
+            return 6;
+        }
+        return 14;
+    }
+    return matrixHorizonCap(bucketMode);
+}
+
+QString matrixTimeKey(const TaskEntry &task, const QString &bucketMode, int horizon, const QDate &today)
+{
+    const QString bucket = swimlaneTimeBucket(task, bucketMode, today);
+    if (bucket == QLatin1String("unscheduled")) {
+        return bucket;
+    }
+    if (bucket < matrixBucketKey(today, bucketMode)) {
+        return QStringLiteral("overdue");
+    }
+    if (bucket > matrixBucketKey(advanceBucket(today, bucketMode, horizon), bucketMode)) {
+        return QStringLiteral("later");
+    }
+    return bucket;
+}
+
+QDateTime dueForBucketDrop(const QDateTime &currentDue, const QString &timeKey,
+                           const QString &bucketMode, const QDate &today)
+{
+    const QDate start = matrixBucketStart(timeKey, bucketMode);
+    const QDate end = matrixBucketEnd(timeKey, bucketMode);
+    if (!start.isValid() || !end.isValid()) {
+        return {};
+    }
+    QDate target;
+    if (currentDue.isValid()) {
+        const QDate cur = currentDue.date();
+        if (bucketMode == QLatin1String("week")) {
+            target = start.addDays(cur.dayOfWeek() - 1);
+        } else if (bucketMode == QLatin1String("month")) {
+            target = QDate(start.year(), start.month(), qMin(cur.day(), end.day()));
+        } else {
+            target = start;
+        }
+    } else {
+        target = start;
+    }
+    // Never land in the past of the running period: today is the earliest sensible day.
+    if (target < today && today <= end) {
+        target = today;
+    }
+    if (currentDue.isValid()) {
+        QDateTime out = currentDue;
+        out.setDate(target);
+        return out;
+    }
+    return QDateTime(target, QTime(0, 0));
+}
+
 QVariantMap buildSwimlaneMatrix(const QList<TaskEntry> &tasks,
                                 const QString &laneAxis,
                                 const QString &timeBucket,
+                                int horizon,
+                                const QStringList &rowOrder,
                                 const QDate &today)
 {
-    QStringList lanes;
-    QStringList times;
-    QSet<QString> laneSeen;
-    QSet<QString> timeSeen;
-    QVariantMap cells;
-
-    for (const TaskEntry &task : tasks) {
-        const QString lane = swimlaneLaneKey(task, laneAxis);
-        const QString time = swimlaneTimeBucket(task, timeBucket, today);
-        if (!laneSeen.contains(lane)) {
-            laneSeen.insert(lane);
-            lanes.append(lane);
-        }
-        if (!timeSeen.contains(time)) {
-            timeSeen.insert(time);
-            times.append(time);
-        }
-        const QString key = lane + QLatin1Char('|') + time;
-        QVariantList ids = cells.value(key).toList();
-        ids.append(task.itemId);
-        cells.insert(key, ids);
-    }
-
-    std::sort(lanes.begin(), lanes.end());
-    std::sort(times.begin(), times.end(), [timeBucket](const QString &left, const QString &right) {
-        if (left == QLatin1String("unscheduled")) {
-            return false;
-        }
-        if (right == QLatin1String("unscheduled")) {
-            return true;
-        }
-        return left < right;
-    });
-
-    QVariantMap result;
-    result.insert(QStringLiteral("lanes"), lanes);
-    result.insert(QStringLiteral("times"), times);
-    result.insert(QStringLiteral("cells"), cells);
+    MatrixOptions opt;
+    opt.bucketMode = timeBucket;
+    opt.horizon = matrixHorizon(timeBucket, horizon, true);
+    opt.fillHorizon = true;
+    opt.includeAllRows = true;
+    opt.alwaysUnscheduled = true;
+    opt.rowOrder = rowOrder;
+    const QSet<QString> parents = parentUidSet(tasks);
+    QVariantMap result = buildMatrix(tasks, [&laneAxis, &parents](const TaskEntry &t) {
+        return swimlaneLaneKey(t, laneAxis, &parents);
+    }, opt, today);
+    result.insert(QStringLiteral("laneAxis"), laneAxis);
+    result.insert(QStringLiteral("horizon"), opt.horizon);
     return result;
 }
 
@@ -2838,202 +3162,19 @@ QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
                                 int horizon,
                                 bool showUndated,
                                 bool showCompleted,
+                                const QStringList &rowOrder,
                                 const QDate &today)
 {
-    // Current bucket key for overdue consolidation.
-    TaskEntry anchorEntry;
-    anchorEntry.dueDate = QDateTime(today, QTime(0, 0));
-    const QString currentBucket = swimlaneTimeBucket(anchorEntry, bucketMode, today);
-
-    // First pass: collect all future buckets, then apply horizon clipping
-    // to build the set of allowed buckets.
-    QSet<QString> allowedBuckets;
-    allowedBuckets.insert(currentBucket);
-    if (horizon > 0) {
-        QDate futureEnd = today;
-        if (bucketMode == QLatin1String("day")) {
-            futureEnd = today.addDays(horizon);
-        } else if (bucketMode == QLatin1String("week")) {
-            futureEnd = today.addDays(horizon * 7);
-        } else if (bucketMode == QLatin1String("month")) {
-            futureEnd = today.addMonths(horizon);
-        }
-        // Enumerate buckets from today to futureEnd
-        QDate step = today;
-        while (step <= futureEnd) {
-            TaskEntry e;
-            e.dueDate = QDateTime(step, QTime(0, 0));
-            allowedBuckets.insert(swimlaneTimeBucket(e, bucketMode, today));
-            if (bucketMode == QLatin1String("day")) {
-                step = step.addDays(1);
-            } else if (bucketMode == QLatin1String("week")) {
-                step = step.addDays(7);
-            } else {
-                step = step.addMonths(1);
-            }
-        }
-    }
-
-    QStringList projects;
-    QStringList timeKeys;
-    QSet<QString> projectSeen;
-    QSet<QString> timeSeen;
-    QVariantMap counts;
-    QVariantMap taskIds;
-    bool hasUndated = false;
-
-    for (const TaskEntry &task : tasks) {
-        if (!showCompleted && task.completed) {
-            continue;
-        }
-        const QString bucket = swimlaneTimeBucket(task, bucketMode, today);
-        const QString project = task.collectionId >= 0 ? QString::number(task.collectionId) : QStringLiteral("inbox");
-
-        if (bucket == QLatin1String("unscheduled")) {
-            if (showUndated) {
-                hasUndated = true;
-            }
-            continue;
-        }
-
-        // Overdue: bucket < currentBucket → always shown
-        if (bucket < currentBucket) {
-            const QString timeKey = QStringLiteral("overdue");
-            if (!projectSeen.contains(project)) {
-                projectSeen.insert(project);
-                projects.append(project);
-            }
-            if (!timeSeen.contains(timeKey)) {
-                timeSeen.insert(timeKey);
-                timeKeys.append(timeKey);
-            }
-            const QString key = project + QLatin1Char('|') + timeKey;
-            counts.insert(key, counts.value(key, 0).toInt() + 1);
-            QVariantList ids = taskIds.value(key).toList();
-            ids.append(task.itemId);
-            taskIds.insert(key, ids);
-            continue;
-        }
-
-        // Horizon clipping: skip buckets beyond the allowed range
-        if (horizon > 0 && !allowedBuckets.contains(bucket)) {
-            continue;
-        }
-
-        const QString timeKey = bucket;
-        if (!projectSeen.contains(project)) {
-            projectSeen.insert(project);
-            projects.append(project);
-        }
-        if (!timeSeen.contains(timeKey)) {
-            timeSeen.insert(timeKey);
-            timeKeys.append(timeKey);
-        }
-        const QString key = project + QLatin1Char('|') + timeKey;
-        counts.insert(key, counts.value(key, 0).toInt() + 1);
-        QVariantList ids = taskIds.value(key).toList();
-        ids.append(task.itemId);
-        taskIds.insert(key, ids);
-    }
-
-    // Sort projects (inbox first, then by collection id ascending)
-    std::sort(projects.begin(), projects.end(), [](const QString &left, const QString &right) {
-        if (left == QLatin1String("inbox")) {
-            return true;
-        }
-        if (right == QLatin1String("inbox")) {
-            return false;
-        }
-        return left.toLongLong() < right.toLongLong();
-    });
-
-    // Sort time keys: overdue first, then chronological, undated last
-    QStringList sortedTimes;
-    QString overdueKey;
-    QList<QString> futureKeys;
-    for (const QString &tk : std::as_const(timeKeys)) {
-        if (tk == QLatin1String("overdue")) {
-            overdueKey = tk;
-        } else {
-            futureKeys.append(tk);
-        }
-    }
-    std::sort(futureKeys.begin(), futureKeys.end());
-
-    if (!overdueKey.isEmpty()) {
-        sortedTimes.append(overdueKey);
-    }
-    sortedTimes.append(futureKeys);
-    if (hasUndated) {
-        sortedTimes.append(QStringLiteral("undated"));
-    }
-
-    QVariantMap result;
-    result.insert(QStringLiteral("projects"), projects);
-    result.insert(QStringLiteral("weeks"), sortedTimes);
-    result.insert(QStringLiteral("counts"), counts);
-    result.insert(QStringLiteral("taskIds"), taskIds);
-    return result;
-}
-
-QString swimlaneLaneLabel(const QString &key, const QString &laneAxis)
-{
-    if (laneAxis == QLatin1String("label")) {
-        return key == QLatin1String("none") ? QStringLiteral("No label") : key;
-    }
-    if (laneAxis == QLatin1String("priority")) {
-        if (key == QString::number(PriorityBand::High)) {
-            return QStringLiteral("High");
-        }
-        if (key == QString::number(PriorityBand::Medium)) {
-            return QStringLiteral("Medium");
-        }
-        if (key == QString::number(PriorityBand::Low)) {
-            return QStringLiteral("Low");
-        }
-        return QStringLiteral("None");
-    }
-    if (laneAxis == QLatin1String("parent")) {
-        return key;
-    }
-    if (key == QLatin1String("inbox")) {
-        return QStringLiteral("Inbox");
-    }
-    return key;
-}
-
-QString swimlaneTimeLabel(const QString &key, const QString &timeBucket)
-{
-    if (key == QLatin1String("unscheduled")) {
-        return QStringLiteral("Unscheduled");
-    }
-    if (timeBucket == QLatin1String("day")) {
-        return key;
-    }
-    return key;
-}
-
-QStringList busyDayKeys(const QList<TaskEntry> &tasks, const QDate &today)
-{
-    QSet<QString> days;
-    for (const TaskEntry &task : tasks) {
-        if (task.completed) {
-            continue;
-        }
-        QDate anchor;
-        if (task.dueDate.isValid()) {
-            anchor = task.dueDate.date();
-        } else if (task.startDate.isValid()) {
-            anchor = task.startDate.date();
-        } else {
-            continue;
-        }
-        if (anchor >= today.addDays(-7) && anchor <= today.addDays(14)) {
-            days.insert(anchor.toString(Qt::ISODate));
-        }
-    }
-    QStringList result = QStringList(days.begin(), days.end());
-    std::sort(result.begin(), result.end());
+    MatrixOptions opt;
+    opt.bucketMode = bucketMode;
+    opt.horizon = matrixHorizon(bucketMode, horizon, false);
+    opt.showUnscheduled = showUndated;
+    opt.showCompleted = showCompleted;
+    opt.rowOrder = rowOrder;
+    QVariantMap result = buildMatrix(tasks, [](const TaskEntry &t) {
+        return swimlaneLaneKey(t, QStringLiteral("project"));
+    }, opt, today);
+    result.insert(QStringLiteral("horizon"), opt.horizon);
     return result;
 }
 

@@ -13,6 +13,7 @@ from extra_translations import EXTRA  # noqa: E402
 from new_strings import NEW, OVERRIDES  # noqa: E402
 from strings_1_0_addon import ADDON  # noqa: E402
 from strings_1_0_gaps2 import GAPS2  # noqa: E402
+from strings_matrix import MATRIX  # noqa: E402
 
 QML_I18N = re.compile(r'i18n(?:c\s*\(\s*"[^"]*"\s*,\s*)?\(\s*"((?:[^"\\]|\\.)*)"')
 
@@ -49,6 +50,7 @@ def main() -> None:
         merged.update(NEW.get(lang, {}))
         merged.update(ADDON.get(lang, {}))
         merged.update(GAPS2.get(lang, {}))
+        merged.update(MATRIX.get(lang, {}))
         merged.update(OVERRIDES.get(lang, {}))
         catalogs[lang] = {msgid: merged[msgid] for msgid in qml_strings if msgid in merged}
 

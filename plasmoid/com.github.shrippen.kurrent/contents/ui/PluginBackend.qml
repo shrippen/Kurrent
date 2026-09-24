@@ -38,7 +38,8 @@ Item {
         kanbanColumnSource: Plasmoid.configuration.kanbanColumnSource || "status"
         kanbanWriteMode: Plasmoid.configuration.kanbanWriteMode || "fields"
         swimlaneLaneAxis: Plasmoid.configuration.swimlaneLaneAxis || "project"
-        swimlaneTimeBucket: Plasmoid.configuration.swimlaneTimeBucket || "day"
+        swimlaneTimeBucket: Plasmoid.configuration.swimlaneTimeBucket || "week"
+        swimlaneHorizon: Plasmoid.configuration.swimlaneHorizon || 0
         planTimeBucket: Plasmoid.configuration.planTimeBucket || "week"
         planHorizon: Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
         planShowUndated: Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true

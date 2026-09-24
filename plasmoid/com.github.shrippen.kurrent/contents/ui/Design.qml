@@ -155,6 +155,23 @@ QtObject {
 
     readonly property int kanbanColumnMinWidth: Kirigami.Units.gridUnit * 14
     readonly property int kanbanCardGap: spaceSmall
+
+    // Matrix views (Swimlanes / Project plan): sticky headers, cell grid.
+    readonly property int swimlaneColumnWidth: Kirigami.Units.gridUnit * 13
+    readonly property int swimlaneCellMinHeight: Kirigami.Units.gridUnit * 5
+    // Cards shown per swimlane cell before the rest collapses into a "+N" link. A cell stacking
+    // dozens of cards is neither readable nor cheap to build; the link drills into the list.
+    readonly property int swimlaneMaxCardsPerCell: 8
+    readonly property int matrixHeaderHeight: Kirigami.Units.gridUnit * 3
+    readonly property int matrixRowHeaderMinWidth: Kirigami.Units.gridUnit * 8
+    readonly property int matrixRowHeaderMaxWidth: Kirigami.Units.gridUnit * 14
+    readonly property int planCellHeight: Kirigami.Units.gridUnit * 3
+    readonly property real matrixTodayTintOpacity: 0.08
+    readonly property real matrixWeekendTintOpacity: 0.05
+    readonly property real matrixLineOpacity: 0.12
+    function planColumnWidth(bucket) {
+        return Kirigami.Units.gridUnit * (bucket === "day" ? 5 : (bucket === "month" ? 8 : 7))
+    }
     readonly property int heatmapCellSize: Math.max(Kirigami.Units.gridUnit * 2,
                                                     Math.round(Kirigami.Units.iconSizes.smallMedium))
 

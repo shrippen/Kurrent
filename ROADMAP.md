@@ -290,6 +290,8 @@ curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-
 
 **Removed from 1.0 gate:** manual Nextcloud/Merkuro round-trip checklist as release blocker (replace with automated tests + documented interop limits).
 
+**To check before release:** repo root has both `install.sh` and a plain `install` file with identical content — confirm which is canonical and remove the duplicate.
+
 ---
 
 ## After 1.0

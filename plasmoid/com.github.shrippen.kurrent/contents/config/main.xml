@@ -226,7 +226,10 @@
             <default>project</default>
         </entry>
         <entry name="swimlaneTimeBucket" type="String">
-            <default>day</default>
+            <default>week</default>
+        </entry>
+        <entry name="swimlaneHorizon" type="Int">
+            <default>0</default>
         </entry>
         <entry name="planTimeBucket" type="String">
             <default>week</default>

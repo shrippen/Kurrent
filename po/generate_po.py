@@ -34,6 +34,46 @@ PLURALS = {
         "ja": ["%1 件のタスク"],
         "zh_CN": ["%1 个任务", "%1 个任务"],
     },
+    "+%1 more task": {
+        "msgid_plural": "+%1 more tasks",
+        "de": ["+%1 weitere Aufgabe", "+%1 weitere Aufgaben"],
+        "es": ["+%1 tarea más", "+%1 tareas más"],
+        "fr": ["+%1 tâche de plus", "+%1 tâches de plus"],
+        "ja": ["他 %1 件"],
+        "zh_CN": ["另有 %1 个任务", "另有 %1 个任务"],
+    },
+    "Show %1 task in the list": {
+        "msgid_plural": "Show %1 tasks in the list",
+        "de": ["%1 Aufgabe in der Liste anzeigen", "%1 Aufgaben in der Liste anzeigen"],
+        "es": ["Mostrar %1 tarea en la lista", "Mostrar %1 tareas en la lista"],
+        "fr": ["Afficher %1 tâche dans la liste", "Afficher %1 tâches dans la liste"],
+        "ja": ["%1 件のタスクをリストで表示"],
+        "zh_CN": ["在列表中显示 %1 个任务", "在列表中显示 %1 个任务"],
+    },
+    "%1 day": {
+        "msgid_plural": "%1 days",
+        "de": ["%1 Tag", "%1 Tage"],
+        "es": ["%1 día", "%1 días"],
+        "fr": ["%1 jour", "%1 jours"],
+        "ja": ["%1 日"],
+        "zh_CN": ["%1 天", "%1 天"],
+    },
+    "%1 week": {
+        "msgid_plural": "%1 weeks",
+        "de": ["%1 Woche", "%1 Wochen"],
+        "es": ["%1 semana", "%1 semanas"],
+        "fr": ["%1 semaine", "%1 semaines"],
+        "ja": ["%1 週間"],
+        "zh_CN": ["%1 周", "%1 周"],
+    },
+    "%1 month": {
+        "msgid_plural": "%1 months",
+        "de": ["%1 Monat", "%1 Monate"],
+        "es": ["%1 mes", "%1 meses"],
+        "fr": ["%1 mois", "%1 mois"],
+        "ja": ["%1 か月"],
+        "zh_CN": ["%1 个月", "%1 个月"],
+    },
 }
 
 LANGS = {

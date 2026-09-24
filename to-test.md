@@ -21,23 +21,23 @@ Desktop- und Panel-Flyout getrennt durchgehen, wo sinnvoll.
 
 Ansichtsmodus-Button (Gitternetz-Icon) neben Sort / Undo.
 
-- [ ] **List** — bisheriges Verhalten (Suche, Inline-Editor, DnD, Unteraufgaben).
-- [ ] **Kanban** — Spalten + Karten (siehe Kanban-Abschnitt).
+- [x] **List** — bisheriges Verhalten (Suche, Inline-Editor, DnD, Unteraufgaben).
+- [x] **Kanban** — Spalten + Karten (siehe Kanban-Abschnitt).
 - [ ] **Swimlanes** — Matrix Spur × Zeit (siehe Swimlanes).
 - [ ] **Project plan** — Projekt × Woche-Grid (siehe Plan).
-- [ ] **Heatmap** — Tageszellen nach Due/Completions umschaltbar.
-- [ ] **Calendar + tasks** — Event-Chips + Tasks für gewählten Tag.
-- [ ] Moduswechsel **List ↔ Kanban** ohne Absturz (Smoke-Test-Schritte 23–24).
-- [ ] Letzter Modus global gespeichert (`mainPaneMode`): z. B. Kanban wählen → Sidebar-View wechseln → Modus bleibt Kanban; nach Neustart/plasmashell wiederhergestellt.
-- [ ] Smart-View-Default-Modus im KCM (falls noch gespeichert) ändert den globalen `mainPaneMode` beim Sidebar-Wechsel **nicht**.
+- [x] **Heatmap** — Tageszellen nach Due/Completions umschaltbar.
+- [x] **Calendar + tasks** — Event-Chips + Tasks für gewählten Tag.
+- [x] Moduswechsel **List ↔ Kanban** ohne Absturz (Smoke-Test-Schritte 23–24).
+- [x] Letzter Modus global gespeichert (`mainPaneMode`): z. B. Kanban wählen → Sidebar-View wechseln → Modus bleibt Kanban; nach Neustart/plasmashell wiederhergestellt.
+- [x] Smart-View-Default-Modus im KCM (falls noch gespeichert) ändert den globalen `mainPaneMode` beim Sidebar-Wechsel **nicht**.
 
 ---
 
 ## Kopfzeile — Undo, Status, Banner
 
-- [ ] **Undo**-Button sichtbar in **allen** Ansichtsmodi (nicht nur List), wenn `canUndo`.
-- [ ] Undo nach Complete / Reschedule / Move / Delete in List; Tooltip zeigt Art („Undo complete“ …).
-- [ ] **Ctrl+Z** / Standard-Undo funktioniert weiterhin.
+- [x] **Undo**-Button sichtbar in **allen** Ansichtsmodi (nicht nur List), wenn `canUndo`.
+- [x] Undo nach Complete / Reschedule / Move / Delete in List; Tooltip zeigt Art („Undo complete“ …).
+- [x] **Ctrl+Z** / Standard-Undo funktioniert weiterhin.
 - [ ] **„Akonadi offline“** (rot), wenn Server down; **„Syncing…“**, wenn Jobs pending.
 - [ ] **Version-Mismatch-Banner**, wenn Store-Widget ≠ installiertes Plugin (falls reproduzierbar).
 - [ ] **Konflikt-Banner**: bei Server-Konflikt (z. B. parallel in Merkuro editieren) → „Reload“ lädt Item neu, „Dismiss“ schließt Hinweis.
@@ -48,17 +48,17 @@ Ansichtsmodus-Button (Gitternetz-Icon) neben Sort / Undo.
 
 ### Sidebar
 
-- [ ] Block **Smart Views** mit angelegten Views sichtbar.
-- [ ] Klick wechselt Filter + ggf. Default-Ansichtsmodus.
-- [ ] Smart View zählt in Sidebar-Counts mit.
+- [x] Block **Smart Views** mit angelegten Views sichtbar.
+- [x] Klick wechselt Filter + ggf. Default-Ansichtsmodus.
+- [x] Smart View zählt in Sidebar-Counts mit.
 
 ### KCM — Views
 
-- [ ] **Neue Smart View** anlegen (Dialog).
-- [ ] **Bearbeiten**: Name, Icon, Default-Modus (List/Kanban/…), Sort-Override.
-- [ ] **Filterregeln**: Text, Label, Status, Due-Fenster, Priorität, „Recurring only“, `KURRENT/LIST`, `KURRENT/COLUMN`.
-- [ ] **Built-in duplizieren** (Combo „Duplicate built-in view…“) — z. B. Today als Vorlage.
-- [ ] Smart View **löschen** (Papierkorb).
+- [x] **Neue Smart View** anlegen (Dialog).
+- [x] **Bearbeiten**: Name, Icon, Default-Modus (List/Kanban/…), Sort-Override.
+- [x] **Filterregeln**: Text, Label, Status, Due-Fenster, Priorität, „Recurring only“, `KURRENT/LIST`, `KURRENT/COLUMN`.
+- [x] **Built-in duplizieren** (Combo „Duplicate built-in view…“) — z. B. Today als Vorlage.
+- [x] Smart View **löschen** (Papierkorb).
 - [ ] **Kanban — Default column source** (Status, Project, Due, …).
 - [ ] **Kanban writes**: Standard-Felder / nur `KURRENT/COLUMN` / Beides.
 - [ ] **Swimlanes**: Lane-Achse (Project, Label, Priority, Parent), Zeit-Achse (Day, Week, Month).
@@ -74,46 +74,59 @@ Voraussetzung: Ansichtsmodus Kanban, Spaltenquelle in KCM Views oder Tasks.
 - [ ] Karten zeigen Titel, Projekt, optional **% complete** (1–99).
 - [ ] Karten **nur in passender Spalte** (keine leeren Platzhalter-Höhen in falscher Spalte).
 - [ ] **Drag** Karte in andere Spalte → Feld wird geschrieben (Status, Due, Collection, Label, … je nach Spaltenquelle).
-- [ ] **Undo** nach Kanban-Drag (ein Schritt).
+- [x] **Undo** nach Kanban-Drag (ein Schritt).
 - [ ] Sortierung innerhalb Spalte: `X-APPLE-SORT-ORDER` / `KURRENT/COLUMN-ORDER` (Round-Trip in anderem Client optional prüfen).
 - [ ] Schreibmodus **custom**: Drag ändert nur `KURRENT/COLUMN`.
 - [ ] Schreibmodus **both**: Standardfeld + `KURRENT/COLUMN`.
-- [ ] Horizontal scrollen bei vielen Spalten.
+- [x] Horizontal scrollen bei vielen Spalten.
 
 ---
 
 ## Swimlanes
 
-- [ ] Matrix: Zeilen = Spur (Project/Label/Priority/Parent laut KCM), Spalten = Zeit-Buckets.
-- [ ] Zell-Inhalt: Anzahl Tasks; Tooltip/Hover.
-- [ ] **Busy days**-Streifen oben; Tipp → Sidebar Today (oder ähnlicher Sprung).
-- [ ] Achse **Week/Month** in KCM ändern → Spalten-Labels passen sich an.
-- [ ] Leere View: sinnvoller leerer Zustand.
+- [ ] Matrix: Zeilen = Achse (Project/Label/Priority/Parent), Spalten = Perioden; Default **Week**.
+- [ ] Spalten-/Zeilenköpfe bleiben beim Scrollen (vertikal + horizontal) stehen; bei hoher Zeile bleibt das Zeilenlabel sichtbar.
+- [ ] Aktuelle Periode hervorgehoben; Ecken-Button springt zur aktuellen Periode; Tages-Bucket: Wochenenden getönt.
+- [ ] Karten in Zellen: Klick öffnet den Full-Editor; erledigte Karten nicht ziehbar.
+- [ ] **DnD** Karte in andere Zelle: Projekt / Label (wird erstes Label) / Priorität / Parent ändern sich; Fälligkeit springt in die Zielperiode (Wochentag + Uhrzeit bleiben). **Ein** Undo macht alles rückgängig.
+- [ ] DnD auf „No date“ entfernt die Fälligkeit; auf Überfällig/Später nicht möglich (Spalten blenden beim Ziehen aus); Drop in eigene Zelle = nichts.
+- [ ] Parent-Achse: Zyklus / anderer Kalender → Fehlermeldung, nichts geändert.
+- [ ] Zelle / Zeilenkopf / Spaltenkopf klicken → Liste + Chip; Chip anklicken → zurück zur Matrix; ✕ → Filter weg.
+- [ ] Kopfzeilen-Button (`view-grid`): Achse, Bucket, Vorausschau wechseln → Matrix baut neu; KCM-Werte stimmen überein.
+- [ ] Matrix aktualisiert sich nach Änderungen (Aufgabe erledigen/verschieben) ohne Moduswechsel.
+- [ ] Zelle mit vielen Aufgaben: max. 8 Karten + „+N weitere Aufgaben“; Klick darauf öffnet die gefilterte Liste.
+- [ ] Achse/Bucket wechseln fühlt sich sofort an (kein Einfrieren), auch bei vielen Zeilen (Label-/Parent-Achse).
+- [ ] Weit scrollen und zurück: Zellen sind gefüllt, kein leeres Raster; Kopfzeilen laufen nicht nach.
+- [ ] Leere View: Placeholder; Loading-Zustand.
+- [ ] Full-Editor offen: kein Hover unter dem Dim.
 
 ---
 
 ## Project plan
 
-- [ ] Grid: Zeilen = Projekte/Inbox, Spalten = ISO-Wochen.
-- [ ] Zellen mit Count > 0 klickbar → **Zellenfilter** (nur Tasks dieser Woche + Projekt).
-- [ ] **Clear cell filter** hebt Filter wieder auf.
+- [ ] Grid: Zeilen = Projekte/Inbox (Inbox zuerst, sonst alphabetisch), Spalten = Perioden; Header pinned.
+- [ ] Überfällig-Spalte rot; „Later“-Spalte bei weit entfernten Aufgaben; „No date“ nur mit „Show undated“.
+- [ ] Zelle: Zahl, relative Intensität, roter Punkt (überfällig), Flagge (hohe Priorität); Tooltip erscheint.
+- [ ] Zelle / Zeilen- / Spaltenkopf → **Liste + Chip**; Matrix bleibt beim Zurückwechseln vollständig.
+- [ ] „Show completed“ an → Zellzahl und Drilldown-Liste stimmen überein.
+- [ ] Kopfzeilen-Menü: Bucket, Horizont, Undated/Completed.
 - [ ] Leerer Hinweis, wenn keine datierten offenen Tasks.
 
 ---
 
 ## Heatmap
 
-- [ ] Modus **Due dates** vs **Completions** umschalten.
-- [ ] Intensität/Farbe skaliert mit Count.
-- [ ] Tooltip zeigt Datum + Anzahl.
+- [x] Modus **Due dates** vs **Completions** umschalten.
+- [x] Intensität/Farbe skaliert mit Count.
+- [x] Tooltip zeigt Datum + Anzahl.
 
 ---
 
 ## Calendar + tasks (Day agenda)
 
-- [ ] Busy-**Event-Chips** für gewählten Tag (wenn Event-Kalender in Notifications/Busy konfiguriert).
-- [ ] **Tasks due this day** darunter (gefiltert auf Datum).
-- [ ] Tag ohne Events: „No busy events for this day.“
+- [x] Busy-**Event-Chips** für gewählten Tag (wenn Event-Kalender in Notifications/Busy konfiguriert).
+- [x] **Tasks due this day** darunter (gefiltert auf Datum).
+- [x] Tag ohne Events: „No busy events for this day.“
 
 ---
 
@@ -159,9 +172,9 @@ KCM Tasks: **Enable multi-select** aktivieren.
 
 ## Diagnostics (KCM)
 
-- [ ] Seite **Diagnostics** öffnet.
-- [ ] Akonadi-Status (online/offline), Plugin-/Release-Version, Widget-Version.
-- [ ] Todo-Collections-Count, Pending jobs.
+- [x] Seite **Diagnostics** öffnet.
+- [x] Akonadi-Status (online/offline), Plugin-/Release-Version, Widget-Version.
+- [x] Todo-Collections-Count, Pending jobs.
 - [ ] **Copy debug bundle** → Zwischenablage mit redigierter Config + Log-Hinweis.
 - [ ] Hinweis auf `KURRENT_SMOKE=1` und Log-Pfad `~/.cache/kurrent-smoke/`.
 
@@ -213,8 +226,8 @@ Sprache in System Settings umstellen (de, es, fr, ja, zh_CN).
 
 Bereits grün in `./install.sh`:
 
-- [ ] `kurrent-tasklogic`, `kurrent-sharedsettings`, `kurrent-models`, `kurrent-calendar`, `kurrent-taskstore`, `kurrent-qml`
-- [ ] plasmoidviewer smoke: desktop + panel
+- [x] `kurrent-tasklogic`, `kurrent-sharedsettings`, `kurrent-models`, `kurrent-calendar`, `kurrent-taskstore`, `kurrent-qml`
+- [x] plasmoidviewer smoke: desktop + panel
 
 Neue/erweiterte Unit-Tests u. a.: Kanban-Spalten-Mapping, Smart-View-JSON, Swimlane/Plan/Heatmap-Helper, `KURRENT/COLUMN`, Kanban-Sort-Order, X-`OC-HIDESUBTASKS`-Erhalt bei Modify.
 

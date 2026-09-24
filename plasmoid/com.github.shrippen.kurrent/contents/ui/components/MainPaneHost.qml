@@ -325,7 +325,13 @@ Item {
                 asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: SwimlaneView {
                     controller: host.controller
+                    dragHost: host.dragHost
                     interactionsSuspended: host.interactionsSuspended
+                }
+                onLoaded: {
+                    if (item && host.onOpenFullEditor) {
+                        item.onOpenFullEditor = host.onOpenFullEditor
+                    }
                 }
                 onStatusChanged: if (status === Loader.Ready) {
                     host.settleWorkPending()
@@ -347,6 +353,7 @@ Item {
                 asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: PlanView {
                     controller: host.controller
+                    interactionsSuspended: host.interactionsSuspended
                 }
                 onStatusChanged: if (status === Loader.Ready) {
                     host.settleWorkPending()

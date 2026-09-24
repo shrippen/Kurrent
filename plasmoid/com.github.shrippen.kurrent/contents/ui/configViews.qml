@@ -233,7 +233,7 @@ ConfigPageBase {
                     { text: i18n("Label"), value: "label" },
                     { text: i18n("Day section"), value: "daysection" },
                     { text: i18n("Secrecy"), value: "secrecy" },
-                    { text: i18n("Custom column (KCURRENT/COLUMN)"), value: "column" }
+                    { text: i18n("Custom column (KURRENT/COLUMN)"), value: "column" }
                 ]
                 Component.onCompleted: {
                     currentIndex = Math.max(0, indexOfValue(cfg_kanbanColumnSource || "status"))
@@ -249,7 +249,7 @@ ConfigPageBase {
                 valueRole: "value"
                 model: [
                     { text: i18n("Standard VTODO fields"), value: "fields" },
-                    { text: i18n("KCURRENT/COLUMN only"), value: "custom" },
+                    { text: i18n("KURRENT/COLUMN only"), value: "custom" },
                     { text: i18n("Both"), value: "both" }
                 ]
                 Component.onCompleted: {
@@ -294,9 +294,21 @@ ConfigPageBase {
                     { text: i18n("Month"), value: "month" }
                 ]
                 Component.onCompleted: {
-                    currentIndex = Math.max(0, indexOfValue(cfg_swimlaneTimeBucket || "day"))
+                    currentIndex = Math.max(0, indexOfValue(cfg_swimlaneTimeBucket || "week"))
                 }
                 onActivated: cfg_swimlaneTimeBucket = model[currentIndex].value
+            }
+
+            QQC2.SpinBox {
+                id: swimlaneHorizonSpin
+                Kirigami.FormData.label: i18n("Swimlane horizon")
+                Layout.fillWidth: true
+                from: 0
+                to: 52
+                value: cfg_swimlaneHorizon !== undefined ? cfg_swimlaneHorizon : 0
+                onValueModified: cfg_swimlaneHorizon = value
+                QQC2.ToolTip.text: i18n("Periods shown ahead of the current one. 0 = automatic (14 days, 8 weeks or 6 months). Later tasks are collected in one column.")
+                QQC2.ToolTip.visible: hovered
             }
 
             // Project plan section
@@ -632,7 +644,7 @@ ConfigPageBase {
                             { text: i18n("Afternoon"), value: "afternoon" },
                             { text: i18n("Evening"), value: "evening" }
                         ]
-                        QQC2.ToolTip.text: i18n("Filter by KCURRENT/LIST day section. Used by the Today view to group tasks into Morning, Afternoon, and Evening buckets.")
+                        QQC2.ToolTip.text: i18n("Filter by KURRENT/LIST day section. Used by the Today view to group tasks into Morning, Afternoon, and Evening buckets.")
                         QQC2.ToolTip.visible: hovered
                     }
 
@@ -640,8 +652,8 @@ ConfigPageBase {
                         id: columnRuleField
                         Kirigami.FormData.label: i18n("Custom column:")
                         Layout.fillWidth: true
-                        placeholderText: i18n("KCURRENT/COLUMN value…")
-                        QQC2.ToolTip.text: i18n("Filter by a custom KCURRENT/COLUMN value. Only needed when using Kanban with \"Custom column\" as source. Leave empty to ignore.")
+                        placeholderText: i18n("KURRENT/COLUMN value…")
+                        QQC2.ToolTip.text: i18n("Filter by a custom KURRENT/COLUMN value. Only needed when using Kanban with \"Custom column\" as source. Leave empty to ignore.")
                         QQC2.ToolTip.visible: hovered
                     }
                 }

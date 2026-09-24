@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+#### Swimlanes and Project plan — polish pass
+- **Shared matrix grid**: pinned column and row headers (both axes), Kanban-style scrolling (wheel, thin bars, middle-click pan), current period highlighted, "jump to current period" button, columns use spare width.
+- **Swimlanes hold task cards** (compact Kanban cards) and support **drag & drop**: dropping a card on another cell writes the lane field (project / label / priority / parent) and moves the due date into the target period, as a single undo step. Default column axis is now **Week**.
+- **Horizon** for Swimlanes (new KCM option "Swimlane horizon", automatic by default) with **Overdue** and **Later** collector columns and a **No date** column; empty periods stay as drop targets. Project plan gets the same **Later** column instead of silently dropping far-future tasks.
+- **Drill-down opens the list**: clicking a cell, row header or column header shows the list filtered to it with a filter chip in the header (click = back to the matrix, ✕ = clear). The matrix itself is no longer collapsed by the filter.
+- **Header options** for both views (`view-grid` button): row axis, column bucket, look-ahead, and undated/completed for the plan — no more detour through the settings dialog.
+- **Project plan cells**: heat relative to the busiest cell, red dot for overdue tasks, flag for high priority, richer tooltip, legend, projects sorted by name.
+- Readable period headers ("Week 38 · 14.–20. Sep", "Today", month names), localized lane labels (no more raw keys or parent UIDs), empty states with `PlaceholderMessage`.
+
+#### Swimlanes — performance
+- Cells are virtualized: content is built only within a screen of the viewport, so switching the row axis or the time bucket no longer blocks the UI (measured on ~350 tasks: axis switch went from ~80 ms average / ~300 ms p90 stall to ~1 ms / ~5 ms).
+- A cell shows at most 8 cards and collapses the rest into "+N more tasks"; the click still drills into the list.
+- Viewport culling binds to a throttled scroll offset instead of the raw one, so scrolling no longer re-evaluates one binding per cell per pixel.
+- Weekend columns are computed once per matrix instead of per cell.
+
+### Fixed
+- Swimlane cell click reset the sidebar view to "everything" instead of drilling down.
+- Project plan cell click filtered the plan's own data down to one cell; the tooltip on plan cells never appeared (missing `hoverEnabled`); the plan ignored `interactionsSuspended`.
+- Matrix views did not refresh after tasks changed (the matrix was computed once).
+- ISO week keys used the calendar year, so days around New Year landed in the wrong week (e.g. 2027-01-01 is now `2026-W53`).
+- Heatmap day click switched the main-pane mode in a way that was reset immediately.
+- "KCURRENT" typo in five KCM strings (the property namespace is `KURRENT`).
+
 ## 0.4.0 — 2026-09-03
 
 ### Added
@@ -63,17 +90,13 @@
 
 ### Not yet manually tested
 
-> The following features are implemented and unit-tested but have not been manually verified in a live environment. Acceptable for an interim release, but the full "Quick checklist" section in `to-test.md` should be completed before 1.0.
+> The following features are implemented and unit-tested but have not been manually verified in a live environment.
 
-- **Swimlanes mode**: matrix display, axis switching, touch interaction
-- **Project plan**: overdue column, horizon clipping, undated column, show completed toggle
-- **Kanban DnD**: card dragging between columns, field writes per source
 - **Merge conflict dialog**: wizard flow, DBus test, editor integration
 - **Multi-select + bulk actions**: complete/delete/reschedule/move/copy UIDs
 - **KRunner**: `task today`, `task <search>`, add task
 - **Global shortcuts**: Meta+Shift+K/N, D-Bus show/addTask
 - **Offline/syncing banner**: Akonadi offline (red), Syncing… (yellow)
-- **KCM Swimlanes/Project plan**: settings applied correctly and restored after restart
 - **i18n**: German strings for new swimlanes/plan options; fallback checks in de/es/fr/ja/zh_CN
 
 ## 0.3.1 — 2026-08-29

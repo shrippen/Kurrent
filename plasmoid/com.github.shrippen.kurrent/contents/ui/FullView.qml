@@ -137,7 +137,9 @@ Item {
     property real dragProxyOffsetY: 0
     property int dragCursorSize: 24
     property int dragCursorShape: Qt.ClosedHandCursor
+    // Kanban and Swimlanes drag the card itself (no proxy).
     property bool useTaskDragProxy: backend && backend.mainPaneMode !== KurrentUi.Design.viewModeKanban
+            && backend.mainPaneMode !== KurrentUi.Design.viewModeSwimlane
 
     Shortcut {
         sequence: StandardKey.Undo
@@ -297,8 +299,54 @@ Item {
         taskFullEditor.open()
     }
 
-    function openNewTaskEditor(collectionId) {
+    function openNewTaskEditor(collectionId, parsedQuickAdd) {
         var taskObj = { itemId: -1, collectionId: collectionId || -1 }
+
+        // 1. Pre-fill from active filters so the new task matches the current view.
+        if (!collectionId || collectionId <= 0) {
+            var filterCol = backend.selectedCollectionId
+            if (filterCol > 0) {
+                taskObj.collectionId = filterCol
+            }
+        }
+        if (backend.selectedLabel && backend.selectedLabel.length > 0) {
+            taskObj.categories = [backend.selectedLabel]
+        }
+        if (backend.selectedPriority > 0) {
+            taskObj.priority = backend.selectedPriority
+        }
+        if (backend.selectedStatus > 0) {
+            taskObj.status = backend.selectedStatus
+        }
+        if (backend.selectedSecrecy > 0) {
+            taskObj.secrecy = backend.selectedSecrecy
+        }
+        if (backend.selectedLocation && backend.selectedLocation.length > 0) {
+            taskObj.location = backend.selectedLocation
+        }
+
+        // 2. QuickAdd values override filter values (user explicitly typed them).
+        if (parsedQuickAdd) {
+            if (parsedQuickAdd.summary && parsedQuickAdd.summary.length > 0) {
+                taskObj.summary = parsedQuickAdd.summary
+            }
+            if (parsedQuickAdd.labels && parsedQuickAdd.labels.length > 0) {
+                taskObj.categories = parsedQuickAdd.labels
+            }
+            if (parsedQuickAdd.priority > 0) {
+                taskObj.priority = parsedQuickAdd.priority
+            }
+            if (parsedQuickAdd.collectionId > 0) {
+                taskObj.collectionId = parsedQuickAdd.collectionId
+            }
+            if (parsedQuickAdd.due) {
+                taskObj.dueDate = parsedQuickAdd.due
+            }
+            if (parsedQuickAdd.allDay !== undefined) {
+                taskObj.allDay = parsedQuickAdd.allDay
+            }
+        }
+
         taskFullEditor.task = taskObj
         taskFullEditor.open()
     }
@@ -596,6 +644,8 @@ Item {
         var s = KurrentUi.Design.spaceSmall
         var w = viewModeToolbarExpandedWidth
         if (backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban) w += btn + s
+        if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+                || backend.mainPaneMode === KurrentUi.Design.viewModePlan)) w += btn + s // Matrix options
         if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeList
                 || backend.mainPaneMode === KurrentUi.Design.viewModeKanban)) w += btn + s // Sort
         if (backend && backend.listGroupMode !== undefined
@@ -613,6 +663,8 @@ Item {
         var s = KurrentUi.Design.spaceSmall
         var w = viewModeToolbarCompactWidth
         if (backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban) w += btn + s
+        if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+                || backend.mainPaneMode === KurrentUi.Design.viewModePlan)) w += btn + s // Matrix options
         if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeList
                 || backend.mainPaneMode === KurrentUi.Design.viewModeKanban)) w += btn + s // Sort
         if (backend && backend.listGroupMode !== undefined
@@ -940,6 +992,87 @@ Item {
         })
     }
 
+    // ---- Swimlanes / Project plan options (mirrors the KCM "Views" page) --------------------
+    readonly property bool matrixMode: backend
+            && (backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+                || backend.mainPaneMode === KurrentUi.Design.viewModePlan)
+    readonly property bool swimlaneMode: backend && backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+
+    readonly property var swimlaneAxisOptions: [
+        { id: "project", label: i18n("Project") },
+        { id: "label", label: i18n("Label") },
+        { id: "priority", label: i18n("Priority") },
+        { id: "parent", label: i18n("Parent task") }
+    ]
+    readonly property var matrixBucketOptions: [
+        { id: "day", label: i18n("Day") },
+        { id: "week", label: i18n("Week") },
+        { id: "month", label: i18n("Month") }
+    ]
+
+    readonly property string matrixBucket: !backend ? "week"
+            : (swimlaneMode ? backend.swimlaneTimeBucket : backend.planTimeBucket)
+    readonly property int matrixHorizon: !backend ? 0
+            : (swimlaneMode ? backend.swimlaneHorizon : backend.planHorizon)
+
+    // Periods ahead; 0 = automatic (Swimlanes) / everything (Project plan).
+    readonly property var matrixHorizonOptions: {
+        var b = matrixBucket
+        return b === "day" ? [0, 7, 14, 30, 60]
+             : b === "month" ? [0, 3, 6, 12]
+             : [0, 4, 8, 12, 26]
+    }
+
+    function matrixHorizonLabel(n) {
+        if (n === 0) {
+            return swimlaneMode ? i18n("Automatic") : i18n("All")
+        }
+        var b = matrixBucket
+        return b === "day" ? i18np("%1 day", "%1 days", n)
+             : b === "month" ? i18np("%1 month", "%1 months", n)
+             : i18np("%1 week", "%1 weeks", n)
+    }
+
+    function setMatrixLaneAxis(axis) {
+        Plasmoid.configuration.swimlaneLaneAxis = axis
+    }
+
+    function setMatrixBucket(bucket) {
+        if (swimlaneMode) {
+            Plasmoid.configuration.swimlaneTimeBucket = bucket
+        } else {
+            Plasmoid.configuration.planTimeBucket = bucket
+        }
+    }
+
+    function setMatrixHorizon(n) {
+        if (swimlaneMode) {
+            Plasmoid.configuration.swimlaneHorizon = n
+        } else {
+            Plasmoid.configuration.planHorizon = n
+        }
+    }
+
+    function openMatrixMenu() {
+        var margin = KurrentUi.Design.spaceSmall
+        var below = matrixOptionsButton.mapToItem(fullRoot, 0, matrixOptionsButton.height + margin)
+        var buttonTop = matrixOptionsButton.mapToItem(fullRoot, 0, 0)
+        var buttonRight = matrixOptionsButton.mapToItem(fullRoot, matrixOptionsButton.width, 0).x
+        var spaceBelow = fullRoot.height - below.y - margin
+        var spaceAbove = buttonTop.y - margin
+        var openBelow = spaceBelow >= Kirigami.Units.gridUnit * 12 || spaceBelow >= spaceAbove
+        var y = openBelow ? below.y : Math.max(margin, buttonTop.y - margin)
+
+        matrixOptionsMenu.popup(fullRoot, 0, y)
+        Qt.callLater(function() {
+            matrixOptionsMenu.x = Math.max(margin, Math.min(buttonRight - matrixOptionsMenu.width,
+                                                          fullRoot.width - matrixOptionsMenu.width - margin))
+            if (!openBelow) {
+                matrixOptionsMenu.y = Math.max(margin, buttonTop.y - margin - matrixOptionsMenu.height)
+            }
+        })
+    }
+
     function openViewModeMenu() {
         var margin = KurrentUi.Design.spaceSmall
         var below = viewModeToolbar.compactViewModeButton.mapToItem(fullRoot, 0,
@@ -1123,6 +1256,59 @@ Item {
                     }
                 }
 
+                // List drill-down from a matrix cell: chip with the cell, click = back to the matrix.
+                Rectangle {
+                    id: drillChip
+                    visible: backend && backend.matrixDrillActive
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.maximumWidth: Math.max(Kirigami.Units.gridUnit * 6, mainPane.width * 0.4)
+                    implicitWidth: drillRow.implicitWidth + KurrentUi.Design.spaceSmall * 2
+                    implicitHeight: Kirigami.Units.iconSizes.smallMedium + KurrentUi.Design.spaceTiny * 2
+                    radius: height / 2
+                    color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
+                                   Kirigami.Theme.highlightColor.b, drillHover.hovered ? 0.28 : 0.16)
+
+                    RowLayout {
+                        id: drillRow
+                        anchors.fill: parent
+                        anchors.leftMargin: KurrentUi.Design.spaceSmall
+                        anchors.rightMargin: KurrentUi.Design.spaceTiny
+                        spacing: KurrentUi.Design.spaceTiny
+
+                        Kirigami.Icon {
+                            source: backend && backend.matrixDrillSource === "plan" ? "view-pim-tasks" : "view-split-left-right"
+                            Layout.preferredWidth: fullRoot.filterChipIconSize
+                            Layout.preferredHeight: fullRoot.filterChipIconSize
+                        }
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            text: backend ? backend.matrixDrillLabel : ""
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                        }
+                        QQC2.ToolButton {
+                            icon.name: "dialog-close"
+                            display: QQC2.AbstractButton.IconOnly
+                            implicitWidth: fullRoot.filterChipIconSize + KurrentUi.Design.spaceSmall
+                            implicitHeight: implicitWidth
+                            padding: 0
+                            onClicked: backend.clearMatrixDrilldown()
+                            QQC2.ToolTip.text: i18n("Clear filter")
+                            QQC2.ToolTip.visible: hovered
+                        }
+                    }
+                    HoverHandler {
+                        id: drillHover
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                    TapHandler {
+                        onTapped: plasmoidRoot.setMainPaneMode(backend.matrixDrillSource === "plan"
+                                ? KurrentUi.Design.viewModePlan : KurrentUi.Design.viewModeSwimlane)
+                    }
+                    QQC2.ToolTip.text: i18n("Back to the matrix")
+                    QQC2.ToolTip.visible: drillHover.hovered
+                }
+
                 Item { Layout.fillWidth: true }
 
                 RowLayout {
@@ -1173,6 +1359,20 @@ Item {
                     display: QQC2.AbstractButton.IconOnly
                     onClicked: fullRoot.openKanbanColumnsMenu()
                     QQC2.ToolTip.text: i18n("Kanban columns: %1", fullRoot.kanbanColumnSourceLabel(backend.kanbanColumnSource))
+                    QQC2.ToolTip.visible: hovered
+                }
+
+                QQC2.ToolButton {
+                    id: matrixOptionsButton
+                    visible: fullRoot.matrixMode
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredWidth: fullRoot.mainPaneHeaderToolSize
+                    Layout.preferredHeight: fullRoot.mainPaneHeaderToolSize
+                    Layout.minimumWidth: fullRoot.mainPaneHeaderToolSize
+                    icon.name: "view-grid"
+                    display: QQC2.AbstractButton.IconOnly
+                    onClicked: fullRoot.openMatrixMenu()
+                    QQC2.ToolTip.text: fullRoot.swimlaneMode ? i18n("Swimlane options") : i18n("Project plan options")
                     QQC2.ToolTip.visible: hovered
                 }
 
@@ -1237,6 +1437,83 @@ Item {
                             checked: backend.kanbanColumnSource === modelData.id
                             onTriggered: fullRoot.setKanbanColumnSource(modelData.id)
                         }
+                    }
+                }
+
+                QQC2.Menu {
+                    id: matrixOptionsMenu
+                    parent: fullRoot
+                    popupType: QQC2.Popup.Item
+                    title: fullRoot.swimlaneMode ? i18n("Swimlanes") : i18n("Project plan")
+
+                    QQC2.MenuItem {
+                        visible: fullRoot.swimlaneMode
+                        height: visible ? implicitHeight : 0
+                        enabled: false
+                        text: i18n("Rows")
+                    }
+                    Repeater {
+                        model: fullRoot.swimlaneMode ? fullRoot.swimlaneAxisOptions : []
+                        delegate: QQC2.MenuItem {
+                            required property var modelData
+                            text: modelData.label
+                            checkable: true
+                            autoExclusive: true
+                            checked: backend.swimlaneLaneAxis === modelData.id
+                            onTriggered: fullRoot.setMatrixLaneAxis(modelData.id)
+                        }
+                    }
+                    QQC2.MenuSeparator { visible: fullRoot.swimlaneMode }
+
+                    QQC2.MenuItem {
+                        enabled: false
+                        text: i18n("Columns")
+                    }
+                    Repeater {
+                        model: fullRoot.matrixBucketOptions
+                        delegate: QQC2.MenuItem {
+                            required property var modelData
+                            text: modelData.label
+                            checkable: true
+                            autoExclusive: true
+                            checked: fullRoot.matrixBucket === modelData.id
+                            onTriggered: fullRoot.setMatrixBucket(modelData.id)
+                        }
+                    }
+                    QQC2.MenuSeparator {}
+
+                    QQC2.MenuItem {
+                        enabled: false
+                        text: i18n("Look ahead")
+                    }
+                    Repeater {
+                        model: fullRoot.matrixHorizonOptions
+                        delegate: QQC2.MenuItem {
+                            required property var modelData
+                            text: fullRoot.matrixHorizonLabel(modelData)
+                            checkable: true
+                            autoExclusive: true
+                            checked: fullRoot.matrixHorizon === modelData
+                            onTriggered: fullRoot.setMatrixHorizon(modelData)
+                        }
+                    }
+
+                    QQC2.MenuSeparator { visible: !fullRoot.swimlaneMode }
+                    QQC2.MenuItem {
+                        visible: !fullRoot.swimlaneMode
+                        height: visible ? implicitHeight : 0
+                        text: i18n("Show undated tasks")
+                        checkable: true
+                        checked: backend.planShowUndated
+                        onTriggered: Plasmoid.configuration.planShowUndated = checked
+                    }
+                    QQC2.MenuItem {
+                        visible: !fullRoot.swimlaneMode
+                        height: visible ? implicitHeight : 0
+                        text: i18n("Show completed tasks")
+                        checkable: true
+                        checked: backend.planShowCompleted
+                        onTriggered: Plasmoid.configuration.planShowCompleted = checked
                     }
                 }
 

@@ -70,7 +70,12 @@ class TaskController : public QObject
     Q_PROPERTY(QString swimlaneLaneAxis READ swimlaneLaneAxis WRITE setSwimlaneLaneAxis NOTIFY swimlaneSettingsChanged)
     Q_PROPERTY(QString swimlaneTimeBucket READ swimlaneTimeBucket WRITE setSwimlaneTimeBucket NOTIFY swimlaneSettingsChanged)
     Q_PROPERTY(QString planTimeBucket READ planTimeBucket WRITE setPlanTimeBucket NOTIFY planSettingsChanged)
+    Q_PROPERTY(int swimlaneHorizon READ swimlaneHorizon WRITE setSwimlaneHorizon NOTIFY swimlaneSettingsChanged)
     Q_PROPERTY(int planHorizon READ planHorizon WRITE setPlanHorizon NOTIFY planSettingsChanged)
+    Q_PROPERTY(int matrixRevision READ matrixRevision NOTIFY kanbanLayoutChanged)
+    Q_PROPERTY(bool matrixDrillActive READ matrixDrillActive NOTIFY matrixDrillChanged)
+    Q_PROPERTY(QString matrixDrillLabel READ matrixDrillLabel NOTIFY matrixDrillChanged)
+    Q_PROPERTY(QString matrixDrillSource READ matrixDrillSource NOTIFY matrixDrillChanged)
     Q_PROPERTY(bool planShowUndated READ planShowUndated WRITE setPlanShowUndated NOTIFY planSettingsChanged)
     Q_PROPERTY(bool planShowCompleted READ planShowCompleted WRITE setPlanShowCompleted NOTIFY planSettingsChanged)
     Q_PROPERTY(bool multiSelectEnabled READ multiSelectEnabled WRITE setMultiSelectEnabled NOTIFY multiSelectEnabledChanged)
@@ -158,6 +163,11 @@ public:
     int kanbanRevision() const { return m_kanbanRevision; }
     QString swimlaneLaneAxis() const { return m_swimlaneLaneAxis; }
     QString swimlaneTimeBucket() const { return m_swimlaneTimeBucket; }
+    int swimlaneHorizon() const { return m_swimlaneHorizon; }
+    int matrixRevision() const { return m_kanbanRevision; }
+    bool matrixDrillActive() const { return m_matrixDrillActive; }
+    QString matrixDrillLabel() const { return m_matrixDrillLabel; }
+    QString matrixDrillSource() const { return m_matrixDrillSource; }
     QString planTimeBucket() const { return m_planTimeBucket; }
     int planHorizon() const { return m_planHorizon; }
     bool planShowUndated() const { return m_planShowUndated; }
@@ -240,6 +250,7 @@ public:
     void setKanbanManualOrderJson(const QString &json);
     void setSwimlaneLaneAxis(const QString &axis);
     void setSwimlaneTimeBucket(const QString &bucket);
+    void setSwimlaneHorizon(int horizon);
     void setPlanTimeBucket(const QString &bucket);
     void setPlanHorizon(int horizon);
     void setPlanShowUndated(bool show);
@@ -262,11 +273,15 @@ public:
     Q_INVOKABLE void reorderKanbanCard(qint64 itemId, const QString &columnKey, int targetIndex);
     Q_INVOKABLE QVariantMap swimlaneMatrixForVisibleTasks() const;
     Q_INVOKABLE QVariantMap planMatrixGridForVisibleTasks() const;
-    Q_INVOKABLE QStringList busyDayStripForVisibleTasks() const;
-    Q_INVOKABLE QString swimlaneLaneLabelForKey(const QString &key) const;
-    Q_INVOKABLE QString swimlaneTimeLabelForKey(const QString &key) const;
-    Q_INVOKABLE void setPlanPreviewFilter(qint64 collectionId, const QString &weekKey);
-    Q_INVOKABLE void clearPlanPreviewFilter();
+    /** Drop a task card onto a swimlane cell: writes the lane field and/or due date in one undo step. */
+    Q_INVOKABLE void moveTaskToMatrixCell(qint64 itemId, const QString &laneKey, const QString &timeKey);
+    /** Cell click / header click → list filtered to lane (axis) and/or time key. `source` is
+     *  "swimlane" or "plan"; empty laneKey/timeKey act as wildcards. */
+    Q_INVOKABLE void setMatrixDrilldown(const QString &source, const QString &laneKey,
+                                        const QString &timeKey, const QString &label);
+    Q_INVOKABLE void clearMatrixDrilldown();
+    /** Ask the shell to switch the main-pane mode (persists like the toolbar does). */
+    Q_INVOKABLE void requestMainPaneMode(const QString &mode);
     Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
     Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
@@ -372,6 +387,7 @@ public:
     int testTaskStatus(qint64 id) const;
     int testTaskSecrecy(qint64 id) const;
     QString testTaskLocation(qint64 id) const;
+    QDateTime testTaskDue(qint64 id) const;
     QString testKanbanColumnKey(qint64 id) const;
     int testTaskRevision(qint64 id) const;
     qint64 testTaskCollectionId(qint64 id) const;
@@ -413,6 +429,8 @@ signals:
     void kanbanManualOrderJsonChanged();
     void kanbanLayoutChanged();
     void swimlaneSettingsChanged();
+    void matrixDrillChanged();
+    void mainPaneModeRequested(const QString &mode);
     void planSettingsChanged();
     void multiSelectEnabledChanged();
     void selectedTaskIdsChanged();
@@ -532,6 +550,7 @@ enum class SyncResult { Error, Ok };
     void updatePendingCount(const QList<TaskEntry> &tasks);
     void updateSyncingCount();
     void updateKanbanLayout();
+    QStringList projectLaneOrder() const;
     QVariantMap taskEntryToVariantMap(const TaskEntry &task) const;
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
     void updateAvailableLocations(const QList<TaskEntry> &tasks);
@@ -591,7 +610,8 @@ enum class SyncResult { Error, Ok };
     QStringList m_kanbanColumnKeys;
     int m_kanbanRevision = 0;
     QString m_swimlaneLaneAxis = QStringLiteral("project");
-    QString m_swimlaneTimeBucket = QStringLiteral("day");
+    QString m_swimlaneTimeBucket = QStringLiteral("week");
+    int m_swimlaneHorizon = 0;
     QString m_planTimeBucket = QStringLiteral("week");
     int m_planHorizon = 8;
     bool m_planShowUndated = true;
@@ -601,8 +621,15 @@ enum class SyncResult { Error, Ok };
     QString m_smartViewsJson = QStringLiteral("[]");
     QList<TaskLogic::SmartViewDef> m_smartViews;
     qint64 m_conflictItemId = -1;
-    QString m_planPreviewWeek;
-    QString m_planPreviewProject;
+    bool m_matrixDrillActive = false;
+    QString m_matrixDrillSource;
+    QString m_matrixDrillLane;
+    QString m_matrixDrillTime;
+    QString m_matrixDrillLabel;
+    QString m_matrixDrillAxis;
+    QString m_matrixDrillBucket;
+    int m_matrixDrillHorizon = 0;
+    bool m_matrixDrillIncludeCompleted = true;
     bool m_catchUpEnabled = true;
     int m_catchUpDays = 14;
     int m_morningHour = 6;

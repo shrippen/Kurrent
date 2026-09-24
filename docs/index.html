@@ -4,198 +4,157 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kurrent — Plasma 6 Task Manager</title>
-<meta name="description" content="A KDE Plasma 6 task manager widget powered by Akonadi and Nextcloud CalDAV. Inbox, Today, Projects, Labels — right on your desktop.">
+<meta name="description" content="A KDE Plasma 6 task manager widget powered by Akonadi, so it works with every account and calendar source Akonadi supports. Inbox, Today, Projects, Labels — right on your desktop.">
 <meta property="og:title" content="Kurrent — Plasma 6 Task Manager">
-<meta property="og:description" content="A KDE Plasma 6 task widget powered by Akonadi and Nextcloud CalDAV.">
-<meta property="og:image" content="https://shrippen.github.io/Kurrent/screenshot.jpg">
+<meta property="og:description" content="A KDE Plasma 6 task manager widget powered by Akonadi, so it works with every account and calendar source Akonadi supports. Inbox, Today, Projects, Labels — right on your desktop.">
+<meta property="og:image" content="https://shrippen.github.io/Kurrent/social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta name="twitter:card" content="summary_large_image">
 <meta property="og:url" content="https://shrippen.github.io/Kurrent/">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon.svg">
 <script defer src="https://um.arianw.de/script.js" data-website-id="056d39ee-6a9d-4b14-9902-5a1ac399df08"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#111113;--bg2:#1a1a1e;--fg:#e8dcc4;--fg2:#a09882;
-  --accent:#3daee9;--accent2:#27d796;--red:#e85050;
-  --radius:12px;--max:860px;
-  --font-heading:'Rajdhani',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
-  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;
-  --mono:'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace;
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--fg);font-family:var(--font);line-height:1.6;
-  -webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* hero */
-.hero{display:flex;flex-direction:column;align-items:center;text-align:center;
-  padding:5rem 1.5rem 3rem;max-width:var(--max);margin:0 auto}
-.hero-icon{width:88px;height:88px;margin-bottom:1.5rem;filter:drop-shadow(0 0 24px rgba(61,174,233,.25))}
-.hero h1{font-family:var(--font-heading);font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700;letter-spacing:-.02em;margin-bottom:.5rem}
-.hero .tagline{font-size:1.15rem;color:var(--fg2);max-width:520px;margin-bottom:2rem}
-.badges{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:2.5rem}
-.badges img{height:22px}
-
-/* install card */
-.install-card{background:var(--bg2);border:1px solid #2a2a30;border-radius:var(--radius);
-  padding:1.5rem;width:100%;max-width:640px;margin-bottom:1rem}
-.install-card label{display:block;font-size:.8rem;color:var(--fg2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.06em}
-.cmd-row{display:flex;gap:.5rem;align-items:stretch}
-.cmd-box{flex:1;background:#0d0d0f;border:1px solid #2a2a30;border-radius:8px;padding:.7rem 1rem;
-  font-family:var(--mono);font-size:.85rem;color:var(--accent);white-space:nowrap;overflow-x:auto;
-  user-select:all;-webkit-user-select:all;cursor:text}
-.cmd-box::-webkit-scrollbar{height:4px}
-.cmd-box::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
-.copy-btn{background:#2a2a30;border:1px solid #3a3a40;border-radius:8px;padding:.7rem .9rem;
-  cursor:pointer;color:var(--fg);font-size:.95rem;transition:background .15s}
-.copy-btn:hover{background:#3a3a44}
-.copy-btn.copied{background:#1a3a2a;border-color:var(--accent2);color:var(--accent2)}
-.install-note{font-size:.78rem;color:var(--fg2);margin-top:.6rem}
-.install-links{display:flex;gap:1rem;margin-top:1.2rem;flex-wrap:wrap;justify-content:center}
-.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.2rem;border-radius:8px;
-  font-size:.88rem;font-weight:500;transition:all .15s;border:1px solid transparent}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:#2c9ad8;text-decoration:none}
-.btn-ghost{border-color:#3a3a40;color:var(--fg2)}
-.btn-ghost:hover{border-color:var(--fg2);color:var(--fg);text-decoration:none}
-.btn svg{width:16px;height:16px;fill:currentColor}
-
-/* screenshot */
-.screenshot-wrap{padding:2.5rem 1.5rem;max-width:var(--max);margin:0 auto;text-align:center}
-.screenshot-wrap img{width:100%;max-width:780px;border-radius:var(--radius);
-  border:1px solid #2a2a30;box-shadow:0 8px 40px rgba(0,0,0,.5)}
-
-/* features */
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.2rem;
-  padding:2rem 1.5rem 3rem;max-width:var(--max);margin:0 auto}
-.feat{background:var(--bg2);border:1px solid #2a2a30;border-radius:var(--radius);padding:1.3rem}
-.feat h3{font-family:var(--font-heading);font-size:1rem;font-weight:600;margin-bottom:.35rem}
-.feat p{font-size:.88rem;color:var(--fg2);line-height:1.5}
-
-/* prereqs */
-.section{padding:2rem 1.5rem;max-width:var(--max);margin:0 auto}
-.section h2{font-family:var(--font-heading);font-size:1.5rem;font-weight:600;margin-bottom:1rem}
-.section ul{list-style:none;padding:0}
-.section li{position:relative;padding-left:1.4rem;margin-bottom:.5rem;color:var(--fg2);font-size:.92rem}
-.section li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
-
-/* footer */
-footer{border-top:1px solid #2a2a30;padding:2rem 1.5rem;text-align:center;
-  color:var(--fg2);font-size:.82rem;margin-top:2rem}
-footer a{color:var(--fg2)}
-footer a:hover{color:var(--fg)}
-
-@media(max-width:500px){
-  .cmd-box{font-size:.75rem;padding:.6rem .7rem}
-  .hero{padding:3rem 1rem 2rem}
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://shrippen.github.io/v1/shrippen.css">
+<script src="https://shrippen.github.io/v1/shrippen.js"></script>
 </head>
 <body>
 
-<section class="hero">
-  <img class="hero-icon" src="icon.svg" alt="Kurrent icon">
-  <h1>Kurrent</h1>
-  <p class="tagline">A KDE Plasma 6 task manager powered by Akonadi&nbsp;&amp;&nbsp;Nextcloud&nbsp;CalDAV. Inbox, Today, Projects, and Labels — right on your desktop.</p>
-
-  <div class="badges">
-    <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.3.1"><img alt="Version 0.3.1" src="https://img.shields.io/badge/version-0.3.1-e8dcc4?labelColor=1c1c20"></a>
-    <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
-    <img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey?labelColor=1c1c20">
-  </div>
-
-  <div class="install-card">
-    <label>Install with one command</label>
-    <div class="cmd-row">
-      <div class="cmd-box" id="cmd">curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash</div>
-      <button class="copy-btn" id="copyBtn" title="Copy to clipboard" onclick="copyCmd()">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-      </button>
+<nav class="nav"><div class="nav-inner">
+  <a class="nav-brand" href="#"><img src="icon.svg" alt="">Kurrent</a>
+  <div class="nav-links">
+    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#views"><span lang="en">Views</span><span lang="de">Ansichten</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a><a class="nav-hl" href="https://github.com/shrippen/Kurrent">GitHub</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="de" aria-pressed="false">DE</button>
     </div>
-    <p class="install-note"><code>sudo</code> is only for distro packages — the widget installs as your user. On non-Arch distros the installer falls back to compiling from source.</p>
   </div>
+</div></nav>
 
-  <div class="install-links">
-    <a class="btn btn-primary" href="https://github.com/shrippen/Kurrent/releases/latest">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Download v0.3
-    </a>
-    <a class="btn btn-ghost" href="https://github.com/shrippen/Kurrent">
-      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      GitHub
-    </a>
-    <a class="btn btn-ghost" href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a>
+<header class="hero">
+  <img class="hero-wm" src="icon-mono.svg" alt="" aria-hidden="true">
+  <div class="hero-main">
+    <h1 style="--title-size-narrow:clamp(2.5rem,22.0vw,13.1rem)">Kur<br class="split">rent</h1>
+    <p class="tagline" lang="en">A KDE Plasma 6 task manager powered by Akonadi, so it works with every account Akonadi supports. Inbox, Today, Projects and Labels — with list, Kanban, calendar and heatmap views, right on your desktop.</p><p class="tagline" lang="de">Ein KDE-Plasma-6-Aufgabenmanager auf Basis von Akonadi, damit funktioniert es mit jedem Konto, das Akonadi unterstützt. Inbox, Heute, Projekte und Labels – mit Listen-, Kanban-, Kalender- und Heatmap-Ansicht, direkt auf deinem Desktop.</p>
+  </div>
+  <div class="hero-side">
+    <div class="install-card">
+      <label><span lang="en">Install with one command</span><span lang="de">Installation mit einem Befehl</span></label><div class="cmd-row"><div class="cmd-box">curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh | sudo bash</div><button class="copy-btn" type="button" title="Copy" aria-label="Copy"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></div>
+      <p class="install-note" lang="en"><code>sudo</code> is only for distro packages — the widget installs as your user. On non-Arch distros the installer falls back to compiling from source.</p><p class="install-note" lang="de"><code>sudo</code> wird nur für Distributionspakete gebraucht – das Widget selbst wird als dein Benutzer installiert. Auf Nicht-Arch-Distributionen kompiliert der Installer aus dem Quellcode.</p>
+      <div class="install-links"><a class="btn btn-primary" href="https://github.com/shrippen/Kurrent/releases/latest">Download</a><a class="btn btn-ghost" href="https://github.com/shrippen/Kurrent">GitHub</a></div>
+    </div>
+    <div class="hero-shot"><img src="tasks.jpg" alt="Kurrent task list with sidebar for views, projects, labels and priorities, and a quick-add field"></div>
+  </div>
+</header>
+
+<main>
+
+<div class="section"><div class="callout callout-warn"><span lang="en"><strong>Note:</strong> Kurrent is completely vibe coded from start to finish. It is something I wanted for myself, but I might as well share it.</span><span lang="de"><strong>Hinweis:</strong> Kurrent ist von Anfang bis Ende komplett vibe-codiert. Ich wollte es für mich selbst, teile es aber gern.</span></div></div>
+<section class="facts"><div class="fact"><b>6</b><span><span lang="en">View modes</span><span lang="de">Ansichtsmodi</span></span></div><div class="fact"><b>6</b><span><span lang="en">Languages</span><span lang="de">Sprachen</span></span></div><div class="fact"><b>0</b><span><span lang="en">Extra logins</span><span lang="de">Zusätzliche Logins</span></span></div><div class="fact"><b>GPL-3</b><span><span lang="en">Open source</span><span lang="de">Open Source</span></span></div></section>
+<section class="features" id="features">
+  <div class="feat" data-tier="red">
+    <span class="feat-tag">Inbox</span>
+    <h3 lang="en">Inbox → Today flow</h3><h3 lang="de">Von Inbox zu Heute</h3>
+    <p lang="en">Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled, and Completed views — all from Akonadi.</p><p lang="de">Inbox, Heute, Morgen, Geplant, Jederzeit, Wiederkehrend, Ohne Label und Erledigt – alles aus Akonadi.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <span class="feat-tag">Quick Add</span>
+    <h3 lang="en">Quick Add</h3><h3 lang="de">Quick Add</h3>
+    <p lang="en"><code>tomorrow 18:00 !high #tag @project</code> — natural-language task entry with fuzzy matching.</p><p lang="de"><code>tomorrow 18:00 !high #tag @project</code> – Aufgaben in natürlicher Sprache eingeben, mit unscharfer Zuordnung.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <span class="feat-tag"><span lang="en">Projects</span><span lang="de">Projekte</span></span>
+    <h3 lang="en">Projects &amp; Labels</h3><h3 lang="de">Projekte &amp; Labels</h3>
+    <p lang="en">Akonadi calendars as projects, task categories as labels. Color-coded, filterable, drag-and-drop subtasks.</p><p lang="de">Akonadi-Kalender als Projekte, Aufgabenkategorien als Labels. Farbcodiert, filterbar, Unteraufgaben per Drag-and-drop.</p>
+  </div>
+  <div class="feat" data-tier="red">
+    <span class="feat-tag">Akonadi</span>
+    <h3 lang="en">Any Akonadi resource</h3><h3 lang="de">Jede Akonadi-Ressource</h3>
+    <p lang="en">Uses the accounts you already set up in KOrganizer or Merkuro, whatever resource type they use. No separate login.</p><p lang="de">Nutzt die Konten, die du in KOrganizer oder Merkuro schon eingerichtet hast, egal welchen Ressourcentyp sie nutzen. Kein separater Login.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <span class="feat-tag">Desktop</span>
+    <h3 lang="en">Panel &amp; Desktop</h3><h3 lang="de">Panel &amp; Desktop</h3>
+    <p lang="en">Works as a panel flyout and a desktop widget. Shared settings, shared config, same full editor.</p><p lang="de">Funktioniert als Panel-Popup und als Desktop-Widget. Gemeinsame Einstellungen, gleicher vollständiger Editor.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <span class="feat-tag"><span lang="en">Languages</span><span lang="de">Sprachen</span></span>
+    <h3 lang="en">Translations</h3><h3 lang="de">Übersetzungen</h3>
+    <p lang="en">German, Spanish, French, Japanese, Simplified Chinese — with Quick Add understanding your language too.</p><p lang="de">Deutsch, Spanisch, Französisch, Japanisch und vereinfachtes Chinesisch – Quick Add versteht auch deine Sprache.</p>
+  </div>
+  <div class="feat" data-tier="red">
+    <span class="feat-tag"><span lang="en">Smart Views</span><span lang="de">Smart Views</span></span>
+    <h3 lang="en">Your own views</h3><h3 lang="de">Eigene Ansichten</h3>
+    <p lang="en">Save filters by project, label, status, due date and priority as views of their own, with badges in the sidebar.</p><p lang="de">Speichere Filter nach Projekt, Label, Status, Fälligkeit und Priorität als eigene Ansichten, mit Zähler in der Seitenleiste.</p>
+  </div>
+  <div class="feat" data-tier="yellow">
+    <span class="feat-tag"><span lang="en">Sort</span><span lang="de">Sortierung</span></span>
+    <h3 lang="en">Sort your way</h3><h3 lang="de">Sortieren, wie du willst</h3>
+    <p lang="en">Multi-level sorting, by default Priority › Due › A–Z. Global or per view, with many sort keys.</p><p lang="de">Mehrstufige Sortierung, standardmäßig Priorität › Fällig › A–Z. Global oder pro Ansicht, mit vielen Sortierschlüsseln.</p>
+  </div>
+  <div class="feat" data-tier="blue">
+    <span class="feat-tag"><span lang="en">Reminders</span><span lang="de">Erinnerungen</span></span>
+    <h3 lang="en">Calendar-aware</h3><h3 lang="de">Kalenderbewusst</h3>
+    <p lang="en">Optionally silence reminders during ongoing calendar events. You pick which event calendars count.</p><p lang="de">Erinnerungen lassen sich während laufender Kalendertermine stummschalten. Du wählst, welche Terminkalender zählen.</p>
   </div>
 </section>
-
-<section class="screenshot-wrap">
-  <img src="screenshot.jpg" alt="Kurrent desktop widget showing Today view with sidebar, projects, labels, and quick-add" loading="lazy">
+<section class="showcase"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Sidebar</span><span lang="de">Seitenleiste</span></span><h2 lang="en">Everything in its place</h2><h2 lang="de">Alles an seinem Platz</h2><p lang="en">The sidebar keeps your tasks sorted the way you think: built-in views with live counts, your projects and your labels.</p><p lang="de">Die Seitenleiste ordnet deine Aufgaben so, wie du denkst: eingebaute Ansichten mit Live-Zählern, deine Projekte und deine Labels.</p><ul lang="en"><li><strong>Views</strong> such as Inbox, Today, Overdue, Tomorrow, Scheduled, Anytime and Completed</li><li><strong>Projects</strong> are your Akonadi calendars</li><li><strong>Labels</strong> are task categories, color-coded and filterable</li><li>Order and visibility can be changed in the Sidebar settings</li></ul><ul lang="de"><li><strong>Ansichten</strong> wie Inbox, Heute, Überfällig, Morgen, Geplant, Jederzeit und Erledigt</li><li><strong>Projekte</strong> sind deine Akonadi-Kalender</li><li><strong>Labels</strong> sind Aufgabenkategorien, farbcodiert und filterbar</li><li>Reihenfolge und Sichtbarkeit lassen sich in den Seitenleisten-Einstellungen ändern</li></ul></div><figure class="native"><img src="detail-sidebar.jpg" alt="Kurrent sidebar with views and counts, projects and labels" loading="lazy"><figcaption><span lang="en">Sidebar: views, counts, projects, labels</span><span lang="de">Seitenleiste: Ansichten, Zähler, Projekte, Labels</span></figcaption></figure></section>
+<section class="showcase rev"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Views</span><span lang="de">Ansichten</span></span><h2 lang="en">One task set, six views</h2><h2 lang="de">Ein Aufgabenbestand, sechs Ansichten</h2><p lang="en">A switcher in the header changes how the same filtered tasks are shown. The sidebar selection or Smart View decides <em>what</em> you see, the view mode decides <em>how</em>.</p><p lang="de">Ein Umschalter im Kopf ändert, wie dieselben gefilterten Aufgaben dargestellt werden. Die Auswahl in der Seitenleiste oder eine Smart View bestimmt, <em>was</em> du siehst, der Ansichtsmodus, <em>wie</em>.</p><ul lang="en"><li><strong>List</strong>: the classic task list with inline editor</li><li><strong>Kanban</strong>: columns and cards</li><li><strong>Swimlanes</strong>: lanes by project, label, priority or parent task × day, week or month</li><li><strong>Project plan</strong>: projects × time with a planning horizon</li><li><strong>Heatmap</strong>: day cells by due date or completions</li><li><strong>Calendar + tasks</strong>: events and tasks of a day</li></ul><ul lang="de"><li><strong>Liste</strong>: die klassische Aufgabenliste mit Inline-Editor</li><li><strong>Kanban</strong>: Spalten und Karten</li><li><strong>Swimlanes</strong>: Bahnen nach Projekt, Label, Priorität oder Elternaufgabe × Tag, Woche oder Monat</li><li><strong>Projektplan</strong>: Projekte × Zeit mit Planungshorizont</li><li><strong>Heatmap</strong>: Tageszellen nach Fälligkeit oder Erledigungen</li><li><strong>Kalender + Aufgaben</strong>: Termine und Aufgaben eines Tages</li></ul></div><figure class="native"><img src="detail-views.jpg" alt="The view switcher in the header of Kurrent" loading="lazy"><figcaption><span lang="en">View switcher in the header</span><span lang="de">Ansichtsumschalter im Kopf</span></figcaption></figure></section>
+<section class="showcase"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Kanban</span><span lang="de">Kanban</span></span><h2 lang="en">Move work along</h2><h2 lang="de">Arbeit weiterschieben</h2><p lang="en">Cards sit in columns such as Needs action, In process and Completed. Drag a card to another column and Kurrent writes the matching field back through Akonadi. The column source is configurable in the settings.</p><p lang="de">Karten liegen in Spalten wie Needs action, In process und Completed. Ziehst du eine Karte in eine andere Spalte, schreibt Kurrent das passende Feld über Akonadi zurück. Die Spaltenquelle ist in den Einstellungen wählbar.</p></div><figure><img src="kanban.jpg" alt="Kurrent Kanban board with columns" loading="lazy"><figcaption><span lang="en">Kanban view</span><span lang="de">Kanban-Ansicht</span></figcaption></figure></section>
+<section class="showcase rev"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Calendar</span><span lang="de">Kalender</span></span><h2 lang="en">Tasks next to your day</h2><h2 lang="de">Aufgaben neben deinem Tag</h2><p lang="en">Calendar + tasks puts the events of the selected day beside your tasks. Switch between Day and Week. Events come from your Akonadi calendars, so what you see matches KOrganizer and Merkuro.</p><p lang="de">Kalender + Aufgaben zeigt die Termine des gewählten Tages neben deinen Aufgaben. Wechsle zwischen Tag und Woche. Die Termine stammen aus deinen Akonadi-Kalendern und entsprechen deshalb KOrganizer und Merkuro.</p></div><figure><img src="agenda.jpg" alt="Kurrent agenda view with a day of tasks" loading="lazy"><figcaption><span lang="en">Calendar + tasks, day view</span><span lang="de">Kalender + Aufgaben, Tagesansicht</span></figcaption></figure></section>
+<section class="showcase"><div class="showcase-text"><span class="showcase-tag"><span lang="en">Heatmap</span><span lang="de">Heatmap</span></span><h2 lang="en">See the load at a glance</h2><h2 lang="de">Die Last auf einen Blick</h2><p lang="en">The heatmap colors each day of the month by how many tasks are due or were completed. Switch the mode, or jump to the year view to spot busy weeks early.</p><p lang="de">Die Heatmap färbt jeden Tag des Monats danach, wie viele Aufgaben fällig sind oder erledigt wurden. Wechsle den Modus oder springe in die Jahresansicht, um volle Wochen früh zu erkennen.</p></div><figure><img src="heatmap.jpg" alt="Kurrent heatmap of a month" loading="lazy"><figcaption><span lang="en">Heatmap, month view</span><span lang="de">Heatmap, Monatsansicht</span></figcaption></figure></section>
+<section class="section" id="quickadd">
+  <h2 lang="en">Quick Add</h2><h2 lang="de">Quick Add</h2>
+  <p lang="en">Type a task in plain language and Kurrent fills in the fields. Parts you leave out stay empty, names are matched fuzzily against your projects and labels.</p><p lang="de">Tippe eine Aufgabe in normaler Sprache, und Kurrent füllt die Felder aus. Was du weglässt, bleibt leer, Namen werden unscharf mit deinen Projekten und Labels abgeglichen.</p>
+  <div class="tokens"><div class="tok" data-k="text"><code><span lang="en">Send invoice</span><span lang="de">Rechnung senden</span></code><small><span lang="en">Title</span><span lang="de">Titel</span></small></div><div class="tok" data-k="date"><code><span lang="en">tomorrow 18:00</span><span lang="de">morgen 18:00</span></code><small><span lang="en">Date and time</span><span lang="de">Datum und Uhrzeit</span></small></div><div class="tok" data-k="prio"><code><span lang="en">!high</span><span lang="de">!hoch</span></code><small><span lang="en">Priority</span><span lang="de">Priorität</span></small></div><div class="tok" data-k="tag"><code>#tag</code><small><span lang="en">Label</span><span lang="de">Label</span></small></div><div class="tok" data-k="project"><code><span lang="en">@project</span><span lang="de">@projekt</span></code><small><span lang="en">Project</span><span lang="de">Projekt</span></small></div></div>
+  <div class="hero-shot" style="margin-bottom:1rem"><img src="detail-quickadd.jpg" alt="The Quick Add field at the bottom of the task list" loading="lazy"></div>
+  <ul lang="en"><li>Long text wraps and the field grows; <kbd>Enter</kbd> adds the task, <kbd>Shift</kbd>+<kbd>Enter</kbd> inserts a line break</li><li>Clicking the plus button with an empty field opens the full editor</li><li>Quick Add understands your interface language too</li></ul><ul lang="de"><li>Langer Text bricht um und das Feld wächst; <kbd>Enter</kbd> legt die Aufgabe an, <kbd>Shift</kbd>+<kbd>Enter</kbd> fügt einen Zeilenumbruch ein</li><li>Ein Klick auf das Plus bei leerem Feld öffnet den vollen Editor</li><li>Quick Add versteht auch deine Oberflächensprache</li></ul>
 </section>
-
-<section class="features">
-  <div class="feat">
-    <h3>📥 Inbox → Today flow</h3>
-    <p>Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled, and Completed views — all from Akonadi.</p>
-  </div>
-  <div class="feat">
-    <h3>⚡ Quick Add</h3>
-    <p><code>tomorrow 18:00 !high #tag @project</code> — natural-language task entry with fuzzy matching.</p>
-  </div>
-  <div class="feat">
-    <h3>🗂️ Projects &amp; Labels</h3>
-    <p>Akonadi calendars as projects, CalDAV categories as labels. Color-coded, filterable, drag-and-drop subtasks.</p>
-  </div>
-  <div class="feat">
-    <h3>🔁 CalDAV round-trip</h3>
-    <p>Uses your existing Nextcloud / KOrganizer / Merkuro CalDAV setup. No separate login.</p>
-  </div>
-  <div class="feat">
-    <h3>🖥️ Panel &amp; Desktop</h3>
-    <p>Works as a panel flyout and a desktop widget. Shared settings, shared config, same full editor.</p>
-  </div>
-  <div class="feat">
-    <h3>🌍 Translations</h3>
-    <p>German, Spanish, French, Japanese, Simplified Chinese — with Quick Add understanding your language too.</p>
-  </div>
+<section class="section" id="panel">
+  <h2 lang="en">Panel and notifications</h2><h2 lang="de">Panel und Benachrichtigungen</h2>
+  <ul lang="en"><li><strong>Panel badge</strong>: open tasks, tasks for tomorrow or high priority, as a number or a dot; the overdue color is configurable</li><li><strong>Panel tooltip</strong>: choose what it summarizes, from open tasks to all views</li><li><strong>Join button</strong> for <code>http(s)</code> meeting links, in the row and in the editor</li><li><strong>Reminders</strong> can stay quiet while a calendar event is running</li></ul><ul lang="de"><li><strong>Panel-Badge</strong>: offene Aufgaben, Aufgaben für morgen oder mit hoher Priorität, als Zahl oder Punkt; die Farbe für Überfälliges ist einstellbar</li><li><strong>Panel-Tooltip</strong>: wähle, was er zusammenfasst, von offenen Aufgaben bis zu allen Ansichten</li><li><strong>Beitreten-Knopf</strong> für <code>http(s)</code>-Meeting-Links, in der Zeile und im Editor</li><li><strong>Erinnerungen</strong> können still bleiben, solange ein Kalendertermin läuft</li></ul>
 </section>
-
-<section class="section">
-  <h2>Prerequisites</h2>
-  <ul>
-    <li>KDE Plasma 6</li>
-    <li>Akonadi with a task-capable calendar (DAV groupware / Nextcloud VTODO)</li>
-    <li>The installer handles build dependencies on Arch, Fedora, Debian/Ubuntu, and openSUSE</li>
-  </ul>
+<section class="section" id="how">
+  <h2 lang="en">How it works</h2><h2 lang="de">So funktioniert es</h2>
+  <p lang="en">Akonadi stays the source of truth. Every change goes through Akonadi jobs, and the widget only keeps an optimistic cache in front of it. There is no second task database.</p><p lang="de">Akonadi bleibt die Quelle der Wahrheit. Jede Änderung läuft über Akonadi-Jobs, und das Widget hält nur einen optimistischen Cache davor. Es gibt keine zweite Aufgabendatenbank.</p>
+  <div class="flow"><div class="flow-node hl"><b>Kurrent widget</b><span><span lang="en">Plasma UI in QML and Kirigami, panel and desktop</span><span lang="de">Plasma-Oberfläche in QML und Kirigami, Panel und Desktop</span></span></div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-node"><b>libkurrentplugin.so</b><span><span lang="en">Compiled QML plugin; creates, edits and moves tasks as Akonadi jobs</span><span lang="de">Kompiliertes QML-Plugin; legt Aufgaben an, ändert und verschiebt sie als Akonadi-Jobs</span></span></div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-node"><b>Akonadi</b><span><span lang="en">KDE PIM storage, shared with KOrganizer and Merkuro</span><span lang="de">KDE-PIM-Speicher, geteilt mit KOrganizer und Merkuro</span></span></div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-node"><b>Your accounts</b><span><span lang="en">Any resource Akonadi supports, with task (VTODO) collections</span><span lang="de">Jede Ressource, die Akonadi unterstützt, mit Aufgabensammlungen (VTODO)</span></span></div></div>
+  <ul lang="en"><li>Changes show up at once and are rolled back if Akonadi refuses them</li><li>A banner shows when Akonadi is offline (red) or syncing (yellow)</li><li>Merge conflicts open a wizard that walks through one field at a time</li><li>If widget and plugin versions differ, a warning explains how to reinstall</li></ul><ul lang="de"><li>Änderungen erscheinen sofort und werden zurückgenommen, wenn Akonadi sie ablehnt</li><li>Ein Banner zeigt, wenn Akonadi offline (rot) oder am Synchronisieren (gelb) ist</li><li>Bei Merge-Konflikten führt ein Assistent Feld für Feld durch die Auflösung</li><li>Weichen Widget- und Plugin-Version voneinander ab, erklärt eine Warnung die Neuinstallation</li></ul>
 </section>
-
-<section class="section">
-  <h2>How it works</h2>
-  <ul>
-    <li>Run the one-liner above — it downloads a prebuilt plugin from the latest GitHub Release into <code>~/.local</code></li>
-    <li>Add the <strong>Kurrent</strong> widget to your panel or desktop</li>
-    <li>Tasks come from your existing Akonadi collections — configure CalDAV in Merkuro or KOrganizer</li>
-    <li>The KDE Store <code>.plasmoid</code> is UI only — the install script adds the Akonadi backend plugin</li>
-  </ul>
+<section class="section" id="install">
+  <h2 lang="en">Install</h2><h2 lang="de">Installation</h2>
+  <ol class="steps" lang="en"><li>Set up your calendar in <strong>KOrganizer</strong> or <strong>Merkuro</strong>: add a resource for your account, such as a <strong>DAV groupware resource</strong> or any other type Akonadi supports, enter its connection details, and enable the task (VTODO) collections. Check with <code>akonadictl status</code>.</li><li>Run the one-liner from the box above. It downloads the prebuilt plugin and the widget from the latest release into <code>~/.local</code>.</li><li>Add the <strong>Kurrent</strong> widget to your panel or desktop.</li></ol><ol class="steps" lang="de"><li>Richte deinen Kalender in <strong>KOrganizer</strong> oder <strong>Merkuro</strong> ein: eine Ressource für dein Konto hinzufügen, etwa eine <strong>DAV-Groupware-Ressource</strong> oder einen anderen von Akonadi unterstützten Typ, die Verbindungsdaten eintragen und die Aufgabensammlungen (VTODO) aktivieren. Prüfen mit <code>akonadictl status</code>.</li><li>Führe den Einzeiler aus der Box oben aus. Er lädt das fertige Plugin und das Widget aus dem neuesten Release nach <code>~/.local</code>.</li><li>Füge das Widget <strong>Kurrent</strong> zu deinem Panel oder Desktop hinzu.</li></ol>
+  <p lang="en">Options for the installer: <code>--tag v0.4</code> pins a release, <code>--from-source</code> compiles instead of using the Arch-built plugin, <code>--no-deps</code> skips distro packages. It checks for Plasma 6, Qt 6 and KF6 first and knows package lists for Arch, Fedora/RHEL, Debian/Ubuntu and openSUSE.</p><p lang="de">Optionen des Installers: <code>--tag v0.4</code> pinnt ein Release, <code>--from-source</code> kompiliert statt des auf Arch gebauten Plugins, <code>--no-deps</code> überspringt Distributionspakete. Er prüft zuerst Plasma 6, Qt 6 und KF6 und kennt Paketlisten für Arch, Fedora/RHEL, Debian/Ubuntu und openSUSE.</p>
 </section>
+<section class="section" id="config">
+  <h2 lang="en">Configuration</h2><h2 lang="de">Konfiguration</h2>
+  <p lang="en">Right-click the widget and choose <strong>Configure Kurrent</strong>. Settings apply to every Kurrent instance and live in <code>~/.config/com.github.shrippen.kurrent/kurrentrc</code>.</p><p lang="de">Rechtsklick auf das Widget und <strong>Kurrent einrichten</strong>. Die Einstellungen gelten für jede Kurrent-Instanz und liegen in <code>~/.config/com.github.shrippen.kurrent/kurrentrc</code>.</p>
+  <div class="table-wrap"><table class="table"><thead><tr><th><span lang="en">Page</span><span lang="de">Seite</span></th><th><span lang="en">What you set</span><span lang="de">Was du einstellst</span></th></tr></thead><tbody><tr><td><span lang="en">General</span><span lang="de">Allgemein</span></td><td><span lang="en">Default view and completed tasks</span><span lang="de">Standardansicht und erledigte Aufgaben</span></td></tr><tr><td><span lang="en">Appearance</span><span lang="de">Darstellung</span></td><td><span lang="en">Blurred wallpaper background via Plasma</span><span lang="de">Verschwommener Hintergrund über Plasma</span></td></tr><tr><td><span lang="en">Sidebar</span><span lang="de">Seitenleiste</span></td><td><span lang="en">Row size, order and visibility</span><span lang="de">Zeilengröße, Reihenfolge und Sichtbarkeit</span></td></tr><tr><td><span lang="en">Tasks</span><span lang="de">Aufgaben</span></td><td><span lang="en">Sorting (global or per view) and the default project for new tasks</span><span lang="de">Sortierung (global oder pro Ansicht) und Standardprojekt für neue Aufgaben</span></td></tr><tr><td><span lang="en">Views</span><span lang="de">Ansichten</span></td><td><span lang="en">Smart Views, Kanban, Swimlanes and Project plan</span><span lang="de">Smart Views, Kanban, Swimlanes und Projektplan</span></td></tr><tr><td><span lang="en">Panel</span><span lang="de">Panel</span></td><td><span lang="en">Badge mode, dot or number, tooltip</span><span lang="de">Badge-Modus, Punkt oder Zahl, Tooltip</span></td></tr><tr><td><span lang="en">Notifications</span><span lang="de">Benachrichtigungen</span></td><td><span lang="en">Reminders, quiet during calendar events</span><span lang="de">Erinnerungen, still bei Kalenderterminen</span></td></tr><tr><td><span lang="en">Projects and Labels</span><span lang="de">Projekte und Labels</span></td><td><span lang="en">Which calendars and labels are enabled or hidden</span><span lang="de">Welche Kalender und Labels aktiv oder verborgen sind</span></td></tr></tbody></table></div>
+</section>
+<section class="section" id="faq">
+  <h2 lang="en">Questions</h2><h2 lang="de">Fragen</h2>
+  <div class="faq"><details><summary><span lang="en">Why is the KDE Store package not enough?</span><span lang="de">Warum reicht das Paket aus dem KDE Store nicht?</span></summary><div><p lang="en">The <code>.plasmoid</code> from the Store is only the widget UI. The Akonadi backend is a compiled plugin, <code>libkurrentplugin.so</code>, which the Store cannot ship. Without it Kurrent shows how to get the plugin instead of a QML error.</p><p lang="de">Das <code>.plasmoid</code> aus dem Store enthält nur die Widget-Oberfläche. Das Akonadi-Backend ist ein kompiliertes Plugin, <code>libkurrentplugin.so</code>, das der Store nicht ausliefern kann. Ohne es zeigt Kurrent, wie du das Plugin bekommst, statt eines QML-Fehlers.</p><p lang="en">“Get New Widgets” updates only the UI. After a Store update, run the one-liner again; until then a version mismatch warning appears.</p><p lang="de">„Neue Widgets holen“ aktualisiert nur die Oberfläche. Führe nach einem Store-Update den Einzeiler erneut aus; bis dahin erscheint eine Warnung zur Versionsabweichung.</p></div></details><details><summary><span lang="en">Does Kurrent have its own login or database?</span><span lang="de">Hat Kurrent ein eigenes Login oder eine eigene Datenbank?</span></summary><div><p lang="en">No. Kurrent reads and writes the calendars you already set up in KDE PIM. There is no separate login and no parallel task database.</p><p lang="de">Nein. Kurrent liest und schreibt die Kalender, die du in KDE PIM schon eingerichtet hast. Es gibt kein separates Login und keine parallele Aufgabendatenbank.</p></div></details><details><summary><span lang="en">Does it work on immutable distros?</span><span lang="de">Funktioniert es auf unveränderlichen Distributionen?</span></summary><div><p lang="en">Yes, with an extra step. On Fedora Atomic layer the dependencies with <code>rpm-ostree install</code>, reboot and run the installer with <code>--no-deps</code>; on openSUSE MicroOS use <code>transactional-update pkg install</code> first. Or run the installer inside Toolbx or Distrobox. Kurrent itself installs under <code>~/.local</code>, which survives reboots.</p><p lang="de">Ja, mit einem Zusatzschritt. Unter Fedora Atomic installierst du die Abhängigkeiten mit <code>rpm-ostree install</code>, startest neu und führst den Installer mit <code>--no-deps</code> aus; unter openSUSE MicroOS zuerst <code>transactional-update pkg install</code>. Oder starte den Installer in Toolbx oder Distrobox. Kurrent selbst landet in <code>~/.local</code>, das Neustarts übersteht.</p></div></details><details><summary><span lang="en">Which distributions are supported?</span><span lang="de">Welche Distributionen werden unterstützt?</span></summary><div><p lang="en">The prebuilt plugin is built on Arch Linux and linked against its Plasma 6 and KDE PIM. On other distributions the installer compiles from source. AUR and COPR packages are planned.</p><p lang="de">Das fertige Plugin ist auf Arch Linux gebaut und gegen dessen Plasma 6 und KDE PIM gelinkt. Auf anderen Distributionen kompiliert der Installer aus dem Quellcode. Pakete für AUR und COPR sind geplant.</p></div></details></div>
+</section>
+<section class="section" id="roadmap">
+  <h2 lang="en">Roadmap</h2><h2 lang="de">Roadmap</h2>
+  <p lang="en">Toward 1.0: distribution packages (AUR and COPR, then OBS and Debian if cheap), keyboard-first use, an undo control in the header and more polish. Out of scope for 1.0: Markdown notes, attachments, a login of its own and accounts without Akonadi.</p><p lang="de">Auf dem Weg zu 1.0: Distributionspakete (AUR und COPR, danach OBS und Debian, wenn es wenig kostet), Bedienung per Tastatur, ein Rückgängig-Knopf im Kopf und mehr Feinschliff. Nicht Teil von 1.0: Markdown-Notizen, Anhänge, ein eigenes Login und Konten ohne Akonadi.</p><p lang="en">Details in <a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">ROADMAP.md</a> and the <a href="https://github.com/shrippen/Kurrent/blob/main/CHANGELOG.md">changelog</a>.</p><p lang="de">Details in der <a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">ROADMAP.md</a> und im <a href="https://github.com/shrippen/Kurrent/blob/main/CHANGELOG.md">Changelog</a>.</p>
+</section>
+</main>
 
-<footer>
-  <p>GPL-3.0-or-later · Made by <a href="https://github.com/shrippen">shrippen</a> · <a href="https://github.com/shrippen/Kurrent/issues">Issues</a></p>
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <img src="icon.svg" alt="">
+      <div><span class="foot-name">Kurrent</span><span class="foot-tag"><span lang="en">A KDE Plasma 6 task manager</span><span lang="de">Ein KDE-Plasma-6-Aufgabenmanager</span></span></div>
+    </div>
+    <nav class="foot-cols" aria-label="Footer">
+      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#views"><span lang="en">Views</span><span lang="de">Ansichten</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a></div>
+      <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Kurrent">GitHub</a><a href="https://github.com/shrippen/Kurrent/issues">Issues</a><a href="https://github.com/shrippen/Kurrent/releases">Releases</a></div>
+    </nav>
+  </div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v0.4.0</p></div>
 </footer>
 
-<script>
-function copyCmd(){
-  var t=document.getElementById('cmd').textContent;
-  navigator.clipboard.writeText(t).then(function(){
-    var b=document.getElementById('copyBtn');
-    b.classList.add('copied');b.innerHTML='✓';
-    setTimeout(function(){b.classList.remove('copied');
-      b.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-    },1500);
-  });
-}
-</script>
 </body>
 </html>

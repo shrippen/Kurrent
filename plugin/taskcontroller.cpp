@@ -431,6 +431,15 @@ int TaskController::testTaskSecrecy(qint64 id) const
     return static_cast<int>(it->todo->secrecy());
 }
 
+QDateTime TaskController::testTaskDue(qint64 id) const
+{
+    const auto it = s_tasks.constFind(id);
+    if (it == s_tasks.cend() || !it->todo || !it->todo->hasDueDate()) {
+        return {};
+    }
+    return it->todo->dtDue();
+}
+
 QString TaskController::testTaskLocation(qint64 id) const
 {
     const auto it = s_tasks.constFind(id);
@@ -622,6 +631,7 @@ void TaskController::setCurrentView(const QString &view)
     }
     m_currentView = view;
     clearTaskSelection();
+    clearMatrixDrilldown();
     scheduleRebuild();
     Q_EMIT currentViewChanged();
 }
@@ -769,6 +779,9 @@ void TaskController::setMainPaneMode(const QString &mode)
         return;
     }
     m_mainPaneMode = normalized;
+    if (normalized != TaskLogic::MainPaneMode::List) {
+        clearMatrixDrilldown();
+    }
     Q_EMIT mainPaneModeChanged();
 }
 
@@ -821,11 +834,21 @@ void TaskController::setSwimlaneLaneAxis(const QString &axis)
 
 void TaskController::setSwimlaneTimeBucket(const QString &bucket)
 {
-    const QString normalized = bucket.isEmpty() ? QStringLiteral("day") : bucket;
+    const QString normalized = bucket.isEmpty() ? QStringLiteral("week") : bucket;
     if (m_swimlaneTimeBucket == normalized) {
         return;
     }
     m_swimlaneTimeBucket = normalized;
+    Q_EMIT swimlaneSettingsChanged();
+}
+
+void TaskController::setSwimlaneHorizon(int horizon)
+{
+    horizon = qBound(0, horizon, 366);
+    if (m_swimlaneHorizon == horizon) {
+        return;
+    }
+    m_swimlaneHorizon = horizon;
     Q_EMIT swimlaneSettingsChanged();
 }
 
@@ -1532,7 +1555,84 @@ QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
     for (int i = 0; i < m_taskModel.count(); ++i) {
         tasks.append(m_taskModel.taskAt(i));
     }
-    return TaskLogic::buildSwimlaneMatrix(tasks, m_swimlaneLaneAxis, m_swimlaneTimeBucket, QDate::currentDate());
+
+    // Preferred lane order; with `includeAllRows` these lanes stay visible as (empty) drop targets.
+    QStringList order;
+    if (m_swimlaneLaneAxis == QLatin1String("priority")) {
+        order = {QString::number(TaskLogic::PriorityBand::High), QString::number(TaskLogic::PriorityBand::Medium),
+                 QString::number(TaskLogic::PriorityBand::Low), QString::number(TaskLogic::PriorityBand::None)};
+    } else if (m_swimlaneLaneAxis == QLatin1String("label")) {
+        QStringList labels = m_availableLabels;
+        labels.removeAll(QString());
+        labels.removeDuplicates();
+        std::sort(labels.begin(), labels.end(), [](const QString &a, const QString &b) {
+            return QString::localeAwareCompare(a, b) < 0;
+        });
+        order = labels;
+        order.append(QStringLiteral("none"));
+    } else if (m_swimlaneLaneAxis == QLatin1String("project")) {
+        order = projectLaneOrder();
+    }
+
+    QVariantMap result = TaskLogic::buildSwimlaneMatrix(tasks, m_swimlaneLaneAxis, m_swimlaneTimeBucket,
+                                                        m_swimlaneHorizon, order, QDate::currentDate());
+
+    QVariantMap labels;
+    QVariantMap taskMap;
+    for (const TaskEntry &task : std::as_const(tasks)) {
+        taskMap.insert(QString::number(task.itemId), taskEntryToVariantMap(task));
+    }
+    QStringList lanes = result.value(QStringLiteral("lanes")).toStringList();
+    if (m_swimlaneLaneAxis == QLatin1String("project")) {
+        for (const QString &lane : std::as_const(lanes)) {
+            labels.insert(lane, lane == QLatin1String("inbox") ? tr("Inbox") : m_collectionNames.value(lane.toLongLong(), lane));
+        }
+    } else if (m_swimlaneLaneAxis == QLatin1String("parent")) {
+        QHash<QString, QString> summaries;
+        for (const TaskEntry &task : std::as_const(tasks)) {
+            summaries.insert(task.uid, task.summary);
+        }
+        for (const QString &lane : std::as_const(lanes)) {
+            QString name = summaries.value(lane);
+            if (name.isEmpty() && lane != QLatin1String("none")) {
+                for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+                    if (it->todo && it->todo->uid() == lane) {
+                        name = it->todo->summary();
+                        break;
+                    }
+                }
+            }
+            labels.insert(lane, name.isEmpty() ? lane : name);
+        }
+        std::sort(lanes.begin(), lanes.end(), [&labels](const QString &a, const QString &b) {
+            if (a == QLatin1String("none") || b == QLatin1String("none")) {
+                return b == QLatin1String("none") && a != b;
+            }
+            return QString::localeAwareCompare(labels.value(a).toString(), labels.value(b).toString()) < 0;
+        });
+        result.insert(QStringLiteral("lanes"), lanes);
+    }
+    result.insert(QStringLiteral("laneLabels"), labels);
+    result.insert(QStringLiteral("tasks"), taskMap);
+    return result;
+}
+
+QStringList TaskController::projectLaneOrder() const
+{
+    QList<QPair<QString, QString>> named;
+    for (auto it = m_collectionNames.cbegin(); it != m_collectionNames.cend(); ++it) {
+        if (it.key() > 0 && CollectionListModel::isTaskWritable(collectionById(it.key()))) {
+            named.append({QString::number(it.key()), it.value()});
+        }
+    }
+    std::sort(named.begin(), named.end(), [](const QPair<QString, QString> &a, const QPair<QString, QString> &b) {
+        return QString::localeAwareCompare(a.second, b.second) < 0;
+    });
+    QStringList order;
+    for (const auto &entry : std::as_const(named)) {
+        order.append(entry.first);
+    }
+    return order;
 }
 
 QVariantMap TaskController::planMatrixGridForVisibleTasks() const
@@ -1542,53 +1642,152 @@ QVariantMap TaskController::planMatrixGridForVisibleTasks() const
     for (int i = 0; i < m_taskModel.count(); ++i) {
         tasks.append(m_taskModel.taskAt(i));
     }
-    return TaskLogic::buildPlanMatrixGrid(tasks, m_planTimeBucket, m_planHorizon, m_planShowUndated, m_planShowCompleted, QDate::currentDate());
-}
-
-QStringList TaskController::busyDayStripForVisibleTasks() const
-{
-    QList<TaskEntry> tasks;
-    tasks.reserve(m_taskModel.count());
-    for (int i = 0; i < m_taskModel.count(); ++i) {
-        tasks.append(m_taskModel.taskAt(i));
+    QStringList order = projectLaneOrder();
+    order.prepend(QStringLiteral("inbox"));
+    QVariantMap result = TaskLogic::buildPlanMatrixGrid(tasks, m_planTimeBucket, m_planHorizon, m_planShowUndated,
+                                                        m_planShowCompleted, order, QDate::currentDate());
+    QVariantMap labels;
+    const QStringList rows = result.value(QStringLiteral("projects")).toStringList();
+    for (const QString &row : rows) {
+        labels.insert(row, row == QLatin1String("inbox") ? tr("Inbox") : m_collectionNames.value(row.toLongLong(), row));
     }
-    return TaskLogic::busyDayKeys(tasks, QDate::currentDate());
+    result.insert(QStringLiteral("laneLabels"), labels);
+    return result;
 }
 
-QString TaskController::swimlaneLaneLabelForKey(const QString &key) const
+void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey, const QString &timeKey)
 {
-    if (m_swimlaneLaneAxis == QLatin1String("project")) {
-        if (key == QLatin1String("inbox")) {
-            return tr("Inbox");
-        }
-        const qint64 id = key.toLongLong();
-        if (id > 0) {
-            return m_collectionNames.value(id, key);
-        }
-    }
-    return TaskLogic::swimlaneLaneLabel(key, m_swimlaneLaneAxis);
-}
-
-QString TaskController::swimlaneTimeLabelForKey(const QString &key) const
-{
-    return TaskLogic::swimlaneTimeLabel(key, m_swimlaneTimeBucket);
-}
-
-void TaskController::setPlanPreviewFilter(qint64 collectionId, const QString &weekKey)
-{
-    m_planPreviewProject = collectionId >= 0 ? QString::number(collectionId) : QStringLiteral("inbox");
-    m_planPreviewWeek = weekKey;
-    scheduleRebuild();
-}
-
-void TaskController::clearPlanPreviewFilter()
-{
-    if (m_planPreviewWeek.isEmpty()) {
+    if (itemId < 0 || laneKey.isEmpty() || timeKey.isEmpty()) {
         return;
     }
-    m_planPreviewWeek.clear();
-    m_planPreviewProject.clear();
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache || !cache->todo) {
+        return;
+    }
+
+    const QDate today = QDate::currentDate();
+    const int horizon = TaskLogic::matrixHorizon(m_swimlaneTimeBucket, m_swimlaneHorizon, true);
+    const TaskEntry before = makeTaskEntry(*cache, 0, false);
+    QSet<QString> parents;
+    if (m_swimlaneLaneAxis == QLatin1String("parent")) {
+        QList<TaskEntry> all;
+        for (int i = 0; i < m_taskModel.count(); ++i) {
+            all.append(m_taskModel.taskAt(i));
+        }
+        parents = TaskLogic::parentUidSet(all);
+    }
+    const bool laneChanged = laneKey != TaskLogic::swimlaneLaneKey(before, m_swimlaneLaneAxis, &parents);
+    const bool timeChanged = timeKey != TaskLogic::matrixTimeKey(before, m_swimlaneTimeBucket, horizon, today);
+    if (!laneChanged && !timeChanged) {
+        return;
+    }
+    if (timeChanged && (timeKey == QLatin1String("overdue") || timeKey == QLatin1String("later"))) {
+        setErrorMessage(tr("Drop tasks onto a specific period, not onto Overdue or Later."));
+        Q_EMIT error(m_errorMessage);
+        return;
+    }
+
+    const TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+    KCalendarCore::Todo::Ptr todo = cache->todo;
+    qint64 moveToCollection = -1;
+    bool changed = false;
+
+    m_batchUndo = true;
+    if (laneChanged) {
+        if (m_swimlaneLaneAxis == QLatin1String("label")) {
+            if (laneKey == QLatin1String("none")) {
+                todo->setCategories(QStringList());
+            } else {
+                QStringList cats = before.categories;
+                cats.removeAll(laneKey);
+                cats.prepend(laneKey);
+                todo->setCategories(cats);
+            }
+            changed = true;
+        } else if (m_swimlaneLaneAxis == QLatin1String("priority")) {
+            todo->setPriority(laneKey.toInt());
+            changed = true;
+        } else if (m_swimlaneLaneAxis == QLatin1String("parent")) {
+            if (!applyParentUid(cache, laneKey == QLatin1String("none") ? QString() : laneKey,
+                                cache->item.parentCollection().id())) {
+                m_batchUndo = false;
+                return;
+            }
+            changed = true;
+        } else if (laneKey != QLatin1String("inbox")) {
+            moveToCollection = laneKey.toLongLong();
+        }
+    }
+    if (timeChanged) {
+        if (timeKey == QLatin1String("unscheduled")) {
+            if (todo->hasDueDate()) {
+                todo->setDtDue(QDateTime());
+                changed = true;
+            }
+        } else {
+            const QDateTime next = TaskLogic::dueForBucketDrop(before.dueDate, timeKey, m_swimlaneTimeBucket, today);
+            if (next.isValid()) {
+                todo->setDtDue(next);
+                if (!before.dueDate.isValid()) {
+                    todo->setAllDay(true);
+                }
+                changed = true;
+            }
+        }
+    }
+    if (changed) {
+        persistTodo(cache->item, todo);
+    }
+    if (moveToCollection > 0) {
+        moveTaskToCollection(itemId, moveToCollection);
+        changed = true;
+    }
+    m_batchUndo = false;
+
+    if (changed) {
+        pushUndo(record);
+    }
+}
+
+void TaskController::setMatrixDrilldown(const QString &source, const QString &laneKey,
+                                        const QString &timeKey, const QString &label)
+{
+    if (source == QLatin1String("plan")) {
+        m_matrixDrillAxis = QStringLiteral("project");
+        m_matrixDrillBucket = m_planTimeBucket;
+        m_matrixDrillHorizon = TaskLogic::matrixHorizon(m_planTimeBucket, m_planHorizon, false);
+        m_matrixDrillIncludeCompleted = m_planShowCompleted;
+    } else {
+        m_matrixDrillAxis = m_swimlaneLaneAxis;
+        m_matrixDrillBucket = m_swimlaneTimeBucket;
+        m_matrixDrillHorizon = TaskLogic::matrixHorizon(m_swimlaneTimeBucket, m_swimlaneHorizon, true);
+        m_matrixDrillIncludeCompleted = true;
+    }
+    m_matrixDrillSource = source;
+    m_matrixDrillLane = laneKey;
+    m_matrixDrillTime = timeKey;
+    m_matrixDrillLabel = label;
+    m_matrixDrillActive = true;
     scheduleRebuild();
+    Q_EMIT matrixDrillChanged();
+}
+
+void TaskController::clearMatrixDrilldown()
+{
+    if (!m_matrixDrillActive) {
+        return;
+    }
+    m_matrixDrillActive = false;
+    m_matrixDrillLane.clear();
+    m_matrixDrillTime.clear();
+    m_matrixDrillLabel.clear();
+    scheduleRebuild();
+    Q_EMIT matrixDrillChanged();
+}
+
+void TaskController::requestMainPaneMode(const QString &mode)
+{
+    Q_EMIT mainPaneModeRequested(mode);
 }
 
 QVariantMap TaskController::heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const
@@ -4479,8 +4678,13 @@ TaskLogic::TaskRebuildInput TaskController::buildRebuildInput(const QList<TaskEn
     input.sortMode = m_sortMode;
     input.listGroupMode = m_listGroupMode;
     input.listGroupOrder = buildListGroupOrderContext();
-    input.planPreviewWeek = m_planPreviewWeek;
-    input.planPreviewProject = m_planPreviewProject;
+    input.matrixDrillActive = m_matrixDrillActive;
+    input.matrixDrillAxis = m_matrixDrillAxis;
+    input.matrixDrillLane = m_matrixDrillLane;
+    input.matrixDrillBucket = m_matrixDrillBucket;
+    input.matrixDrillHorizon = m_matrixDrillHorizon;
+    input.matrixDrillTime = m_matrixDrillTime;
+    input.matrixDrillIncludeCompleted = m_matrixDrillIncludeCompleted;
     input.hierarchyAware = m_currentView == QLatin1String("completed")
             || !m_searchQuery.trimmed().isEmpty()
             || TaskLogic::hasSidebarFilters(input.filters);

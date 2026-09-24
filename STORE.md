@@ -4,13 +4,13 @@ Copy into [KDE Store](https://store.kde.org/). Details: [github.com/shrippen/Kur
 
 ## Short description
 
-Plasma 6 task widget (Akonadi / Nextcloud CalDAV). Store package = UI only — install the backend from GitHub.
+Plasma 6 task widget (works with any Akonadi resource). Store package = UI only — install the backend from GitHub.
 
 ## Long description
 
 **The `.plasmoid` zip is not enough.** Kurrent needs a compiled Akonadi plugin (`libkurrentplugin.so`) that is **not** included in the Store package. Without it you see “backend not installed”.
 
-**Requirements:** KDE Plasma 6, Akonadi with VTODO (Merkuro/KOrganizer + CalDAV).
+**Requirements:** KDE Plasma 6, Akonadi with a resource that provides VTODO task collections (set up in Merkuro/KOrganizer).
 
 **Install (UI + plugin):**
 
