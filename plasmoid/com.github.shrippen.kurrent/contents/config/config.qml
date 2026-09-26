@@ -1,8 +1,22 @@
 import QtQuick
 import org.kde.plasma.configuration 2.0
-import "DevBuildMarker.qml" as DevBuild
 
 ConfigModel {
+    // DevBuildMarker.qml is generated at build time; without it (plain source tree) this is a
+    // release build. Loaded by URL so a missing file cannot break the whole config dialog.
+    readonly property bool isDevBuild: {
+        var c = Qt.createComponent(Qt.resolvedUrl("DevBuildMarker.qml"))
+        if (c.status !== Component.Ready) {
+            return false
+        }
+        var marker = c.createObject(null)
+        var dev = !!(marker && marker.isDevBuild)
+        if (marker) {
+            marker.destroy()
+        }
+        return dev
+    }
+
     ConfigCategory {
         name: i18n("General")
         icon: "configure"
@@ -62,6 +76,6 @@ ConfigModel {
         name: i18n("Diagnostics")
         icon: "tools-report-bug"
         source: "configDiagnostics.qml"
-        visible: DevBuild.isDevBuild
+        visible: isDevBuild
     }
 }
