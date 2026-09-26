@@ -16,7 +16,7 @@
 - Quick Add tokens render as **tinted pills**.
 
 #### Tiles and inspector (redesign direction B)
-- **Tiles** above the task pane (wide layout): Overdue, Today, Tomorrow, Scheduled, Completed with counts and tone bars; a click switches the view. Setting: Appearance › Wide layout.
+- **Tiles** above the task pane (wide layout): Overdue, Today, Tomorrow, Scheduled, Completed with counts and tone bars; a click switches the view. Per view: the heatmap shows its figures (total, per day, best day, overdue) in the tiles instead of a second row. Setting: Appearance › Wide layout.
 - **Inspector** beside the task pane (wide layout): a click on a task in the list, Kanban or Swimlanes shows project/labels, status, properties, subtasks with progress and notes, with Done / Tomorrow / Next week / Editor actions. Double click still opens the full editor. It follows edits live and closes when the task disappears. Setting: Appearance › Wide layout.
 - Backend: `taskSnapshotById()` and `childTasks()`; task snapshots now include all-day, recurrence preset and reminder, so the full editor opens correctly from Kanban cards and the inspector.
 
@@ -56,7 +56,8 @@
 - Weekend columns are computed once per matrix instead of per cell.
 
 ### Fixed
-- Switching away from Kante left invisible text (Kante module: the theme scope now rebinds to the parent theme instead of resetting, and never detaches the theme).
+- Switching away from Kante left invisible text (Kante module: after Kante the theme scope stays detached with colours bound live to the parent theme instead of resetting and re-attaching).
+- View switches slid the leaving view under the sidebar (the task pane lost its clip when the inspector landed).
 - Narrow layout: the view tab bar collapsed to 0 px (height binding loop).
 - Kante: hovering the selected sidebar row turned the accent fill muddy brown; "All" chips had light text on the accent fill; priority flags vanished from the editor's priority options.
 - The "today" reschedule preset (used when dropping a card into the Kanban "Today" column) left the due date unchanged.

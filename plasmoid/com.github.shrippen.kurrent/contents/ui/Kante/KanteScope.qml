@@ -35,12 +35,12 @@ Item {
         negativeTextColor: "negativeTextColor"
     })
 
-    // Kante: bind the roles. Otherwise bind each color live to the parent's theme, which
-    // behaves like inheriting and follows later platform theme changes (a Binding restore
-    // would freeze the old colors). Not a reset: under the Plasma theme, assigning undefined
-    // stores an invalid custom color (#00000000) and all text below turns invisible.
-    // The target is never detached (inherit stays true): a detached theme leaves the
-    // children on its own colour table, which the reset left empty.
+    // Kante: detach the target and bind the roles (under the Plasma theme custom colors on an
+    // inheriting theme do not reach the items below). Leaving Kante: stay detached and bind
+    // each color live to the parent's theme, which behaves like inheriting and follows later
+    // platform theme changes. Not a reset plus re-attach: under the Plasma theme undefined
+    // stores an invalid color (#00000000), and re-attaching leaves the children on the old
+    // colour table, so all text below turned invisible.
     function apply() {
         if (!theme || KanteStyle.materialStyle || KanteStyle.themed === applied) {
             return
@@ -48,6 +48,7 @@ Item {
         for (var prop in roles) {
             theme[prop] = Qt.binding(KanteStyle.themed ? roleBinding(roles[prop]) : parentBinding(prop))
         }
+        theme.inherit = false
         applied = KanteStyle.themed
     }
 

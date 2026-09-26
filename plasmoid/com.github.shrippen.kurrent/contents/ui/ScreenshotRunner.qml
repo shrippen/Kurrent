@@ -56,6 +56,8 @@ Item {
         var widths = planValue("widths", allWidths).map(Number)
         var editor = planValue("editor", ["1"])[0] === "1"
         var inspector = planValue("inspector", ["1"])[0] === "1"
+        // Mid-animation frame of a view switch (list -> kanban), to see what slides where.
+        var transition = planValue("transition", ["0"])[0] === "1"
         var q = []
         q.push({ act: "expand" })
         for (var w = 0; w < widths.length; ++w) {
@@ -65,6 +67,11 @@ Item {
                 for (var m = 0; m < modes.length; ++m) {
                     q.push({ act: "mode", value: modes[m] })
                     q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-" + modes[m] })
+                }
+                if (transition) {
+                    q.push({ act: "mode", value: "list" })
+                    q.push({ act: "modeMid", value: "kanban" })
+                    q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-transition" })
                 }
                 if (inspector) {
                     q.push({ act: "mode", value: "list" })
@@ -108,6 +115,10 @@ Item {
             wait = 1200
             break
         }
+        case "modeMid":
+            plasmoidRoot.setMainPaneMode(item.value)
+            wait = 110
+            break
         case "style":
             // Through the configuration: main.qml re-applies Design from it on every config
             // change (e.g. the next view-mode switch), so an in-memory value would not stick.

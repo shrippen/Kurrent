@@ -1803,9 +1803,13 @@ Item {
 
             // Direction B: key views as tiles (wide layout).
             ViewTiles {
+                id: viewTiles
                 Layout.fillWidth: true
                 visible: KurrentUi.Design.showViewTiles && !fullRoot.compactLayout && !!backend
                 controller: backend
+                // Per view: the heatmap shows its own figures here instead of the view tiles.
+                facts: backend && backend.mainPaneMode === KurrentUi.Design.viewModeHeatmap
+                       ? mainPaneHost.heatmapTileFacts : null
                 onViewPicked: function(viewId) { fullRoot.pickView(viewId) }
             }
 
@@ -1850,8 +1854,6 @@ Item {
 
             MainPaneHost {
                 id: mainPaneHost
-                // Wide views (Kanban, matrices) must not paint under the inspector beside them.
-                clip: fullRoot.inspectorActive && fullRoot.inspectedItemId >= 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredHeight: 0
@@ -1863,6 +1865,7 @@ Item {
                 newTaskProjectMode: Plasmoid.configuration.newTaskProjectMode || "ask"
                 newTaskDefaultCollectionId: Plasmoid.configuration.newTaskDefaultCollectionId || ""
                 multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
+                heatmapFactsInTiles: viewTiles.visible
                 onOpenFullEditor: function(taskObj) { fullRoot.openFullEditor(taskObj) }
             }
 

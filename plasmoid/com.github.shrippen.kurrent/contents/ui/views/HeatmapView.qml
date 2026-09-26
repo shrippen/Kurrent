@@ -12,6 +12,8 @@ ColumnLayout {
     id: root
 
     required property TaskController controller
+    // The tiles above the pane show the figures (FullView); then the own row stays hidden.
+    property bool factsInTiles: false
     property bool interactionsSuspended: false
 
     implicitHeight: 0
@@ -299,9 +301,22 @@ ColumnLayout {
         }
     }
 
+    // Same figures as tiles for the row above the pane (FullView / ViewTiles).
+    readonly property var tileFacts: [
+        { label: heatmapMode === "completed" ? i18n("Completed") : i18n("Due"),
+          value: String(periodFacts.total), tone: KanteStyle.positiveTextColor },
+        { label: i18n("Per day"), value: periodFacts.perDay.toLocaleString(Qt.locale(), "f", 1),
+          tone: KanteStyle.infoColor },
+        { label: periodFacts.bestCount > 0 ? i18n("Best day · %1", periodFacts.bestLabel) : i18n("Best day"),
+          value: periodFacts.bestCount > 0 ? String(periodFacts.bestCount) : "–", tone: KanteStyle.accentColor },
+        { label: i18n("Overdue"), viewId: "overdue", tone: KanteStyle.negativeTextColor,
+          value: String(controller && controller.viewTaskCounts ? (controller.viewTaskCounts["overdue"] || 0) : 0) }
+    ]
+
     // ── Facts: total · per day · best day (Kante: big Rajdhani figures) ─────
     RowLayout {
         Layout.fillWidth: true
+        visible: !root.factsInTiles
         spacing: Design.spaceMedium
 
         Repeater {
