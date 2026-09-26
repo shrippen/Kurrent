@@ -73,6 +73,21 @@ Item {
         return out
     }
     readonly property int visibleSectionCount: visibleSectionIdList.length
+    // Why sections left out above are gone in this view, e.g. "Projects are already swimlane rows." (g7).
+    readonly property var hiddenSectionReasons: {
+        var base = controller
+                ? controller.visibleOrderedKeys(sectionOrder, hiddenSections, sectionDefaults, ",", "||")
+                : []
+        var kinds = { projects: "project", labels: "label", priorities: "priority", progress: "progress", status: "status" }
+        var out = []
+        for (var i = 0; i < base.length; ++i) {
+            var kind = kinds[base[i]]
+            if (kind && !filterEnabled(kind)) {
+                out.push(filterDisabledReason(kind))
+            }
+        }
+        return out
+    }
 
     readonly property int sidebarWidth: Design.sidebarWidth
     readonly property bool isDragging: !!(dragHost && dragHost.draggingTask)

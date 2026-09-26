@@ -104,6 +104,12 @@ def extract_qml_strings() -> list[str]:
     return sorted(found)
 
 
+def qml_unescape(s: str) -> str:
+    """msgid as QML sees it at runtime: \\u201c -> “, \\" -> "."""
+    s = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), s)
+    return re.sub(r'\\(["\\])', r"\1", s)
+
+
 def po_escape(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
@@ -171,7 +177,7 @@ def main() -> int:
         extra = EXTRA[lang]
         body = [header(lang, plural), ""]
         for msgid in msgids:
-            body.append(f'msgid "{po_escape(msgid)}"')
+            body.append(f'msgid "{po_escape(qml_unescape(msgid))}"')
             body.append(f'msgstr "{po_escape(extra[msgid])}"')
             body.append("")
         for msgid, data in PLURALS.items():

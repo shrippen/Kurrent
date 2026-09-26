@@ -774,6 +774,7 @@ Item {
     // View icon + spacing to the left of the title.
     readonly property int mainPaneHeaderLeftWidth:
             Kirigami.Units.iconSizes.smallMedium + KurrentUi.Design.spaceSmall
+            + (headerBrand.visible ? headerBrand.implicitWidth + KurrentUi.Design.spaceSmall : 0)
 
     // Filter chips: icon-only width (no text)
     readonly property int filterChipIconSize: Kirigami.Units.iconSizes.small
@@ -1214,7 +1215,8 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: KurrentUi.Design.spaceSmall
                 Layout.bottomMargin: KurrentUi.Design.spaceSmall
-                visible: KanteStyle.active
+                // Wide layout: the brand sits in the header instead (g4).
+                visible: KanteStyle.active && fullRoot.compactLayout
                 spacing: KurrentUi.Design.spaceSmall
 
                 Kirigami.Icon {
@@ -1252,6 +1254,34 @@ Item {
                 viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
                 hiddenViews: Plasmoid.configuration.hiddenViews || ""
                 smartViewsJson: Plasmoid.configuration.smartViews || "[]"
+            }
+
+            // Sections this view hides, with the reason (g7).
+            Repeater {
+                model: sidebar.hiddenSectionReasons
+                delegate: RowLayout {
+                    required property string modelData
+                    Layout.fillWidth: true
+                    Layout.leftMargin: KurrentUi.Design.spaceSmall
+                    Layout.rightMargin: KurrentUi.Design.spaceSmall
+                    Layout.topMargin: KurrentUi.Design.spaceTiny
+                    spacing: KurrentUi.Design.spaceTiny
+
+                    Kirigami.Icon {
+                        Layout.alignment: Qt.AlignTop
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        source: "documentinfo"
+                        opacity: 0.6
+                    }
+                    QQC2.Label {
+                        Layout.fillWidth: true
+                        text: modelData
+                        wrapMode: Text.WordWrap
+                        font: Kirigami.Theme.smallFont
+                        color: KanteStyle.mutedTextColor
+                    }
+                }
             }
 
             // Sync status: the header only shows trouble; this line also confirms "all fine".
@@ -1350,6 +1380,32 @@ Item {
                 Layout.fillWidth: true
                 spacing: KurrentUi.Design.spaceSmall
 
+                // Kante brand in the wide header: logo, name, rule to the view title.
+                RowLayout {
+                    id: headerBrand
+                    Layout.alignment: Qt.AlignVCenter
+                    visible: KanteStyle.active && !fullRoot.compactLayout
+                    spacing: KurrentUi.Design.spaceSmall
+
+                    Kirigami.Icon {
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        source: Qt.resolvedUrl("../icons/kurrent.svg")
+                        isMask: true
+                        color: KanteStyle.themed ? KantePalette.brand : Kirigami.Theme.textColor
+                    }
+                    QQC2.Label {
+                        text: "Kurrent"
+                        font: KanteStyle.titleFont(Kirigami.Theme.defaultFont.pointSize)
+                        color: KanteStyle.mutedTextColor
+                    }
+                    Rectangle {
+                        Layout.preferredWidth: 1
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                        color: KanteStyle.frameColor
+                    }
+                }
+
                 Kirigami.Icon {
                     source: plasmoidRoot.activeViewIconSource()
                     width: Kirigami.Units.iconSizes.smallMedium
@@ -1398,11 +1454,41 @@ Item {
                         color: KanteStyle.mutedTextColor
                     }
                     QQC2.Label {
+                        // The overdue tile shows this already.
                         visible: parent.overdueCount > 0 && backend.currentView !== "overdue"
-                                 && backend.currentView !== "completed"
+                                 && backend.currentView !== "completed" && !viewTiles.visible
                         text: "· " + i18n("%1 overdue", parent.overdueCount)
                         font: parent.figureFont
                         color: Kirigami.Theme.negativeTextColor
+                    }
+                }
+
+                // Narrow layout: overdue as a compact chip instead of the banner (n2).
+                KanteToolButton {
+                    id: overdueChip
+                    Layout.alignment: Qt.AlignVCenter
+                    readonly property int overdueCount: backend && backend.viewTaskCounts
+                            ? (backend.viewTaskCounts["overdue"] || 0) : 0
+                    visible: fullRoot.compactLayout && KurrentUi.Design.showOverdueBanner && overdueCount > 0
+                             && backend.currentView !== "overdue" && backend.currentView !== "completed"
+                    icon.name: "data-warning"
+                    icon.color: Kirigami.Theme.negativeTextColor
+                    text: i18n("%1 overdue", overdueCount)
+                    onClicked: overdueChipMenu.popup(overdueChip, 0, overdueChip.height)
+
+                    QQC2.Menu {
+                        id: overdueChipMenu
+                        KantePopupSkin { popup: overdueChipMenu }
+                        QQC2.MenuItem {
+                            icon.name: "go-jump-today"
+                            text: i18n("Move all to today")
+                            onTriggered: backend.rescheduleOverdueToToday()
+                        }
+                        QQC2.MenuItem {
+                            icon.name: "view-filter"
+                            text: i18n("Show overdue")
+                            onTriggered: fullRoot.pickView("overdue")
+                        }
                     }
                 }
 
@@ -1807,15 +1893,18 @@ Item {
                 Layout.fillWidth: true
                 visible: KurrentUi.Design.showViewTiles && !fullRoot.compactLayout && !!backend
                 controller: backend
-                // Per view: the heatmap shows its own figures here instead of the view tiles.
-                facts: backend && backend.mainPaneMode === KurrentUi.Design.viewModeHeatmap
-                       ? mainPaneHost.heatmapTileFacts : null
+                // Per view: heatmap and calendar show their own figures here instead of the view tiles.
+                facts: !backend ? null
+                     : backend.mainPaneMode === KurrentUi.Design.viewModeHeatmap ? mainPaneHost.heatmapTileFacts
+                     : backend.mainPaneMode === KurrentUi.Design.viewModeCalendar ? mainPaneHost.calendarTileFacts
+                     : null
                 onViewPicked: function(viewId) { fullRoot.pickView(viewId) }
             }
 
             OverdueBanner {
                 Layout.fillWidth: true
                 controller: backend
+                suppressed: viewTiles.visible || fullRoot.compactLayout
                 onShowOverdue: fullRoot.pickView("overdue")
             }
 

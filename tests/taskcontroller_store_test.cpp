@@ -32,6 +32,7 @@ private Q_SLOTS:
     void sidebarPriorityAndLocationMutations();
     void matrixDropWritesLaneAndDue();
     void inspectorSnapshotAndChildren();
+    void heatmapTasksForDay();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -443,6 +444,26 @@ void TaskControllerStoreTest::inspectorSnapshotAndChildren()
     QCOMPARE(children.size(), 1);
     QCOMPARE(children.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("child"));
     QVERIFY(m_controller->childTasks(QString()).isEmpty());
+}
+
+void TaskControllerStoreTest::heatmapTasksForDay()
+{
+    m_controller->installTestTask(1, QStringLiteral("b done"), 10);
+    m_controller->installTestTask(2, QStringLiteral("a done"), 20);
+    m_controller->installTestTask(3, QStringLiteral("open"), 10);
+
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->setTaskCompleted(1, true);
+    m_controller->setTaskCompleted(2, true);
+    waitStore(spy, 2);
+
+    // Completions today, across projects, sorted by summary; open tasks stay out.
+    const QVariantList done = m_controller->heatmapTasksForDay(QDate::currentDate(), QStringLiteral("completed"));
+    QCOMPARE(done.size(), 2);
+    QCOMPARE(done.at(0).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("a done"));
+    QCOMPARE(done.at(1).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("b done"));
+    QVERIFY(m_controller->heatmapTasksForDay(QDate::currentDate().addDays(-1), QStringLiteral("completed")).isEmpty());
+    QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

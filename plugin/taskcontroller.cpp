@@ -1915,6 +1915,43 @@ QVariantMap TaskController::heatmapCountsAll(const QDate &start, const QDate &en
     return counts;
 }
 
+QVariantList TaskController::heatmapTasksForDay(const QDate &day, const QString &mode) const
+{
+    if (!day.isValid()) {
+        return {};
+    }
+    const QString dayKey = day.toString(Qt::ISODate);
+    QList<TaskEntry> matches;
+    if (mode == QLatin1String("completed")) {
+        // Completions count across all tasks (heatmapCountsAll), not only the visible ones.
+        for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+            if (!it->todo || it->pendingDelete || !it->todo->isCompleted()) {
+                continue;
+            }
+            const TaskEntry entry = makeTaskEntry(*it, 0, false);
+            if (TaskLogic::heatmapDayKey(entry, mode, day) == dayKey) {
+                matches.append(entry);
+            }
+        }
+    } else {
+        for (int i = 0; i < m_taskModel.count(); ++i) {
+            const TaskEntry entry = m_taskModel.taskAt(i);
+            if (TaskLogic::heatmapDayKey(entry, mode, day) == dayKey) {
+                matches.append(entry);
+            }
+        }
+    }
+    std::sort(matches.begin(), matches.end(), [](const TaskEntry &a, const TaskEntry &b) {
+        return QString::localeAwareCompare(a.summary, b.summary) < 0;
+    });
+    QVariantList result;
+    result.reserve(matches.size());
+    for (const TaskEntry &entry : std::as_const(matches)) {
+        result.append(taskEntryToVariantMap(entry));
+    }
+    return result;
+}
+
 QVariantList TaskController::agendaTasksForRange(const QDate &from, const QDate &to) const
 {
     QVariantList result;

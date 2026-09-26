@@ -10,13 +10,15 @@ Kirigami.InlineMessage {
 
     required property var controller
     property int dismissedCount: 0
+    // Another place already shows the overdue count (tiles, narrow header chip).
+    property bool suppressed: false
 
     readonly property int overdueCount: controller && controller.viewTaskCounts
             ? (controller.viewTaskCounts["overdue"] || 0) : 0
     readonly property bool relevantView: !!controller
             && controller.currentView !== "overdue"
             && controller.currentView !== "completed"
-    readonly property bool shouldShow: Design.showOverdueBanner && relevantView
+    readonly property bool shouldShow: Design.showOverdueBanner && relevantView && !suppressed
             && overdueCount > 0 && overdueCount > dismissedCount
 
     signal showOverdue()

@@ -17,11 +17,23 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 
+msgid "%1 %2 on %3"
+msgstr "%3：%1 %2"
+
+msgid "%1 completed"
+msgstr "%1 个已完成"
+
 msgid "%1 grid units"
 msgstr "%1 格单位"
 
-msgid "%1% complete"
-msgstr "已完成 %1%"
+msgid "%1 high priority"
+msgstr "%1 个高优先级"
+
+msgid "%1 open"
+msgstr "%1 个未完成"
+
+msgid "%1 overdue"
+msgstr "%1 个逾期"
 
 msgid "%1:00"
 msgstr "%1:00"
@@ -31,6 +43,12 @@ msgstr "（无标题）"
 
 msgid "+1 day"
 msgstr "+1 天"
+
+msgid "0 = show all time periods"
+msgstr "0 = 显示所有时间段"
+
+msgid "0–25%"
+msgstr "0–25%"
 
 msgid "1 day before"
 msgstr "提前 1 天"
@@ -47,11 +65,20 @@ msgstr "提前 15 分钟"
 msgid "2 lines"
 msgstr "2 行"
 
+msgid "26–50%"
+msgstr "26–50%"
+
+msgid "51–75%"
+msgstr "51–75%"
+
+msgid "76–100%"
+msgstr "76–100%"
+
 msgid "Accent (highlight)"
 msgstr "强调色（高亮）"
 
-msgid "Add"
-msgstr "添加"
+msgid "Accent colours"
+msgstr "强调色"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "添加任务…  tomorrow 18:00 !high #tag @project"
@@ -62,14 +89,20 @@ msgstr "添加标签"
 msgid "Add label “%1”"
 msgstr "添加标签“%1”"
 
-msgid "Add task"
-msgstr "添加任务"
+msgid "Add location"
+msgstr "添加地点"
+
+msgid "Add task for this day"
+msgstr "为这一天添加任务"
 
 msgid "Afternoon"
 msgstr "下午"
 
 msgid "Afternoon starts"
 msgstr "下午开始"
+
+msgid "Agenda"
+msgstr "日程"
 
 msgid "Akonadi"
 msgstr "Akonadi"
@@ -89,9 +122,6 @@ msgstr "全部"
 msgid "All day"
 msgstr "全天"
 
-msgid "All day:"
-msgstr "全天："
-
 msgid "All views"
 msgstr "所有视图"
 
@@ -110,8 +140,17 @@ msgstr "已是优先级“%1”"
 msgid "Any due date"
 msgstr "任意截止日期"
 
+msgid "Any label"
+msgstr "任意标签"
+
 msgid "Any priority"
 msgstr "任意优先级"
+
+msgid "Any project"
+msgstr "任意项目"
+
+msgid "Any section"
+msgstr "任意分区"
 
 msgid "Any status"
 msgstr "任意状态"
@@ -121,6 +160,9 @@ msgstr "随时"
 
 msgid "Appearance"
 msgstr "外观"
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "适用于所有样式和面板弹出窗口：Kurrent 从不绘制自己的背景，Kante 的界面只是叠加的色调。桌面上的小部件始终保持半透明；关闭后弹出窗口变为不透明。"
 
 msgid "Applies when the badge shows the overdue count."
 msgstr "适用于徽章显示逾期数量时。"
@@ -134,14 +176,23 @@ msgstr "删除任务前询问"
 msgid "Ask which project to use"
 msgstr "询问使用哪个项目"
 
-msgid "Assignees:"
-msgstr "负责人："
+msgid "Assignees"
+msgstr "负责人"
 
 msgid "At due time"
 msgstr "到期时"
 
 msgid "Auto (compact, larger with touch)"
 msgstr "自动（紧凑，触摸时更大）"
+
+msgid "Automatic"
+msgstr "自动"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Back to the matrix"
+msgstr "返回矩阵"
 
 msgid "Backend not installed"
 msgstr "未安装后端"
@@ -158,20 +209,26 @@ msgstr "徽章显示"
 msgid "Basics"
 msgstr "基本信息"
 
-msgid "Blurred wallpaper behind the widget"
-msgstr "部件背后的模糊壁纸"
+msgid "Best day"
+msgstr "最佳一天"
+
+msgid "Best day · %1"
+msgstr "最佳一天 · %1"
 
 msgid "Both"
 msgstr "两者"
 
+msgid "Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
+msgstr "两者均使用 com.github.shrippen.kurrent.akonadi。信息包含写入和同步 (Qt Info)，详细另含获取/监视日志 (Qt Debug)。"
+
+msgid "Briefcase"
+msgstr "公文包"
+
 msgid "Build"
 msgstr "构建"
 
-msgid "Busy days:"
-msgstr "忙碌日："
-
-msgid "Calendar + tasks"
-msgstr "日历 + 任务"
+msgid "Calendar"
+msgstr "日历"
 
 msgid "Calendars for event suppression"
 msgstr "用于抑制事件的日历"
@@ -188,11 +245,14 @@ msgstr "已取消"
 msgid "Case sensitive"
 msgstr "区分大小写"
 
-msgid "Catch-up"
-msgstr "补做"
+msgid "Category"
+msgstr "类别"
 
 msgid "Checkbox"
 msgstr "复选框"
+
+msgid "Checkmark"
+msgstr "勾号"
 
 msgid "Choose a project"
 msgstr "选择项目"
@@ -200,20 +260,32 @@ msgstr "选择项目"
 msgid "Choose a project for “%1”"
 msgstr "为“%1”选择项目"
 
+msgid "Choose calendars"
+msgstr "选择日历"
+
+msgid "Choose how this Smart View looks and sorts tasks."
+msgstr "选择此智能视图的外观和任务排序方式。"
+
 msgid "Choose which Akonadi event calendars block reminders. Disabled entries are ignored when checking for ongoing events."
 msgstr "选择哪些 Akonadi 事件日历会阻止提醒。检查进行中的事件时会忽略已禁用的条目。"
 
 msgid "Classification"
 msgstr "分类"
 
-msgid "Clear cell filter"
-msgstr "清除单元格筛选"
-
 msgid "Clear due date"
 msgstr "清除截止日期"
 
+msgid "Clear filter"
+msgstr "清除筛选"
+
 msgid "Clear label filter"
 msgstr "清除标签筛选"
+
+msgid "Clear location"
+msgstr "清除地点"
+
+msgid "Clear location “%1”"
+msgstr "清除地点“%1”"
 
 msgid "Clear parent"
 msgstr "清除父任务"
@@ -236,8 +308,20 @@ msgstr "清除开始时间"
 msgid "Click a task"
 msgstr "点击任务"
 
+msgid "Clock"
+msgstr "时钟"
+
+msgid "Close inspector"
+msgstr "关闭检查器"
+
 msgid "Collapse subtasks"
 msgstr "折叠子任务"
+
+msgid "Column axis"
+msgstr "列轴"
+
+msgid "Columns"
+msgstr "列"
 
 msgid "Comfortable"
 msgstr "舒适"
@@ -257,11 +341,11 @@ msgstr "仅按住 Shift 或 Ctrl 时完成"
 msgid "Completed"
 msgstr "已完成"
 
+msgid "Completed on %1"
+msgstr "%1 完成"
+
 msgid "Completed tasks"
 msgstr "已完成任务"
-
-msgid "Completed:"
-msgstr "已完成："
 
 msgid "Completing a parent also completes its children"
 msgstr "完成父任务也会完成其子任务"
@@ -280,6 +364,9 @@ msgstr "在 KOrganizer 或 Merkuro 中配置 CalDAV/Nextcloud（DAV 群件资源
 
 msgid "Connecting to Akonadi…"
 msgstr "正在连接 Akonadi…"
+
+msgid "Contains…"
+msgstr "包含…"
 
 msgid "Copy"
 msgstr "复制"
@@ -302,8 +389,14 @@ msgstr "计数"
 msgid "Create label “%1”"
 msgstr "创建标签“%1”"
 
+msgid "Custom (manual)"
+msgstr "自定义（手动）"
+
 msgid "Custom column (KURRENT/COLUMN)"
 msgstr "自定义列 (KURRENT/COLUMN)"
+
+msgid "Custom column:"
+msgstr "自定义列："
 
 msgid "Daily"
 msgstr "每天"
@@ -314,14 +407,26 @@ msgstr "日期"
 msgid "Day"
 msgstr "日"
 
-msgid "Day agenda"
-msgstr "日议程"
-
 msgid "Day section"
 msgstr "日分区"
 
+msgid "Day section (morning / afternoon / …)"
+msgstr "时段（上午 / 下午 / …）"
+
+msgid "Day section:"
+msgstr "时段："
+
+msgid "Days side by side"
+msgstr "日期并排"
+
+msgid "Days stacked"
+msgstr "日期堆叠"
+
 msgid "Debug info"
 msgstr "调试信息"
+
+msgid "Default (Priority → Due → Title)"
+msgstr "默认（优先级 → 截止 → 标题）"
 
 msgid "Default column source"
 msgstr "默认列来源"
@@ -344,6 +449,9 @@ msgstr "删除"
 msgid "Delete label"
 msgstr "删除标签"
 
+msgid "Delete location"
+msgstr "删除地点"
+
 msgid "Delete mode"
 msgstr "删除模式"
 
@@ -365,9 +473,6 @@ msgstr "描述"
 msgid "Description preview"
 msgstr "描述预览"
 
-msgid "Description:"
-msgstr "描述："
-
 msgid "Desktop notifications"
 msgstr "桌面通知"
 
@@ -377,14 +482,20 @@ msgstr "诊断"
 msgid "Dismiss"
 msgstr "关闭"
 
+msgid "Done"
+msgstr "完成"
+
 msgid "Dot"
 msgstr "圆点"
+
+msgid "Drop here"
+msgstr "拖放到此处"
 
 msgid "Drop here to make a top-level task"
 msgstr "拖到此处设为顶级任务"
 
 msgid "Due"
-msgstr "截止"
+msgstr "到期"
 
 msgid "Due date"
 msgstr "截止日期"
@@ -395,11 +506,14 @@ msgstr "截止日期（最新优先）"
 msgid "Due date buckets"
 msgstr "截止日期分组"
 
+msgid "Due date:"
+msgstr "截止日期："
+
 msgid "Due dates"
 msgstr "截止日期"
 
-msgid "Due:"
-msgstr "截止："
+msgid "Due on %1"
+msgstr "%1 到期"
 
 msgid "Duplicate built-in view…"
 msgstr "复制内置视图…"
@@ -443,6 +557,15 @@ msgstr "晚上"
 msgid "Evening starts"
 msgstr "晚上开始"
 
+msgid "Events"
+msgstr "事件"
+
+msgid "Events this week"
+msgstr "本周事件"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "其余一切（界面、文字、选中、按钮）都来自你的 Plasma 配色方案。"
+
 msgid "Exclude collapsed subtasks from counts"
 msgstr "计数时排除已折叠的子任务"
 
@@ -452,20 +575,80 @@ msgstr "退出删除模式"
 msgid "Expand subtasks"
 msgstr "展开子任务"
 
+msgid "Few"
+msgstr "少"
+
+msgid "Filter"
+msgstr "筛选"
+
+msgid "Filter Rules"
+msgstr "筛选规则"
+
+msgid "Filter by KURRENT/LIST day section. Used by the Today view to group tasks into Morning, Afternoon, and Evening buckets."
+msgstr "按时段（KURRENT/LIST）筛选。“今天”视图用它把任务分为上午、下午和晚上。"
+
+msgid "Filter by a custom KURRENT/COLUMN value. Only needed when using Kanban with \"Custom column\" as source. Leave empty to ignore."
+msgstr "按自定义 KURRENT/COLUMN 值筛选。仅当看板以“自定义列”为来源时需要。留空则忽略。"
+
+msgid "Filter by priority level. \"Any priority\" shows all tasks."
+msgstr "按优先级筛选。“任意优先级”显示所有任务。"
+
+msgid "Filter by task status. \"Any status\" shows tasks regardless of status."
+msgstr "按状态筛选。“任意状态”显示所有状态的任务。"
+
+msgid "Filter tasks by when they are due. \"Any due date\" shows all regardless of due date."
+msgstr "按截止时间筛选。“任意截止日期”显示所有任务。"
+
+msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
+msgstr "筛选标题或描述包含此文本的任务。留空显示全部。"
+
 msgid "First sort"
 msgstr "第一排序"
+
+msgid "Flag"
+msgstr "旗帜"
+
+msgid "Folder"
+msgstr "文件夹"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "跟随你的配色方案，浅色或深色均可。与其他 KDE 应用一致。"
+
+msgid "Fr"
+msgstr "五"
 
 msgid "General"
 msgstr "常规"
 
-msgid "Heading on the list"
-msgstr "列表标题"
+msgid "Give tasks a due or start date to see them planned by project and period."
+msgstr "为任务设置截止或开始日期，即可按项目和时间段查看计划。"
+
+msgid "Group tasks"
+msgstr "任务分组"
+
+msgid "Group: %1"
+msgstr "分组：%1"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox，浅色配色方案下为亚麻。窄体标题、切角、方形控件。使用自己的调色板。"
+
+msgid "Has no location"
+msgstr "无地点"
+
+msgid "Has reminder"
+msgstr "有提醒"
+
+msgid "Heart"
+msgstr "心形"
 
 msgid "Heatmap"
 msgstr "热力图"
 
 msgid "Hidden"
 msgstr "隐藏"
+
+msgid "Hide sidebar"
+msgstr "隐藏侧边栏"
 
 msgid "High"
 msgstr "高"
@@ -476,8 +659,20 @@ msgstr "高优先级"
 msgid "High priority (%1)"
 msgstr "高优先级 (%1)"
 
-msgid "Icon name (Plasma icon)"
-msgstr "图标名称（Plasma 图标）"
+msgid "Hints"
+msgstr "提示"
+
+msgid "Home"
+msgstr "家"
+
+msgid "How tasks are ordered in this view. Leave at Default to use Priority → Due → Title."
+msgstr "此视图中任务的排序方式。“默认”按 优先级 → 截止 → 标题 排序。"
+
+msgid "Icon displayed next to the Smart View in the sidebar."
+msgstr "侧边栏中智能视图旁显示的图标。"
+
+msgid "Icon:"
+msgstr "图标："
 
 msgid "In 1 hour"
 msgstr "1 小时后"
@@ -503,20 +698,50 @@ msgstr "检查进行中的事件时包含此日历"
 msgid "Include this calendar when fetching tasks"
 msgstr "获取任务时包含此日历"
 
-msgid "KURRENT/COLUMN"
-msgstr "KURRENT/COLUMN"
+msgid "Include weekend"
+msgstr "包含周末"
+
+msgid "Info journal"
+msgstr "信息日志"
+
+msgid "Inspector: clicking a task shows its details beside the list"
+msgstr "检查器：点击任务在列表旁显示其详情"
+
+msgid "Journal diagnostics"
+msgstr "日志诊断"
+
+msgid "Jump to current period"
+msgstr "跳转到当前时间段"
 
 msgid "KURRENT/COLUMN only"
 msgstr "仅 KURRENT/COLUMN"
 
-msgid "KURRENT/LIST (day section)"
-msgstr "KURRENT/LIST（时段）"
+msgid "KURRENT/COLUMN value…"
+msgstr "KURRENT/COLUMN 值…"
 
 msgid "Kanban"
 msgstr "看板"
 
+msgid "Kanban columns"
+msgstr "看板列"
+
+msgid "Kanban columns: %1"
+msgstr "看板列：%1"
+
 msgid "Kanban writes"
 msgstr "看板写入"
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "在你的配色方案上使用 Kante 的形状和字体。控件和颜色仍来自 Plasma。"
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante 在整个小部件中使用自己的调色板；优先级使用其红、黄、蓝。"
 
 msgid "Kurrent"
 msgstr "Kurrent"
@@ -524,23 +749,35 @@ msgstr "Kurrent"
 msgid "Label"
 msgstr "标签"
 
+msgid "Label (Z–A)"
+msgstr "标签 (Z–A)"
+
+msgid "Label:"
+msgstr "标签："
+
 msgid "Labels"
 msgstr "标签"
 
 msgid "Labels (Categories)"
 msgstr "标签（类别）"
 
+msgid "Labels are already Kanban columns."
+msgstr "标签已作为看板列。"
+
+msgid "Labels are already swimlane rows."
+msgstr "标签已作为泳道行。"
+
 msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
 msgstr "标签来自 Akonadi 任务类别。隐藏的标签不出现在侧栏筛选中，但仍保留在任务上。"
 
-msgid "Labels:"
-msgstr "标签："
-
-msgid "Lane axis (rows)"
-msgstr "泳道轴（行）"
+msgid "Later"
+msgstr "更晚"
 
 msgid "Light"
 msgstr "浅色"
+
+msgid "Lightbulb"
+msgstr "灯泡"
 
 msgid "List"
 msgstr "列表"
@@ -554,14 +791,35 @@ msgstr "正在加载…"
 msgid "Location"
 msgstr "地点"
 
-msgid "Location:"
-msgstr "地点："
+msgid "Location (Z–A)"
+msgstr "地点 (Z–A)"
+
+msgid "Locations"
+msgstr "地点"
+
+msgid "Locations come from the VTODO LOCATION field. Hidden locations will not appear in the sidebar filter list but remain on tasks."
+msgstr "地点来自 VTODO 的 LOCATION 字段。隐藏的地点不会出现在侧边栏筛选中，但仍保留在任务上。"
+
+msgid "Log Akonadi writes and sync state to the system journal"
+msgstr "将 Akonadi 写入和同步状态记录到系统日志"
+
+msgid "Log fetch, monitor, and collection details to the system journal"
+msgstr "将获取、监视和集合详情记录到系统日志"
+
+msgid "Logging"
+msgstr "日志"
+
+msgid "Look ahead"
+msgstr "展望范围"
 
 msgid "Low"
 msgstr "低"
 
 msgid "Low priority (%1)"
 msgstr "低优先级 (%1)"
+
+msgid "Maintenance"
+msgstr "维护"
 
 msgid "Make subtask of “%1”"
 msgstr "设为“%1”的子任务"
@@ -571,6 +829,9 @@ msgstr "设为顶级任务"
 
 msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
 msgstr "管理哪些可写的 Akonadi 日历用作项目。禁用的日历完全不获取任务。隐藏的日历仍会获取，但不在侧栏显示。"
+
+msgid "Many"
+msgstr "多"
 
 msgid "Mark as done"
 msgstr "标记为完成"
@@ -583,6 +844,9 @@ msgstr "中优先级 (%1)"
 
 msgid "Meetings"
 msgstr "会议"
+
+msgid "Mo"
+msgstr "一"
 
 msgid "Mode:"
 msgstr "模式："
@@ -605,14 +869,17 @@ msgstr "上午开始"
 msgid "Motion"
 msgstr "动效"
 
+msgid "Move all to today"
+msgstr "全部移到今天"
+
 msgid "Move to project"
 msgstr "移动到项目"
 
 msgid "Move to project “%1”"
 msgstr "移动到项目“%1”"
 
-msgid "Name"
-msgstr "名称"
+msgid "Name:"
+msgstr "名称："
 
 msgid "Needs action"
 msgstr "需要处理"
@@ -623,14 +890,23 @@ msgstr "新建智能视图"
 msgid "New label"
 msgstr "新标签"
 
+msgid "New location"
+msgstr "新地点"
+
 msgid "New tasks"
 msgstr "新任务"
 
+msgid "Next"
+msgstr "下一个"
+
+msgid "Next event"
+msgstr "下一个事件"
+
+msgid "Next event · %1"
+msgstr "下一个事件 · %1"
+
 msgid "Next week"
 msgstr "下周"
-
-msgid "No busy events for this day."
-msgstr "今天没有忙碌日程。"
 
 msgid "No date"
 msgstr "无日期"
@@ -638,17 +914,32 @@ msgstr "无日期"
 msgid "No dated open tasks in this view."
 msgstr "此视图中没有带日期的未完成任务。"
 
+msgid "No due date"
+msgstr "无到期日"
+
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "未找到事件日历。请确认 Akonadi 正在运行且已配置 CalDAV 日历。"
+
+msgid "No events or tasks."
+msgstr "没有事件或任务。"
 
 msgid "No high priority tasks"
 msgstr "没有高优先级任务"
 
+msgid "No label"
+msgstr "无标签"
+
 msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
 msgstr "未找到标签。标签会从 Akonadi 任务类别自动发现。"
 
+msgid "No locations found. Locations are discovered from task LOCATION values in Akonadi, or add one below."
+msgstr "未找到地点。地点从 Akonadi 中任务的 LOCATION 值获取，也可在下方添加。"
+
 msgid "No matching labels"
 msgstr "没有匹配的标签"
+
+msgid "No matching locations"
+msgstr "没有匹配的地点"
 
 msgid "No matching tasks"
 msgstr "没有匹配的任务"
@@ -659,11 +950,17 @@ msgstr "没有未完成任务"
 msgid "No overdue tasks"
 msgstr "没有逾期任务"
 
+msgid "No parent"
+msgstr "无父任务"
+
 msgid "No priority"
 msgstr "无优先级"
 
 msgid "No projects available"
 msgstr "没有可用项目"
+
+msgid "No status"
+msgstr "无状态"
 
 msgid "No task lists"
 msgstr "没有任务列表"
@@ -677,11 +974,17 @@ msgstr "未找到可写的 Akonadi 日历。请确认 Akonadi 正在运行且 Ca
 msgid "None"
 msgstr "无"
 
+msgid "Not available in the current view."
+msgstr "当前视图中不可用。"
+
 msgid "Not loaded"
 msgstr "未加载"
 
 msgid "Nothing due today"
 msgstr "今天无到期任务"
+
+msgid "Nothing on this day."
+msgstr "这一天没有内容。"
 
 msgid "Notifications"
 msgstr "通知"
@@ -691,6 +994,9 @@ msgstr "任务提醒到期时通知"
 
 msgid "Number"
 msgstr "数字"
+
+msgid "Number of tasks per period"
+msgstr "每个时间段的任务数"
 
 msgid "Off"
 msgstr "关闭"
@@ -707,6 +1013,9 @@ msgstr "在线"
 msgid "Only opaque (busy) events count. Transparent events are ignored."
 msgstr "仅不透明（忙碌）事件计入。透明事件会被忽略。"
 
+msgid "Only tasks matching ALL active rules are shown. Leave a filter on \"Any\" to disable it."
+msgstr "仅显示符合所有已启用规则的任务。筛选保持“任意”即为停用。"
+
 msgid "Open"
 msgstr "未完成"
 
@@ -719,6 +1028,12 @@ msgstr "打开 GitHub"
 msgid "Open first"
 msgstr "未完成优先"
 
+msgid "Open full editor"
+msgstr "打开完整编辑器"
+
+msgid "Open in calendar"
+msgstr "在日历中打开"
+
 msgid "Open map"
 msgstr "打开地图"
 
@@ -727,9 +1042,6 @@ msgstr "未完成的根任务"
 
 msgid "Open tasks"
 msgstr "未完成任务"
-
-msgid "Open tasks by project and week"
-msgstr "按项目和周显示的未完成任务"
 
 msgid "Open the full editor"
 msgstr "打开完整编辑器"
@@ -767,14 +1079,35 @@ msgstr "父任务"
 msgid "Pending jobs"
 msgstr "待处理作业"
 
+msgid "Per day"
+msgstr "每天"
+
+msgid "Periods shown ahead of the current one. 0 = automatic (14 days, 8 weeks or 6 months). Later tasks are collected in one column."
+msgstr "在当前时间段之后显示的时间段数量。0 = 自动（14 天、8 周或 6 个月）。更晚的任务会集中在一列中。"
+
 msgid "Pick date"
 msgstr "选择日期"
+
+msgid "Planning horizon"
+msgstr "计划范围"
+
+msgid "Plasma (default)"
+msgstr "Plasma（默认）"
 
 msgid "Plugin version"
 msgstr "插件版本"
 
+msgid "Previous"
+msgstr "上一个"
+
 msgid "Priorities"
 msgstr "优先级"
+
+msgid "Priorities are already Kanban columns."
+msgstr "优先级已作为看板列。"
+
+msgid "Priorities are already swimlane rows."
+msgstr "优先级已作为泳道行。"
 
 msgid "Priority"
 msgstr "优先级"
@@ -782,11 +1115,20 @@ msgstr "优先级"
 msgid "Priority %1"
 msgstr "优先级 %1"
 
+msgid "Priority %1 (%2)"
+msgstr "优先级 %1（%2）"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "优先级颜色（红 · 黄 · 蓝）"
+
 msgid "Priority:"
 msgstr "优先级："
 
 msgid "Private"
 msgstr "私密"
+
+msgid "Progress"
+msgstr "进度"
 
 msgid "Progress %"
 msgstr "进度 %"
@@ -794,14 +1136,26 @@ msgstr "进度 %"
 msgid "Progress % (high first)"
 msgstr "进度 %（高优先）"
 
-msgid "Progress:"
-msgstr "进度："
+msgid "Progress %1%"
+msgstr "进度 %1%"
+
+msgid "Progress is already used for Kanban columns."
+msgstr "进度已用作看板列。"
 
 msgid "Project"
 msgstr "项目"
 
+msgid "Project (Z–A)"
+msgstr "项目 (Z–A)"
+
+msgid "Project and label colours"
+msgstr "项目和标签颜色"
+
 msgid "Project plan"
 msgstr "项目计划"
+
+msgid "Project plan options"
+msgstr "项目计划选项"
 
 msgid "Project:"
 msgstr "项目："
@@ -811,6 +1165,15 @@ msgstr "项目"
 
 msgid "Projects (Akonadi Calendars)"
 msgstr "项目（Akonadi 日历）"
+
+msgid "Projects are already Kanban columns."
+msgstr "项目已作为看板列。"
+
+msgid "Projects are already plan rows."
+msgstr "项目已作为计划行。"
+
+msgid "Projects are already swimlane rows."
+msgstr "项目已作为泳道行。"
 
 msgid "Public"
 msgstr "公开"
@@ -830,7 +1193,7 @@ msgstr "重复图标"
 msgid "Recurring last"
 msgstr "重复最后"
 
-msgid "Recurring only"
+msgid "Recurring tasks only"
 msgstr "仅重复任务"
 
 msgid "Reduced motion (no spinner, quieter hover)"
@@ -857,17 +1220,29 @@ msgstr "按视图记住"
 msgid "Remember the last view instead"
 msgstr "改为记住上次视图"
 
+msgid "Reminder"
+msgstr "提醒"
+
 msgid "Reminder first"
 msgstr "提醒优先"
 
 msgid "Reminder last"
 msgstr "提醒最后"
 
-msgid "Reminder:"
-msgstr "提醒："
+msgid "Remove filter"
+msgstr "移除筛选"
 
 msgid "Remove label"
 msgstr "移除标签"
+
+msgid "Remove label “%1”"
+msgstr "移除标签“%1”"
+
+msgid "Remove label “%1” from this task?"
+msgstr "从此任务移除标签“%1”？"
+
+msgid "Remove label?"
+msgstr "移除标签？"
 
 msgid "Rename"
 msgstr "重命名"
@@ -878,17 +1253,29 @@ msgstr "原名称"
 msgid "Rename to"
 msgstr "新名称"
 
-msgid "Repeat:"
-msgstr "重复："
+msgid "Reopen"
+msgstr "重新打开"
+
+msgid "Repeat"
+msgstr "重复"
 
 msgid "Reset this page"
 msgstr "重置此页"
+
+msgid "Row axis"
+msgstr "行轴"
 
 msgid "Row chips"
 msgstr "行标签"
 
 msgid "Row size"
 msgstr "行高"
+
+msgid "Rows"
+msgstr "行"
+
+msgid "Sa"
+msgstr "六"
 
 msgid "Save"
 msgstr "保存"
@@ -908,11 +1295,17 @@ msgstr "搜索"
 msgid "Search or create label…"
 msgstr "搜索或创建标签…"
 
+msgid "Search or set location…"
+msgstr "搜索或设置地点…"
+
 msgid "Search parent task…"
 msgstr "搜索父任务…"
 
 msgid "Search tasks…"
 msgstr "搜索任务…"
+
+msgid "Search text:"
+msgstr "搜索文本："
 
 msgid "Search titles only"
 msgstr "仅搜索标题"
@@ -920,11 +1313,17 @@ msgstr "仅搜索标题"
 msgid "Second sort"
 msgstr "第二排序"
 
-msgid "Secrecy:"
-msgstr "保密："
+msgid "Secrecy"
+msgstr "保密级别"
 
-msgid "Section:"
-msgstr "分区："
+msgid "Secrecy (reverse)"
+msgstr "保密性（倒序）"
+
+msgid "Secrecy is already used for Kanban columns."
+msgstr "保密性已用作看板列。"
+
+msgid "Section"
+msgstr "分区"
 
 msgid "Sections"
 msgstr "分区"
@@ -944,23 +1343,35 @@ msgstr "选择"
 msgid "Set KURRENT_SMOKE=1 and check ~/.cache/kurrent-smoke/ for logs."
 msgstr "设置 KURRENT_SMOKE=1 并查看 ~/.cache/kurrent-smoke/ 中的日志。"
 
+msgid "Set location “%1”"
+msgstr "设置地点“%1”"
+
 msgid "Set priority"
 msgstr "设置优先级"
 
 msgid "Set priority “%1”"
 msgstr "将优先级设为“%1”"
 
+msgid "Set progress to %1"
+msgstr "将进度设为 %1"
+
+msgid "Set secrecy “%1”"
+msgstr "设置保密性“%1”"
+
+msgid "Set status “%1”"
+msgstr "设置状态“%1”"
+
 msgid "Setup"
 msgstr "设置"
-
-msgid "Show %1 tasks"
-msgstr "显示 %1 个任务"
 
 msgid "Show All"
 msgstr "全部显示"
 
 msgid "Show a Join button for http(s) links"
 msgstr "为 http(s) 链接显示加入按钮"
+
+msgid "Show a notice when tasks are overdue"
+msgstr "有逾期任务时显示提示"
 
 msgid "Show completed tasks"
 msgstr "显示已完成任务"
@@ -971,8 +1382,17 @@ msgstr "显示空项目"
 msgid "Show in the sidebar"
 msgstr "在侧栏显示"
 
-msgid "Show overdue tasks at the top of Today"
-msgstr "在今天视图顶部显示逾期任务"
+msgid "Show only tasks from a specific project (Akonadi collection). \"Any project\" disables this filter."
+msgstr "仅显示特定项目（Akonadi 集合）的任务。“任意项目”停用此筛选。"
+
+msgid "Show only tasks with a specific label (Akonadi category). \"Any label\" disables this filter."
+msgstr "仅显示带有特定标签（Akonadi 类别）的任务。“任意标签”停用此筛选。"
+
+msgid "Show overdue"
+msgstr "显示逾期任务"
+
+msgid "Show sidebar"
+msgstr "显示侧边栏"
 
 msgid "Show task counts"
 msgstr "显示任务计数"
@@ -980,14 +1400,23 @@ msgstr "显示任务计数"
 msgid "Show this label in the sidebar filter"
 msgstr "在侧栏筛选中显示此标签"
 
+msgid "Show this location in the sidebar filter"
+msgstr "在侧边栏筛选中显示此地点"
+
 msgid "Show this project in the sidebar"
 msgstr "在侧栏显示此项目"
 
 msgid "Show time on the due chip"
 msgstr "在截止标签上显示时间"
 
+msgid "Show undated tasks"
+msgstr "显示无日期任务"
+
 msgid "Sidebar"
 msgstr "侧栏"
+
+msgid "Smart View name"
+msgstr "智能视图名称"
 
 msgid "Smart Views"
 msgstr "智能视图"
@@ -998,11 +1427,11 @@ msgstr "冒烟测试"
 msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
 msgstr "从通知推迟（15 分钟、1 小时、明天）会重写 VALARM。截止日期不变；请使用重新安排。"
 
+msgid "Sort by:"
+msgstr "排序方式："
+
 msgid "Sort order"
 msgstr "排序方式"
-
-msgid "Sort override (e.g. priority,due,title)"
-msgstr "排序覆盖（如 priority,due,title）"
 
 msgid "Sort tasks"
 msgstr "排序任务"
@@ -1013,14 +1442,17 @@ msgstr "排序：%1"
 msgid "Standard VTODO fields"
 msgstr "标准 VTODO 字段"
 
+msgid "Star"
+msgstr "星形"
+
+msgid "Start"
+msgstr "开始"
+
 msgid "Start date"
 msgstr "开始日期"
 
 msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
 msgstr "使用 akonadictl start 启动，然后在 Merkuro 或 KOrganizer 中添加 CalDAV 资源。"
-
-msgid "Start:"
-msgstr "开始："
 
 msgid "Starts"
 msgstr "开始"
@@ -1028,14 +1460,29 @@ msgstr "开始"
 msgid "Status"
 msgstr "状态"
 
+msgid "Status (reverse)"
+msgstr "状态（倒序）"
+
+msgid "Status is already used for Kanban columns."
+msgstr "状态已用作看板列。"
+
 msgid "Status:"
 msgstr "状态："
 
 msgid "Still open"
 msgstr "仍未完成"
 
+msgid "Stores KURRENT/LIST for Today-view day sections (Morning, Afternoon, Evening). Also used as the Kanban “Day section” column source."
+msgstr "为“今天”视图的时段（上午、下午、晚上）保存 KURRENT/LIST，也作为看板“时段”列的来源。"
+
 msgid "Strong"
 msgstr "醒目"
+
+msgid "Style"
+msgstr "样式"
+
+msgid "Su"
+msgstr "日"
 
 msgid "Subtasks"
 msgstr "子任务"
@@ -1046,35 +1493,59 @@ msgstr "在此时间段内抑制提醒通知"
 msgid "Suppress reminders while a calendar event is in progress"
 msgstr "日历事件进行中时抑制提醒"
 
+msgid "Swimlane horizon"
+msgstr "泳道展望范围"
+
+msgid "Swimlane options"
+msgstr "泳道选项"
+
 msgid "Swimlanes"
 msgstr "泳道"
 
 msgid "Sync now"
 msgstr "立即同步"
 
+msgid "Synced"
+msgstr "已同步"
+
 msgid "Syncing…"
-msgstr "同步中…"
+msgstr "正在同步…"
+
+msgid "Tag"
+msgstr "标签"
 
 msgid "Tasks"
 msgstr "任务"
 
+msgid "Tasks appear here by row and period once they match the current view."
+msgstr "符合当前视图的任务将按行和时间段显示在这里。"
+
 msgid "Tasks are loaded from your existing Akonadi setup."
 msgstr "任务来自您现有的 Akonadi 配置。"
 
-msgid "Tasks due this day"
-msgstr "当天到期的任务"
+msgid "Tasks due"
+msgstr "到期任务"
 
-msgid "Text contains"
-msgstr "文本包含"
+msgid "Tasks this week"
+msgstr "本周任务"
+
+msgid "Th"
+msgstr "四"
 
 msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
 msgstr "KDE 商店安装包只有部件界面。在终端运行下面的命令以安装插件："
+
+msgid "The display name shown in the sidebar."
+msgstr "侧边栏中显示的名称。"
 
 msgid "The flyout is ready; tasks appear when the server answers."
 msgstr "弹出窗口已就绪；服务器响应后显示任务。"
 
 msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
 msgstr "完整编辑器仍为部件内的叠加层。日分区（LIST）在完整编辑器中。"
+
+msgid "The main-pane view mode used when this Smart View is active."
+msgstr "此智能视图激活时主区域使用的视图模式。"
 
 msgid "Third sort"
 msgstr "第三排序"
@@ -1088,8 +1559,11 @@ msgstr "本周"
 msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
 msgstr "此部件版本为 %1，但已安装的后端为 %2。请重新安装后端以匹配。"
 
-msgid "Time axis (columns)"
-msgstr "时间轴（列）"
+msgid "Tiles with the key views above the tasks"
+msgstr "在任务上方显示主要视图磁贴"
+
+msgid "Time grouping"
+msgstr "时间分组"
 
 msgid "Title"
 msgstr "标题"
@@ -1099,9 +1573,6 @@ msgstr "标题 A–Z"
 
 msgid "Title Z–A"
 msgstr "标题 Z–A"
-
-msgid "Title:"
-msgstr "标题："
 
 msgid "Today"
 msgstr "今天"
@@ -1118,29 +1589,23 @@ msgstr "明天"
 msgid "Tonight"
 msgstr "今晚"
 
+msgid "Translucent with blurred wallpaper"
+msgstr "半透明并模糊壁纸"
+
 msgid "Try again"
 msgstr "重试"
 
-msgid "Undo"
-msgstr "撤销"
-
-msgid "Undo complete"
-msgstr "撤销完成"
-
-msgid "Undo delete"
-msgstr "撤销删除"
-
-msgid "Undo move"
-msgstr "撤销移动"
-
-msgid "Undo reschedule"
-msgstr "撤销重新安排"
+msgid "Tu"
+msgstr "二"
 
 msgid "Unlabeled"
 msgstr "无标签"
 
-msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
-msgstr "使用 Plasma 半透明背景，让 KWin 模糊壁纸。同样作用于面板弹出窗口。"
+msgid "Unlabeled view does not apply when Kanban uses labels as columns."
+msgstr "看板以标签为列时，“无标签”视图不适用。"
+
+msgid "Unscheduled"
+msgstr "未安排"
 
 msgid "Use a specific project"
 msgstr "使用指定项目"
@@ -1148,8 +1613,17 @@ msgstr "使用指定项目"
 msgid "Use the top project in the sidebar"
 msgstr "使用侧栏中的第一个项目"
 
+msgid "Use “%1”"
+msgstr "使用“%1”"
+
+msgid "Verbose journal"
+msgstr "详细日志"
+
 msgid "View mode"
 msgstr "视图模式"
+
+msgid "View mode:"
+msgstr "视图模式："
 
 msgid "View mode: %1"
 msgstr "视图模式：%1"
@@ -1163,14 +1637,35 @@ msgstr "可见"
 msgid "Waiting for Akonadi…"
 msgstr "正在等待 Akonadi…"
 
+msgid "Warning"
+msgstr "警告"
+
+msgid "We"
+msgstr "三"
+
 msgid "Week"
 msgstr "周"
+
+msgid "Week %1"
+msgstr "第 %1 周"
 
 msgid "Weekly"
 msgstr "每周"
 
+msgid "When checked, only recurring tasks are shown."
+msgstr "勾选后仅显示重复任务。"
+
+msgid "Wide layout"
+msgstr "宽布局"
+
 msgid "Width"
 msgstr "宽度"
+
+msgid "Work"
+msgstr "工作"
+
+msgid "Year"
+msgstr "年"
 
 msgid "Yearly"
 msgstr "每年"
@@ -1178,8 +1673,23 @@ msgstr "每年"
 msgid "Yesterday"
 msgstr "昨天"
 
-msgid "tasks"
-msgstr "任务"
+msgid "high priority"
+msgstr "高优先级"
+
+msgid "overdue"
+msgstr "已逾期"
+
+msgid "task completed"
+msgstr "个任务已完成"
+
+msgid "task due"
+msgstr "个任务到期"
+
+msgid "tasks completed"
+msgstr "个任务已完成"
+
+msgid "tasks due"
+msgstr "个任务到期"
 
 msgid "unknown"
 msgstr "未知"
@@ -1192,123 +1702,29 @@ msgid "%1 task"
 msgid_plural "%1 tasks"
 msgstr[0] "%1 个任务"
 
-msgid "Style"
-msgstr "样式"
+msgid "+%1 more task"
+msgid_plural "+%1 more tasks"
+msgstr[0] "另有 %1 个任务"
 
-msgid "Plasma (default)"
-msgstr "Plasma（默认）"
+msgid "Show %1 task in the list"
+msgid_plural "Show %1 tasks in the list"
+msgstr[0] "在列表中显示 %1 个任务"
 
-msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
-msgstr "跟随你的配色方案，浅色或深色均可。与其他 KDE 应用一致。"
+msgid "%1 day"
+msgid_plural "%1 days"
+msgstr[0] "%1 天"
 
-msgid "Accent colours"
-msgstr "强调色"
+msgid "%1 week"
+msgid_plural "%1 weeks"
+msgstr[0] "%1 周"
 
-msgid "Project and label colours"
-msgstr "项目和标签颜色"
-
-msgid "Priority colours (red · yellow · blue)"
-msgstr "优先级颜色（红 · 黄 · 蓝）"
-
-msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
-msgstr "其余一切（界面、文字、选中、按钮）都来自你的 Plasma 配色方案。"
-
-msgid "Translucent with blurred wallpaper"
-msgstr "半透明并模糊壁纸"
-
-msgid "Hints"
-msgstr "提示"
-
-msgid "Show a notice when tasks are overdue"
-msgstr "有逾期任务时显示提示"
-
-msgid "Move all to today"
-msgstr "全部移到今天"
-
-msgid "Show overdue"
-msgstr "显示逾期任务"
-
-msgid "Show sidebar"
-msgstr "显示侧边栏"
-
-msgid "Hide sidebar"
-msgstr "隐藏侧边栏"
+msgid "%1 month"
+msgid_plural "%1 months"
+msgstr[0] "%1 个月"
 
 msgid "%1 task is overdue."
 msgid_plural "%1 tasks are overdue."
 msgstr[0] "%1 个任务已逾期。"
-
-msgid "Kante"
-msgstr "Kante"
-
-msgid "Kante Light"
-msgstr "Kante Light"
-
-msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
-msgstr "Gruvbox，浅色配色方案下为亚麻。窄体标题、切角、方形控件。使用自己的调色板。"
-
-msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
-msgstr "在你的配色方案上使用 Kante 的形状和字体。控件和颜色仍来自 Plasma。"
-
-msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
-msgstr "Kante 在整个小部件中使用自己的调色板；优先级使用其红、黄、蓝。"
-
-msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
-msgstr "适用于所有样式和面板弹出窗口：Kurrent 从不绘制自己的背景，Kante 的界面只是叠加的色调。桌面上的小部件始终保持半透明；关闭后弹出窗口变为不透明。"
-
-msgid "%1 open"
-msgstr "%1 个未完成"
-
-msgid "%1 overdue"
-msgstr "%1 个逾期"
-
-msgid "Synced"
-msgstr "已同步"
-
-msgid "Remove filter"
-msgstr "移除筛选"
-
-msgid "Per day"
-msgstr "每天"
-
-msgid "Best day"
-msgstr "最佳一天"
-
-msgid "Best day · %1"
-msgstr "最佳一天 · %1"
-
-msgid "Open full editor"
-msgstr "打开完整编辑器"
-
-msgid "Close inspector"
-msgstr "关闭检查器"
-
-msgid "Done"
-msgstr "完成"
-
-msgid "Inspector: clicking a task shows its details beside the list"
-msgstr "检查器：点击任务在列表旁显示其详情"
-
-msgid "No due date"
-msgstr "无到期日"
-
-msgid "Progress"
-msgstr "进度"
-
-msgid "Reminder"
-msgstr "提醒"
-
-msgid "Reopen"
-msgstr "重新打开"
-
-msgid "Secrecy"
-msgstr "保密级别"
-
-msgid "Tiles with the key views above the tasks"
-msgstr "在任务上方显示主要视图磁贴"
-
-msgid "Wide layout"
-msgstr "宽布局"
 
 msgid "%1 day before"
 msgid_plural "%1 days before"

@@ -37,6 +37,24 @@ Flickable {
 
     readonly property real dragThreshold: Math.max(8, Kirigami.Units.smallSpacing * 2)
 
+    // The backend names columns in English (TaskLogic::kanbanColumnLabel); translate the fixed
+    // ones here. Project and label names pass through unchanged.
+    readonly property var columnLabelI18n: ({
+        "None": i18n("None"), "Needs action": i18n("Needs action"), "In process": i18n("In process"),
+        "Completed": i18n("Completed"), "Canceled": i18n("Canceled"), "Cancelled": i18n("Cancelled"),
+        "Open": i18n("Open"), "Done": i18n("Done"), "Inbox": i18n("Inbox"), "Overdue": i18n("Overdue"),
+        "Today": i18n("Today"), "Tomorrow": i18n("Tomorrow"), "This week": i18n("This week"),
+        "Later": i18n("Later"), "No date": i18n("No date"), "High": i18n("High"), "Medium": i18n("Medium"),
+        "Low": i18n("Low"), "Unscheduled": i18n("Unscheduled"), "Morning": i18n("Morning"),
+        "Afternoon": i18n("Afternoon"), "Evening": i18n("Evening"), "Public": i18n("Public"),
+        "Private": i18n("Private"), "Confidential": i18n("Confidential")
+    })
+
+    function columnTitle(key) {
+        var label = controller.kanbanColumnLabelForKey(key)
+        return columnLabelI18n[label] || label
+    }
+
     function settleScrollBounds() {
         var maxX = Math.max(0, contentWidth - width)
         if (Math.abs(horizontalOvershoot) > 0.5
@@ -269,7 +287,7 @@ Flickable {
                         KanteHeading {
                             Layout.fillWidth: true
                             level: 5
-                            text: controller.kanbanColumnLabelForKey(columnKey)
+                            text: root.columnTitle(columnKey)
                             elide: Text.ElideRight
                         }
 

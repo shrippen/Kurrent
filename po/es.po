@@ -17,11 +17,23 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 
+msgid "%1 %2 on %3"
+msgstr "%1 %2 el %3"
+
+msgid "%1 completed"
+msgstr "%1 completadas"
+
 msgid "%1 grid units"
 msgstr "%1 unidades de cuadrícula"
 
-msgid "%1% complete"
-msgstr "%1 % completado"
+msgid "%1 high priority"
+msgstr "%1 de prioridad alta"
+
+msgid "%1 open"
+msgstr "%1 abiertas"
+
+msgid "%1 overdue"
+msgstr "%1 vencidas"
 
 msgid "%1:00"
 msgstr "%1:00"
@@ -31,6 +43,12 @@ msgstr "(Sin título)"
 
 msgid "+1 day"
 msgstr "+1 día"
+
+msgid "0 = show all time periods"
+msgstr "0 = mostrar todos los periodos"
+
+msgid "0–25%"
+msgstr "0–25 %"
 
 msgid "1 day before"
 msgstr "1 día antes"
@@ -47,11 +65,20 @@ msgstr "15 minutos antes"
 msgid "2 lines"
 msgstr "2 líneas"
 
+msgid "26–50%"
+msgstr "26–50 %"
+
+msgid "51–75%"
+msgstr "51–75 %"
+
+msgid "76–100%"
+msgstr "76–100 %"
+
 msgid "Accent (highlight)"
 msgstr "Acento (resaltado)"
 
-msgid "Add"
-msgstr "Añadir"
+msgid "Accent colours"
+msgstr "Colores de acento"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "Añadir una tarea…  tomorrow 18:00 !high #tag @project"
@@ -62,14 +89,20 @@ msgstr "Añadir etiqueta"
 msgid "Add label “%1”"
 msgstr "Añadir etiqueta “%1”"
 
-msgid "Add task"
-msgstr "Añadir tarea"
+msgid "Add location"
+msgstr "Añadir ubicación"
+
+msgid "Add task for this day"
+msgstr "Añadir tarea para este día"
 
 msgid "Afternoon"
 msgstr "Tarde"
 
 msgid "Afternoon starts"
 msgstr "La tarde empieza"
+
+msgid "Agenda"
+msgstr "Agenda"
 
 msgid "Akonadi"
 msgstr "Akonadi"
@@ -81,16 +114,13 @@ msgid "Akonadi is not running"
 msgstr "Akonadi no está en ejecución"
 
 msgid "Akonadi offline"
-msgstr "Akonadi desconectado"
+msgstr "Akonadi sin conexión"
 
 msgid "All"
 msgstr "Todos"
 
 msgid "All day"
 msgstr "Todo el día"
-
-msgid "All day:"
-msgstr "Todo el día:"
 
 msgid "All views"
 msgstr "Todas las vistas"
@@ -110,8 +140,17 @@ msgstr "Ya tiene prioridad “%1”"
 msgid "Any due date"
 msgstr "Cualquier fecha de vencimiento"
 
+msgid "Any label"
+msgstr "Cualquier etiqueta"
+
 msgid "Any priority"
 msgstr "Cualquier prioridad"
+
+msgid "Any project"
+msgstr "Cualquier proyecto"
+
+msgid "Any section"
+msgstr "Cualquier sección"
 
 msgid "Any status"
 msgstr "Cualquier estado"
@@ -121,6 +160,9 @@ msgstr "En cualquier momento"
 
 msgid "Appearance"
 msgstr "Apariencia"
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "Se aplica a todos los estilos y a la ventana emergente del panel: Kurrent nunca pinta su propio fondo; las superficies de Kante son solo tintes encima. En el escritorio el widget sigue siendo translúcido; la ventana emergente se vuelve opaca si esto está desactivado."
 
 msgid "Applies when the badge shows the overdue count."
 msgstr "Se aplica cuando la insignia muestra el recuento de vencidas."
@@ -134,14 +176,23 @@ msgstr "Preguntar antes de eliminar una tarea"
 msgid "Ask which project to use"
 msgstr "Preguntar qué proyecto usar"
 
-msgid "Assignees:"
-msgstr "Asignados:"
+msgid "Assignees"
+msgstr "Asignados"
 
 msgid "At due time"
 msgstr "A la hora de vencimiento"
 
 msgid "Auto (compact, larger with touch)"
 msgstr "Automático (compacto, más grande con tacto)"
+
+msgid "Automatic"
+msgstr "Automático"
+
+msgid "Back"
+msgstr "Atrás"
+
+msgid "Back to the matrix"
+msgstr "Volver a la matriz"
 
 msgid "Backend not installed"
 msgstr "Motor no instalado"
@@ -158,20 +209,26 @@ msgstr "Visualización de la insignia"
 msgid "Basics"
 msgstr "Básicos"
 
-msgid "Blurred wallpaper behind the widget"
-msgstr "Fondo de pantalla desenfocado detrás del widget"
+msgid "Best day"
+msgstr "Mejor día"
+
+msgid "Best day · %1"
+msgstr "Mejor día · %1"
 
 msgid "Both"
 msgstr "Ambos"
 
+msgid "Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
+msgstr "Ambos usan com.github.shrippen.kurrent.akonadi. Info cubre escrituras y sincronización (Qt Info). Detallado añade líneas de obtención y monitor (Qt Debug)."
+
+msgid "Briefcase"
+msgstr "Maletín"
+
 msgid "Build"
 msgstr "Compilación"
 
-msgid "Busy days:"
-msgstr "Días ocupados:"
-
-msgid "Calendar + tasks"
-msgstr "Calendario + tareas"
+msgid "Calendar"
+msgstr "Calendario"
 
 msgid "Calendars for event suppression"
 msgstr "Calendarios para suprimir eventos"
@@ -188,11 +245,14 @@ msgstr "Cancelado"
 msgid "Case sensitive"
 msgstr "Distinguir mayúsculas y minúsculas"
 
-msgid "Catch-up"
-msgstr "Puesta al día"
+msgid "Category"
+msgstr "Categoría"
 
 msgid "Checkbox"
 msgstr "Casilla"
+
+msgid "Checkmark"
+msgstr "Marca de verificación"
 
 msgid "Choose a project"
 msgstr "Elegir un proyecto"
@@ -200,20 +260,32 @@ msgstr "Elegir un proyecto"
 msgid "Choose a project for “%1”"
 msgstr "Elegir un proyecto para “%1”"
 
+msgid "Choose calendars"
+msgstr "Elegir calendarios"
+
+msgid "Choose how this Smart View looks and sorts tasks."
+msgstr "Elige cómo se ve esta vista inteligente y cómo ordena las tareas."
+
 msgid "Choose which Akonadi event calendars block reminders. Disabled entries are ignored when checking for ongoing events."
 msgstr "Elige qué calendarios de eventos de Akonadi bloquean recordatorios. Las entradas desactivadas se ignoran al comprobar eventos en curso."
 
 msgid "Classification"
 msgstr "Clasificación"
 
-msgid "Clear cell filter"
-msgstr "Quitar filtro de celda"
-
 msgid "Clear due date"
 msgstr "Borrar fecha de vencimiento"
 
+msgid "Clear filter"
+msgstr "Quitar filtro"
+
 msgid "Clear label filter"
 msgstr "Borrar filtro de etiqueta"
+
+msgid "Clear location"
+msgstr "Quitar ubicación"
+
+msgid "Clear location “%1”"
+msgstr "Quitar ubicación «%1»"
 
 msgid "Clear parent"
 msgstr "Quitar tarea principal"
@@ -236,8 +308,20 @@ msgstr "Borrar inicio"
 msgid "Click a task"
 msgstr "Hacer clic en una tarea"
 
+msgid "Clock"
+msgstr "Reloj"
+
+msgid "Close inspector"
+msgstr "Cerrar inspector"
+
 msgid "Collapse subtasks"
 msgstr "Contraer subtareas"
+
+msgid "Column axis"
+msgstr "Eje de columnas"
+
+msgid "Columns"
+msgstr "Columnas"
 
 msgid "Comfortable"
 msgstr "Cómodo"
@@ -257,11 +341,11 @@ msgstr "Completar solo con Mayús o Ctrl pulsado"
 msgid "Completed"
 msgstr "Completadas"
 
+msgid "Completed on %1"
+msgstr "Completadas el %1"
+
 msgid "Completed tasks"
 msgstr "Tareas completadas"
-
-msgid "Completed:"
-msgstr "Completada:"
 
 msgid "Completing a parent also completes its children"
 msgstr "Completar una tarea principal también completa sus subtareas"
@@ -280,6 +364,9 @@ msgstr "Configura CalDAV/Nextcloud en KOrganizer o Merkuro (recurso DAV groupwar
 
 msgid "Connecting to Akonadi…"
 msgstr "Conectando con Akonadi…"
+
+msgid "Contains…"
+msgstr "Contiene…"
 
 msgid "Copy"
 msgstr "Copiar"
@@ -300,10 +387,16 @@ msgid "Counts"
 msgstr "Recuentos"
 
 msgid "Create label “%1”"
-msgstr "Crear etiqueta “%1”"
+msgstr "Crear etiqueta «%1»"
+
+msgid "Custom (manual)"
+msgstr "Personalizado (manual)"
 
 msgid "Custom column (KURRENT/COLUMN)"
 msgstr "Columna personalizada (KURRENT/COLUMN)"
+
+msgid "Custom column:"
+msgstr "Columna propia:"
 
 msgid "Daily"
 msgstr "Diario"
@@ -314,14 +407,26 @@ msgstr "Fechas"
 msgid "Day"
 msgstr "Día"
 
-msgid "Day agenda"
-msgstr "Agenda del día"
-
 msgid "Day section"
 msgstr "Sección del día"
 
+msgid "Day section (morning / afternoon / …)"
+msgstr "Parte del día (mañana / tarde / …)"
+
+msgid "Day section:"
+msgstr "Parte del día:"
+
+msgid "Days side by side"
+msgstr "Días lado a lado"
+
+msgid "Days stacked"
+msgstr "Días apilados"
+
 msgid "Debug info"
 msgstr "Info de depuración"
+
+msgid "Default (Priority → Due → Title)"
+msgstr "Predeterminado (Prioridad → Vencimiento → Título)"
 
 msgid "Default column source"
 msgstr "Origen de columnas predeterminado"
@@ -344,6 +449,9 @@ msgstr "Eliminar"
 msgid "Delete label"
 msgstr "Eliminar etiqueta"
 
+msgid "Delete location"
+msgstr "Eliminar ubicación"
+
 msgid "Delete mode"
 msgstr "Modo eliminar"
 
@@ -365,9 +473,6 @@ msgstr "Descripción"
 msgid "Description preview"
 msgstr "Vista previa de la descripción"
 
-msgid "Description:"
-msgstr "Descripción:"
-
 msgid "Desktop notifications"
 msgstr "Notificaciones de escritorio"
 
@@ -377,8 +482,14 @@ msgstr "Diagnóstico"
 msgid "Dismiss"
 msgstr "Descartar"
 
+msgid "Done"
+msgstr "Hecho"
+
 msgid "Dot"
 msgstr "Punto"
+
+msgid "Drop here"
+msgstr "Soltar aquí"
 
 msgid "Drop here to make a top-level task"
 msgstr "Suelta aquí para convertirla en tarea principal"
@@ -395,11 +506,14 @@ msgstr "Fecha de vencimiento (más reciente primero)"
 msgid "Due date buckets"
 msgstr "Grupos de vencimiento"
 
+msgid "Due date:"
+msgstr "Vencimiento:"
+
 msgid "Due dates"
 msgstr "Fechas de vencimiento"
 
-msgid "Due:"
-msgstr "Vencimiento:"
+msgid "Due on %1"
+msgstr "Vencen el %1"
 
 msgid "Duplicate built-in view…"
 msgstr "Duplicar vista integrada…"
@@ -443,6 +557,15 @@ msgstr "Noche"
 msgid "Evening starts"
 msgstr "La noche empieza"
 
+msgid "Events"
+msgstr "Eventos"
+
+msgid "Events this week"
+msgstr "Eventos esta semana"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "Todo lo demás —superficies, texto, selección, botones— viene de tu esquema de color de Plasma."
+
 msgid "Exclude collapsed subtasks from counts"
 msgstr "Excluir subtareas contraídas de los recuentos"
 
@@ -452,20 +575,80 @@ msgstr "Salir del modo eliminar"
 msgid "Expand subtasks"
 msgstr "Expandir subtareas"
 
+msgid "Few"
+msgstr "Pocas"
+
+msgid "Filter"
+msgstr "Filtro"
+
+msgid "Filter Rules"
+msgstr "Reglas de filtro"
+
+msgid "Filter by KURRENT/LIST day section. Used by the Today view to group tasks into Morning, Afternoon, and Evening buckets."
+msgstr "Filtrar por parte del día (KURRENT/LIST). La vista Hoy la usa para agrupar tareas en mañana, tarde y noche."
+
+msgid "Filter by a custom KURRENT/COLUMN value. Only needed when using Kanban with \"Custom column\" as source. Leave empty to ignore."
+msgstr "Filtrar por un valor propio de KURRENT/COLUMN. Solo hace falta si el Kanban usa «Columna propia» como origen. Déjalo vacío para ignorarlo."
+
+msgid "Filter by priority level. \"Any priority\" shows all tasks."
+msgstr "Filtrar por prioridad. «Cualquier prioridad» muestra todas las tareas."
+
+msgid "Filter by task status. \"Any status\" shows tasks regardless of status."
+msgstr "Filtrar por estado. «Cualquier estado» muestra las tareas sin importar su estado."
+
+msgid "Filter tasks by when they are due. \"Any due date\" shows all regardless of due date."
+msgstr "Filtrar por vencimiento. «Cualquier vencimiento» muestra todas sin importar la fecha."
+
+msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
+msgstr "Filtrar tareas cuyo título o descripción contenga este texto. Déjalo vacío para mostrar todas."
+
 msgid "First sort"
 msgstr "Primer orden"
+
+msgid "Flag"
+msgstr "Bandera"
+
+msgid "Folder"
+msgstr "Carpeta"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "Sigue tu esquema de color, claro u oscuro. Se siente como cualquier otra aplicación de KDE."
+
+msgid "Fr"
+msgstr "vi"
 
 msgid "General"
 msgstr "General"
 
-msgid "Heading on the list"
-msgstr "Encabezado en la lista"
+msgid "Give tasks a due or start date to see them planned by project and period."
+msgstr "Asigna una fecha de vencimiento o de inicio a las tareas para verlas planificadas por proyecto y período."
+
+msgid "Group tasks"
+msgstr "Agrupar tareas"
+
+msgid "Group: %1"
+msgstr "Grupo: %1"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox, o Lino con un esquema claro. Títulos condensados, esquinas cortadas, controles cuadrados. Usa su propia paleta."
+
+msgid "Has no location"
+msgstr "Sin ubicación"
+
+msgid "Has reminder"
+msgstr "Con recordatorio"
+
+msgid "Heart"
+msgstr "Corazón"
 
 msgid "Heatmap"
 msgstr "Mapa de calor"
 
 msgid "Hidden"
 msgstr "Oculto"
+
+msgid "Hide sidebar"
+msgstr "Ocultar barra lateral"
 
 msgid "High"
 msgstr "Alta"
@@ -476,8 +659,20 @@ msgstr "Prioridad alta"
 msgid "High priority (%1)"
 msgstr "Prioridad alta (%1)"
 
-msgid "Icon name (Plasma icon)"
-msgstr "Nombre del icono (icono de Plasma)"
+msgid "Hints"
+msgstr "Avisos"
+
+msgid "Home"
+msgstr "Casa"
+
+msgid "How tasks are ordered in this view. Leave at Default to use Priority → Due → Title."
+msgstr "Orden de las tareas en esta vista. «Predeterminado» usa Prioridad → Vencimiento → Título."
+
+msgid "Icon displayed next to the Smart View in the sidebar."
+msgstr "Icono junto a la vista inteligente en la barra lateral."
+
+msgid "Icon:"
+msgstr "Icono:"
 
 msgid "In 1 hour"
 msgstr "En 1 hora"
@@ -503,20 +698,50 @@ msgstr "Incluir este calendario al comprobar eventos en curso"
 msgid "Include this calendar when fetching tasks"
 msgstr "Incluir este calendario al obtener tareas"
 
-msgid "KURRENT/COLUMN"
-msgstr "KURRENT/COLUMN"
+msgid "Include weekend"
+msgstr "Incluir fin de semana"
+
+msgid "Info journal"
+msgstr "Registro informativo"
+
+msgid "Inspector: clicking a task shows its details beside the list"
+msgstr "Inspector: al pulsar una tarea se muestran sus detalles junto a la lista"
+
+msgid "Journal diagnostics"
+msgstr "Diagnóstico del registro"
+
+msgid "Jump to current period"
+msgstr "Ir al período actual"
 
 msgid "KURRENT/COLUMN only"
 msgstr "Solo KURRENT/COLUMN"
 
-msgid "KURRENT/LIST (day section)"
-msgstr "KURRENT/LIST (sección del día)"
+msgid "KURRENT/COLUMN value…"
+msgstr "Valor de KURRENT/COLUMN…"
 
 msgid "Kanban"
 msgstr "Kanban"
 
+msgid "Kanban columns"
+msgstr "Columnas Kanban"
+
+msgid "Kanban columns: %1"
+msgstr "Columnas Kanban: %1"
+
 msgid "Kanban writes"
 msgstr "Kanban escribe"
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "Formas y tipografía de Kante sobre tu esquema de color. Los controles y colores siguen siendo los de Plasma."
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante usa su propia paleta en todo el widget; las prioridades usan su rojo, amarillo y azul."
 
 msgid "Kurrent"
 msgstr "Kurrent"
@@ -524,23 +749,35 @@ msgstr "Kurrent"
 msgid "Label"
 msgstr "Etiqueta"
 
+msgid "Label (Z–A)"
+msgstr "Etiqueta (Z–A)"
+
+msgid "Label:"
+msgstr "Etiqueta:"
+
 msgid "Labels"
 msgstr "Etiquetas"
 
 msgid "Labels (Categories)"
 msgstr "Etiquetas (categorías)"
 
+msgid "Labels are already Kanban columns."
+msgstr "Las etiquetas ya son columnas Kanban."
+
+msgid "Labels are already swimlane rows."
+msgstr "Las etiquetas ya son filas de carriles."
+
 msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
 msgstr "Las etiquetas salen de las categorías de Akonadi. Las ocultas no aparecen en la barra lateral, pero siguen en las tareas."
 
-msgid "Labels:"
-msgstr "Etiquetas:"
-
-msgid "Lane axis (rows)"
-msgstr "Eje de carriles (filas)"
+msgid "Later"
+msgstr "Más adelante"
 
 msgid "Light"
 msgstr "Claro"
+
+msgid "Lightbulb"
+msgstr "Bombilla"
 
 msgid "List"
 msgstr "Lista"
@@ -554,14 +791,35 @@ msgstr "Cargando…"
 msgid "Location"
 msgstr "Ubicación"
 
-msgid "Location:"
-msgstr "Ubicación:"
+msgid "Location (Z–A)"
+msgstr "Ubicación (Z–A)"
+
+msgid "Locations"
+msgstr "Ubicaciones"
+
+msgid "Locations come from the VTODO LOCATION field. Hidden locations will not appear in the sidebar filter list but remain on tasks."
+msgstr "Las ubicaciones vienen del campo LOCATION de VTODO. Las ocultas no aparecen en el filtro de la barra lateral, pero siguen en las tareas."
+
+msgid "Log Akonadi writes and sync state to the system journal"
+msgstr "Registrar escrituras de Akonadi y estado de sincronización en el diario del sistema"
+
+msgid "Log fetch, monitor, and collection details to the system journal"
+msgstr "Registrar detalles de obtención, monitor y colecciones en el diario del sistema"
+
+msgid "Logging"
+msgstr "Registro"
+
+msgid "Look ahead"
+msgstr "Horizonte"
 
 msgid "Low"
 msgstr "Baja"
 
 msgid "Low priority (%1)"
 msgstr "Prioridad baja (%1)"
+
+msgid "Maintenance"
+msgstr "Mantenimiento"
 
 msgid "Make subtask of “%1”"
 msgstr "Convertir en subtarea de “%1”"
@@ -571,6 +829,9 @@ msgstr "Convertir en tarea principal"
 
 msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
 msgstr "Gestiona qué calendarios Akonadi editables se usan como proyectos. Los desactivados no se consultan. Los ocultos se consultan pero no aparecen en la barra lateral."
+
+msgid "Many"
+msgstr "Muchas"
 
 msgid "Mark as done"
 msgstr "Marcar como hecha"
@@ -583,6 +844,9 @@ msgstr "Prioridad media (%1)"
 
 msgid "Meetings"
 msgstr "Reuniones"
+
+msgid "Mo"
+msgstr "lu"
 
 msgid "Mode:"
 msgstr "Modo:"
@@ -605,14 +869,17 @@ msgstr "La mañana empieza"
 msgid "Motion"
 msgstr "Movimiento"
 
+msgid "Move all to today"
+msgstr "Mover todas a hoy"
+
 msgid "Move to project"
 msgstr "Mover al proyecto"
 
 msgid "Move to project “%1”"
 msgstr "Mover al proyecto “%1”"
 
-msgid "Name"
-msgstr "Nombre"
+msgid "Name:"
+msgstr "Nombre:"
 
 msgid "Needs action"
 msgstr "Requiere acción"
@@ -623,14 +890,23 @@ msgstr "Nueva vista inteligente"
 msgid "New label"
 msgstr "Nueva etiqueta"
 
+msgid "New location"
+msgstr "Nueva ubicación"
+
 msgid "New tasks"
 msgstr "Tareas nuevas"
 
+msgid "Next"
+msgstr "Siguiente"
+
+msgid "Next event"
+msgstr "Próximo evento"
+
+msgid "Next event · %1"
+msgstr "Próximo evento · %1"
+
 msgid "Next week"
 msgstr "Próxima semana"
-
-msgid "No busy events for this day."
-msgstr "No hay eventos ocupados este día."
 
 msgid "No date"
 msgstr "Sin fecha"
@@ -638,17 +914,32 @@ msgstr "Sin fecha"
 msgid "No dated open tasks in this view."
 msgstr "No hay tareas abiertas con fecha en esta vista."
 
+msgid "No due date"
+msgstr "Sin fecha de vencimiento"
+
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "No se encontraron calendarios de eventos. Comprueba que Akonadi esté en ejecución y que los calendarios CalDAV estén configurados."
+
+msgid "No events or tasks."
+msgstr "Sin eventos ni tareas."
 
 msgid "No high priority tasks"
 msgstr "No hay tareas de prioridad alta"
 
+msgid "No label"
+msgstr "Sin etiqueta"
+
 msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
 msgstr "No se encontraron etiquetas. Se descubren automáticamente desde las categorías de Akonadi."
 
+msgid "No locations found. Locations are discovered from task LOCATION values in Akonadi, or add one below."
+msgstr "No se encontraron ubicaciones. Se detectan de los valores LOCATION de las tareas en Akonadi, o añade una abajo."
+
 msgid "No matching labels"
 msgstr "No hay etiquetas coincidentes"
+
+msgid "No matching locations"
+msgstr "Ninguna ubicación coincide"
 
 msgid "No matching tasks"
 msgstr "No hay tareas coincidentes"
@@ -659,11 +950,17 @@ msgstr "No hay tareas abiertas"
 msgid "No overdue tasks"
 msgstr "No hay tareas vencidas"
 
+msgid "No parent"
+msgstr "Sin tarea padre"
+
 msgid "No priority"
 msgstr "Sin prioridad"
 
 msgid "No projects available"
 msgstr "No hay proyectos disponibles"
+
+msgid "No status"
+msgstr "Sin estado"
 
 msgid "No task lists"
 msgstr "No hay listas de tareas"
@@ -677,11 +974,17 @@ msgstr "No se encontraron calendarios Akonadi editables. Comprueba que Akonadi e
 msgid "None"
 msgstr "Ninguno"
 
+msgid "Not available in the current view."
+msgstr "No disponible en la vista actual."
+
 msgid "Not loaded"
 msgstr "No cargado"
 
 msgid "Nothing due today"
 msgstr "Nada vence hoy"
+
+msgid "Nothing on this day."
+msgstr "Nada este día."
 
 msgid "Notifications"
 msgstr "Notificaciones"
@@ -691,6 +994,9 @@ msgstr "Notificar cuando venza un recordatorio de tarea"
 
 msgid "Number"
 msgstr "Número"
+
+msgid "Number of tasks per period"
+msgstr "Número de tareas por período"
 
 msgid "Off"
 msgstr "Desactivado"
@@ -707,6 +1013,9 @@ msgstr "En línea"
 msgid "Only opaque (busy) events count. Transparent events are ignored."
 msgstr "Solo cuentan los eventos opacos (ocupados). Los eventos transparentes se ignoran."
 
+msgid "Only tasks matching ALL active rules are shown. Leave a filter on \"Any\" to disable it."
+msgstr "Solo se muestran las tareas que cumplen TODAS las reglas activas. Deja un filtro en «Cualquiera» para desactivarlo."
+
 msgid "Open"
 msgstr "Abierto"
 
@@ -719,6 +1028,12 @@ msgstr "Abrir GitHub"
 msgid "Open first"
 msgstr "Abiertas primero"
 
+msgid "Open full editor"
+msgstr "Abrir editor completo"
+
+msgid "Open in calendar"
+msgstr "Abrir en el calendario"
+
 msgid "Open map"
 msgstr "Abrir mapa"
 
@@ -727,9 +1042,6 @@ msgstr "Tareas principales abiertas"
 
 msgid "Open tasks"
 msgstr "Tareas abiertas"
-
-msgid "Open tasks by project and week"
-msgstr "Tareas abiertas por proyecto y semana"
 
 msgid "Open the full editor"
 msgstr "Abrir el editor completo"
@@ -767,14 +1079,35 @@ msgstr "Tarea principal"
 msgid "Pending jobs"
 msgstr "Trabajos pendientes"
 
+msgid "Per day"
+msgstr "Por día"
+
+msgid "Periods shown ahead of the current one. 0 = automatic (14 days, 8 weeks or 6 months). Later tasks are collected in one column."
+msgstr "Períodos que se muestran después del actual. 0 = automático (14 días, 8 semanas o 6 meses). Las tareas posteriores se agrupan en una columna."
+
 msgid "Pick date"
 msgstr "Elegir fecha"
+
+msgid "Planning horizon"
+msgstr "Horizonte de planificación"
+
+msgid "Plasma (default)"
+msgstr "Plasma (predeterminado)"
 
 msgid "Plugin version"
 msgstr "Versión del complemento"
 
+msgid "Previous"
+msgstr "Anterior"
+
 msgid "Priorities"
 msgstr "Prioridades"
+
+msgid "Priorities are already Kanban columns."
+msgstr "Las prioridades ya son columnas Kanban."
+
+msgid "Priorities are already swimlane rows."
+msgstr "Las prioridades ya son filas de carriles."
 
 msgid "Priority"
 msgstr "Prioridad"
@@ -782,11 +1115,20 @@ msgstr "Prioridad"
 msgid "Priority %1"
 msgstr "Prioridad %1"
 
+msgid "Priority %1 (%2)"
+msgstr "Prioridad %1 (%2)"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "Colores de prioridad (rojo · amarillo · azul)"
+
 msgid "Priority:"
 msgstr "Prioridad:"
 
 msgid "Private"
 msgstr "Privado"
+
+msgid "Progress"
+msgstr "Progreso"
 
 msgid "Progress %"
 msgstr "Progreso %"
@@ -794,14 +1136,26 @@ msgstr "Progreso %"
 msgid "Progress % (high first)"
 msgstr "Progreso % (alto primero)"
 
-msgid "Progress:"
-msgstr "Progreso:"
+msgid "Progress %1%"
+msgstr "Progreso %1 %"
+
+msgid "Progress is already used for Kanban columns."
+msgstr "El progreso ya se usa para las columnas Kanban."
 
 msgid "Project"
 msgstr "Proyecto"
 
+msgid "Project (Z–A)"
+msgstr "Proyecto (Z–A)"
+
+msgid "Project and label colours"
+msgstr "Colores de proyectos y etiquetas"
+
 msgid "Project plan"
 msgstr "Plan de proyecto"
+
+msgid "Project plan options"
+msgstr "Opciones del plan de proyecto"
 
 msgid "Project:"
 msgstr "Proyecto:"
@@ -811,6 +1165,15 @@ msgstr "Proyectos"
 
 msgid "Projects (Akonadi Calendars)"
 msgstr "Proyectos (calendarios Akonadi)"
+
+msgid "Projects are already Kanban columns."
+msgstr "Los proyectos ya son columnas Kanban."
+
+msgid "Projects are already plan rows."
+msgstr "Los proyectos ya son filas del plan."
+
+msgid "Projects are already swimlane rows."
+msgstr "Los proyectos ya son filas de carriles."
 
 msgid "Public"
 msgstr "Público"
@@ -830,8 +1193,8 @@ msgstr "Icono de recurrencia"
 msgid "Recurring last"
 msgstr "Recurrentes al final"
 
-msgid "Recurring only"
-msgstr "Solo recurrentes"
+msgid "Recurring tasks only"
+msgstr "Solo tareas periódicas"
 
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "Movimiento reducido (sin indicador, hover más discreto)"
@@ -857,17 +1220,29 @@ msgstr "Recordar por vista"
 msgid "Remember the last view instead"
 msgstr "Recordar la última vista en su lugar"
 
+msgid "Reminder"
+msgstr "Recordatorio"
+
 msgid "Reminder first"
 msgstr "Recordatorio primero"
 
 msgid "Reminder last"
 msgstr "Recordatorio al final"
 
-msgid "Reminder:"
-msgstr "Recordatorio:"
+msgid "Remove filter"
+msgstr "Quitar filtro"
 
 msgid "Remove label"
 msgstr "Quitar etiqueta"
+
+msgid "Remove label “%1”"
+msgstr "Quitar etiqueta «%1»"
+
+msgid "Remove label “%1” from this task?"
+msgstr "¿Quitar la etiqueta «%1» de esta tarea?"
+
+msgid "Remove label?"
+msgstr "¿Quitar etiqueta?"
 
 msgid "Rename"
 msgstr "Renombrar"
@@ -878,17 +1253,29 @@ msgstr "Renombrar de"
 msgid "Rename to"
 msgstr "Renombrar a"
 
-msgid "Repeat:"
-msgstr "Repetir:"
+msgid "Reopen"
+msgstr "Reabrir"
+
+msgid "Repeat"
+msgstr "Repetir"
 
 msgid "Reset this page"
 msgstr "Restablecer esta página"
+
+msgid "Row axis"
+msgstr "Eje de filas"
 
 msgid "Row chips"
 msgstr "Chips de fila"
 
 msgid "Row size"
 msgstr "Tamaño de fila"
+
+msgid "Rows"
+msgstr "Filas"
+
+msgid "Sa"
+msgstr "sá"
 
 msgid "Save"
 msgstr "Guardar"
@@ -908,11 +1295,17 @@ msgstr "Buscar"
 msgid "Search or create label…"
 msgstr "Buscar o crear etiqueta…"
 
+msgid "Search or set location…"
+msgstr "Buscar o fijar ubicación…"
+
 msgid "Search parent task…"
 msgstr "Buscar tarea principal…"
 
 msgid "Search tasks…"
 msgstr "Buscar tareas…"
+
+msgid "Search text:"
+msgstr "Texto de búsqueda:"
 
 msgid "Search titles only"
 msgstr "Buscar solo títulos"
@@ -920,11 +1313,17 @@ msgstr "Buscar solo títulos"
 msgid "Second sort"
 msgstr "Segundo orden"
 
-msgid "Secrecy:"
-msgstr "Confidencialidad:"
+msgid "Secrecy"
+msgstr "Confidencialidad"
 
-msgid "Section:"
-msgstr "Sección:"
+msgid "Secrecy (reverse)"
+msgstr "Confidencialidad (inversa)"
+
+msgid "Secrecy is already used for Kanban columns."
+msgstr "La confidencialidad ya se usa para las columnas Kanban."
+
+msgid "Section"
+msgstr "Sección"
 
 msgid "Sections"
 msgstr "Secciones"
@@ -944,23 +1343,35 @@ msgstr "Selección"
 msgid "Set KURRENT_SMOKE=1 and check ~/.cache/kurrent-smoke/ for logs."
 msgstr "Establece KURRENT_SMOKE=1 y revisa ~/.cache/kurrent-smoke/ para los registros."
 
+msgid "Set location “%1”"
+msgstr "Fijar ubicación «%1»"
+
 msgid "Set priority"
 msgstr "Establecer prioridad"
 
 msgid "Set priority “%1”"
 msgstr "Establecer prioridad “%1”"
 
+msgid "Set progress to %1"
+msgstr "Fijar progreso en %1"
+
+msgid "Set secrecy “%1”"
+msgstr "Fijar confidencialidad «%1»"
+
+msgid "Set status “%1”"
+msgstr "Fijar estado «%1»"
+
 msgid "Setup"
 msgstr "Configuración"
-
-msgid "Show %1 tasks"
-msgstr "Mostrar %1 tareas"
 
 msgid "Show All"
 msgstr "Mostrar todo"
 
 msgid "Show a Join button for http(s) links"
 msgstr "Mostrar botón Unirse para enlaces http(s)"
+
+msgid "Show a notice when tasks are overdue"
+msgstr "Mostrar un aviso cuando haya tareas vencidas"
 
 msgid "Show completed tasks"
 msgstr "Mostrar tareas completadas"
@@ -971,8 +1382,17 @@ msgstr "Mostrar proyectos vacíos"
 msgid "Show in the sidebar"
 msgstr "Mostrar en la barra lateral"
 
-msgid "Show overdue tasks at the top of Today"
-msgstr "Mostrar tareas vencidas arriba en Hoy"
+msgid "Show only tasks from a specific project (Akonadi collection). \"Any project\" disables this filter."
+msgstr "Mostrar solo tareas de un proyecto (colección de Akonadi). «Cualquier proyecto» desactiva este filtro."
+
+msgid "Show only tasks with a specific label (Akonadi category). \"Any label\" disables this filter."
+msgstr "Mostrar solo tareas con una etiqueta (categoría de Akonadi). «Cualquier etiqueta» desactiva este filtro."
+
+msgid "Show overdue"
+msgstr "Mostrar vencidas"
+
+msgid "Show sidebar"
+msgstr "Mostrar barra lateral"
 
 msgid "Show task counts"
 msgstr "Mostrar recuentos de tareas"
@@ -980,14 +1400,23 @@ msgstr "Mostrar recuentos de tareas"
 msgid "Show this label in the sidebar filter"
 msgstr "Mostrar esta etiqueta en el filtro de la barra lateral"
 
+msgid "Show this location in the sidebar filter"
+msgstr "Mostrar esta ubicación en el filtro de la barra lateral"
+
 msgid "Show this project in the sidebar"
 msgstr "Mostrar este proyecto en la barra lateral"
 
 msgid "Show time on the due chip"
 msgstr "Mostrar hora en el chip de vencimiento"
 
+msgid "Show undated tasks"
+msgstr "Mostrar tareas sin fecha"
+
 msgid "Sidebar"
 msgstr "Barra lateral"
+
+msgid "Smart View name"
+msgstr "Nombre de la vista inteligente"
 
 msgid "Smart Views"
 msgstr "Vistas inteligentes"
@@ -998,11 +1427,11 @@ msgstr "Prueba de humo"
 msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
 msgstr "Posponer desde la notificación (15 minutos, 1 hora, mañana) reescribe el VALARM. La fecha de vencimiento no cambia; usa Reprogramar para eso."
 
+msgid "Sort by:"
+msgstr "Ordenar por:"
+
 msgid "Sort order"
 msgstr "Orden de clasificación"
-
-msgid "Sort override (e.g. priority,due,title)"
-msgstr "Orden personalizado (p. ej. priority,due,title)"
 
 msgid "Sort tasks"
 msgstr "Ordenar tareas"
@@ -1013,14 +1442,17 @@ msgstr "Orden: %1"
 msgid "Standard VTODO fields"
 msgstr "Campos VTODO estándar"
 
+msgid "Star"
+msgstr "Estrella"
+
+msgid "Start"
+msgstr "Inicio"
+
 msgid "Start date"
 msgstr "Fecha de inicio"
 
 msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
 msgstr "Inícialo con akonadictl start y luego añade un recurso CalDAV en Merkuro o KOrganizer."
-
-msgid "Start:"
-msgstr "Inicio:"
 
 msgid "Starts"
 msgstr "Empieza"
@@ -1028,14 +1460,29 @@ msgstr "Empieza"
 msgid "Status"
 msgstr "Estado"
 
+msgid "Status (reverse)"
+msgstr "Estado (inverso)"
+
+msgid "Status is already used for Kanban columns."
+msgstr "El estado ya se usa para las columnas Kanban."
+
 msgid "Status:"
 msgstr "Estado:"
 
 msgid "Still open"
 msgstr "Aún abiertas"
 
+msgid "Stores KURRENT/LIST for Today-view day sections (Morning, Afternoon, Evening). Also used as the Kanban “Day section” column source."
+msgstr "Guarda KURRENT/LIST para las partes del día de la vista Hoy (mañana, tarde, noche). También es el origen de las columnas Kanban «Parte del día»."
+
 msgid "Strong"
 msgstr "Fuerte"
+
+msgid "Style"
+msgstr "Estilo"
+
+msgid "Su"
+msgstr "do"
 
 msgid "Subtasks"
 msgstr "Subtareas"
@@ -1046,35 +1493,59 @@ msgstr "Suprimir recordatorios en esta franja horaria"
 msgid "Suppress reminders while a calendar event is in progress"
 msgstr "Suprimir recordatorios mientras hay un evento de calendario en curso"
 
+msgid "Swimlane horizon"
+msgstr "Horizonte de carriles"
+
+msgid "Swimlane options"
+msgstr "Opciones de carriles"
+
 msgid "Swimlanes"
 msgstr "Carriles"
 
 msgid "Sync now"
 msgstr "Sincronizar ahora"
 
+msgid "Synced"
+msgstr "Sincronizado"
+
 msgid "Syncing…"
 msgstr "Sincronizando…"
+
+msgid "Tag"
+msgstr "Etiqueta"
 
 msgid "Tasks"
 msgstr "Tareas"
 
+msgid "Tasks appear here by row and period once they match the current view."
+msgstr "Las tareas aparecerán aquí por fila y período cuando coincidan con la vista actual."
+
 msgid "Tasks are loaded from your existing Akonadi setup."
 msgstr "Las tareas se cargan desde tu configuración Akonadi existente."
 
-msgid "Tasks due this day"
-msgstr "Tareas que vencen este día"
+msgid "Tasks due"
+msgstr "Tareas pendientes"
 
-msgid "Text contains"
-msgstr "El texto contiene"
+msgid "Tasks this week"
+msgstr "Tareas esta semana"
+
+msgid "Th"
+msgstr "ju"
 
 msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
 msgstr "El paquete de KDE Store es solo el widget. Ejecuta esto en una terminal para instalar el complemento:"
+
+msgid "The display name shown in the sidebar."
+msgstr "El nombre que aparece en la barra lateral."
 
 msgid "The flyout is ready; tasks appear when the server answers."
 msgstr "El desplegable está listo; las tareas aparecen cuando el servidor responde."
 
 msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
 msgstr "El editor completo sigue siendo una superposición dentro del widget. La sección del día (LIST) está en el editor completo."
+
+msgid "The main-pane view mode used when this Smart View is active."
+msgstr "El modo de vista del panel principal mientras esta vista inteligente está activa."
 
 msgid "Third sort"
 msgstr "Tercer orden"
@@ -1088,8 +1559,11 @@ msgstr "Esta semana"
 msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
 msgstr "Este widget es la versión %1 pero el backend instalado es %2. Reinstala el backend para que coincidan."
 
-msgid "Time axis (columns)"
-msgstr "Eje temporal (columnas)"
+msgid "Tiles with the key views above the tasks"
+msgstr "Mosaicos con las vistas principales sobre las tareas"
+
+msgid "Time grouping"
+msgstr "Agrupación temporal"
 
 msgid "Title"
 msgstr "Título"
@@ -1099,9 +1573,6 @@ msgstr "Título A–Z"
 
 msgid "Title Z–A"
 msgstr "Título Z–A"
-
-msgid "Title:"
-msgstr "Título:"
 
 msgid "Today"
 msgstr "Hoy"
@@ -1118,29 +1589,23 @@ msgstr "Mañana"
 msgid "Tonight"
 msgstr "Esta noche"
 
+msgid "Translucent with blurred wallpaper"
+msgstr "Translúcido con fondo desenfocado"
+
 msgid "Try again"
 msgstr "Reintentar"
 
-msgid "Undo"
-msgstr "Deshacer"
-
-msgid "Undo complete"
-msgstr "Deshacer completado"
-
-msgid "Undo delete"
-msgstr "Deshacer eliminación"
-
-msgid "Undo move"
-msgstr "Deshacer movimiento"
-
-msgid "Undo reschedule"
-msgstr "Deshacer reprogramación"
+msgid "Tu"
+msgstr "ma"
 
 msgid "Unlabeled"
 msgstr "Sin etiqueta"
 
-msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
-msgstr "Usa el fondo translúcido de Plasma para que KWin desenfogue el fondo. También aplica al desplegable del panel."
+msgid "Unlabeled view does not apply when Kanban uses labels as columns."
+msgstr "La vista «Sin etiqueta» no se aplica si el Kanban usa etiquetas como columnas."
+
+msgid "Unscheduled"
+msgstr "Sin programar"
 
 msgid "Use a specific project"
 msgstr "Usar un proyecto concreto"
@@ -1148,8 +1613,17 @@ msgstr "Usar un proyecto concreto"
 msgid "Use the top project in the sidebar"
 msgstr "Usar el primer proyecto de la barra lateral"
 
+msgid "Use “%1”"
+msgstr "Usar «%1»"
+
+msgid "Verbose journal"
+msgstr "Registro detallado"
+
 msgid "View mode"
 msgstr "Modo de vista"
+
+msgid "View mode:"
+msgstr "Modo de vista:"
 
 msgid "View mode: %1"
 msgstr "Modo de vista: %1"
@@ -1163,14 +1637,35 @@ msgstr "Visible"
 msgid "Waiting for Akonadi…"
 msgstr "Esperando a Akonadi…"
 
+msgid "Warning"
+msgstr "Advertencia"
+
+msgid "We"
+msgstr "mi"
+
 msgid "Week"
 msgstr "Semana"
+
+msgid "Week %1"
+msgstr "Semana %1"
 
 msgid "Weekly"
 msgstr "Semanal"
 
+msgid "When checked, only recurring tasks are shown."
+msgstr "Si está marcado, solo se muestran las tareas periódicas."
+
+msgid "Wide layout"
+msgstr "Diseño ancho"
+
 msgid "Width"
 msgstr "Ancho"
+
+msgid "Work"
+msgstr "Trabajo"
+
+msgid "Year"
+msgstr "Año"
 
 msgid "Yearly"
 msgstr "Anual"
@@ -1178,8 +1673,23 @@ msgstr "Anual"
 msgid "Yesterday"
 msgstr "Ayer"
 
-msgid "tasks"
-msgstr "tareas"
+msgid "high priority"
+msgstr "prioridad alta"
+
+msgid "overdue"
+msgstr "vencidas"
+
+msgid "task completed"
+msgstr "tarea completada"
+
+msgid "task due"
+msgstr "tarea con vencimiento"
+
+msgid "tasks completed"
+msgstr "tareas completadas"
+
+msgid "tasks due"
+msgstr "tareas con vencimiento"
 
 msgid "unknown"
 msgstr "desconocido"
@@ -1194,124 +1704,35 @@ msgid_plural "%1 tasks"
 msgstr[0] "%1 tarea"
 msgstr[1] "%1 tareas"
 
-msgid "Style"
-msgstr "Estilo"
+msgid "+%1 more task"
+msgid_plural "+%1 more tasks"
+msgstr[0] "+%1 tarea más"
+msgstr[1] "+%1 tareas más"
 
-msgid "Plasma (default)"
-msgstr "Plasma (predeterminado)"
+msgid "Show %1 task in the list"
+msgid_plural "Show %1 tasks in the list"
+msgstr[0] "Mostrar %1 tarea en la lista"
+msgstr[1] "Mostrar %1 tareas en la lista"
 
-msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
-msgstr "Sigue tu esquema de color, claro u oscuro. Se siente como cualquier otra aplicación de KDE."
+msgid "%1 day"
+msgid_plural "%1 days"
+msgstr[0] "%1 día"
+msgstr[1] "%1 días"
 
-msgid "Accent colours"
-msgstr "Colores de acento"
+msgid "%1 week"
+msgid_plural "%1 weeks"
+msgstr[0] "%1 semana"
+msgstr[1] "%1 semanas"
 
-msgid "Project and label colours"
-msgstr "Colores de proyectos y etiquetas"
-
-msgid "Priority colours (red · yellow · blue)"
-msgstr "Colores de prioridad (rojo · amarillo · azul)"
-
-msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
-msgstr "Todo lo demás —superficies, texto, selección, botones— viene de tu esquema de color de Plasma."
-
-msgid "Translucent with blurred wallpaper"
-msgstr "Translúcido con fondo desenfocado"
-
-msgid "Hints"
-msgstr "Avisos"
-
-msgid "Show a notice when tasks are overdue"
-msgstr "Mostrar un aviso cuando haya tareas vencidas"
-
-msgid "Move all to today"
-msgstr "Mover todas a hoy"
-
-msgid "Show overdue"
-msgstr "Mostrar vencidas"
-
-msgid "Show sidebar"
-msgstr "Mostrar barra lateral"
-
-msgid "Hide sidebar"
-msgstr "Ocultar barra lateral"
+msgid "%1 month"
+msgid_plural "%1 months"
+msgstr[0] "%1 mes"
+msgstr[1] "%1 meses"
 
 msgid "%1 task is overdue."
 msgid_plural "%1 tasks are overdue."
 msgstr[0] "%1 tarea está vencida."
 msgstr[1] "%1 tareas están vencidas."
-
-msgid "Kante"
-msgstr "Kante"
-
-msgid "Kante Light"
-msgstr "Kante Light"
-
-msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
-msgstr "Gruvbox, o Lino con un esquema claro. Títulos condensados, esquinas cortadas, controles cuadrados. Usa su propia paleta."
-
-msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
-msgstr "Formas y tipografía de Kante sobre tu esquema de color. Los controles y colores siguen siendo los de Plasma."
-
-msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
-msgstr "Kante usa su propia paleta en todo el widget; las prioridades usan su rojo, amarillo y azul."
-
-msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
-msgstr "Se aplica a todos los estilos y a la ventana emergente del panel: Kurrent nunca pinta su propio fondo; las superficies de Kante son solo tintes encima. En el escritorio el widget sigue siendo translúcido; la ventana emergente se vuelve opaca si esto está desactivado."
-
-msgid "%1 open"
-msgstr "%1 abiertas"
-
-msgid "%1 overdue"
-msgstr "%1 vencidas"
-
-msgid "Synced"
-msgstr "Sincronizado"
-
-msgid "Remove filter"
-msgstr "Quitar filtro"
-
-msgid "Per day"
-msgstr "Por día"
-
-msgid "Best day"
-msgstr "Mejor día"
-
-msgid "Best day · %1"
-msgstr "Mejor día · %1"
-
-msgid "Open full editor"
-msgstr "Abrir editor completo"
-
-msgid "Close inspector"
-msgstr "Cerrar inspector"
-
-msgid "Done"
-msgstr "Hecho"
-
-msgid "Inspector: clicking a task shows its details beside the list"
-msgstr "Inspector: al pulsar una tarea se muestran sus detalles junto a la lista"
-
-msgid "No due date"
-msgstr "Sin fecha de vencimiento"
-
-msgid "Progress"
-msgstr "Progreso"
-
-msgid "Reminder"
-msgstr "Recordatorio"
-
-msgid "Reopen"
-msgstr "Reabrir"
-
-msgid "Secrecy"
-msgstr "Confidencialidad"
-
-msgid "Tiles with the key views above the tasks"
-msgstr "Mosaicos con las vistas principales sobre las tareas"
-
-msgid "Wide layout"
-msgstr "Diseño ancho"
 
 msgid "%1 day before"
 msgid_plural "%1 days before"

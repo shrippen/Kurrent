@@ -12,7 +12,10 @@ Rectangle {
     property alias text: label.text
     property bool selected: false
     property bool negative: false
+    // Zero reads as "nothing here": dimmed so real counts stand out (g6).
+    readonly property bool zero: label.text === "0"
 
+    opacity: zero && !selected ? 0.45 : 1
     implicitHeight: Math.round(label.implicitHeight + 2)
     implicitWidth: Math.max(implicitHeight, Math.round(label.implicitWidth + Kirigami.Units.smallSpacing * 2))
     radius: KanteStyle.themed ? 0 : height / 2

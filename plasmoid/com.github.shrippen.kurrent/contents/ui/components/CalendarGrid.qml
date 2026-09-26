@@ -42,7 +42,7 @@ ColumnLayout {
         QQC2.Label {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            text: Qt.formatDate(root._monthStart, "MMMM yyyy")
+            text: Qt.locale().toString(root._monthStart, "MMMM yyyy")
             font.bold: true
         }
 

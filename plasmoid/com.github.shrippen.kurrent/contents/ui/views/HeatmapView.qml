@@ -15,6 +15,8 @@ ColumnLayout {
     // The tiles above the pane show the figures (FullView); then the own row stays hidden.
     property bool factsInTiles: false
     property bool interactionsSuspended: false
+    property Item dragHost: null
+    property var onOpenFullEditor: null
 
     implicitHeight: 0
     Layout.fillWidth: true
@@ -29,6 +31,36 @@ ColumnLayout {
     property var monthStart: {
         var d = new Date()
         return new Date(d.getFullYear(), d.getMonth(), 1)
+    }
+
+    // Day whose tasks the list beside the month grid shows: today, or the 1st of another month.
+    property var selectedDay: {
+        var d = new Date()
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+    }
+    onMonthStartChanged: {
+        var t = new Date()
+        selectedDay = (t.getFullYear() === monthStart.getFullYear() && t.getMonth() === monthStart.getMonth())
+                ? new Date(t.getFullYear(), t.getMonth(), t.getDate()) : new Date(monthStart)
+    }
+
+    // Tasks behind the selected cell; re-read whenever the counts change.
+    readonly property var selectedDayTasks: {
+        var dep = activeCounts
+        return controller && selectedDay ? controller.heatmapTasksForDay(selectedDay, heatmapMode) : []
+    }
+
+    function sameDay(a, b) {
+        return !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
+                && a.getDate() === b.getDate()
+    }
+
+    function openTask(task) {
+        if (dragHost && dragHost.inspectorActive) {
+            dragHost.inspectTask(task.itemId)
+        } else if (onOpenFullEditor) {
+            onOpenFullEditor(task)
+        }
     }
 
     // ── Sizing ─────────────────────────────────────────────────────
@@ -78,13 +110,13 @@ ColumnLayout {
             var mon = weeks[w]
             var prev = w > 0 ? weeks[w - 1] : null
             labels.push((w === 0 || (prev && mon.getMonth() !== prev.getMonth()))
-                        ? Qt.formatDate(mon, "MMM") : "")
+                        ? Qt.locale().toString(mon, "MMM") : "")
         }
         return labels
     }
 
     function dateKey(d) {
-        return Qt.formatDate(d, "yyyy-MM-dd")
+        return Qt.locale().toString(d, "yyyy-MM-dd")
     }
 
     // ── Month data ─────────────────────────────────────────────────
@@ -160,7 +192,7 @@ ColumnLayout {
             total: total,
             perDay: now < start ? 0 : total / days,
             bestCount: bestCount,
-            bestLabel: bestDate && !isNaN(bestDate) ? Qt.formatDate(bestDate, Qt.locale().dateFormat(Locale.ShortFormat)) : ""
+            bestLabel: bestDate && !isNaN(bestDate) ? Qt.locale().toString(bestDate, Qt.locale().dateFormat(Locale.ShortFormat)) : ""
         }
     }
 
@@ -174,12 +206,12 @@ ColumnLayout {
             return ""
         }
         if (count === 0) {
-            return Qt.formatDate(d, "ddd, MMM d")
+            return Qt.locale().toString(d, "ddd, MMM d")
         }
         var noun = heatmapMode === "completed"
             ? (count === 1 ? i18n("task completed") : i18n("tasks completed"))
             : (count === 1 ? i18n("task due") : i18n("tasks due"))
-        return i18n("%1 %2 on %3", count, noun, Qt.formatDate(d, "ddd, MMM d"))
+        return i18n("%1 %2 on %3", count, noun, Qt.locale().toString(d, "ddd, MMM d"))
     }
 
     // ── Year block component (used in year mode Flickable) ─────────
@@ -257,13 +289,14 @@ ColumnLayout {
         }
     }
 
-    // ── Header navigation ──────────────────────────────────────────
+    // ── Header: period navigation, Month / Year and mode in one row ──
     RowLayout {
         Layout.fillWidth: true
         spacing: Design.spaceSmall
 
         KanteToolButton {
             icon.name: "go-previous"
+            Accessible.name: i18n("Previous")
             onClicked: {
                 var d = new Date(root.monthStart)
                 if (root.showYear) d.setFullYear(d.getFullYear() - 1)
@@ -277,21 +310,9 @@ ColumnLayout {
             onClicked: root.monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
         }
 
-        QQC2.Label {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            text: root.showYear
-                  ? (root.visibleYearNumbers.length > 1
-                     ? root.visibleYearNumbers[root.visibleYearNumbers.length - 1] + " \u2013 " + root.visibleYearNumbers[0]
-                     : Qt.formatDate(root.monthStart, "yyyy"))
-                  : Qt.formatDate(root.monthStart, "MMMM yyyy")
-            font.bold: true
-            font.family: Design.headingFamily
-            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
-        }
-
         KanteToolButton {
             icon.name: "go-next"
+            Accessible.name: i18n("Next")
             onClicked: {
                 var d = new Date(root.monthStart)
                 if (root.showYear) d.setFullYear(d.getFullYear() + 1)
@@ -299,16 +320,53 @@ ColumnLayout {
                 root.monthStart = d
             }
         }
+
+        QQC2.Label {
+            Layout.fillWidth: true
+            text: root.showYear
+                  ? (root.visibleYearNumbers.length > 1
+                     ? root.visibleYearNumbers[root.visibleYearNumbers.length - 1] + " \u2013 " + root.visibleYearNumbers[0]
+                     : Qt.locale().toString(root.monthStart, "yyyy"))
+                  : Qt.locale().toString(root.monthStart, "MMMM yyyy")
+            elide: Text.ElideRight
+            font.bold: true
+            font.family: Design.headingFamily
+            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
+        }
+
+        KanteToolButton {
+            text: i18n("Month")
+            checkable: true
+            checked: !root.showYear
+            onClicked: root.showYear = false
+        }
+        KanteToolButton {
+            text: i18n("Year")
+            checkable: true
+            checked: root.showYear
+            onClicked: root.showYear = true
+        }
+
+        QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
+            Accessible.name: i18n("Mode:")
+            model: [
+                { text: i18n("Completions"), value: "completed" },
+                { text: i18n("Due dates"), value: "due" }
+            ]
+            textRole: "text"
+            onActivated: root.heatmapMode = model[currentIndex].value
+        }
     }
 
     // Same figures as tiles for the row above the pane (FullView / ViewTiles).
     readonly property var tileFacts: [
         { label: heatmapMode === "completed" ? i18n("Completed") : i18n("Due"),
-          value: String(periodFacts.total), tone: KanteStyle.positiveTextColor },
+          value: String(periodFacts.total), tone: heatmapMode === "completed" ? KanteStyle.positiveTextColor : KanteStyle.mutedTextColor },
         { label: i18n("Per day"), value: periodFacts.perDay.toLocaleString(Qt.locale(), "f", 1),
-          tone: KanteStyle.infoColor },
+          tone: KanteStyle.mutedTextColor },
         { label: periodFacts.bestCount > 0 ? i18n("Best day · %1", periodFacts.bestLabel) : i18n("Best day"),
-          value: periodFacts.bestCount > 0 ? String(periodFacts.bestCount) : "–", tone: KanteStyle.accentColor },
+          value: periodFacts.bestCount > 0 ? String(periodFacts.bestCount) : "–", tone: KanteStyle.mutedTextColor },
         { label: i18n("Overdue"), viewId: "overdue", tone: KanteStyle.negativeTextColor,
           value: String(controller && controller.viewTaskCounts ? (controller.viewTaskCounts["overdue"] || 0) : 0) }
     ]
@@ -358,99 +416,190 @@ ColumnLayout {
         }
     }
 
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Design.spaceSmall
-
-        QQC2.Label { text: i18n("Mode:"); opacity: 0.7 }
-        QQC2.ComboBox {
-            KanteFieldSkin { control: parent }
-            model: [
-                { text: i18n("Completions"), value: "completed" },
-                { text: i18n("Due dates"), value: "due" }
-            ]
-            textRole: "text"
-            onActivated: root.heatmapMode = model[currentIndex].value
-        }
-
-        Item { Layout.fillWidth: true }
-
-        QQC2.Label { text: i18n("View:"); opacity: 0.7 }
-        KanteToolButton {
-            text: i18n("Month")
-            checkable: true
-            checked: !root.showYear
-            onClicked: root.showYear = false
-        }
-        KanteToolButton {
-            text: i18n("Year")
-            checkable: true
-            checked: root.showYear
-            onClicked: root.showYear = true
-        }
-    }
-
-    // ── Month grid with weekday axis ────────────────────────────────
+    // ── Month: compact grid with its legend; the selected day's tasks beside (wide) or below ──
     Item {
+        id: monthArea
         Layout.fillWidth: true
         Layout.fillHeight: !root.showYear
         visible: !root.showYear
 
-        Grid {
-            anchors.horizontalCenter: parent.horizontalCenter
-            columns: 7
-            spacing: 2
-            horizontalItemAlignment: Grid.AlignHCenter
+        readonly property bool listBeside: width >= Kirigami.Units.gridUnit * 30
+        readonly property int rows: Math.max(1, root.monthCells.length / 7)
+        readonly property real gridWidth: listBeside ? Math.min(width * 0.55, width - Kirigami.Units.gridUnit * 13) : width
+        readonly property real gridHeight: listBeside ? height : height - Kirigami.Units.gridUnit * 9
+        // Square cells: as large as width and height allow, capped so the month stays compact.
+        readonly property int cell: Math.max(Kirigami.Units.gridUnit, Math.floor(Math.min(
+                (gridWidth - 12) / 7,
+                (gridHeight - Kirigami.Units.gridUnit * 2.6 - rows * 2) / rows,
+                Kirigami.Units.gridUnit * 4)))
 
-            Repeater {
-                model: [i18n("Mo"), i18n("Tu"), i18n("We"), i18n("Th"), i18n("Fr"), i18n("Sa"), i18n("Su")]
-                delegate: QQC2.Label {
-                    required property string modelData
-                    width: root.cellSize
-                    horizontalAlignment: Text.AlignHCenter
-                    text: modelData
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                    opacity: 0.6
+        ColumnLayout {
+            id: monthGridColumn
+            width: monthArea.gridWidth
+            spacing: Design.spaceSmall
+
+            Grid {
+                Layout.alignment: Qt.AlignHCenter
+                columns: 7
+                spacing: 2
+
+                Repeater {
+                    model: [i18n("Mo"), i18n("Tu"), i18n("We"), i18n("Th"), i18n("Fr"), i18n("Sa"), i18n("Su")]
+                    delegate: QQC2.Label {
+                        required property string modelData
+                        width: monthArea.cell
+                        horizontalAlignment: Text.AlignHCenter
+                        text: modelData
+                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        opacity: 0.6
+                    }
+                }
+
+                Repeater {
+                    model: root.monthCells
+                    delegate: Rectangle {
+                        id: dayCell
+                        required property var modelData
+                        readonly property int count: modelData ? root.countForDate(modelData) : 0
+                        readonly property bool selected: root.sameDay(modelData, root.selectedDay)
+                        readonly property bool isToday: root.sameDay(modelData, new Date())
+                        width: monthArea.cell
+                        height: monthArea.cell
+                        radius: KanteStyle.active ? 0 : 3
+                        opacity: modelData !== null ? 1 : 0
+                        color: count > 0 ? Qt.rgba(Kirigami.Theme.highlightColor.r,
+                                Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b,
+                                Math.min(0.85, 0.15 + count * 0.15)) : "transparent"
+                        border.width: selected ? 2 : 1
+                        border.color: selected ? Kirigami.Theme.focusColor
+                                    : (count === 0 ? KanteStyle.tint(Kirigami.Theme.textColor, 0.14) : "transparent")
+
+                        // Day number top left, count in the middle.
+                        QQC2.Label {
+                            x: 4
+                            y: 2
+                            text: dayCell.modelData ? dayCell.modelData.getDate() : ""
+                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                            font.bold: dayCell.isToday
+                            color: dayCell.count > 0 ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
+                            opacity: dayCell.isToday || dayCell.count > 0 ? 1 : 0.6
+                        }
+                        QQC2.Label {
+                            anchors.centerIn: parent
+                            anchors.verticalCenterOffset: monthArea.cell > Kirigami.Units.gridUnit * 2 ? 3 : 0
+                            visible: dayCell.count > 0 && monthArea.cell >= Kirigami.Units.gridUnit * 1.6
+                            text: dayCell.count
+                            font: KanteStyle.active
+                                  ? KanteStyle.titleFont(Kirigami.Theme.defaultFont.pointSize * 1.2)
+                                  : Qt.font({ family: Kirigami.Theme.defaultFont.family,
+                                              pointSize: Kirigami.Theme.defaultFont.pointSize * 1.1, bold: true })
+                            color: Kirigami.Theme.highlightedTextColor
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            enabled: dayCell.modelData !== null
+                            hoverEnabled: enabled && !root.interactionsSuspended
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.selectedDay = dayCell.modelData
+                            QQC2.ToolTip.text: root.heatmapTooltip(dayCell.modelData, dayCell.count)
+                            QQC2.ToolTip.visible: containsMouse && dayCell.modelData !== null
+                        }
+                    }
                 }
             }
 
-            Repeater {
-                model: root.monthCells
-                delegate: Rectangle {
+            HeatmapLegend {
+                Layout.alignment: Qt.AlignHCenter
+            }
+        }
+
+        // Tasks of the selected day.
+        ColumnLayout {
+            x: monthArea.listBeside ? monthArea.gridWidth + Design.spaceMedium : 0
+            y: monthArea.listBeside ? 0 : monthGridColumn.height + Design.spaceMedium
+            width: monthArea.width - x
+            height: monthArea.height - y
+            spacing: Design.spaceSmall
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Design.spaceSmall
+
+                KanteHeading {
+                    Layout.fillWidth: true
+                    level: 5
+                    elide: Text.ElideRight
+                    text: root.selectedDay
+                          ? (root.heatmapMode === "completed"
+                             ? i18n("Completed on %1", Qt.locale().toString(root.selectedDay, "ddd, d. MMM"))
+                             : i18n("Due on %1", Qt.locale().toString(root.selectedDay, "ddd, d. MMM")))
+                          : ""
+                }
+                CountBadge {
+                    text: String(root.selectedDayTasks.length)
+                }
+                KanteToolButton {
+                    icon.name: "view-calendar-day"
+                    display: QQC2.AbstractButton.IconOnly
+                    text: i18n("Open in calendar")
+                    QQC2.ToolTip.text: text
+                    QQC2.ToolTip.visible: hovered
+                    onClicked: {
+                        controller.agendaSelectedDate = root.selectedDay
+                        controller.requestMainPaneMode("calendar")
+                    }
+                }
+            }
+
+            ListView {
+                id: dayList
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: root.selectedDayTasks
+                boundsBehavior: Flickable.StopAtBounds
+                QQC2.ScrollBar.vertical: QQC2.ScrollBar {}
+
+                delegate: QQC2.ItemDelegate {
+                    id: dayTask
                     required property var modelData
-                    readonly property int count: modelData ? root.countForDate(modelData) : 0
-                    width: root.cellSize
-                    height: root.cellSize
-                    radius: 2
-                    visible: modelData !== null
-                    color: count > 0 ? Qt.rgba(Kirigami.Theme.highlightColor.r,
-                            Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b,
-                            Math.min(0.85, 0.15 + count * 0.15)) : "transparent"
-                    opacity: modelData !== null ? 1 : 0
-                    border.color: modelData !== null && count === 0
-                                  ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
-                                            Kirigami.Theme.textColor.b, 0.14) : "transparent"
-
-                    QQC2.Label {
-                        anchors.centerIn: parent
-                        visible: modelData !== null
-                        text: modelData ? modelData.getDate() : ""
-                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                        color: count > 0 ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        enabled: modelData !== null
-                        hoverEnabled: enabled && !root.interactionsSuspended
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            controller.agendaSelectedDate = modelData
-                            controller.requestMainPaneMode("calendar")
+                    width: dayList.width
+                    hoverEnabled: !root.interactionsSuspended
+                    onClicked: root.openTask(modelData)
+                    contentItem: RowLayout {
+                        spacing: Design.spaceSmall
+                        Kirigami.Icon {
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            source: dayTask.modelData.completed ? "checkbox" : "view-task"
+                            color: dayTask.modelData.completed ? KanteStyle.positiveTextColor : Kirigami.Theme.textColor
+                            isMask: true
                         }
-                        QQC2.ToolTip.text: root.heatmapTooltip(modelData, count)
-                        QQC2.ToolTip.visible: containsMouse && modelData !== null
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            text: dayTask.modelData.summary
+                            elide: Text.ElideRight
+                        }
+                        QQC2.Label {
+                            text: dayTask.modelData.collectionName || ""
+                            visible: text.length > 0 && dayList.width > Kirigami.Units.gridUnit * 14
+                            font: Kirigami.Theme.smallFont
+                            color: KanteStyle.mutedTextColor
+                            elide: Text.ElideRight
+                            Layout.maximumWidth: dayList.width * 0.35
+                        }
                     }
+                }
+
+                QQC2.Label {
+                    anchors.centerIn: parent
+                    width: parent.width - Kirigami.Units.gridUnit * 2
+                    visible: dayList.count === 0
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    text: i18n("Nothing on this day.")
+                    color: KanteStyle.mutedTextColor
                 }
             }
         }
@@ -471,7 +620,7 @@ ColumnLayout {
             Item { width: 1; height: 36 }
 
             Repeater {
-                model: ["Mo", "", "We", "", "Fr", "", ""]
+                model: [i18n("Mo"), "", i18n("We"), "", i18n("Fr"), "", ""]
                 delegate: QQC2.Label {
                     required property string modelData
                     width: Math.round(Kirigami.Units.gridUnit * 1.6)
@@ -512,11 +661,13 @@ ColumnLayout {
         }
     }
 
-    // ── Legend ──────────────────────────────────────────────────────
-    RowLayout {
-        Layout.fillWidth: true
+    // ── Legend (year mode; the month grid carries its own) ──
+    HeatmapLegend {
+        visible: root.showYear && Object.keys(root.activeCounts).length > 0
+    }
+
+    component HeatmapLegend: RowLayout {
         spacing: Design.spaceTiny
-        visible: Object.keys(root.activeCounts).length > 0
 
         QQC2.Label { text: i18n("Few"); font.pixelSize: Kirigami.Theme.smallFont.pixelSize; opacity: 0.5 }
 
@@ -526,7 +677,7 @@ ColumnLayout {
                 required property var modelData
                 width: Design.heatmapCellSize * 0.6
                 height: Design.heatmapCellSize * 0.6
-                radius: 2
+                radius: KanteStyle.active ? 0 : 2
                 color: Kirigami.Theme.highlightColor
                 opacity: modelData
             }

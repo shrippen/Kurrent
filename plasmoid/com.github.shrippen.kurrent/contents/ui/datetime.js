@@ -122,7 +122,7 @@ function safeFormatDate(dt, fmt) {
         return ""
     }
     try {
-        return Qt.formatDate(dt, fmt)
+        return typeof fmt === "string" ? Qt.locale().toString(dt, fmt) : Qt.formatDate(dt, fmt)
     } catch (e) {
         return ""
     }

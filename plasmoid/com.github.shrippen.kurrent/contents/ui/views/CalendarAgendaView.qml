@@ -100,8 +100,8 @@ ColumnLayout {
     }
 
     function formatWeekLabel(start, end) {
-        var s = Qt.formatDate(start, "d MMM")
-        var e = Qt.formatDate(end, "d MMM yyyy")
+        var s = Qt.locale().toString(start, "d MMM")
+        var e = Qt.locale().toString(end, "d MMM yyyy")
         return s + " \u2013 " + e
     }
 
@@ -113,7 +113,7 @@ ColumnLayout {
         if (diff === 0) return i18n("Today")
         if (diff === 1) return i18n("Tomorrow")
         if (diff === -1) return i18n("Yesterday")
-        return Qt.formatDate(d, "d MMM")
+        return Qt.locale().toString(d, "d MMM")
     }
 
     // ── Visible days ──────────────────────────────────────────────
@@ -173,6 +173,44 @@ ColumnLayout {
         return incomplete.concat(done)
     }
 
+    // Figures for the tiles above the pane (FullView / ViewTiles): events and open tasks of the
+    // shown day or week, the next event from now, overdue.
+    readonly property var tileFacts: {
+        var events = 0
+        var tasks = 0
+        var next = null
+        var now = new Date()
+        for (var i = 0; i < agendaDays.length; ++i) {
+            var ev = eventsForDay(agendaDays[i])
+            events += ev.length
+            var ts = tasksForDay(agendaDays[i])
+            for (var j = 0; j < ts.length; ++j) {
+                if (!ts[j].completed) {
+                    tasks++
+                }
+            }
+        }
+        var today = eventsForDay(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+        for (var k = 0; k < today.length; ++k) {
+            var st = new Date(today[k].start)
+            if (!today[k].allDay && st > now) {
+                next = today[k]
+                break
+            }
+        }
+        return [
+            { label: weekMode ? i18n("Events this week") : i18n("Events"), value: String(events),
+              tone: KanteStyle.mutedTextColor },
+            { label: weekMode ? i18n("Tasks this week") : i18n("Tasks due"), value: String(tasks),
+              tone: weekMode ? KanteStyle.mutedTextColor : KanteStyle.accentColor },
+            { label: next ? i18n("Next event · %1", next.summary) : i18n("Next event"),
+              value: next ? Qt.locale().toString(new Date(next.start), Qt.locale().timeFormat(Locale.ShortFormat)) : "–",
+              tone: KanteStyle.mutedTextColor },
+            { label: i18n("Overdue"), viewId: "overdue", tone: KanteStyle.negativeTextColor,
+              value: String(controller && controller.viewTaskCounts ? (controller.viewTaskCounts["overdue"] || 0) : 0) }
+        ]
+    }
+
     // ── Header ────────────────────────────────────────────────────
     RowLayout {
         Layout.fillWidth: true
@@ -198,14 +236,14 @@ ColumnLayout {
             text: {
                 if (root.weekMode)
                     return formatWeekLabel(root.agendaDays[0], root.agendaDays[root.agendaDays.length - 1])
-                return Qt.formatDate(root.selectedDay, "dddd, d. MMMM yyyy")
+                return Qt.locale().toString(root.selectedDay, "dddd, d. MMMM yyyy")
             }
             font.bold: true
             font.family: Design.headingFamily
             font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
             TextMetrics {
                 id: dayLabelMetrics
-                text: Qt.formatDate(new Date(), "dddd, d. MMMM yyyy")
+                text: Qt.locale().toString(new Date(), "dddd, d. MMMM yyyy")
                 font: dayLabel.font
             }
         }
@@ -222,10 +260,7 @@ ColumnLayout {
         }
 
         KanteToolButton {
-            display: QQC2.AbstractButton.IconOnly
-            icon.name: "go-jump-today"
-            QQC2.ToolTip.text: root.weekMode ? i18n("This week") : i18n("Today")
-            QQC2.ToolTip.visible: hovered
+            text: root.weekMode ? i18n("This week") : i18n("Today")
             onClicked: {
                 if (root.weekMode) {
                     root.selectedDay = mondayOf(new Date())
@@ -396,8 +431,8 @@ ColumnLayout {
         QQC2.Label {
             Layout.fillWidth: true
             text: dayRoot.compact
-                  ? Qt.formatDate(dayRoot.dayDate, "ddd d. MMM")
-                  : Qt.formatDate(dayRoot.dayDate, "dddd, d. MMMM yyyy")
+                  ? Qt.locale().toString(dayRoot.dayDate, "ddd d. MMM")
+                  : Qt.locale().toString(dayRoot.dayDate, "dddd, d. MMMM yyyy")
             font.bold: true
             font.family: Design.headingFamily
             font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
@@ -435,8 +470,8 @@ ColumnLayout {
                                 if (!modelData.allDay) {
                                     var s = modelData.start
                                     var e = modelData.end
-                                    var from = s ? Qt.formatDateTime(s, "HH:mm") : ""
-                                    var to = e ? Qt.formatDateTime(e, "HH:mm") : ""
+                                    var from = s ? Qt.locale().toString(s, "HH:mm") : ""
+                                    var to = e ? Qt.locale().toString(e, "HH:mm") : ""
                                     parts.push(to ? from + " \u2013 " + to : from)
                                 } else {
                                     parts.push(i18n("All day"))
@@ -597,10 +632,39 @@ ColumnLayout {
         }
 
         QQC2.Label {
-            visible: dayRoot.events.length === 0 && dayRoot.tasks.length === 0
+            visible: root.weekMode && dayRoot.events.length === 0 && dayRoot.tasks.length === 0
             text: i18n("No events or tasks.")
             opacity: 0.5
             font.pointSize: Kirigami.Theme.smallFont.pointSize
+        }
+
+        // Empty single day: say so and offer to plan something for it.
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.preferredWidth: dayRoot.width
+            Layout.topMargin: Kirigami.Units.gridUnit * 3
+            visible: !root.weekMode && dayRoot.events.length === 0 && dayRoot.tasks.length === 0
+            spacing: Design.spaceMedium
+
+            Kirigami.Icon {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: Kirigami.Units.iconSizes.huge
+                Layout.preferredHeight: Kirigami.Units.iconSizes.huge
+                source: "view-calendar-day"
+                opacity: 0.35
+            }
+            QQC2.Label {
+                Layout.alignment: Qt.AlignHCenter
+                text: i18n("No events or tasks.")
+                color: KanteStyle.mutedTextColor
+            }
+            KanteButton {
+                Layout.alignment: Qt.AlignHCenter
+                visible: !!(root.dragHost && root.dragHost.openNewTaskEditor)
+                icon.name: "list-add"
+                text: i18n("Add task for this day")
+                onClicked: root.dragHost.openNewTaskEditor(-1, { due: dayRoot.dayDate, allDay: true })
+            }
         }
 
         // Horizontal divider between days (stacked mode)

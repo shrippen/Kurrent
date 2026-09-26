@@ -298,6 +298,8 @@ public:
     Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
+    /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
+    Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
     Q_INVOKABLE void bulkCompleteTasks(const QVariantList &itemIds, bool completed);
     Q_INVOKABLE void bulkDeleteTasks(const QVariantList &itemIds);
     Q_INVOKABLE void bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId);

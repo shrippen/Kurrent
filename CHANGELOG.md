@@ -28,6 +28,15 @@
 - Quick Add: primary button (highlighted in Plasma, accent square in Kante).
 - Kanban: Plasma columns are tinted lanes; Kante / Kante Light columns get a colour bar (status, priority or overdue).
 - Heatmap: facts row (total, per day, best day) for the shown period.
+
+#### Review round
+- Heatmap: compact square month cells with the count inside, legend below the grid, and a list of the selected day's tasks beside or below it (click opens the inspector or editor). Month / year and mode moved into the navigation row.
+- Calendar: own tile figures (events, tasks due, next event, overdue); an empty day offers "Add task for this day"; "Today" is a text button.
+- Overdue is shown once: with tiles the overdue tile carries "Move all to today" and the header drops its overdue count; the narrow layout shows a compact "N overdue" chip with both actions instead of the banner.
+- Tile tones carry meaning only (overdue, today, completed; everything else muted). Zero counters are dimmed.
+- Kante: the brand moves from the sidebar into the wide header.
+- Sidebar: when a view hides sections (e.g. projects are the swimlane rows), a note at the bottom says why.
+- Dates follow the system locale everywhere (day and month names were English); Kanban column names are translated; 120 missing strings translated in all five languages.
 - Full editor (Kante): accent bar in the task's priority colour.
 - Backend-missing page: Kante install card (title, cut corner, accent bar, primary copy button).
 
@@ -56,6 +65,9 @@
 - Weekend columns are computed once per matrix instead of per cell.
 
 ### Fixed
+- Settings showed no options: `config.qml` imported the generated dev-build marker as a directory, so the category list failed to load.
+- Tasks completed in Kurrent had no completion date (COMPLETED), so the heatmap did not count them; completions after midnight UTC landed on the previous day.
+- Translation catalogs were stale (the merge step failed on missing strings), and msgids with QML escapes (`\u201c`, `\"`) never matched at runtime.
 - Switching away from Kante left invisible text (Kante module: after Kante the theme scope stays detached with colours bound live to the parent theme instead of resetting and re-attaching).
 - View switches slid the leaving view under the sidebar (the task pane lost its clip when the inspector landed).
 - Narrow layout: the view tab bar collapsed to 0 px (height binding loop).

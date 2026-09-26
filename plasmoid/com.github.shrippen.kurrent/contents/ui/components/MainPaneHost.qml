@@ -21,6 +21,7 @@ Item {
     // Heatmap figures move into the tiles above the pane while those are shown.
     property bool heatmapFactsInTiles: false
     readonly property var heatmapTileFacts: heatmapLoader.item ? heatmapLoader.item.tileFacts : null
+    readonly property var calendarTileFacts: calendarLoader.item ? calendarLoader.item.tileFacts : null
 
     // Master switch for the editor-style dim + gear over main pane (not sidebar).
     // Disabled — kept as code path: flip to true to re-enable dimming during
@@ -378,10 +379,14 @@ Item {
                 asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: HeatmapView {
                     controller: host.controller
+                    dragHost: host.dragHost
                     interactionsSuspended: host.interactionsSuspended
                     factsInTiles: host.heatmapFactsInTiles
                 }
                 onStatusChanged: if (status === Loader.Ready) {
+                    if (item && host.onOpenFullEditor) {
+                        item.onOpenFullEditor = host.onOpenFullEditor
+                    }
                     host.settleWorkPending()
                 }
             }

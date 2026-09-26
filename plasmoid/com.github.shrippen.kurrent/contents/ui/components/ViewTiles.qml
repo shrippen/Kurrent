@@ -7,6 +7,7 @@ import "../Kante"
 
 // Direction B: key views as tiles above the task pane (wide layout). Each tile shows the
 // count with a tone bar on top; a click switches to that view, the current one is marked.
+// Tones carry meaning only: negative = overdue, accent = today, positive = completed, else muted.
 // A view can hand in its own figures (`facts`, e.g. the heatmap); those tiles replace the view
 // tiles, only entries with a viewId stay clickable.
 // Plasma: soft rounded tile, highlight frame when current. Kante / Kante Light: KanteCard with
@@ -30,8 +31,8 @@ RowLayout {
     readonly property var viewEntries: [
         { viewId: "overdue", label: i18n("Overdue"), tone: KanteStyle.negativeTextColor, value: String(countFor("overdue")) },
         { viewId: "today", label: i18n("Today"), tone: KanteStyle.accentColor, value: String(countFor("today")) },
-        { viewId: "tomorrow", label: i18n("Tomorrow"), tone: KanteStyle.infoColor, value: String(countFor("tomorrow")) },
-        { viewId: "scheduled", label: i18n("Scheduled"), tone: KanteStyle.neutralTextColor, value: String(countFor("scheduled")) },
+        { viewId: "tomorrow", label: i18n("Tomorrow"), tone: KanteStyle.mutedTextColor, value: String(countFor("tomorrow")) },
+        { viewId: "scheduled", label: i18n("Scheduled"), tone: KanteStyle.mutedTextColor, value: String(countFor("scheduled")) },
         { viewId: "completed", label: i18n("Completed"), tone: KanteStyle.positiveTextColor, value: String(countFor("completed")) }
     ]
     readonly property var entries: facts && facts.length > 0 ? facts : viewEntries
@@ -94,6 +95,21 @@ RowLayout {
                     borderColor: tile.current || tile.visualFocus ? KanteStyle.accentColor : "transparent"
                     barColor: tile.modelData.tone
                 }
+            }
+
+            // Overdue tile carries the "move all to today" action (replaces the banner, g3).
+            KanteToolButton {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.topMargin: 4
+                anchors.rightMargin: 2
+                visible: tile.alarm && !!tiles.controller
+                icon.name: "go-jump-today"
+                display: QQC2.AbstractButton.IconOnly
+                text: i18n("Move all to today")
+                QQC2.ToolTip.text: text
+                QQC2.ToolTip.visible: hovered
+                onClicked: tiles.controller.rescheduleOverdueToToday()
             }
 
             contentItem: ColumnLayout {

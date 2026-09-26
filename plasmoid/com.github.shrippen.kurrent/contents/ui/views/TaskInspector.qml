@@ -54,7 +54,7 @@ Item {
         }
         var fmt = task.allDay ? Qt.locale().dateFormat(Locale.LongFormat)
                               : Qt.locale().dateTimeFormat(Locale.ShortFormat)
-        return task.allDay ? Qt.formatDate(d, fmt) : Qt.formatDateTime(d, fmt)
+        return task.allDay ? Qt.locale().toString(d, fmt) : Qt.locale().toString(d, fmt)
     }
 
     function priorityText(p) {

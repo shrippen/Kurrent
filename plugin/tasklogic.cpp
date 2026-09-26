@@ -2792,7 +2792,8 @@ QString heatmapDayKey(const TaskEntry &task, const QString &mode, const QDate &t
         if (!task.completed || !task.completedDate.isValid()) {
             return {};
         }
-        return task.completedDate.date().toString(Qt::ISODate);
+        // COMPLETED is a UTC timestamp; count it on the user's local day.
+        return task.completedDate.toLocalTime().date().toString(Qt::ISODate);
     }
     if (task.completed || !task.dueDate.isValid()) {
         return QString();

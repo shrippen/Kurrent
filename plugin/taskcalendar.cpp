@@ -232,7 +232,8 @@ bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, c
     }
 
     if (!todo->recurs()) {
-        todo->setCompleted(true);
+        // setCompleted(QDateTime) also stores COMPLETED; the heatmap counts completions by it.
+        todo->setCompleted(now.isValid() ? now : QDateTime::currentDateTime());
         todo->setPercentComplete(100);
         return true;
     }
