@@ -38,6 +38,10 @@ class TaskController : public QObject
     Q_PROPERTY(QString pluginVersion READ pluginVersion CONSTANT)
     Q_PROPERTY(bool devBuild READ devBuild CONSTANT)
     Q_PROPERTY(bool smokeTest READ smokeTest CONSTANT)
+    // Screenshot mode (tests/screenshot.sh): KURRENT_SCREENSHOT_DIR = output folder,
+    // KURRENT_SCREENSHOT_PLAN = "styles=…;modes=…;widths=…;editor=0|1" (empty = everything).
+    Q_PROPERTY(QString screenshotDir READ screenshotDir CONSTANT)
+    Q_PROPERTY(QString screenshotPlan READ screenshotPlan CONSTANT)
     // Process-wide smoke progress so a recreated FullView continues instead of restarting.
     Q_PROPERTY(int smokeStep READ smokeStep WRITE setSmokeStep NOTIFY smokeStepChanged)
     Q_PROPERTY(bool smokeFinished READ smokeFinished NOTIFY smokeFinishedChanged)
@@ -130,6 +134,8 @@ public:
     QString pluginVersion() const;
     bool devBuild() const;
     bool smokeTest() const;
+    QString screenshotDir() const;
+    QString screenshotPlan() const;
     int smokeStep() const;
     void setSmokeStep(int step);
     bool smokeFinished() const;
@@ -267,6 +273,10 @@ public:
     Q_INVOKABLE QVariantList kanbanTaskIndicesForColumn(const QString &columnKey) const;
     Q_INVOKABLE QVariantList kanbanTasksForColumn(const QString &columnKey) const;
     Q_INVOKABLE QVariantMap taskRowSnapshot(int row) const;
+    // Inspector: current state of one task by item id (empty if unknown / being deleted).
+    Q_INVOKABLE QVariantMap taskSnapshotById(qint64 itemId) const;
+    // Inspector: direct subtasks (RELATED-TO == uid), sorted by summary.
+    Q_INVOKABLE QVariantList childTasks(const QString &uid) const;
     Q_INVOKABLE void moveTaskToKanbanColumn(qint64 itemId, const QString &columnKey);
     Q_INVOKABLE void finishKanbanDrop(qint64 itemId, const QString &columnKey, int targetGap,
                                         const QString &sourceColumnKey, int sourceIndex);
@@ -295,6 +305,8 @@ public:
     Q_INVOKABLE void bulkRemoveLabel(const QVariantList &itemIds, const QString &label);
     Q_INVOKABLE void bulkSetPriority(const QVariantList &itemIds, int priority);
     Q_INVOKABLE void bulkRescheduleTasks(const QVariantList &itemIds, const QString &preset);
+    // Moves every open overdue task of the enabled collections to today (keeps the time of day).
+    Q_INVOKABLE void rescheduleOverdueToToday();
     Q_INVOKABLE QString bulkExportUids(const QVariantList &itemIds) const;
     Q_INVOKABLE void reloadTask(qint64 itemId);
     Q_INVOKABLE void dismissConflict();

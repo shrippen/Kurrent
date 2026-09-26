@@ -52,6 +52,7 @@ namespace ReschedulePreset
 inline const QString Min15 = QStringLiteral("15m");
 inline const QString Hour1 = QStringLiteral("1h");
 inline const QString Hour4 = QStringLiteral("4h");
+inline const QString Today = QStringLiteral("today");
 inline const QString Tomorrow = QStringLiteral("tomorrow");
 inline const QString NextWeek = QStringLiteral("next-week");
 inline const QString Plus1Day = QStringLiteral("1d");

@@ -446,6 +446,12 @@ QDateTime rescheduleDue(const QDateTime &currentDue, DaySpan daySpan, const QDat
     }
 
     QDateTime seed = currentDue.isValid() ? currentDue : base;
+    if (preset == ReschedulePreset::Today) {
+        if (allDay || !seed.time().isValid()) {
+            return QDateTime(base.date(), QTime(0, 0));
+        }
+        return QDateTime(base.date(), seed.time());
+    }
     if (preset == ReschedulePreset::Tomorrow) {
         if (allDay || !seed.time().isValid() || (seed.time() == QTime(0, 0) && allDay)) {
             return QDateTime(base.date().addDays(1), QTime(0, 0));

@@ -31,6 +31,7 @@ private Q_SLOTS:
     void kanbanLabelColumnDrop();
     void sidebarPriorityAndLocationMutations();
     void matrixDropWritesLaneAndDue();
+    void inspectorSnapshotAndChildren();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -413,6 +414,35 @@ void TaskControllerStoreTest::sidebarPriorityAndLocationMutations()
     waitStore(spy, 6);
     QCOMPARE(m_controller->testTaskSecrecy(23), 2);
     QCOMPARE(m_controller->testTaskStatus(23), 6);
+}
+
+void TaskControllerStoreTest::inspectorSnapshotAndChildren()
+{
+    m_controller->installTestTask(1, QStringLiteral("parent"), 10);
+    m_controller->installTestTask(2, QStringLiteral("child"), 10);
+    m_controller->installTestTask(3, QStringLiteral("other"), 10);
+
+    // Snapshot by item id: current cache state, empty for unknown ids.
+    const QVariantMap parent = m_controller->taskSnapshotById(1);
+    QCOMPARE(parent.value(QStringLiteral("summary")).toString(), QStringLiteral("parent"));
+    QVERIFY(m_controller->taskSnapshotById(999).isEmpty());
+    // Same fields as a list row snapshot, so the full editor can open from it.
+    for (const QString &key : {QStringLiteral("allDay"), QStringLiteral("recurrencePreset"),
+                               QStringLiteral("reminderMinutes"), QStringLiteral("hasChildren")}) {
+        QVERIFY2(parent.contains(key), qPrintable(key));
+    }
+
+    // Direct children only.
+    const QString parentUid = parent.value(QStringLiteral("uid")).toString();
+    QVERIFY(!parentUid.isEmpty());
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->setTaskParent(2, parentUid);
+    waitStore(spy);
+
+    const QVariantList children = m_controller->childTasks(parentUid);
+    QCOMPARE(children.size(), 1);
+    QCOMPARE(children.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("child"));
+    QVERIFY(m_controller->childTasks(QString()).isEmpty());
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

@@ -503,6 +503,16 @@ bool TaskController::smokeTest() const
     return value == "1" || value.compare("true", Qt::CaseInsensitive) == 0;
 }
 
+QString TaskController::screenshotDir() const
+{
+    return QString::fromLocal8Bit(qgetenv("KURRENT_SCREENSHOT_DIR"));
+}
+
+QString TaskController::screenshotPlan() const
+{
+    return QString::fromLocal8Bit(qgetenv("KURRENT_SCREENSHOT_PLAN"));
+}
+
 int TaskController::smokeStep() const
 {
     return s_smokeStep;
@@ -1358,6 +1368,12 @@ QVariantMap TaskController::taskEntryToVariantMap(const TaskEntry &task) const
     map.insert(QStringLiteral("recurring"), task.recurring);
     map.insert(QStringLiteral("joinUrl"), task.joinUrl);
     map.insert(QStringLiteral("syncing"), task.syncing);
+    map.insert(QStringLiteral("allDay"), task.allDay);
+    map.insert(QStringLiteral("recurrencePreset"), task.recurrencePreset);
+    map.insert(QStringLiteral("reminderMinutes"), task.reminderMinutes);
+    map.insert(QStringLiteral("hasChildren"), task.hasChildren);
+    map.insert(QStringLiteral("indentLevel"), task.indentLevel);
+    map.insert(QStringLiteral("section"), task.section);
     return map;
 }
 
@@ -1420,6 +1436,40 @@ QVariantMap TaskController::taskRowSnapshot(int row) const
         return {};
     }
     return taskEntryToVariantMap(m_taskModel.taskAt(row));
+}
+
+QVariantMap TaskController::taskSnapshotById(qint64 itemId) const
+{
+    const auto it = s_tasks.constFind(itemId);
+    if (it == s_tasks.cend() || !it->todo || it->pendingDelete) {
+        return {};
+    }
+    return taskEntryToVariantMap(makeTaskEntry(*it, 0, false));
+}
+
+QVariantList TaskController::childTasks(const QString &uid) const
+{
+    if (uid.isEmpty()) {
+        return {};
+    }
+
+    QList<TaskEntry> children;
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (!it->todo || it->pendingDelete || it->todo->relatedTo() != uid) {
+            continue;
+        }
+        children.append(makeTaskEntry(*it, 0, false));
+    }
+    std::sort(children.begin(), children.end(), [](const TaskEntry &a, const TaskEntry &b) {
+        return QString::localeAwareCompare(a.summary, b.summary) < 0;
+    });
+
+    QVariantList out;
+    out.reserve(children.size());
+    for (const TaskEntry &child : std::as_const(children)) {
+        out.append(taskEntryToVariantMap(child));
+    }
+    return out;
 }
 
 void TaskController::reorderKanbanCard(qint64 itemId, const QString &columnKey, int targetIndex)
@@ -1997,6 +2047,18 @@ void TaskController::bulkRescheduleTasks(const QVariantList &itemIds, const QStr
     for (const QVariant &id : itemIds) {
         rescheduleTask(id.toLongLong(), preset);
     }
+}
+
+void TaskController::rescheduleOverdueToToday()
+{
+    const QDate today = QDate::currentDate();
+    QVariantList ids;
+    for (const TaskEntry &task : std::as_const(m_deferredAllTasks)) {
+        if (TaskLogic::matchesView(task, QStringLiteral("overdue"), today)) {
+            ids.append(task.itemId);
+        }
+    }
+    bulkRescheduleTasks(ids, TaskLogic::ReschedulePreset::Today);
 }
 
 QString TaskController::bulkExportUids(const QVariantList &itemIds) const

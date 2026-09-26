@@ -1184,6 +1184,13 @@ void TaskLogicTest::reschedulePresets()
     QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("tomorrow")).time(), QTime(15, 0));
     QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::AllDay, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
     QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("next-week")).date(), QDate(2026, 8, 20));
+
+    // "today" keeps the time of an overdue timed task and moves all-day tasks to today 00:00.
+    const QDateTime overdue(QDate(2026, 8, 9), QTime(18, 30));
+    QCOMPARE(TaskLogic::rescheduleDue(overdue, TaskLogic::DaySpan::Timed, now, QStringLiteral("today")),
+             QDateTime(QDate(2026, 8, 13), QTime(18, 30)));
+    QCOMPARE(TaskLogic::rescheduleDue(overdue, TaskLogic::DaySpan::AllDay, now, QStringLiteral("today")),
+             QDateTime(QDate(2026, 8, 13), QTime(0, 0)));
 }
 
 void TaskLogicTest::joinUrlExtraction()
