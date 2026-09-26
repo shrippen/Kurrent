@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -129,7 +130,7 @@ ColumnLayout {
         }
     }
 
-    QQC2.TextField {
+    KanteTextField {
         id: searchField
         Layout.fillWidth: true
         placeholderText: i18n("Search or create label\u2026")
@@ -175,7 +176,7 @@ ColumnLayout {
 
         Repeater {
             model: selectedLabels
-            delegate: QQC2.Button {
+            delegate: KanteButton {
                 text: modelData
                 icon.name: "tag"
                 icon.color: Design.colorForKey(String(modelData), "label")
@@ -188,6 +189,7 @@ ColumnLayout {
 
     QQC2.Popup {
         id: labelPopup
+        KantePopupSkin { popup: labelPopup }
         popupType: QQC2.Popup.Item
         modal: false
         dim: false

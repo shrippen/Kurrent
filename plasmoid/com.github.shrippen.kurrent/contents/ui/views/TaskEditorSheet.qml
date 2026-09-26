@@ -8,6 +8,7 @@ import "../colors.js" as Colors
 import "../datetime.js" as DateTime
 import ".."
 import "."
+import "../Kante"
 
 FocusScope {
     id: root
@@ -195,6 +196,9 @@ FocusScope {
             Math.max(Design.spaceSmall, Math.round(Math.min(width, height) / 18)))
     readonly property int cardLeftInset: (coverSidebar ? 0 : sidebarReserve) + overlayInset + hostPadLeft
 
+    // Reparented onto the applet container, i.e. outside FullView's KanteScope.
+    KanteScope { target: root }
+
     Item {
         id: windowFrame
         anchors.fill: parent
@@ -208,7 +212,7 @@ FocusScope {
             anchors.fill: parent
             anchors.topMargin: 2
             anchors.leftMargin: 1
-            radius: Design.windowRadius
+            radius: KanteStyle.active ? 0 : Design.windowRadius
             color: Qt.rgba(0, 0, 0, 0.18)
             z: 0
         }
@@ -216,10 +220,22 @@ FocusScope {
         Rectangle {
             id: windowChrome
             anchors.fill: parent
+            visible: !KanteStyle.active
             radius: Design.windowRadius
             color: Kirigami.Theme.backgroundColor
             border.width: 1
             border.color: Design.windowBorderColor()
+            z: 1
+        }
+
+        // Kante and Kante Light: dialog card with the cut corner and the accent bar.
+        KanteCard {
+            anchors.fill: parent
+            visible: KanteStyle.active
+            color: KanteStyle.dialogColor
+            borderColor: KanteStyle.frameColor
+            // Accent bar in the task's priority band; plain accent without a priority.
+            barColor: priorityPicker.priority > 0 ? Design.priorityColor(priorityPicker.priority) : KanteStyle.accentColor
             z: 1
         }
 
@@ -286,7 +302,7 @@ FocusScope {
             }
 
             FieldLabel { text: i18n("Title") }
-            QQC2.TextField {
+            KanteTextField {
                 id: summaryField
                 Layout.fillWidth: true
                 placeholderText: i18n("Title")
@@ -315,6 +331,7 @@ FocusScope {
             FieldLabel { text: i18n("All day") }
             QQC2.CheckBox {
                 id: allDayCheck
+                KanteCheckSkin { control: parent }
                 text: i18n("All-day task")
             }
 
@@ -344,7 +361,7 @@ FocusScope {
                     enabled: !allDayCheck.checked
                     onTextEdited: root.clearStartRequested = false
                 }
-                QQC2.ToolButton {
+                KanteToolButton {
                     icon.name: "edit-clear"
                     onClicked: {
                         startDateField.clear()
@@ -382,7 +399,7 @@ FocusScope {
                     enabled: !allDayCheck.checked
                     onTextEdited: root.clearDueRequested = false
                 }
-                QQC2.ToolButton {
+                KanteToolButton {
                     icon.name: "edit-clear"
                     onClicked: {
                         dueDateField.clear()
@@ -397,6 +414,7 @@ FocusScope {
             FieldLabel { text: i18n("Repeat") }
             QQC2.ComboBox {
                 id: recurrenceBox
+                KanteFieldSkin { control: parent }
                 Layout.fillWidth: true
                 model: [
                     i18n("None"),
@@ -410,6 +428,7 @@ FocusScope {
             FieldLabel { text: i18n("Reminder") }
             QQC2.ComboBox {
                 id: reminderBox
+                KanteFieldSkin { control: parent }
                 Layout.fillWidth: true
                 model: [
                     i18n("Off"),
@@ -431,6 +450,7 @@ FocusScope {
             FieldLabel { text: i18n("Completed") }
             QQC2.CheckBox {
                 id: completedCheck
+                KanteCheckSkin { control: parent }
                 text: i18n("Mark as done")
                 onToggled: {
                     if (checked && percentSlider.value < 100) {
@@ -449,6 +469,7 @@ FocusScope {
 
                 QQC2.Slider {
                     id: percentSlider
+                    KanteSliderSkin { control: parent }
                     Layout.fillWidth: true
                     from: 0
                     to: 100
@@ -510,6 +531,7 @@ FocusScope {
                         { label: i18n("Canceled"), value: 5 }
                     ]
                     delegate: QQC2.RadioButton {
+                        KanteCheckSkin { control: parent }
                         required property var modelData
                         text: modelData.label
                         checked: root.statusValue === modelData.value
@@ -557,6 +579,7 @@ FocusScope {
                         { label: i18n("Confidential"), value: 2 }
                     ]
                     delegate: QQC2.RadioButton {
+                        KanteCheckSkin { control: parent }
                         required property var modelData
                         text: modelData.label
                         checked: root.secrecyValue === modelData.value
@@ -574,7 +597,7 @@ FocusScope {
                 boundsItem: root.popupAnchor
             }
 
-            QQC2.Button {
+            KanteButton {
                 visible: !!(task.geoUrl && String(task.geoUrl).length > 0)
                 Layout.fillWidth: true
                 icon.name: "internet-services"
@@ -595,7 +618,7 @@ FocusScope {
             }
 
             FieldLabel { text: i18n("Section") }
-            QQC2.TextField {
+            KanteTextField {
                 id: sectionField
                 Layout.fillWidth: true
                 placeholderText: i18n("Day section (morning / afternoon / …)")
@@ -631,7 +654,7 @@ FocusScope {
                 elide: Text.ElideRight
             }
 
-            QQC2.Button {
+            KanteButton {
                 id: deleteButton
                 text: i18n("Delete task")
                 icon.name: "edit-delete"
@@ -643,7 +666,7 @@ FocusScope {
                 }
             }
 
-            QQC2.Button {
+            KanteButton {
                 id: saveButton
                 text: i18n("Save")
                 icon.name: "document-save"
@@ -651,7 +674,7 @@ FocusScope {
                 onClicked: root.accept()
             }
 
-            QQC2.Button {
+            KanteButton {
                 id: cancelButton
                 text: i18n("Cancel")
                 icon.name: "dialog-cancel"

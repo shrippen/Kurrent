@@ -2,7 +2,43 @@
 
 ## Unreleased
 
+### Added
+
+#### Styles: Plasma by default, Kante and Kante Light opt-in
+- **Settings › Appearance › Style** with three preview cards: **Plasma (default)** follows the Plasma colour scheme like any KDE app; **Kante** applies the Kante palette (Gruvbox dark, or Leinen on a light colour scheme) with square controls, cut corners, Rajdhani titles and mono figures; **Kante Light** keeps Plasma's colours and controls and adds only Kante shapes and type.
+- Built on the **Kante** QML module from shrippen.github.io (vendored under `contents/ui/Kante` and `contents/ui/KantePlasma`, fonts under SIL OFL): `KanteScope` for the widget, skins for menus, popups, dialogs, inline messages and check boxes, `KanteHeading` for view titles and Kanban columns, `KanteCard` for cards and the full editor.
+- **Translucency in every style**: Kurrent never paints its own background, so a translucent / blurred Plasma background always shows through; Kante surfaces are tints on top. Only the panel flyout with blur off is opaque.
+- **Accent switches** for project/label colours and priority colours.
+- **Narrow layout**: below sidebar width + 24 grid units, views become tabs above the task pane with counters, and the sidebar opens on demand. The panel flyout now opens narrow by default (30 × 36 grid units).
+- **Overdue notice** (inline message) in other views with "Move all to today" and "Show overdue"; can be turned off.
+- Sidebar and tab **counters are badges** (red for overdue); Kanban column headers show the card count.
+- **Panel badge** is a filled counter like Plasma's notification badge (negative colour for overdue).
+- Quick Add tokens render as **tinted pills**.
+
+#### Tiles and inspector (redesign direction B)
+- **Tiles** above the task pane (wide layout): Overdue, Today, Tomorrow, Scheduled, Completed with counts and tone bars; a click switches the view. Setting: Appearance › Wide layout.
+- **Inspector** beside the task pane (wide layout): a click on a task in the list, Kanban or Swimlanes shows project/labels, status, properties, subtasks with progress and notes, with Done / Tomorrow / Next week / Editor actions. Double click still opens the full editor. It follows edits live and closes when the task disappears. Setting: Appearance › Wide layout.
+- Backend: `taskSnapshotById()` and `childTasks()`; task snapshots now include all-day, recurrence preset and reminder, so the full editor opens correctly from Kanban cards and the inspector.
+
+#### Redesign details (all styles unless noted)
+- Task rows show label names (Plasma: tinted pills; Kante / Kante Light: `#name` in mono) and the project name next to its icon. Kante: the open check box carries the priority band in its frame.
+- Header: "N open · M overdue" next to the view title (wide layout); active filters are chips with × that clear just that filter.
+- Sidebar: sync status line ("Synced" / "Syncing…" / "Akonadi offline"); Kante and Kante Light add the brand head.
+- List group headers: section label with a rule in Kante and Kante Light.
+- Quick Add: primary button (highlighted in Plasma, accent square in Kante).
+- Kanban: Plasma columns are tinted lanes; Kante / Kante Light columns get a colour bar (status, priority or overdue).
+- Heatmap: facts row (total, per day, best day) for the shown period.
+- Full editor (Kante): accent bar in the task's priority colour.
+- Backend-missing page: Kante install card (title, cut corner, accent bar, primary copy button).
+
+#### Screenshots for self-testing
+- `tests/screenshot.sh` renders the widget offscreen into PNGs (every style × view × width, plus the full editor) — nothing appears on the desktop. `ScreenshotRunner.qml` is only active with `KURRENT_SCREENSHOT_DIR`.
+- Kante skins and wrappers on every widget control (buttons, tool buttons, text fields, combo boxes, check boxes, radio buttons, slider), so Kante reaches into the editor and pickers; settings pages stay native.
+
 ### Changed
+- Priority flag in task rows sits right before the due date.
+- Kanban cards: Plasma style uses the Kirigami card look with a hover tint; Kante and Kante Light use a Kante card with the priority bar on top.
+- View-mode toolbar: the active mode shows a highlight tint with a hairline border (Plasma) or an accent fill (Kante).
 
 #### Swimlanes and Project plan — polish pass
 - **Shared matrix grid**: pinned column and row headers (both axes), Kanban-style scrolling (wheel, thin bars, middle-click pan), current period highlighted, "jump to current period" button, columns use spare width.
@@ -20,6 +56,11 @@
 - Weekend columns are computed once per matrix instead of per cell.
 
 ### Fixed
+- Switching away from Kante left invisible text (Kante module: the theme scope now rebinds to the parent theme instead of resetting, and never detaches the theme).
+- Narrow layout: the view tab bar collapsed to 0 px (height binding loop).
+- Kante: hovering the selected sidebar row turned the accent fill muddy brown; "All" chips had light text on the accent fill; priority flags vanished from the editor's priority options.
+- The "today" reschedule preset (used when dropping a card into the Kanban "Today" column) left the due date unchanged.
+- Settings › Appearance: the "Reduced motion" checkbox toggled the background blur setting instead.
 - Swimlane cell click reset the sidebar view to "everything" instead of drilling down.
 - Project plan cell click filtered the plan's own data down to one cell; the tooltip on plan cells never appeared (missing `hoverEnabled`); the plan ignored `interactionsSuspended`.
 - Matrix views did not refresh after tasks changed (the matrix was computed once).

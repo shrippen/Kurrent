@@ -1211,3 +1211,137 @@ msgstr "Zeiteinteilung"
 
 msgid "Undated"
 msgstr "Undatiert"
+
+msgid "Style"
+msgstr "Stil"
+
+msgid "Plasma (default)"
+msgstr "Plasma (Standard)"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "Folgt deinem Farbschema, hell wie dunkel. Fühlt sich an wie jede andere KDE-App."
+
+msgid "Accent colours"
+msgstr "Akzentfarben"
+
+msgid "Project and label colours"
+msgstr "Projekt- und Labelfarben"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "Prioritätsfarben (Rot · Gelb · Blau)"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "Alles andere — Flächen, Text, Auswahl, Buttons — kommt aus deinem Plasma-Farbschema."
+
+msgid "Translucent with blurred wallpaper"
+msgstr "Durchscheinend mit unscharfem Hintergrundbild"
+
+msgid "Hints"
+msgstr "Hinweise"
+
+msgid "Show a notice when tasks are overdue"
+msgstr "Hinweis anzeigen, wenn Aufgaben überfällig sind"
+
+msgid "Move all to today"
+msgstr "Alle auf heute"
+
+msgid "Show overdue"
+msgstr "Überfällige zeigen"
+
+msgid "Show sidebar"
+msgstr "Seitenleiste anzeigen"
+
+msgid "Hide sidebar"
+msgstr "Seitenleiste ausblenden"
+
+msgid "%1 task is overdue."
+msgid_plural "%1 tasks are overdue."
+msgstr[0] "%1 Aufgabe ist überfällig."
+msgstr[1] "%1 Aufgaben sind überfällig."
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox, bei hellem Farbschema Leinen. Schmale Titel, abgeschrägte Ecken, eckige Bedienelemente. Eigene Palette."
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "Kante-Formen und -Schrift auf deinem Farbschema. Bedienelemente und Farben bleiben die von Plasma."
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante nutzt für das ganze Widget seine eigene Palette; Prioritäten nutzen deren Rot, Gelb und Blau."
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "Gilt für jeden Stil und das Panel-Popup: Kurrent malt nie einen eigenen Hintergrund, Kante-Flächen liegen nur als Tönung darüber. Auf dem Desktop bleibt das Widget in jedem Fall durchscheinend; das Popup wird ohne diese Option deckend."
+
+msgid "%1 open"
+msgstr "%1 offen"
+
+msgid "%1 overdue"
+msgstr "%1 überfällig"
+
+msgid "Synced"
+msgstr "Synchronisiert"
+
+msgid "Remove filter"
+msgstr "Filter entfernen"
+
+msgid "Per day"
+msgstr "Pro Tag"
+
+msgid "Best day"
+msgstr "Bester Tag"
+
+msgid "Best day · %1"
+msgstr "Bester Tag · %1"
+
+msgid "Open full editor"
+msgstr "Vollständigen Editor öffnen"
+
+msgid "Close inspector"
+msgstr "Inspektor schließen"
+
+msgid "Done"
+msgstr "Erledigt"
+
+msgid "Inspector: clicking a task shows its details beside the list"
+msgstr "Inspektor: Klick auf eine Aufgabe zeigt ihre Details neben der Liste"
+
+msgid "No due date"
+msgstr "Kein Fälligkeitsdatum"
+
+msgid "Progress"
+msgstr "Fortschritt"
+
+msgid "Reminder"
+msgstr "Erinnerung"
+
+msgid "Reopen"
+msgstr "Wieder öffnen"
+
+msgid "Secrecy"
+msgstr "Vertraulichkeit"
+
+msgid "Tiles with the key views above the tasks"
+msgstr "Kacheln mit den wichtigsten Ansichten über den Aufgaben"
+
+msgid "Wide layout"
+msgstr "Breites Layout"
+
+msgid "%1 day before"
+msgid_plural "%1 days before"
+msgstr[0] "%1 Tag vorher"
+msgstr[1] "%1 Tage vorher"
+
+msgid "%1 hour before"
+msgid_plural "%1 hours before"
+msgstr[0] "%1 Stunde vorher"
+msgstr[1] "%1 Stunden vorher"
+
+msgid "%1 minute before"
+msgid_plural "%1 minutes before"
+msgstr[0] "%1 Minute vorher"
+msgstr[1] "%1 Minuten vorher"

@@ -9,6 +9,7 @@ import "../colors.js" as Colors
 import "../taskmeta.js" as TaskMeta
 import ".."
 import "."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -59,6 +60,17 @@ ColumnLayout {
         function onSearchQueryChanged() { root.collapseInline() }
         function onShowCompletedChanged() { root.collapseInline() }
         function onSortModeChanged() { root.collapseInline() }
+    }
+
+    // Screenshot mode (ScreenshotRunner): snapshot of the first loaded task row.
+    function firstTaskSnapshot() {
+        for (var i = 0; i < Math.min(taskList.count, 20); ++i) {
+            var row = taskList.itemAtIndex(i)
+            if (row && row.taskSnapshot) {
+                return row.taskSnapshot()
+            }
+        }
+        return null
     }
 
     function acceptDropAsParent(parentUid) {
@@ -173,7 +185,7 @@ ColumnLayout {
             loops: Animation.Infinite
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             id: deleteModeButton
             icon.name: "edit-delete"
             checkable: true
@@ -183,7 +195,7 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "view-refresh"
             onClicked: controller.syncNow()
             enabled: !controller.loading
@@ -360,14 +372,13 @@ ColumnLayout {
                             return Design.colorForKey(tint.key, "location")
                         }
                         if (tint.priority !== undefined) {
-                            return Colors.colorForPriority(tint.priority)
+                            return Design.priorityColor(tint.priority)
                         }
                         return Kirigami.Theme.textColor
                     }
                 }
 
                 QQC2.Label {
-                    Layout.fillWidth: true
                     text: {
                         var gm = sectionRoot.groupMode
                         if (gm.length > 0 && gm !== "none") {
@@ -382,9 +393,22 @@ ColumnLayout {
                         default: return sectionRoot.section
                         }
                     }
-                    font.bold: true
-                    opacity: 0.7
+                    // Kante / Kante Light: section label (small uppercase mono) followed by a rule.
+                    Layout.fillWidth: !KanteStyle.active
+                    font: KanteStyle.active ? KanteStyle.labelFont()
+                                            : Qt.font({ family: Kirigami.Theme.defaultFont.family,
+                                                        pointSize: Kirigami.Theme.defaultFont.pointSize, bold: true })
+                    color: KanteStyle.active ? KanteStyle.mutedTextColor : Kirigami.Theme.textColor
+                    opacity: KanteStyle.active ? 1 : 0.7
                     visible: text.length > 0
+                }
+
+                Rectangle {
+                    visible: KanteStyle.active
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredHeight: 1
+                    color: KanteStyle.ruleColor
                 }
             }
         }
@@ -780,8 +804,14 @@ ColumnLayout {
             onAccepted: root.addTask()
         }
 
-        QQC2.ToolButton {
+        // Primary action next to Quick Add: highlighted button (Plasma), accent square (Kante).
+        KanteButton {
             icon.name: "list-add"
+            display: QQC2.AbstractButton.IconOnly
+            highlighted: true
+            emphasis: KanteButton.Emphasis.Primary
+            text: i18n("Open full editor")
+            Layout.preferredHeight: newTaskField.height
             onClicked: {
                 var text = newTaskField.text.trim()
                 var colId = controller.selectedCollectionId
@@ -807,6 +837,7 @@ ColumnLayout {
 
     QQC2.Dialog {
         id: confirmDeleteDialog
+        KanteDialogSkin { dialog: confirmDeleteDialog }
         parent: root.dragHost || root
         popupType: QQC2.Popup.Item
         modal: true
@@ -836,6 +867,7 @@ ColumnLayout {
 
         QQC2.Popup {
             id: projectAskPopup
+            KantePopupSkin { popup: projectAskPopup }
             parent: root.dragHost || root
             popupType: QQC2.Popup.Item
             modal: true
@@ -912,7 +944,7 @@ ColumnLayout {
                 }
             }
 
-            QQC2.Button {
+            KanteButton {
                 Layout.alignment: Qt.AlignRight
                 text: i18n("Cancel")
                 onClicked: projectAskPopup.close()

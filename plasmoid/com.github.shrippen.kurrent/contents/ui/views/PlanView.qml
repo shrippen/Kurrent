@@ -6,6 +6,7 @@ import com.github.shrippen.kurrent 1.0
 import "../components"
 import "../matrixlabels.js" as Labels
 import ".."
+import "../Kante"
 
 // Project plan: rows = projects, columns = time periods, cells = task counts.
 // Clicking a cell / row / column opens the list filtered to it (the matrix itself stays intact).
@@ -100,6 +101,8 @@ Item {
     TextMetrics {
         id: labelMetrics
         font.bold: true
+        font.family: Design.headingFamily
+        font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
     }
 
     Kirigami.PlaceholderMessage {
@@ -146,7 +149,7 @@ Item {
                         color: Kirigami.Theme.textColor
                         opacity: Design.matrixLineOpacity
                     }
-                    QQC2.ToolButton {
+                    KanteToolButton {
                         anchors.centerIn: parent
                         icon.name: "go-jump-today"
                         display: QQC2.AbstractButton.IconOnly
@@ -201,6 +204,8 @@ Item {
                             horizontalAlignment: Text.AlignHCenter
                             text: Labels.title(root.grid, head.timeKey, root.timeBucket, root.timeStrings)
                             font.bold: true
+                            font.family: Design.headingFamily
+                            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
                             elide: Text.ElideRight
                             color: head.isOverdue ? Kirigami.Theme.negativeTextColor
                                  : head.isCurrent ? Kirigami.Theme.highlightColor
@@ -273,6 +278,8 @@ Item {
                             Layout.fillWidth: true
                             text: root.projectLabel(rowHead.projectKey)
                             font.bold: true
+                            font.family: Design.headingFamily
+                            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
                             wrapMode: Text.Wrap
                             maximumLineCount: 2
                             elide: Text.ElideRight
@@ -366,6 +373,8 @@ Item {
                             Layout.alignment: Qt.AlignHCenter
                             text: String(cell.count)
                             font.bold: true
+                            font.family: Design.headingFamily
+                            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
                             font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 1.15
                         }
                         RowLayout {

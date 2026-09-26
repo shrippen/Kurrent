@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kirigamiaddons.dateandtime as KDateTime
 import "../datetime.js" as DateTime
+import "../Kante"
 
 RowLayout {
     id: root
@@ -66,7 +67,7 @@ RowLayout {
         })
     }
 
-    QQC2.TextField {
+    KanteTextField {
         id: field
         Layout.fillWidth: true
         placeholderText: root.mode === "time" ? DateTime.timePlaceholder() : DateTime.datePlaceholder()
@@ -136,7 +137,7 @@ RowLayout {
         }
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         id: pickerButton
         visible: root.mode === "date"
         enabled: root.enabled

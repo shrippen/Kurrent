@@ -8,6 +8,7 @@ import "../colors.js" as Colors
 import "../datetime.js" as DateTime
 import "../taskmeta.js" as TaskMeta
 import ".."
+import "../Kante"
 
 Kirigami.AbstractCard {
     id: root
@@ -98,10 +99,53 @@ Kirigami.AbstractCard {
         }
     }
 
-    TapHandler {
-        enabled: root.compact && !root.interactionsSuspended
-        onTapped: root.requestFullEditor(root.task)
+    // System: Kirigami card look (view background, hairline border, soft shadow) with a hover tint.
+    // Kante and Kante Light: KanteCard (tint surface, cut corner) with the priority bar on top.
+    background: Item {
+        Kirigami.ShadowedRectangle {
+            anchors.fill: parent
+            visible: !KanteStyle.active
+            Kirigami.Theme.colorSet: Kirigami.Theme.View
+            Kirigami.Theme.inherit: false
+            radius: Kirigami.Units.cornerRadius
+            color: root.hovered
+                   ? Qt.tint(Kirigami.Theme.backgroundColor, Design.withAlpha(Kirigami.Theme.highlightColor, 0.12))
+                   : Kirigami.Theme.backgroundColor
+            border.width: 1
+            border.color: root.hovered || root.inspected
+                          ? Kirigami.Theme.highlightColor
+                          : Design.withAlpha(Kirigami.Theme.textColor, 0.15)
+            shadow.size: Kirigami.Units.smallSpacing
+            shadow.yOffset: 1
+            shadow.color: Qt.rgba(0, 0, 0, 0.12)
+        }
+
+        KanteCard {
+            anchors.fill: parent
+            visible: KanteStyle.active
+            color: root.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor
+            borderColor: root.hovered || root.inspected ? KanteStyle.accentColor : "transparent"
+            barHeight: root.compact ? 2 : 3
+            barColor: root.task && root.task.priority > 0
+                      ? Design.priorityColor(root.task.priority) : "transparent"
+            chamfer: root.compact ? KanteStyle.chamferSmall : KanteStyle.chamfer
+        }
     }
+
+    // Compact cards (Swimlanes) open the editor on click; with the inspector active every card
+    // shows its task there instead.
+    TapHandler {
+        enabled: (root.compact || root.inspectorOn) && !root.interactionsSuspended
+        onTapped: {
+            if (root.inspectorOn) {
+                root.dragHost.inspectTask(root.task.itemId)
+                return
+            }
+            root.requestFullEditor(root.task)
+        }
+    }
+    readonly property bool inspectorOn: !!(dragHost && dragHost.inspectorActive)
+    readonly property bool inspected: inspectorOn && task && dragHost.inspectedItemId === task.itemId
 
     contentItem: ColumnLayout {
         spacing: Design.spaceTiny
@@ -135,7 +179,7 @@ Kirigami.AbstractCard {
             Kirigami.Icon {
                 visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0
                 source: "flag"
-                color: Colors.colorForPriority(task.priority)
+                color: Design.priorityColor(task.priority)
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
             }
@@ -242,7 +286,7 @@ Kirigami.AbstractCard {
             visible: !root.compact
             spacing: Design.spaceSmall
 
-            QQC2.ToolButton {
+            KanteToolButton {
                 icon.name: "document-edit"
                 display: QQC2.AbstractButton.IconOnly
                 onClicked: root.requestFullEditor(task)
@@ -250,7 +294,7 @@ Kirigami.AbstractCard {
                 QQC2.ToolTip.visible: hovered
             }
 
-            QQC2.ToolButton {
+            KanteToolButton {
                 visible: Plasmoid.configuration.showJoinButton !== false
                          && !!(task.joinUrl && String(task.joinUrl).length)
                 icon.name: "internet-services"

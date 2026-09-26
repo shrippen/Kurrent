@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import "../components"
 import ".."
+import "../Kante"
 
 Flickable {
     id: root
@@ -199,7 +200,7 @@ Flickable {
 
                 // Light column separator — especially helps empty columns read as lanes.
                 Rectangle {
-                    visible: index > 0
+                    visible: index > 0 && KanteStyle.active
                     width: 1
                     height: parent.height
                     color: Kirigami.Theme.textColor
@@ -212,107 +213,208 @@ Flickable {
                     visible: index > 0
                 }
 
-                ColumnLayout {
+                // Column surface. Plasma: a lightly tinted rounded lane (like Kirigami panels).
+                // Kante / Kante Light: no lane, a colour bar on top (status / priority / overdue).
+                Item {
                     width: Design.kanbanColumnMinWidth
                     height: parent.height
-                    spacing: Design.spaceSmall
 
-                Kirigami.Heading {
-                    Layout.fillWidth: true
-                    level: 5
-                    text: controller.kanbanColumnLabelForKey(columnKey)
-                    elide: Text.ElideRight
-                }
+                    readonly property color barColor: {
+                        var src = controller.kanbanColumnSource
+                        if (columnKey === "overdue") {
+                            return KanteStyle.negativeTextColor
+                        }
+                        if (src === "status") {
+                            switch (columnKey) {
+                            case "6": return KanteStyle.accentColor
+                            case "3": return KanteStyle.positiveTextColor
+                            case "5": return KanteStyle.negativeTextColor
+                            default: return KanteStyle.frameColor
+                            }
+                        }
+                        if (src === "priority") {
+                            var p = parseInt(columnKey, 10)
+                            return p > 0 ? Design.priorityColor(p) : KanteStyle.frameColor
+                        }
+                        return KanteStyle.frameColor
+                    }
 
-                Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    ListView {
-                        id: cardList
+                    Rectangle {
                         anchors.fill: parent
-                        clip: true
-                        spacing: Design.kanbanCardGap
-                        boundsBehavior: Flickable.OvershootBounds
-                        flickableDirection: Flickable.VerticalFlick
-                        property var cardModel: {
-                            var _ = layoutRev
-                            return controller.kanbanTasksForColumn(columnKey)
-                        }
-                        model: cardModel
+                        visible: !KanteStyle.active
+                        radius: Kirigami.Units.cornerRadius
+                        color: KanteStyle.tint(Kirigami.Theme.textColor, 0.045)
+                    }
 
-                        function settleScrollBounds() {
-                            var maxY = Math.max(0, contentHeight - height)
-                            if (Math.abs(verticalOvershoot) > 0.5
-                                    || contentY < -0.5
-                                    || contentY > maxY + 0.5) {
-                                returnToBounds()
-                            }
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        height: 3
+                        visible: KanteStyle.active
+                        color: parent.barColor
+                    }
+
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: KanteStyle.active ? 0 : Design.spaceSmall
+                        anchors.topMargin: KanteStyle.active ? Design.spaceSmall : Design.spaceSmall
+                        spacing: Design.spaceSmall
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Design.spaceSmall
+
+                        // Column title: section label with a rule in Kante and Kante Light.
+                        KanteHeading {
+                            Layout.fillWidth: true
+                            level: 5
+                            text: controller.kanbanColumnLabelForKey(columnKey)
+                            elide: Text.ElideRight
                         }
 
-                        // Gap index from *card* midpoints only (ignore drop-gap chrome),
-                        // so "bottom of card N" and "top of card N+1" are one slot.
-                        function gapIndexAt(yInContent) {
-                            var count = cardModel ? cardModel.length : 0
-                            if (count === 0) {
-                                return 0
+                        CountBadge {
+                            Layout.alignment: Qt.AlignVCenter
+                            text: String(cardList.count)
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+
+                        ListView {
+                            id: cardList
+                            anchors.fill: parent
+                            clip: true
+                            spacing: Design.kanbanCardGap
+                            boundsBehavior: Flickable.OvershootBounds
+                            flickableDirection: Flickable.VerticalFlick
+                            property var cardModel: {
+                                var _ = layoutRev
+                                return controller.kanbanTasksForColumn(columnKey)
                             }
-                            for (var i = 0; i < count; ++i) {
-                                var item = itemAtIndex(i)
-                                if (!item || item.cardMidY === undefined) {
-                                    continue
+                            model: cardModel
+
+                            function settleScrollBounds() {
+                                var maxY = Math.max(0, contentHeight - height)
+                                if (Math.abs(verticalOvershoot) > 0.5
+                                        || contentY < -0.5
+                                        || contentY > maxY + 0.5) {
+                                    returnToBounds()
                                 }
-                                if (yInContent < item.cardMidY) {
-                                    return i
+                            }
+
+                            // Gap index from *card* midpoints only (ignore drop-gap chrome),
+                            // so "bottom of card N" and "top of card N+1" are one slot.
+                            function gapIndexAt(yInContent) {
+                                var count = cardModel ? cardModel.length : 0
+                                if (count === 0) {
+                                    return 0
+                                }
+                                for (var i = 0; i < count; ++i) {
+                                    var item = itemAtIndex(i)
+                                    if (!item || item.cardMidY === undefined) {
+                                        continue
+                                    }
+                                    if (yInContent < item.cardMidY) {
+                                        return i
+                                    }
+                                }
+                                return count
+                            }
+
+                            onFlickEnded: settleScrollBounds()
+                            onMovementEnded: settleScrollBounds()
+                            onContentHeightChanged: Qt.callLater(settleScrollBounds)
+
+                            Kirigami.WheelHandler {
+                                id: cardWheelHandler
+                                target: cardList
+                                filterMouseEvents: true
+                                onWheel: function(wheel) {
+                                    if (root.applyHorizontalWheel(wheel)) {
+                                        columnWheelIdle.restart()
+                                        return
+                                    }
+                                    cardWheelIdle.restart()
                                 }
                             }
-                            return count
-                        }
 
-                        onFlickEnded: settleScrollBounds()
-                        onMovementEnded: settleScrollBounds()
-                        onContentHeightChanged: Qt.callLater(settleScrollBounds)
-
-                        Kirigami.WheelHandler {
-                            id: cardWheelHandler
-                            target: cardList
-                            filterMouseEvents: true
-                            onWheel: function(wheel) {
-                                if (root.applyHorizontalWheel(wheel)) {
-                                    columnWheelIdle.restart()
-                                    return
-                                }
-                                cardWheelIdle.restart()
+                            Timer {
+                                id: cardWheelIdle
+                                interval: 400
+                                repeat: false
+                                onTriggered: cardList.settleScrollBounds()
                             }
-                        }
 
-                        Timer {
-                            id: cardWheelIdle
-                            interval: 400
-                            repeat: false
-                            onTriggered: cardList.settleScrollBounds()
-                        }
+                            delegate: Item {
+                                id: cardSlot
+                                required property var modelData
+                                required property int index
+                                width: cardList.width
+                                height: gapLead.height + placeholder.height + card.height
 
-                        delegate: Item {
-                            id: cardSlot
-                            required property var modelData
-                            required property int index
-                            width: cardList.width
-                            height: gapLead.height + placeholder.height + card.height
+                                // Content Y of the card centre — stable vs. animated gap chrome.
+                                readonly property real cardMidY: y + gapLead.height + placeholder.height + card.height / 2
 
-                            // Content Y of the card centre — stable vs. animated gap chrome.
-                            readonly property real cardMidY: y + gapLead.height + placeholder.height + card.height / 2
+                                Item {
+                                    id: gapLead
+                                    width: parent.width
+                                    height: (root.dropGapColumnKey === columnKey
+                                             && root.dropGapIndex === cardSlot.index)
+                                            ? Design.spaceLarge : 0
+                                    Behavior on height {
+                                        enabled: !Design.reducedMotion
+                                        NumberAnimation { duration: Kirigami.Units.shortDuration }
+                                    }
+                                    Rectangle {
+                                        anchors.left: parent.left
+                                        anchors.right: parent.right
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        height: 2
+                                        radius: 1
+                                        color: Kirigami.Theme.highlightColor
+                                        visible: parent.height > 0
+                                        opacity: 0.85
+                                    }
+                                }
 
-                            Item {
-                                id: gapLead
-                                width: parent.width
+                                Item {
+                                    id: placeholder
+                                    anchors.top: gapLead.bottom
+                                    width: parent.width
+                                    height: (root.kanbanDragCommitted
+                                             && root.dragSourceColumnKey === columnKey
+                                             && root.dragSourceIndex === cardSlot.index)
+                                            ? root.dragPlaceholderHeight : 0
+                                }
+
+                                KanbanCard {
+                                    id: card
+                                    anchors.top: placeholder.bottom
+                                    width: cardList.width
+                                    controller: root.controller
+                                    task: modelData
+                                    dragHost: root.dragHost
+                                    kanbanView: root
+                                    cardIndex: cardSlot.index
+                                    columnKey: columnKey
+                                    interactionsSuspended: root.interactionsSuspended
+                                    onRequestFullEditor: function(taskObj) {
+                                        if (root.onOpenFullEditor) {
+                                            root.onOpenFullEditor(taskObj)
+                                        }
+                                    }
+                                }
+                            }
+
+                            footer: Item {
+                                width: cardList.width
                                 height: (root.dropGapColumnKey === columnKey
-                                         && root.dropGapIndex === cardSlot.index)
+                                         && root.dropGapIndex === (cardList.cardModel
+                                                                  ? cardList.cardModel.length : 0))
                                         ? Design.spaceLarge : 0
-                                Behavior on height {
-                                    enabled: !Design.reducedMotion
-                                    NumberAnimation { duration: Kirigami.Units.shortDuration }
-                                }
                                 Rectangle {
                                     anchors.left: parent.left
                                     anchors.right: parent.right
@@ -325,95 +427,49 @@ Flickable {
                                 }
                             }
 
-                            Item {
-                                id: placeholder
-                                anchors.top: gapLead.bottom
-                                width: parent.width
-                                height: (root.kanbanDragCommitted
-                                         && root.dragSourceColumnKey === columnKey
-                                         && root.dragSourceIndex === cardSlot.index)
-                                        ? root.dragPlaceholderHeight : 0
+                            QQC2.ScrollBar.vertical: ThinScrollBar {
+                                view: cardList
+                                stepSize: cardList.contentHeight > 0
+                                        ? cardWheelHandler.verticalStepSize / cardList.contentHeight
+                                        : 0.1
+                            }
+                            QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+                                policy: QQC2.ScrollBar.AlwaysOff
+                            }
+                        }
+
+                        DropArea {
+                            anchors.fill: parent
+                            keys: ["application/x-kurrent-task"]
+                            enabled: !!(root.dragHost && root.dragHost.draggingTask
+                                        && root.kanbanDragCommitted)
+                            z: 10
+
+                            function updateGap(drag) {
+                                var y = cardList.contentY + drag.y
+                                root.setDropGap(columnKey, cardList.gapIndexAt(y))
                             }
 
-                            KanbanCard {
-                                id: card
-                                anchors.top: placeholder.bottom
-                                width: cardList.width
-                                controller: root.controller
-                                task: modelData
-                                dragHost: root.dragHost
-                                kanbanView: root
-                                cardIndex: cardSlot.index
-                                columnKey: columnKey
-                                interactionsSuspended: root.interactionsSuspended
-                                onRequestFullEditor: function(taskObj) {
-                                    if (root.onOpenFullEditor) {
-                                        root.onOpenFullEditor(taskObj)
-                                    }
+                            onEntered: function(drag) {
+                                drag.acceptProposedAction()
+                                updateGap(drag)
+                            }
+                            onPositionChanged: function(drag) {
+                                updateGap(drag)
+                            }
+                            onExited: {
+                                if (root.dropGapColumnKey === columnKey) {
+                                    root.clearDropGap()
                                 }
                             }
-                        }
-
-                        footer: Item {
-                            width: cardList.width
-                            height: (root.dropGapColumnKey === columnKey
-                                     && root.dropGapIndex === (cardList.cardModel
-                                                              ? cardList.cardModel.length : 0))
-                                    ? Design.spaceLarge : 0
-                            Rectangle {
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                height: 2
-                                radius: 1
-                                color: Kirigami.Theme.highlightColor
-                                visible: parent.height > 0
-                                opacity: 0.85
+                            onDropped: function(drop) {
+                                var gap = root.dropGapColumnKey === columnKey ? root.dropGapIndex : -1
+                                root.finishKanbanDrop(columnKey, gap)
+                                drop.acceptProposedAction()
                             }
                         }
-
-                        QQC2.ScrollBar.vertical: ThinScrollBar {
-                            view: cardList
-                            stepSize: cardList.contentHeight > 0
-                                    ? cardWheelHandler.verticalStepSize / cardList.contentHeight
-                                    : 0.1
-                        }
-                        QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
-                            policy: QQC2.ScrollBar.AlwaysOff
-                        }
                     }
-
-                    DropArea {
-                        anchors.fill: parent
-                        keys: ["application/x-kurrent-task"]
-                        enabled: !!(root.dragHost && root.dragHost.draggingTask
-                                    && root.kanbanDragCommitted)
-                        z: 10
-
-                        function updateGap(drag) {
-                            var y = cardList.contentY + drag.y
-                            root.setDropGap(columnKey, cardList.gapIndexAt(y))
-                        }
-
-                        onEntered: function(drag) {
-                            drag.acceptProposedAction()
-                            updateGap(drag)
-                        }
-                        onPositionChanged: function(drag) {
-                            updateGap(drag)
-                        }
-                        onExited: {
-                            if (root.dropGapColumnKey === columnKey) {
-                                root.clearDropGap()
-                            }
-                        }
-                        onDropped: function(drop) {
-                            var gap = root.dropGapColumnKey === columnKey ? root.dropGapIndex : -1
-                            root.finishKanbanDrop(columnKey, gap)
-                            drop.acceptProposedAction()
-                        }
                     }
-                }
                 }
 
                 Item {

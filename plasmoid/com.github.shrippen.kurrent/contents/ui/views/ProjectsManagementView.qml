@@ -7,6 +7,7 @@ import org.kde.plasma.components as PlasmaComponents3
 import com.github.shrippen.kurrent 1.0
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -35,7 +36,7 @@ ColumnLayout {
             text: i18n("Projects")
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "edit-clear"
             visible: controller.selectedCollectionId >= 0
             onClicked: controller.selectedCollectionId = -1

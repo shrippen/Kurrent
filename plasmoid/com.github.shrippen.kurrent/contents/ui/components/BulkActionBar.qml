@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import org.kde.plasma.plasmoid 2.0
 import com.github.shrippen.kurrent 1.0
 import ".."
+import "../Kante"
 
 RowLayout {
     id: root
@@ -27,7 +28,7 @@ RowLayout {
         text: i18np("%1 task selected", "%1 tasks selected", controller.selectedTaskIds.length)
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "checkmark"
         display: QQC2.AbstractButton.IconOnly
         onClicked: controller.bulkCompleteTasks(root.bulkIds(), true)
@@ -35,7 +36,7 @@ RowLayout {
         QQC2.ToolTip.visible: hovered
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "edit-delete"
         display: QQC2.AbstractButton.IconOnly
         onClicked: controller.bulkDeleteTasks(root.bulkIds())
@@ -43,7 +44,7 @@ RowLayout {
         QQC2.ToolTip.visible: hovered
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "go-next"
         display: QQC2.AbstractButton.IconOnly
         onClicked: controller.bulkRescheduleTasks(root.bulkIds(), "tomorrow")
@@ -51,7 +52,7 @@ RowLayout {
         QQC2.ToolTip.visible: hovered
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "go-next"
         display: QQC2.AbstractButton.IconOnly
         onClicked: controller.bulkRescheduleTasks(root.bulkIds(), "1d")
@@ -59,7 +60,7 @@ RowLayout {
         QQC2.ToolTip.visible: hovered
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "folder"
         display: QQC2.AbstractButton.IconOnly
         onClicked: moveMenu.open()
@@ -68,6 +69,7 @@ RowLayout {
 
         QQC2.Menu {
             id: moveMenu
+            KantePopupSkin { popup: moveMenu }
             title: i18n("Move to project")
 
             Instantiator {
@@ -83,7 +85,7 @@ RowLayout {
         }
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "tag"
         display: QQC2.AbstractButton.IconOnly
         onClicked: labelMenu.open()
@@ -92,6 +94,7 @@ RowLayout {
 
         QQC2.Menu {
             id: labelMenu
+            KantePopupSkin { popup: labelMenu }
             title: i18n("Add label")
 
             Instantiator {
@@ -108,7 +111,7 @@ RowLayout {
         }
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "flag"
         display: QQC2.AbstractButton.IconOnly
         onClicked: priorityMenu.open()
@@ -117,6 +120,7 @@ RowLayout {
 
         QQC2.Menu {
             id: priorityMenu
+            KantePopupSkin { popup: priorityMenu }
             title: i18n("Set priority")
             QQC2.MenuItem {
                 text: i18n("High")
@@ -137,7 +141,7 @@ RowLayout {
         }
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "edit-copy"
         display: QQC2.AbstractButton.IconOnly
         onClicked: {
@@ -150,7 +154,7 @@ RowLayout {
         QQC2.ToolTip.visible: hovered
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         icon.name: "dialog-cancel"
         display: QQC2.AbstractButton.IconOnly
         onClicked: controller.clearTaskSelection()

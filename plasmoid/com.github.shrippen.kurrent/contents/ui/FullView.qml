@@ -9,6 +9,7 @@ import "views"
 import "components"
 import "colors.js" as Colors
 import "." as KurrentUi
+import "Kante"
 
 Item {
     id: fullRoot
@@ -20,6 +21,59 @@ Item {
 
     clip: false
     anchors.fill: parent
+
+    // ── Style ──
+    // System (default): nothing here does anything; every colour is the Plasma colour scheme.
+    // Kante: KanteScope hands the Kante palette to this item's Kirigami.Theme, so every
+    // QQC2/Kirigami control below follows. Popups and the reparented editor get their own scope.
+    // Translucency (Kante rule "tint, do not paint"): no ground is painted in any style, so a
+    // translucent / blurred Plasma background always shows through.
+    KanteScope { target: fullRoot }
+
+    // ── Narrow layout ──
+    // Below this width the sidebar would squeeze the task pane: views become tabs above the
+    // pane and the sidebar opens on demand (pushes the pane while open).
+    readonly property bool compactLayout: width > 0
+            && width < sidebar.sidebarWidth + Kirigami.Units.gridUnit * 24
+    property bool compactSidebarOpen: false
+    onCompactLayoutChanged: compactSidebarOpen = false
+
+    // Picking anything in the pushed-in sidebar closes it again.
+    Connections {
+        target: fullRoot.compactLayout ? backend : null
+        ignoreUnknownSignals: true
+        function onCurrentViewChanged() { fullRoot.compactSidebarOpen = false }
+        function onSelectedCollectionIdChanged() { fullRoot.compactSidebarOpen = false }
+        function onSelectedLabelChanged() { fullRoot.compactSidebarOpen = false }
+        function onSelectedPriorityChanged() { fullRoot.compactSidebarOpen = false }
+    }
+
+    // ── Inspector (Direction B) ──
+    // A single click on a task shows it here instead of expanding the inline editor, as long
+    // as the pane is wide enough for list + inspector. Double click still opens the full editor.
+    property var inspectedItemId: -1
+    readonly property int inspectorWidth: Kirigami.Units.gridUnit * 17
+    readonly property bool inspectorActive: KurrentUi.Design.showInspector && !compactLayout
+            && mainPane.width >= inspectorWidth + Kirigami.Units.gridUnit * 24
+    onInspectorActiveChanged: {
+        if (!inspectorActive) {
+            inspectedItemId = -1
+        }
+    }
+
+    function inspectTask(itemId) {
+        inspectedItemId = itemId
+    }
+
+    function pickView(viewId) {
+        if (!backend) {
+            return
+        }
+        sidebar.currentSidebarFolder = sidebar.folderForView(viewId)
+        backend.currentView = viewId
+        sidebar.clearFilterSelections()
+        compactSidebarOpen = false
+    }
 
     // Content stays inside Plasma's FrameSvg padding. Only the editor dim/card
     // reparent onto the applet container so they paint over that chrome.
@@ -119,10 +173,11 @@ Item {
             + KurrentUi.Design.panelGap
     readonly property bool editorCoversSidebar: fullRoot.width < editorMinOverallWidth
 
-    implicitWidth: Kirigami.Units.gridUnit * 52
-    implicitHeight: Kirigami.Units.gridUnit * 40
+    // Panel flyout opens narrow: views as tabs, sidebar on demand (FullView.compactLayout).
+    implicitWidth: Kirigami.Units.gridUnit * (plasmoidRoot.inPanel ? 30 : 52)
+    implicitHeight: Kirigami.Units.gridUnit * (plasmoidRoot.inPanel ? 36 : 40)
 
-    Layout.minimumWidth: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * 28 : Kirigami.Units.gridUnit * 12
+    Layout.minimumWidth: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
     Layout.minimumHeight: plasmoidRoot.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
     Layout.preferredWidth: implicitWidth
     Layout.preferredHeight: implicitHeight
@@ -707,6 +762,14 @@ Item {
     }
     readonly property int syncingLabelWidth: Math.round(syncingMetrics.contentWidth)
 
+    // Room for the "N open · M overdue" figures next to the title (wide header only).
+    TextMetrics {
+        id: headerFiguresMetrics
+        text: i18n("%1 open", 9999) + " · " + i18n("%1 overdue", 999)
+        font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize) : Kirigami.Theme.smallFont
+    }
+    readonly property int headerFiguresWidth: Math.ceil(headerFiguresMetrics.advanceWidth) + KurrentUi.Design.spaceSmall
+
     readonly property int mainPaneHeaderTitleMinWidth: Kirigami.Units.gridUnit * 3
     // View icon + spacing to the left of the title.
     readonly property int mainPaneHeaderLeftWidth:
@@ -716,9 +779,27 @@ Item {
     readonly property int filterChipIconSize: Kirigami.Units.iconSizes.small
     readonly property int filterChipSpacing: 2
     readonly property int filterSeparatorWidth: KurrentUi.Design.spaceSmall
+    // Chip chrome around each filter icon: side padding plus the × button.
+    readonly property int filterChipChrome: KurrentUi.Design.spaceTiny * 2 + filterChipIconSize + 2 + filterChipSpacing
     readonly property int filterIconOnlyWidth: {
         var n = plasmoidRoot.activeFilters ? plasmoidRoot.activeFilters.length : 0
-        return n * (filterChipIconSize + filterChipSpacing * 2)
+        return n * (filterChipIconSize + filterChipSpacing * 2 + filterChipChrome)
+    }
+
+    // Clears one sidebar filter kind (the × on a header chip).
+    function clearFilter(kind) {
+        if (!backend) {
+            return
+        }
+        switch (kind) {
+        case "project": backend.selectedCollectionId = -1; break
+        case "label": backend.selectedLabel = ""; break
+        case "priority": backend.selectedPriority = -1; break
+        case "progress": backend.selectedProgressBand = ""; break
+        case "status": backend.selectedStatus = -1; break
+        case "secrecy": backend.selectedSecrecy = -1; break
+        case "location": backend.selectedLocation = ""; break
+        }
     }
 
     // Expand toolbar when title + filter icons + separator + expanded tools fit.
@@ -738,6 +819,7 @@ Item {
                 : mainPaneHeaderToolsCompactWidth
         var used = mainPaneHeaderLeftWidth + mainPaneHeaderTitleMinWidth
                 + filterIconOnlyWidth + filterSeparatorWidth + toolsWidth
+                + (viewModeToolbarExpanded && !compactLayout ? headerFiguresWidth : 0)
         var avail = mainPane.width - used
         if (avail <= 0) return 0
         return Math.min(avail, Kirigami.Units.gridUnit * 12)
@@ -1119,27 +1201,92 @@ Item {
         implicitHeight: 0
         spacing: KurrentUi.Design.panelGap
 
-        SidebarView {
-            id: sidebar
-            controller: backend
-            filterPolicy: plasmoidRoot
-            dragHost: fullRoot
-            interactionsSuspended: taskFullEditor.visible
-            hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
-            hiddenLabels: Plasmoid.configuration.hiddenLabels || ""
-            hiddenLocations: Plasmoid.configuration.hiddenLocations || ""
-            sidebarRowSize: Plasmoid.configuration.sidebarRowSize || "auto"
-            showEmptyProjects: Plasmoid.configuration.showEmptyProjects === true
-            showSidebarCounts: Plasmoid.configuration.showSidebarCounts !== false
-            sectionOrder: Plasmoid.configuration.sidebarSectionOrder || "views,projects,labels,priorities,progress,status,secrecy,location"
-            hiddenSections: Plasmoid.configuration.hiddenSidebarSections ?? "progress||status||secrecy||location"
-            viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
-            hiddenViews: Plasmoid.configuration.hiddenViews || ""
-            smartViewsJson: Plasmoid.configuration.smartViews || "[]"
+        // Sidebar column: Kante brand head (Kante and Kante Light), the sections, sync status.
+        ColumnLayout {
+            id: sidebarColumn
+            visible: !fullRoot.compactLayout || fullRoot.compactSidebarOpen
+            Layout.fillHeight: true
+            Layout.preferredWidth: sidebar.sidebarWidth
+            Layout.maximumWidth: sidebar.sidebarWidth
+            spacing: 0
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.leftMargin: KurrentUi.Design.spaceSmall
+                Layout.bottomMargin: KurrentUi.Design.spaceSmall
+                visible: KanteStyle.active
+                spacing: KurrentUi.Design.spaceSmall
+
+                Kirigami.Icon {
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                    source: Qt.resolvedUrl("../icons/kurrent.svg")
+                    isMask: true
+                    color: KanteStyle.themed ? KantePalette.brand : Kirigami.Theme.textColor
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: "Kurrent"
+                    font: KanteStyle.titleFont(Kirigami.Theme.defaultFont.pointSize * 1.15)
+                    color: KanteStyle.strongTextColor
+                    elide: Text.ElideRight
+                }
+            }
+
+            SidebarView {
+                id: sidebar
+                Layout.fillHeight: true
+                controller: backend
+                filterPolicy: plasmoidRoot
+                dragHost: fullRoot
+                interactionsSuspended: taskFullEditor.visible
+                hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
+                hiddenLabels: Plasmoid.configuration.hiddenLabels || ""
+                hiddenLocations: Plasmoid.configuration.hiddenLocations || ""
+                sidebarRowSize: Plasmoid.configuration.sidebarRowSize || "auto"
+                showEmptyProjects: Plasmoid.configuration.showEmptyProjects === true
+                showSidebarCounts: Plasmoid.configuration.showSidebarCounts !== false
+                sectionOrder: Plasmoid.configuration.sidebarSectionOrder || "views,projects,labels,priorities,progress,status,secrecy,location"
+                hiddenSections: Plasmoid.configuration.hiddenSidebarSections ?? "progress||status||secrecy||location"
+                viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
+                hiddenViews: Plasmoid.configuration.hiddenViews || ""
+                smartViewsJson: Plasmoid.configuration.smartViews || "[]"
+            }
+
+            // Sync status: the header only shows trouble; this line also confirms "all fine".
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: KurrentUi.Design.spaceTiny
+                Layout.leftMargin: KurrentUi.Design.spaceSmall
+                visible: !!backend
+                spacing: KurrentUi.Design.spaceTiny
+
+                readonly property bool online: !!backend && backend.akonadiAvailable
+                readonly property int syncing: backend ? backend.syncingCount : 0
+
+                Kirigami.Icon {
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                    source: !parent.online ? "network-disconnect" : (parent.syncing > 0 ? "view-refresh" : "checkmark")
+                    color: !parent.online ? Kirigami.Theme.negativeTextColor
+                         : (parent.syncing > 0 ? Kirigami.Theme.neutralTextColor : Kirigami.Theme.positiveTextColor)
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: !parent.online ? i18n("Akonadi offline")
+                        : (parent.syncing > 0 ? i18n("Syncing…") : i18n("Synced"))
+                    font: KanteStyle.active ? KanteStyle.labelFont() : Kirigami.Theme.smallFont
+                    color: KanteStyle.mutedTextColor
+                    elide: Text.ElideRight
+                }
+            }
         }
 
         Kirigami.Separator {
             id: sidebarSplitter
+            visible: sidebarColumn.visible
             Layout.fillHeight: true
             Layout.preferredWidth: 1
 
@@ -1189,6 +1336,16 @@ Item {
                 anchors.fill: parent
                 spacing: KurrentUi.Design.spaceSmall
 
+            ViewTabBar {
+                Layout.fillWidth: true
+                visible: fullRoot.compactLayout
+                controller: backend
+                views: sidebar.visiblePrimaryViewItems
+                sidebarOpen: fullRoot.compactSidebarOpen
+                onToggleSidebar: fullRoot.compactSidebarOpen = !fullRoot.compactSidebarOpen
+                onViewPicked: function(viewId) { fullRoot.pickView(viewId) }
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: KurrentUi.Design.spaceSmall
@@ -1200,11 +1357,53 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                 }
 
-                Kirigami.Heading {
+                // View title: uppercase Rajdhani in Kante and Kante Light, Kirigami heading in System.
+                KanteHeading {
+                    id: viewTitle
                     Layout.alignment: Qt.AlignVCenter
+                    // KanteHeading draws its Rajdhani title over the hidden Kirigami text; size the
+                    // item for the text that is actually drawn so it does not elide early.
+                    Layout.preferredWidth: kanteDrawn ? Math.ceil(viewTitleMetrics.advanceWidth) : implicitWidth
                     level: 3
+                    pageTitle: true
                     text: plasmoidRoot.activeViewTitle()
                     elide: Text.ElideRight
+
+                    TextMetrics {
+                        id: viewTitleMetrics
+                        text: viewTitle.text
+                        font: KanteStyle.titleFont(KanteStyle.defaultFont.pointSize * 1.3)
+                    }
+                }
+
+                // "251 open · 27 overdue": figures next to the title (mono in Kante / Kante Light).
+                // Only in the wide header; the narrow one has the counts on the tabs.
+                RowLayout {
+                    Layout.alignment: Qt.AlignVCenter
+                    visible: !!backend && fullRoot.viewModeToolbarExpanded && !fullRoot.compactLayout && openCount >= 0
+                    spacing: KurrentUi.Design.spaceTiny
+
+                    readonly property int openCount: backend && backend.viewTaskCounts
+                            && backend.viewTaskCounts[backend.currentView] !== undefined
+                            ? backend.viewTaskCounts[backend.currentView] : -1
+                    readonly property int overdueCount: backend && backend.viewTaskCounts
+                            ? (backend.viewTaskCounts["overdue"] || 0) : 0
+                    readonly property font figureFont: KanteStyle.active
+                            ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                            : Kirigami.Theme.smallFont
+
+                    QQC2.Label {
+                        text: i18n("%1 open", parent.openCount)
+                        font: parent.figureFont
+                        color: KanteStyle.mutedTextColor
+                    }
+                    QQC2.Label {
+                        visible: parent.overdueCount > 0 && backend.currentView !== "overdue"
+                                 && backend.currentView !== "completed"
+                        text: "· " + i18n("%1 overdue", parent.overdueCount)
+                        font: parent.figureFont
+                        color: Kirigami.Theme.negativeTextColor
+                    }
                 }
 
                 // Active filters right of the title, separated by "|".
@@ -1222,35 +1421,65 @@ Item {
 
                     Repeater {
                         model: plasmoidRoot.activeFilters
-                        delegate: RowLayout {
+                        // Active filter as a removable chip: Plasma a rounded pill, Kante a square
+                        // sunken box. × clears just this filter.
+                        delegate: Rectangle {
+                            id: filterChip
+                            required property var modelData
                             Layout.alignment: Qt.AlignVCenter
-                            spacing: 2
+                            implicitWidth: filterChipRow.implicitWidth + KurrentUi.Design.spaceTiny * 2
+                            implicitHeight: filterChipRow.implicitHeight + 2
+                            radius: KanteStyle.themed ? 0 : height / 2
+                            color: KanteStyle.themed ? KanteStyle.sunkenColor : KanteStyle.tint(Kirigami.Theme.textColor, 0.07)
+                            border.width: 1
+                            border.color: KanteStyle.frameColor
 
-                            Kirigami.Icon {
-                                Layout.alignment: Qt.AlignVCenter
-                                Layout.preferredWidth: fullRoot.filterChipIconSize
-                                Layout.preferredHeight: fullRoot.filterChipIconSize
-                                source: modelData.kind === "project" ? "folder"
-                                      : modelData.kind === "priority" ? "flag"
-                                      : modelData.kind === "progress" ? "view-list-details"
-                                      : modelData.kind === "status" ? "view-calendar-tasks"
-                                      : modelData.kind === "secrecy" ? "object-unlocked"
-                                      : modelData.kind === "location" ? "mark-location"
-                                      : "tag"
-                                color: modelData.kind === "priority"
-                                       ? Colors.colorForPriority(modelData.key)
-                                       : KurrentUi.Design.colorForKey(modelData.key, modelData.kind === "label" ? "label" : "project")
-                                width: fullRoot.filterChipIconSize
-                                height: fullRoot.filterChipIconSize
-                            }
+                            RowLayout {
+                                id: filterChipRow
+                                anchors.centerIn: parent
+                                spacing: 2
 
-                            QQC2.Label {
-                                Layout.alignment: Qt.AlignVCenter
-                                Layout.maximumWidth: fullRoot.availableFilterTextWidth
-                                text: modelData.text
-                                opacity: 0.8
-                                elide: Text.ElideRight
-                                maximumLineCount: 1
+                                Kirigami.Icon {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    Layout.preferredWidth: fullRoot.filterChipIconSize
+                                    Layout.preferredHeight: fullRoot.filterChipIconSize
+                                    source: filterChip.modelData.kind === "project" ? "folder"
+                                          : filterChip.modelData.kind === "priority" ? "flag"
+                                          : filterChip.modelData.kind === "progress" ? "view-list-details"
+                                          : filterChip.modelData.kind === "status" ? "view-calendar-tasks"
+                                          : filterChip.modelData.kind === "secrecy" ? "object-unlocked"
+                                          : filterChip.modelData.kind === "location" ? "mark-location"
+                                          : "tag"
+                                    color: filterChip.modelData.kind === "priority"
+                                           ? KurrentUi.Design.priorityColor(filterChip.modelData.key)
+                                           : KurrentUi.Design.colorForKey(filterChip.modelData.key, filterChip.modelData.kind === "label" ? "label" : "project")
+                                    width: fullRoot.filterChipIconSize
+                                    height: fullRoot.filterChipIconSize
+                                }
+
+
+                                QQC2.Label {
+                                    Layout.alignment: Qt.AlignVCenter
+                                    Layout.maximumWidth: fullRoot.availableFilterTextWidth
+                                    text: filterChip.modelData.text
+                                    opacity: 0.8
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                }
+
+                                QQC2.ToolButton {
+                                    Layout.preferredWidth: fullRoot.filterChipIconSize + 2
+                                    Layout.preferredHeight: fullRoot.filterChipIconSize + 2
+                                    icon.name: "window-close"
+                                    icon.width: fullRoot.filterChipIconSize - 4
+                                    icon.height: fullRoot.filterChipIconSize - 4
+                                    display: QQC2.AbstractButton.IconOnly
+                                    padding: 0
+                                    text: i18n("Remove filter")
+                                    onClicked: fullRoot.clearFilter(filterChip.modelData.kind)
+                                    QQC2.ToolTip.text: text
+                                    QQC2.ToolTip.visible: hovered
+                                }
                             }
                         }
                     }
@@ -1286,7 +1515,7 @@ Item {
                             elide: Text.ElideRight
                             maximumLineCount: 1
                         }
-                        QQC2.ToolButton {
+                        KanteToolButton {
                             icon.name: "dialog-close"
                             display: QQC2.AbstractButton.IconOnly
                             implicitWidth: fullRoot.filterChipIconSize + KurrentUi.Design.spaceSmall
@@ -1317,7 +1546,7 @@ Item {
                     Layout.minimumWidth: implicitWidth
                     spacing: KurrentUi.Design.spaceSmall
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: undoButton
                     visible: backend.canUndo
                     Layout.alignment: Qt.AlignVCenter
@@ -1331,7 +1560,7 @@ Item {
                     QQC2.ToolTip.visible: hovered
                 }
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: groupButton
                     visible: backend && backend.listGroupMode !== undefined
                             && backend.mainPaneMode === KurrentUi.Design.viewModeList
@@ -1348,7 +1577,7 @@ Item {
                     QQC2.ToolTip.visible: hovered
                 }
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: kanbanColumnsButton
                     visible: backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban
                     Layout.alignment: Qt.AlignVCenter
@@ -1362,7 +1591,7 @@ Item {
                     QQC2.ToolTip.visible: hovered
                 }
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: matrixOptionsButton
                     visible: fullRoot.matrixMode
                     Layout.alignment: Qt.AlignVCenter
@@ -1376,7 +1605,7 @@ Item {
                     QQC2.ToolTip.visible: hovered
                 }
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: sortButton
                     visible: backend && (backend.mainPaneMode === KurrentUi.Design.viewModeList
                             || backend.mainPaneMode === KurrentUi.Design.viewModeKanban)
@@ -1402,6 +1631,7 @@ Item {
 
                 QQC2.Menu {
                     id: viewModeMenu
+                    KantePopupSkin { popup: viewModeMenu }
                     parent: fullRoot
                     popupType: QQC2.Popup.Item
                     title: i18n("View mode")
@@ -1424,6 +1654,7 @@ Item {
 
                 QQC2.Menu {
                     id: kanbanColumnsMenu
+                    KantePopupSkin { popup: kanbanColumnsMenu }
                     parent: fullRoot
                     popupType: QQC2.Popup.Item
                     title: i18n("Kanban columns")
@@ -1442,6 +1673,7 @@ Item {
 
                 QQC2.Menu {
                     id: matrixOptionsMenu
+                    KantePopupSkin { popup: matrixOptionsMenu }
                     parent: fullRoot
                     popupType: QQC2.Popup.Item
                     title: fullRoot.swimlaneMode ? i18n("Swimlanes") : i18n("Project plan")
@@ -1519,6 +1751,7 @@ Item {
 
                 QQC2.Menu {
                     id: groupMenu
+                    KantePopupSkin { popup: groupMenu }
                     parent: fullRoot
                     popupType: QQC2.Popup.Item
                     title: i18n("Group tasks")
@@ -1568,11 +1801,27 @@ Item {
                 backendVersion: plasmoidRoot.backendVersion
             }
 
+            // Direction B: key views as tiles (wide layout).
+            ViewTiles {
+                Layout.fillWidth: true
+                visible: KurrentUi.Design.showViewTiles && !fullRoot.compactLayout && !!backend
+                controller: backend
+                onViewPicked: function(viewId) { fullRoot.pickView(viewId) }
+            }
+
+            OverdueBanner {
+                Layout.fillWidth: true
+                controller: backend
+                onShowOverdue: fullRoot.pickView("overdue")
+            }
+
             Kirigami.InlineMessage {
+                id: conflictMessage
                 Layout.fillWidth: true
                 visible: backend.conflictItemId >= 0
                 type: Kirigami.MessageType.Warning
                 text: i18n("This task was changed on the server. Reload to discard your edit.")
+                KanteMessageSkin { message: conflictMessage }
                 actions: [
                     Kirigami.Action {
                         text: i18n("Reload")
@@ -1591,8 +1840,18 @@ Item {
                 controller: backend
             }
 
+            // Task pane, with the inspector beside it while a task is inspected (wide layout).
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.preferredHeight: 0
+                Layout.minimumHeight: 0
+                spacing: KurrentUi.Design.spaceSmall
+
             MainPaneHost {
                 id: mainPaneHost
+                // Wide views (Kanban, matrices) must not paint under the inspector beside them.
+                clip: fullRoot.inspectorActive && fullRoot.inspectedItemId >= 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.preferredHeight: 0
@@ -1605,6 +1864,18 @@ Item {
                 newTaskDefaultCollectionId: Plasmoid.configuration.newTaskDefaultCollectionId || ""
                 multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
                 onOpenFullEditor: function(taskObj) { fullRoot.openFullEditor(taskObj) }
+            }
+
+            TaskInspector {
+                Layout.fillHeight: true
+                Layout.preferredWidth: fullRoot.inspectorWidth
+                Layout.maximumWidth: fullRoot.inspectorWidth
+                visible: fullRoot.inspectorActive && fullRoot.inspectedItemId >= 0
+                controller: backend
+                itemId: fullRoot.inspectedItemId
+                onRequestFullEditor: function(taskObj) { fullRoot.openFullEditor(taskObj) }
+                onCloseRequested: fullRoot.inspectedItemId = -1
+            }
             }
             }
 
@@ -1709,6 +1980,7 @@ Item {
 
     QQC2.Popup {
         id: sortMenu
+        KantePopupSkin { popup: sortMenu }
         parent: fullRoot
         popupType: QQC2.Popup.Item
         property bool useWideLayout: false
@@ -1806,6 +2078,7 @@ Item {
                     Repeater {
                         model: options
                         delegate: QQC2.RadioButton {
+                            KanteCheckSkin { control: parent }
                             required property var modelData
                             Layout.fillWidth: true
                             text: modelData.label
@@ -1912,6 +2185,13 @@ Item {
                 mergeDialog.editorClosed()
             }
         }
+    }
+
+    ScreenshotRunner {
+        plasmoidRoot: fullRoot.plasmoidRoot
+        backend: fullRoot.backend
+        fullRoot: fullRoot
+        taskFullEditor: taskFullEditor
     }
 
     SmokeTest {

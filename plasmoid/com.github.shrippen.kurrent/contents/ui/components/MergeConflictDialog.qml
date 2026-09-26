@@ -4,6 +4,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.components as PC3
 import "../colors.js" as Colors
+import ".."
 
 Item {
     id: root
@@ -377,15 +378,15 @@ Item {
                             width: chipLabel.implicitWidth + 12
                             height: chipLabel.implicitHeight + 6
                             radius: height / 2
-                            color: Qt.alpha(Colors.colorForKey(modelData, "label"), 0.15)
-                            border.color: Colors.colorForKey(modelData, "label")
+                            color: Qt.alpha(Design.colorForKey(modelData, "label"), 0.15)
+                            border.color: Design.colorForKey(modelData, "label")
                             border.width: 1
                             PC3.Label {
                                 id: chipLabel
                                 anchors.centerIn: parent
                                 text: modelData
                                 font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
-                                color: Colors.colorForKey(modelData, "label")
+                                color: Design.colorForKey(modelData, "label")
                             }
                         }
                     }
@@ -402,7 +403,7 @@ Item {
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                         property var fldRef: fld
                         property string priMode: valMode
-                        color: Colors.colorForPriority(priMode === "user" ? fldRef.userValue : priMode === "server" ? fldRef.serverValue : fldRef.baseValue)
+                        color: Design.priorityColor(priMode === "user" ? fldRef.userValue : priMode === "server" ? fldRef.serverValue : fldRef.baseValue)
                     }
                     PC3.Label {
                         text: {

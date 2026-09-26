@@ -1191,3 +1191,133 @@ msgstr[0] "%1 件の未完了タスク"
 msgid "%1 task"
 msgid_plural "%1 tasks"
 msgstr[0] "%1 件のタスク"
+
+msgid "Style"
+msgstr "スタイル"
+
+msgid "Plasma (default)"
+msgstr "Plasma（既定）"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "ライト／ダークを問わずカラースキームに従います。ほかの KDE アプリと同じ見た目です。"
+
+msgid "Accent colours"
+msgstr "アクセントカラー"
+
+msgid "Project and label colours"
+msgstr "プロジェクトとラベルの色"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "優先度の色（赤・黄・青）"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "面、文字、選択、ボタンなどそれ以外はすべて Plasma のカラースキームに従います。"
+
+msgid "Translucent with blurred wallpaper"
+msgstr "壁紙をぼかした半透明の背景"
+
+msgid "Hints"
+msgstr "ヒント"
+
+msgid "Show a notice when tasks are overdue"
+msgstr "期限切れのタスクがあるときに通知を表示"
+
+msgid "Move all to today"
+msgstr "すべて今日に移動"
+
+msgid "Show overdue"
+msgstr "期限切れを表示"
+
+msgid "Show sidebar"
+msgstr "サイドバーを表示"
+
+msgid "Hide sidebar"
+msgstr "サイドバーを隠す"
+
+msgid "%1 task is overdue."
+msgid_plural "%1 tasks are overdue."
+msgstr[0] "%1 件のタスクが期限切れです。"
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox（明るいカラースキームではリネン）。細身のタイトル、切り欠いた角、四角いコントロール。独自のパレットを使います。"
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "カラースキームの上に Kante の形と書体を適用します。コントロールと色は Plasma のままです。"
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante はウィジェット全体に独自のパレットを使い、優先度はその赤・黄・青で表します。"
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "すべてのスタイルとパネルのポップアップに適用されます。Kurrent は独自の背景を描かず、Kante の面は上に重ねた色調だけです。デスクトップでは常に半透明で、オフにするとポップアップは不透明になります。"
+
+msgid "%1 open"
+msgstr "未完了 %1"
+
+msgid "%1 overdue"
+msgstr "期限切れ %1"
+
+msgid "Synced"
+msgstr "同期済み"
+
+msgid "Remove filter"
+msgstr "フィルターを解除"
+
+msgid "Per day"
+msgstr "1 日あたり"
+
+msgid "Best day"
+msgstr "最多の日"
+
+msgid "Best day · %1"
+msgstr "最多の日 · %1"
+
+msgid "Open full editor"
+msgstr "フルエディターを開く"
+
+msgid "Close inspector"
+msgstr "インスペクターを閉じる"
+
+msgid "Done"
+msgstr "完了"
+
+msgid "Inspector: clicking a task shows its details beside the list"
+msgstr "インスペクター: タスクをクリックすると一覧の横に詳細を表示"
+
+msgid "No due date"
+msgstr "期限なし"
+
+msgid "Progress"
+msgstr "進捗"
+
+msgid "Reminder"
+msgstr "リマインダー"
+
+msgid "Reopen"
+msgstr "再開"
+
+msgid "Secrecy"
+msgstr "機密性"
+
+msgid "Tiles with the key views above the tasks"
+msgstr "タスクの上に主要ビューのタイルを表示"
+
+msgid "Wide layout"
+msgstr "ワイドレイアウト"
+
+msgid "%1 day before"
+msgid_plural "%1 days before"
+msgstr[0] "%1 日前"
+
+msgid "%1 hour before"
+msgid_plural "%1 hours before"
+msgstr[0] "%1 時間前"
+
+msgid "%1 minute before"
+msgid_plural "%1 minutes before"
+msgstr[0] "%1 分前"

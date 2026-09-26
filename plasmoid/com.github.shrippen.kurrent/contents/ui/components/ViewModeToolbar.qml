@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import ".."
+import "../Kante"
 
 // View-mode picker: compact menu button, or expanded icon strip in chrome.
 // The list-group button lives in FullView headerTools (between toolbar and sort).
@@ -143,12 +144,12 @@ RowLayout {
         Layout.minimumWidth: Layout.preferredWidth
         Layout.minimumHeight: Layout.preferredHeight
         Layout.alignment: Qt.AlignVCenter
-        radius: Design.inputRadius
+        radius: Design.radius
         color: Qt.rgba(Kirigami.Theme.textColor.r,
                        Kirigami.Theme.textColor.g,
                        Kirigami.Theme.textColor.b,
-                       Design.viewModeToolbarFillOpacity)
-        border.color: Design.windowBorderColor()
+                       KanteStyle.themed ? 0 : Design.viewModeToolbarFillOpacity)
+        border.color: KanteStyle.themed ? KanteStyle.frameColor : Design.windowBorderColor()
         border.width: 1
 
         Row {
@@ -172,15 +173,22 @@ RowLayout {
                         source: modelData.icon
                         isMask: true
                         color: isActive
-                                ? Kirigami.Theme.highlightColor
+                                ? (KanteStyle.themed ? KanteStyle.accentForegroundColor : Kirigami.Theme.highlightColor)
                                 : Kirigami.Theme.textColor
                         implicitWidth: root.toolSize - Design.spaceSmall * 2
                         implicitHeight: root.toolSize - Design.spaceSmall * 2
                     }
 
+                    // Plasma: active = highlight tint + hairline highlight border.
+                    // Kante: active = accent fill, square (like KanteToolButton checked).
                     background: Rectangle {
-                        radius: Design.inputRadius
+                        radius: Design.radius
+                        border.width: isActive && !KanteStyle.themed ? 1 : 0
+                        border.color: Kirigami.Theme.highlightColor
                         color: {
+                            if (isActive && KanteStyle.themed) {
+                                return KanteStyle.accentColor
+                            }
                             if (parent && parent.down) {
                                 return Qt.rgba(Kirigami.Theme.textColor.r,
                                                Kirigami.Theme.textColor.g,

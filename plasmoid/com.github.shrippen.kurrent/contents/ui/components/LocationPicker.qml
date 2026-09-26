@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import ".."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -151,7 +152,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Kirigami.Units.smallSpacing
 
-        QQC2.TextField {
+        KanteTextField {
             id: searchField
             Layout.fillWidth: true
             placeholderText: i18n("Search or set location…")
@@ -189,7 +190,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "edit-clear"
             visible: root.hasLocation
             onClicked: root.clearLocation()
@@ -200,6 +201,7 @@ ColumnLayout {
 
     QQC2.Popup {
         id: locationPopup
+        KantePopupSkin { popup: locationPopup }
         parent: root
         popupType: QQC2.Popup.Item
         modal: false

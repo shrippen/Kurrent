@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import "../components"
 import ".."
+import "../Kante"
 import "../datetime.js" as DateTime
 
 ColumnLayout {
@@ -132,6 +133,35 @@ ColumnLayout {
         return controller.heatmapCountsForMonth(monthStart, heatmapMode)
     }
 
+    // Figures for the facts row: total, average per day so far, best day (shown period).
+    readonly property var periodFacts: {
+        var keys = Object.keys(activeCounts)
+        var total = 0
+        var bestCount = 0
+        var bestKey = ""
+        for (var i = 0; i < keys.length; ++i) {
+            var n = activeCounts[keys[i]] || 0
+            total += n
+            if (n > bestCount) {
+                bestCount = n
+                bestKey = keys[i]
+            }
+        }
+        var start = showYear ? new Date(monthStart.getFullYear(), 0, 1) : new Date(monthStart)
+        var end = showYear ? new Date(monthStart.getFullYear() + 1, 0, 1)
+                           : new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1)
+        var now = new Date()
+        var until = now < end ? now : end
+        var days = Math.max(1, Math.ceil((until - start) / 86400000))
+        var bestDate = bestKey.length ? new Date(bestKey + "T00:00:00") : null
+        return {
+            total: total,
+            perDay: now < start ? 0 : total / days,
+            bestCount: bestCount,
+            bestLabel: bestDate && !isNaN(bestDate) ? Qt.formatDate(bestDate, Qt.locale().dateFormat(Locale.ShortFormat)) : ""
+        }
+    }
+
     function countForDate(d) {
         var key = dateKey(d)
         return activeCounts[key] !== undefined ? activeCounts[key] : 0
@@ -163,6 +193,8 @@ ColumnLayout {
         QQC2.Label {
             text: yearNumber
             font.bold: true
+            font.family: Design.headingFamily
+            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
             font.pixelSize: Kirigami.Theme.smallFont.pixelSize
             opacity: 0.8
         }
@@ -228,7 +260,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Design.spaceSmall
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "go-previous"
             onClicked: {
                 var d = new Date(root.monthStart)
@@ -238,7 +270,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             text: i18n("Today")
             onClicked: root.monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
         }
@@ -252,9 +284,11 @@ ColumnLayout {
                      : Qt.formatDate(root.monthStart, "yyyy"))
                   : Qt.formatDate(root.monthStart, "MMMM yyyy")
             font.bold: true
+            font.family: Design.headingFamily
+            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "go-next"
             onClicked: {
                 var d = new Date(root.monthStart)
@@ -265,12 +299,57 @@ ColumnLayout {
         }
     }
 
+    // ── Facts: total · per day · best day (Kante: big Rajdhani figures) ─────
+    RowLayout {
+        Layout.fillWidth: true
+        spacing: Design.spaceMedium
+
+        Repeater {
+            model: [
+                { value: String(root.periodFacts.total),
+                  label: root.heatmapMode === "completed" ? i18n("Completed") : i18n("Due") },
+                { value: root.periodFacts.perDay.toLocaleString(Qt.locale(), "f", 1), label: i18n("Per day") },
+                { value: root.periodFacts.bestCount > 0 ? String(root.periodFacts.bestCount) : "–",
+                  label: root.periodFacts.bestCount > 0 ? i18n("Best day · %1", root.periodFacts.bestLabel) : i18n("Best day") }
+            ]
+
+            delegate: ColumnLayout {
+                required property var modelData
+                required property int index
+                Layout.fillWidth: true
+                spacing: 2
+
+                Rectangle {
+                    visible: KanteStyle.active
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 2
+                    color: KanteStyle.frameColor
+                }
+                QQC2.Label {
+                    text: parent.modelData.value
+                    font: KanteStyle.active ? KanteStyle.titleFont(Kirigami.Theme.defaultFont.pointSize * 2)
+                                            : Qt.font({ family: Kirigami.Theme.defaultFont.family,
+                                                        pointSize: Kirigami.Theme.defaultFont.pointSize * 1.6, bold: true })
+                    color: KanteStyle.active && parent.index === 0 ? KanteStyle.accentTextColor : KanteStyle.strongTextColor
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: parent.modelData.label
+                    font: KanteStyle.active ? KanteStyle.labelFont() : Kirigami.Theme.smallFont
+                    color: KanteStyle.mutedTextColor
+                    elide: Text.ElideRight
+                }
+            }
+        }
+    }
+
     RowLayout {
         Layout.fillWidth: true
         spacing: Design.spaceSmall
 
         QQC2.Label { text: i18n("Mode:"); opacity: 0.7 }
         QQC2.ComboBox {
+            KanteFieldSkin { control: parent }
             model: [
                 { text: i18n("Completions"), value: "completed" },
                 { text: i18n("Due dates"), value: "due" }
@@ -282,13 +361,13 @@ ColumnLayout {
         Item { Layout.fillWidth: true }
 
         QQC2.Label { text: i18n("View:"); opacity: 0.7 }
-        QQC2.ToolButton {
+        KanteToolButton {
             text: i18n("Month")
             checkable: true
             checked: !root.showYear
             onClicked: root.showYear = false
         }
-        QQC2.ToolButton {
+        KanteToolButton {
             text: i18n("Year")
             checkable: true
             checked: root.showYear

@@ -1,0 +1,18 @@
+module Kante
+singleton KanteStyle 1.0 KanteStyle.qml
+singleton KantePalette 1.0 KantePalette.qml
+KanteScope 1.0 KanteScope.qml
+KanteCard 1.0 KanteCard.qml
+KanteButton 1.0 KanteButton.qml
+KanteToolButton 1.0 KanteToolButton.qml
+KanteTextField 1.0 KanteTextField.qml
+KanteHeading 1.0 KanteHeading.qml
+KanteDialog 1.0 KanteDialog.qml
+KanteCheckSkin 1.0 KanteCheckSkin.qml
+KanteFieldSkin 1.0 KanteFieldSkin.qml
+KanteSliderSkin 1.0 KanteSliderSkin.qml
+KantePopupSkin 1.0 KantePopupSkin.qml
+KanteMessageSkin 1.0 KanteMessageSkin.qml
+KanteDialogSkin 1.0 KanteDialogSkin.qml
+KantePageTitle 1.0 KantePageTitle.qml
+KantePullToRefresh 1.0 KantePullToRefresh.qml

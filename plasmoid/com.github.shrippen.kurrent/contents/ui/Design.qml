@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick 2.15
 import org.kde.kirigami 2.20 as Kirigami
 import "colors.js" as Colors
+import "Kante"
 
 // Prose reference for these decisions: Design.md at the repository root.
 // Update Design.md in the same change whenever a visual rule here changes.
@@ -33,6 +34,18 @@ import "colors.js" as Colors
 // - TaskDelegate height comes only from implicitHeight (never height ↔ implicitHeight).
 // - Density (auto/compact/comfortable) sets taskRowPad. sidebarWidthUnits (6–20) sets sidebarWidth.
 // - overlayDimStep 0/1/2 maps to 0.25 / 0.40 / 0.55. reducedMotion skips spinner and hover flash.
+// - Style (uiStyle, Settings › Appearance): "plasma" (default) = KanteStyle.Kind.System, every
+//   colour from Kirigami.Theme / the Plasma colour scheme, pixel-identical to a plain Kirigami
+//   widget. "kante" = Kante (Gruvbox dark, or "Leinen" when the Plasma theme is light): own
+//   palette and control skins. "kanteLight" = Kante shapes and type on the Plasma colours.
+//   Everything comes from the vendored Kante module (ui/Kante, ui/KantePlasma — copied from
+//   shrippen.github.io/qml, never edited here). Views read KanteStyle roles / wrappers / skins
+//   and branch on KanteStyle.active (shapes, type) or KanteStyle.themed (palette, skins).
+// - Translucency (both Kante kinds, Kante rule "tint, do not paint"): Kurrent never paints the
+//   widget or flyout ground. When Plasma draws a translucent / blurred background it shows
+//   through; Kante surfaces are tints on top (card 60 %, sunken 50 %).
+// - Accents: project/label colours and priority colours can be switched off
+//   (accentProjectColors / accentPriorityColors) → neutral muted icons instead.
 // - Main-pane view modes (FullView header): list | kanban | swimlane | plan | heatmap | calendar.
 //   Persist globally in kurrentrc (mainPaneMode). Kanban column/card min widths below.
 
@@ -66,6 +79,56 @@ QtObject {
     property int sidebarWidthUnits: 10
     property int overlayDimStep: 1
     property bool reducedMotion: false
+    property string uiStyle: "plasma"
+    property bool accentProjectColors: true
+    property bool accentPriorityColors: true
+    property bool showOverdueBanner: true
+    property bool showViewTiles: true
+    property bool showInspector: true
+
+    // uiStyle → KanteStyle.Kind. Values from the unreleased first draft map to Kante.
+    function kanteKind(style) {
+        if (style === "kante" || style === "shrippenDark" || style === "shrippenLinen") {
+            return KanteStyle.Kind.Kante
+        }
+        if (style === "kanteLight") {
+            return KanteStyle.Kind.KanteLight
+        }
+        return KanteStyle.Kind.System
+    }
+
+    // Radius of Kurrent's own rectangles: square in Kante, platform radius otherwise.
+    readonly property int radius: KanteStyle.themed ? 0 : inputRadius
+
+    function withAlpha(colorValue, alpha) {
+        var c = Qt.color(colorValue)
+        return Qt.rgba(c.r, c.g, c.b, alpha)
+    }
+
+    // Headings that are not the page title: Rajdhani only in Kante (Kante Light keeps the platform's).
+    readonly property string headingFamily: KanteStyle.themed
+            ? KanteStyle.headingFace.font.family : Kirigami.Theme.defaultFont.family
+
+    function neutralAccent() {
+        return KanteStyle.mutedTextColor
+    }
+
+    // Priority band colours. Kante: palette negative / accent / info. System and Kante Light:
+    // colors.js HSL bands (accents that survive a theme switch).
+    function priorityColor(priority) {
+        var p = Number(priority)
+        if (!(p >= 1 && p <= 9)) {
+            return KanteStyle.disabledTextColor
+        }
+        if (!accentPriorityColors) {
+            return neutralAccent()
+        }
+        if (KanteStyle.themed) {
+            return p <= 3 ? KanteStyle.negativeTextColor : (p <= 6 ? KanteStyle.accentTextColor : KanteStyle.infoColor)
+        }
+        return Colors.colorForPriority(p)
+    }
+
     property var projectColorOverrides: ({})
     property var labelColorOverrides: ({})
     property var locationColorOverrides: ({})
@@ -78,6 +141,9 @@ QtObject {
     }
 
     function colorForKey(key, kind) {
+        if (!accentProjectColors) {
+            return neutralAccent()
+        }
         var s = String(key)
         var map = projectColorOverrides
         if (kind === "label") {

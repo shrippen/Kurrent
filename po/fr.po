@@ -1193,3 +1193,137 @@ msgid "%1 task"
 msgid_plural "%1 tasks"
 msgstr[0] "%1 tâche"
 msgstr[1] "%1 tâches"
+
+msgid "Style"
+msgstr "Style"
+
+msgid "Plasma (default)"
+msgstr "Plasma (par défaut)"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "Suit votre jeu de couleurs, clair ou sombre. Se comporte comme toute autre application KDE."
+
+msgid "Accent colours"
+msgstr "Couleurs d’accent"
+
+msgid "Project and label colours"
+msgstr "Couleurs des projets et étiquettes"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "Couleurs de priorité (rouge · jaune · bleu)"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "Tout le reste — surfaces, texte, sélection, boutons — vient de votre jeu de couleurs Plasma."
+
+msgid "Translucent with blurred wallpaper"
+msgstr "Translucide avec fond d’écran flouté"
+
+msgid "Hints"
+msgstr "Indications"
+
+msgid "Show a notice when tasks are overdue"
+msgstr "Afficher un avis lorsque des tâches sont en retard"
+
+msgid "Move all to today"
+msgstr "Tout déplacer à aujourd’hui"
+
+msgid "Show overdue"
+msgstr "Afficher les retards"
+
+msgid "Show sidebar"
+msgstr "Afficher la barre latérale"
+
+msgid "Hide sidebar"
+msgstr "Masquer la barre latérale"
+
+msgid "%1 task is overdue."
+msgid_plural "%1 tasks are overdue."
+msgstr[0] "%1 tâche est en retard."
+msgstr[1] "%1 tâches sont en retard."
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox, ou Lin avec un jeu de couleurs clair. Titres condensés, coins coupés, contrôles carrés. Utilise sa propre palette."
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "Formes et typographie Kante sur votre jeu de couleurs. Les contrôles et les couleurs restent ceux de Plasma."
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante utilise sa propre palette pour tout le widget ; les priorités utilisent son rouge, son jaune et son bleu."
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "S’applique à tous les styles et à la fenêtre du panneau : Kurrent ne peint jamais son propre fond, les surfaces Kante ne sont que des teintes par-dessus. Sur le bureau, le widget reste translucide dans tous les cas ; la fenêtre du panneau devient opaque si cette option est désactivée."
+
+msgid "%1 open"
+msgstr "%1 ouvertes"
+
+msgid "%1 overdue"
+msgstr "%1 en retard"
+
+msgid "Synced"
+msgstr "Synchronisé"
+
+msgid "Remove filter"
+msgstr "Retirer le filtre"
+
+msgid "Per day"
+msgstr "Par jour"
+
+msgid "Best day"
+msgstr "Meilleur jour"
+
+msgid "Best day · %1"
+msgstr "Meilleur jour · %1"
+
+msgid "Open full editor"
+msgstr "Ouvrir l’éditeur complet"
+
+msgid "Close inspector"
+msgstr "Fermer l’inspecteur"
+
+msgid "Done"
+msgstr "Terminé"
+
+msgid "Inspector: clicking a task shows its details beside the list"
+msgstr "Inspecteur : un clic sur une tâche affiche ses détails à côté de la liste"
+
+msgid "No due date"
+msgstr "Pas d’échéance"
+
+msgid "Progress"
+msgstr "Progression"
+
+msgid "Reminder"
+msgstr "Rappel"
+
+msgid "Reopen"
+msgstr "Rouvrir"
+
+msgid "Secrecy"
+msgstr "Confidentialité"
+
+msgid "Tiles with the key views above the tasks"
+msgstr "Tuiles des vues principales au-dessus des tâches"
+
+msgid "Wide layout"
+msgstr "Disposition large"
+
+msgid "%1 day before"
+msgid_plural "%1 days before"
+msgstr[0] "%1 jour avant"
+msgstr[1] "%1 jours avant"
+
+msgid "%1 hour before"
+msgid_plural "%1 hours before"
+msgstr[0] "%1 heure avant"
+msgstr[1] "%1 heures avant"
+
+msgid "%1 minute before"
+msgid_plural "%1 minutes before"
+msgstr[0] "%1 minute avant"
+msgstr[1] "%1 minutes avant"

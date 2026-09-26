@@ -8,6 +8,7 @@ import ".."
 import "../datetime.js" as DateTime
 import "../colors.js" as Colors
 import org.kde.plasma.plasmoid 2.0
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -177,7 +178,7 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: Design.spaceTiny
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "go-previous"
             QQC2.ToolTip.text: i18n("Previous")
             QQC2.ToolTip.visible: hovered
@@ -200,6 +201,8 @@ ColumnLayout {
                 return Qt.formatDate(root.selectedDay, "dddd, d. MMMM yyyy")
             }
             font.bold: true
+            font.family: Design.headingFamily
+            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
             TextMetrics {
                 id: dayLabelMetrics
                 text: Qt.formatDate(new Date(), "dddd, d. MMMM yyyy")
@@ -207,7 +210,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "go-next"
             QQC2.ToolTip.text: i18n("Next")
             QQC2.ToolTip.visible: hovered
@@ -218,7 +221,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             display: QQC2.AbstractButton.IconOnly
             icon.name: "go-jump-today"
             QQC2.ToolTip.text: root.weekMode ? i18n("This week") : i18n("Today")
@@ -233,7 +236,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             id: pickerBtn
             icon.name: "view-calendar-day"
             QQC2.ToolTip.text: i18n("Pick date")
@@ -243,7 +246,7 @@ ColumnLayout {
 
         // Week-only: reserve fixed space to prevent toolbar jumping
         Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing * 2; Layout.fillHeight: true }
-        QQC2.ToolButton {
+        KanteToolButton {
             visible: root.weekMode
             icon.name: root.weekStacked ? "view-split-left-right" : "view-list-details"
             QQC2.ToolTip.text: root.weekStacked ? i18n("Days side by side") : i18n("Days stacked")
@@ -252,7 +255,7 @@ ColumnLayout {
         }
 
         Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing * 2; Layout.fillHeight: true }
-        QQC2.ToolButton {
+        KanteToolButton {
             visible: root.weekMode
             icon.name: "edit-select-all"
             checkable: true
@@ -280,7 +283,7 @@ ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 2
                 spacing: 0
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: dayBtn
                     width: parent.width / 2
                     height: parent.height
@@ -290,7 +293,7 @@ ColumnLayout {
                     checked: !root.weekMode
                     onClicked: root.weekMode = false
                 }
-                QQC2.ToolButton {
+                KanteToolButton {
                     id: weekBtn
                     width: parent.width / 2
                     height: parent.height
@@ -303,7 +306,7 @@ ColumnLayout {
             }
         }
 
-        QQC2.ToolButton {
+        KanteToolButton {
             icon.name: "text-calendar"
             QQC2.ToolTip.text: i18n("Choose calendars")
             QQC2.ToolTip.visible: hovered
@@ -314,6 +317,7 @@ ColumnLayout {
     // ── Calendar chooser menu ─────────────────────────────────────
     QQC2.Menu {
         id: calMenu
+        KantePopupSkin { popup: calMenu }
         Instantiator {
             model: controller ? controller.eventCalendars : []
             delegate: QQC2.MenuItem {
@@ -352,6 +356,7 @@ ColumnLayout {
     // ── Date picker popup ─────────────────────────────────────────
     QQC2.Popup {
         id: datePicker
+        KantePopupSkin { popup: datePicker }
         x: {
             var p = pickerBtn.mapToItem(root, 0, 0)
             return Math.max(0, Math.min(p.x - width + pickerBtn.width, root.width - width))
@@ -394,6 +399,8 @@ ColumnLayout {
                   ? Qt.formatDate(dayRoot.dayDate, "ddd d. MMM")
                   : Qt.formatDate(dayRoot.dayDate, "dddd, d. MMMM yyyy")
             font.bold: true
+            font.family: Design.headingFamily
+            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
             font.pointSize: dayRoot.compact ? Kirigami.Theme.smallFont.pointSize
                                             : Kirigami.Theme.defaultFont.pointSize
             opacity: dayRoot.isToday ? 1.0 : 0.8
@@ -519,7 +526,7 @@ ColumnLayout {
                                 delegate: Kirigami.Icon {
                                     required property string modelData
                                     source: "tag"
-                                    color: Colors.colorForKey(modelData, "label")
+                                    color: Design.colorForKey(modelData, "label")
                                     Layout.alignment: Qt.AlignVCenter
                                     Layout.preferredWidth: root.chipIconSize
                                     Layout.preferredHeight: root.chipIconSize
@@ -536,7 +543,7 @@ ColumnLayout {
                             Kirigami.Icon {
                                 visible: modelData.priority > 0
                                 source: "flag"
-                                color: Colors.colorForPriority(modelData.priority)
+                                color: Design.priorityColor(modelData.priority)
                                 Layout.alignment: Qt.AlignVCenter
                                 Layout.preferredWidth: root.chipIconSize
                                 Layout.preferredHeight: root.chipIconSize
@@ -555,7 +562,7 @@ ColumnLayout {
                 }
 
                 // Edit button overlay (appears on hover, no layout impact)
-                QQC2.ToolButton {
+                KanteToolButton {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.rightMargin: Design.spaceTiny

@@ -7,6 +7,7 @@ import "../components"
 import "../colors.js" as Colors
 import "../matrixlabels.js" as Labels
 import ".."
+import "../Kante"
 
 // Swimlanes: rows = lane axis (project / label / priority / parent task), columns = time bucket.
 // Cells hold compact task cards; dragging a card onto another cell writes the lane field and the
@@ -102,7 +103,7 @@ Item {
     function laneColor(key) {
         switch (laneAxis) {
         case "label": return key === "none" ? Kirigami.Theme.disabledTextColor : Design.colorForKey(key, "label")
-        case "priority": return Colors.colorForPriority(parseInt(key, 10))
+        case "priority": return Design.priorityColor(parseInt(key, 10))
         case "parent": return Kirigami.Theme.textColor
         default: return Design.colorForKey(key, "project")
         }
@@ -145,6 +146,8 @@ Item {
     TextMetrics {
         id: labelMetrics
         font.bold: true
+        font.family: Design.headingFamily
+        font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
     }
 
     // ---- drag & drop state (KanbanCard talks to these) ---------------------------------
@@ -244,7 +247,7 @@ Item {
                     color: Kirigami.Theme.textColor
                     opacity: Design.matrixLineOpacity
                 }
-                QQC2.ToolButton {
+                KanteToolButton {
                     anchors.centerIn: parent
                     icon.name: "go-jump-today"
                     display: QQC2.AbstractButton.IconOnly
@@ -304,6 +307,8 @@ Item {
                             Layout.fillWidth: true
                             text: root.timeTitle(head.timeKey)
                             font.bold: true
+                            font.family: Design.headingFamily
+                            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
                             elide: Text.ElideRight
                             color: head.isOverdue ? Kirigami.Theme.negativeTextColor
                                  : head.isCurrent ? Kirigami.Theme.highlightColor
@@ -388,6 +393,8 @@ Item {
                         Layout.fillWidth: true
                         text: root.laneLabel(rowHead.laneKey)
                         font.bold: true
+                        font.family: Design.headingFamily
+                        font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
                         wrapMode: Text.Wrap
                         maximumLineCount: 3
                         elide: Text.ElideRight

@@ -1191,3 +1191,133 @@ msgstr[0] "%1 个未完成任务"
 msgid "%1 task"
 msgid_plural "%1 tasks"
 msgstr[0] "%1 个任务"
+
+msgid "Style"
+msgstr "样式"
+
+msgid "Plasma (default)"
+msgstr "Plasma（默认）"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "跟随你的配色方案，浅色或深色均可。与其他 KDE 应用一致。"
+
+msgid "Accent colours"
+msgstr "强调色"
+
+msgid "Project and label colours"
+msgstr "项目和标签颜色"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "优先级颜色（红 · 黄 · 蓝）"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "其余一切（界面、文字、选中、按钮）都来自你的 Plasma 配色方案。"
+
+msgid "Translucent with blurred wallpaper"
+msgstr "半透明并模糊壁纸"
+
+msgid "Hints"
+msgstr "提示"
+
+msgid "Show a notice when tasks are overdue"
+msgstr "有逾期任务时显示提示"
+
+msgid "Move all to today"
+msgstr "全部移到今天"
+
+msgid "Show overdue"
+msgstr "显示逾期任务"
+
+msgid "Show sidebar"
+msgstr "显示侧边栏"
+
+msgid "Hide sidebar"
+msgstr "隐藏侧边栏"
+
+msgid "%1 task is overdue."
+msgid_plural "%1 tasks are overdue."
+msgstr[0] "%1 个任务已逾期。"
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox，浅色配色方案下为亚麻。窄体标题、切角、方形控件。使用自己的调色板。"
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "在你的配色方案上使用 Kante 的形状和字体。控件和颜色仍来自 Plasma。"
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante 在整个小部件中使用自己的调色板；优先级使用其红、黄、蓝。"
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "适用于所有样式和面板弹出窗口：Kurrent 从不绘制自己的背景，Kante 的界面只是叠加的色调。桌面上的小部件始终保持半透明；关闭后弹出窗口变为不透明。"
+
+msgid "%1 open"
+msgstr "%1 个未完成"
+
+msgid "%1 overdue"
+msgstr "%1 个逾期"
+
+msgid "Synced"
+msgstr "已同步"
+
+msgid "Remove filter"
+msgstr "移除筛选"
+
+msgid "Per day"
+msgstr "每天"
+
+msgid "Best day"
+msgstr "最佳一天"
+
+msgid "Best day · %1"
+msgstr "最佳一天 · %1"
+
+msgid "Open full editor"
+msgstr "打开完整编辑器"
+
+msgid "Close inspector"
+msgstr "关闭检查器"
+
+msgid "Done"
+msgstr "完成"
+
+msgid "Inspector: clicking a task shows its details beside the list"
+msgstr "检查器：点击任务在列表旁显示其详情"
+
+msgid "No due date"
+msgstr "无到期日"
+
+msgid "Progress"
+msgstr "进度"
+
+msgid "Reminder"
+msgstr "提醒"
+
+msgid "Reopen"
+msgstr "重新打开"
+
+msgid "Secrecy"
+msgstr "保密级别"
+
+msgid "Tiles with the key views above the tasks"
+msgstr "在任务上方显示主要视图磁贴"
+
+msgid "Wide layout"
+msgstr "宽布局"
+
+msgid "%1 day before"
+msgid_plural "%1 days before"
+msgstr[0] "提前 %1 天"
+
+msgid "%1 hour before"
+msgid_plural "%1 hours before"
+msgstr[0] "提前 %1 小时"
+
+msgid "%1 minute before"
+msgid_plural "%1 minutes before"
+msgstr[0] "提前 %1 分钟"

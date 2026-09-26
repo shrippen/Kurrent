@@ -7,6 +7,7 @@ import "../colors.js" as Colors
 import "../datetime.js" as DateTime
 import "../taskmeta.js" as TaskMeta
 import ".."
+import "../Kante"
 
 Item {
     id: root
@@ -47,6 +48,14 @@ Item {
             && DateTime.isValidDate(task.dueDate)
 
     readonly property var taskCategories: task.categories || []
+
+    function completeToggleAllowed() {
+        if (Plasmoid.configuration.completeNeedsModifier !== true) {
+            return true
+        }
+        var mods = Qt.keyboardModifiers()
+        return (mods & Qt.ShiftModifier) || (mods & Qt.ControlModifier)
+    }
 
     function taskSnapshot() {
         return {
@@ -179,10 +188,24 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         height: root.expanded ? Math.round(root.collapsedHeight) : parent.height
-        radius: Design.inputRadius
+        radius: Design.radius
         color: dropHighlight ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.highlightColor
         opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && root.reveal >= 1 && hoverHandler.hovered && !Design.reducedMotion && !root.interactionsSuspended)) ? 0.12 : 0)
         visible: opacity > 0
+        z: 0
+    }
+
+    // Row shown in the inspector: Plasma selection tint / Kante sunken box with accent frame.
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        height: parent.height
+        visible: !!(dragHost && dragHost.inspectorActive && dragHost.inspectedItemId === task.itemId)
+        radius: Design.radius
+        color: KanteStyle.themed ? KanteStyle.sunkenColor : KanteStyle.tint(Kirigami.Theme.highlightColor, 0.18)
+        border.width: 1
+        border.color: KanteStyle.themed ? KanteStyle.accentColor : Kirigami.Theme.highlightColor
         z: 0
     }
 
@@ -293,7 +316,7 @@ Item {
                 Layout.preferredHeight: Design.taskCollapseCol
                 Layout.alignment: Qt.AlignVCenter
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     anchors.centerIn: parent
                     width: Design.taskCollapseCol
                     height: Design.taskCollapseCol
@@ -314,14 +337,27 @@ Item {
                 checked: task.completed === true
                 enabled: !root.awaitingAkonadi
                 onToggled: {
-                    if (Plasmoid.configuration.completeNeedsModifier === true) {
-                        var mods = Qt.keyboardModifiers()
-                        if (!(mods & Qt.ShiftModifier) && !(mods & Qt.ControlModifier)) {
-                            checked = task.completed === true
-                            return
-                        }
+                    if (!root.completeToggleAllowed()) {
+                        checked = task.completed === true
+                        return
                     }
                     controller.setTaskCompleted(task.itemId, checked)
+                }
+
+                // Kante: square box, accent when checked.
+                KanteCheckSkin { control: completedCheck }
+
+                // Kante: the open box carries the priority band in its frame (red / yellow / blue).
+                Rectangle {
+                    visible: KanteStyle.themed && !completedCheck.checked && task.priority > 0
+                             && completedCheck.indicator !== null
+                    x: completedCheck.indicator ? completedCheck.indicator.x : 0
+                    width: Math.round(Kirigami.Units.gridUnit * 0.9)
+                    height: width
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Design.priorityColor(task.priority)
                 }
             }
 
@@ -359,6 +395,11 @@ Item {
                             } else {
                                 root.requestOpenFullEditor(root.taskSnapshot())
                             }
+                            return
+                        }
+                        // Inspector (wide layout): a single click shows the task beside the list.
+                        if (dragHost && dragHost.inspectorActive) {
+                            dragHost.inspectTask(task.itemId)
                             return
                         }
                         if (action === "full") {
@@ -422,7 +463,7 @@ Item {
                                  && root.controller && root.controller.selectedCollectionId <= 0
                                  && task.collectionId > 0)
 
-                    QQC2.ToolButton {
+                    KanteToolButton {
                         visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
                         icon.name: "internet-services"
                         display: QQC2.AbstractButton.IconOnly
@@ -456,57 +497,47 @@ Item {
                         }
                     }
 
+                    QQC2.Label {
+                        visible: Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && task.collectionId > 0 && !!task.collectionName
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.rightMargin: Design.spaceTiny
+                        text: task.collectionName || ""
+                        color: KanteStyle.mutedTextColor
+                        font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                                                : Kirigami.Theme.smallFont
+                    }
+
+                    // Labels as text: Plasma a tinted pill, Kante / Kante Light "#name" in mono.
                     Repeater {
                         model: Plasmoid.configuration.showLabelChips !== false ? root.taskCategories : []
-                        delegate: Kirigami.Icon {
+                        delegate: Rectangle {
+                            id: labelChip
+                            required property var modelData
+                            readonly property color tone: Design.colorForKey(String(modelData), "label")
                             Layout.alignment: Qt.AlignVCenter
-                            Layout.preferredWidth: root.labelIconSize
                             Layout.preferredHeight: root.labelIconSize
-                            source: "tag"
-                            color: Design.colorForKey(String(modelData), "label")
-                            width: root.labelIconSize
-                            height: root.labelIconSize
+                            Layout.preferredWidth: labelText.implicitWidth + (KanteStyle.active ? 0 : Design.spaceSmall * 2)
+                            radius: height / 2
+                            color: KanteStyle.active ? "transparent" : KanteStyle.tint(tone, 0.18)
 
-                            QQC2.ToolTip.text: modelData
-                            QQC2.ToolTip.visible: tagHover.hovered && !root.listMoving
-                            QQC2.ToolTip.delay: 400
+                            QQC2.Label {
+                                id: labelText
+                                anchors.centerIn: parent
+                                text: (KanteStyle.active ? "#" : "") + labelChip.modelData
+                                color: labelChip.tone
+                                font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                                                        : Kirigami.Theme.smallFont
+                            }
 
                             HoverHandler {
                                 id: tagHover
                                 enabled: !root.listMoving
                             }
-                        }
-                    }
-
-                    Kirigami.Icon {
-                        visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0
-                        source: "flag"
-                        color: Colors.colorForPriority(task.priority)
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: root.labelIconSize
-                        Layout.preferredHeight: root.labelIconSize
-                        width: root.labelIconSize
-                        height: root.labelIconSize
-
-                        QQC2.ToolTip.text: {
-                            var band = Colors.priorityLabel(task.priority)
-                            if (band === "high") {
-                                return i18n("High priority (%1)", task.priority)
-                            }
-                            if (band === "medium") {
-                                return i18n("Medium priority (%1)", task.priority)
-                            }
-                            if (band === "low") {
-                                return i18n("Low priority (%1)", task.priority)
-                            }
-                            return i18n("Priority %1", task.priority)
-                        }
-                        QQC2.ToolTip.visible: priorityHover.hovered && !root.listMoving
-                        QQC2.ToolTip.delay: 400
-
-                        HoverHandler {
-                            id: priorityHover
-                            enabled: !root.listMoving
+                            QQC2.ToolTip.text: modelData
+                            QQC2.ToolTip.visible: tagHover.hovered && !root.listMoving
+                            QQC2.ToolTip.delay: 400
                         }
                     }
 
@@ -611,6 +642,39 @@ Item {
                         Layout.preferredHeight: 1
                     }
 
+                    Kirigami.Icon {
+                        // Sits right before the date so the right edge reads "how urgent · when".
+                        visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0
+                        source: "flag"
+                        color: Design.priorityColor(task.priority)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+
+                        QQC2.ToolTip.text: {
+                            var band = Colors.priorityLabel(task.priority)
+                            if (band === "high") {
+                                return i18n("High priority (%1)", task.priority)
+                            }
+                            if (band === "medium") {
+                                return i18n("Medium priority (%1)", task.priority)
+                            }
+                            if (band === "low") {
+                                return i18n("Low priority (%1)", task.priority)
+                            }
+                            return i18n("Priority %1", task.priority)
+                        }
+                        QQC2.ToolTip.visible: priorityHover.hovered && !root.listMoving
+                        QQC2.ToolTip.delay: 400
+
+                        HoverHandler {
+                            id: priorityHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
                     // Due date/time: flush right, accent (overdue stays negative).
                     QQC2.Label {
                         id: dateChip
@@ -621,7 +685,9 @@ Item {
                                                       mainColumn.width * 0.45)
                         elide: Text.ElideLeft
                         horizontalAlignment: Text.AlignRight
-                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        // Figures in JetBrains Mono in Kante and Kante Light.
+                        font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                                                : Kirigami.Theme.smallFont
                         text: DateTime.formatDueRowLabel(task.dueDate, {
                             relativeDates: Plasmoid.configuration.relativeDates === true,
                             showTime: Plasmoid.configuration.showTimeOnRow !== false,
@@ -637,7 +703,7 @@ Item {
                             if (DateTime.isDueBeforeToday(task.dueDate)) {
                                 return Kirigami.Theme.negativeTextColor
                             }
-                            return Kirigami.Theme.highlightColor
+                            return KanteStyle.themed ? KanteStyle.mutedTextColor : Kirigami.Theme.highlightColor
                         }
                     }
                 }
@@ -652,7 +718,7 @@ Item {
                 }
             }
 
-            QQC2.ToolButton {
+            KanteToolButton {
                 id: editButton
                 icon.name: "document-edit"
                 display: QQC2.AbstractButton.IconOnly
@@ -662,7 +728,7 @@ Item {
                 QQC2.ToolTip.visible: hovered && !root.listMoving
             }
 
-            QQC2.ToolButton {
+            KanteToolButton {
                 visible: root.deleteModeEnabled
                 icon.name: "edit-delete"
                 display: QQC2.AbstractButton.IconOnly
@@ -676,6 +742,7 @@ Item {
 
     QQC2.Menu {
         id: rescheduleMenu
+        KantePopupSkin { popup: rescheduleMenu }
         popupType: QQC2.Popup.Item
         enabled: !root.awaitingAkonadi
         QQC2.MenuItem {

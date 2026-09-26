@@ -161,6 +161,45 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 | `padEditor` | Full-Editor Formular + Footer |
 | `overlayInset` | Sichtbarer Rand um die Full-Editor-Karte (`gridUnit + spaceSmall`) |
 
+## Stil
+
+Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc`). Grundlage ist **Kante**, das Designsystem aus `shrippen.github.io` (App-Seite `qml/Kante`, `qml/KantePlasma`). Beide Ordner liegen unverändert unter `contents/ui/Kante` und `contents/ui/KantePlasma` (Plasma-Store-Pakete können keine Importpfade nutzen); aktualisieren = neu kopieren, nie hier editieren. Import immer als Verzeichnis (`import "Kante"` bzw. `"../Kante"`), nie gemischt mit `import Kante`, sonst existiert `KanteStyle` doppelt.
+
+| `uiStyle` | `KanteStyle.kind` | Farben | Formen / Schrift |
+|---|---|---|---|
+| `plasma` (Standard) | System | Plasma-Farbschema (`Kirigami.Theme`) | Plasma, pixelgleich zu einem normalen Kirigami-Widget |
+| `kante` | Kante | Kante-Palette: Gruvbox dunkel, bei hellem Plasma-Farbschema „Leinen“ | eckige Controls, abgeschrägte Ecke oben rechts an Karten und Dialogen, Titel und Buttons in Rajdhani versal, Zahlen und Labels in JetBrains Mono |
+| `kanteLight` | Kante Light | Plasma-Farbschema | Kante-Formen und -Schrift, Controls bleiben Plasmas |
+
+- `main.qml` bindet `KanteStyle.kind` an `Design.kanteKind(uiStyle)`. Views verzweigen auf `KanteStyle.active` (Kante oder Kante Light: Formen, Schrift, Layouts) bzw. `KanteStyle.themed` (nur Kante: Palette, Control-Skins) und lesen Farben aus den `KanteStyle`-Rollen. Nie Hex-Werte in Views.
+- `FullView` enthält `KanteScope { target: fullRoot }`: in Kante bekommt das ganze Widget die Kante-Farben über `Kirigami.Theme`. Popups erben das nicht: jedes `QQC2.Menu`/`QQC2.Popup` hat einen `KantePopupSkin`, jeder `QQC2.Dialog` einen `KanteDialogSkin`, der auf den Applet-Container umgehängte Full-Editor einen eigenen `KanteScope` plus `KanteCard` (Ecke + Akzentbalken).
+- Board-Umsetzung (Redesign-Artefakt, Richtung A „Werkbank“ für Kante): Labels als Text in der Aufgabenzeile, Projektname, Prioritätsrahmen der Kante-Checkbox, Zahlen neben dem Titel (nur breites Layout), Filter-Chips mit ×, Sync-Zeile und Kante-Markenkopf in der Seitenleiste, Section-Labels mit Linie, Primär-Button an der Schnellerfassung, Kanban-Spuren (Plasma) bzw. Statusbalken (Kante), Heatmap-Kennzahlen, Prioritätsbalken im Editor, Kante-Installationskarte. Aus Richtung B (Leitstand) sind Kacheln und Inspektor umgesetzt (siehe unten), Richtung C (Heute-Fokus) nicht.
+- Eingesetzte Bausteine: `KanteHeading` (Ansichtstitel mit `pageTitle`, Kanban-Spaltenköpfe als Section-Label), `KanteCheckSkin` (Aufgaben-Checkbox), `KanteMessageSkin` (Überfällig-Hinweis, Konflikt-Meldung), `KanteCard` (Kanban-/Swimlane-Karten, Auswahl-Hintergrund, Editor). Kurrent-eigene Teile: `StyledHighlight` (Plasma-Highlight bzw. Akzentfläche), `CountBadge` (Pill bzw. eckig, Ziffern in Mono).
+- Regeln aus Kante: System bleibt pixelgleich, alles Kante-Spezifische hängt an `active`/`themed`-Bindings. Über das Plattform-Control zeichnen statt es umzufärben.
+- Prioritätsfarben über `Design.priorityColor()`: in Kante Palette-Rot/-Akzent/-Info, sonst `colors.js`-Bänder. Projekt-/Labelfarben über `Design.colorForKey()`. Beide respektieren die Akzent-Schalter `accentProjectColors` / `accentPriorityColors` (aus → `KanteStyle.mutedTextColor`).
+- **Transparenz (alle Stile)**: Kurrent malt nie einen eigenen Widget- oder Popup-Grund (Kante-Regel „tönen, nicht malen“). Ist in Plasma der durchscheinende / geblurrte Hintergrund aktiv, scheint er durch; Kante-Flächen sind Tönungen darüber (Karte 60 %, vertieft 50 %, Dialog 97 %). Deckend nur, wenn das Panel-Flyout ohne Blur `SolidBackground` bekommt.
+
+## Screenshots (Selbsttest)
+
+- `tests/screenshot.sh [OUT_DIR]` rendert das Widget **offscreen** (`QT_QPA_PLATFORM=offscreen`, `QT_QPA_PLATFORMTHEME=kde`, ohne das KDE-Theme wäre QQC2-Text schwarz) mit dem Plugin aus `./build` und dem QML aus dem Arbeitsbaum. Nichts erscheint auf dem Desktop.
+- Nur das Panel-Flyout hat in `plasmoidviewer` ein echtes Fenster (die Desktop-Containment scheitert dort an `isScreenUiReady`), deshalb läuft das Widget im Panel und klappt sich selbst auf. `ScreenshotRunner.qml` (aktiv nur mit `KURRENT_SCREENSHOT_DIR`) geht Stile × Breiten × Ansichten + Editor durch und speichert je ein PNG per `grabToImage`; Plasmas Flyout-Rahmen wird mit der Fensterfarbe nachgebildet.
+- Virtueller Offscreen-Bildschirm 1920×1200 (`offscreen:configfile=…`), Breiten 30 / 60 / 80 GU; `inspector=1` nimmt Liste und Kanban mit offenem Inspektor auf. Bekannter Offscreen-Artefakt: Striche von `Shape`-Pfaden (z. B. der Akzentrahmen einer Kante-Karte) ziehen teils Linien quer durchs Bild; auf der echten Plattform nicht. Zum Gegenprüfen `KURRENT_SCREENSHOT_ONSCREEN=1` (kurzes Viewer-Fenster, gegriffen wird weiter nur das Widget; dort laufen mehrere Widget-Instanzen, die erste liefert die Bilder).
+- Stil und Ansicht laufen über die echte Konfiguration; das Skript sichert `kurrentrc` und `plasmoidviewer-appletsrc` und stellt beide danach wieder her. Offscreen steht der Mauszeiger bei (0,0): das Element oben links zeigt Hover.
+
+## Schmales Layout
+
+- Unter `Sidebar-Breite + 24 Grid-Units` (`FullView.compactLayout`) wird die Seitenleiste ausgeblendet; die sichtbaren Alltags-Views (Reihenfolge wie Sidebar) stehen als **Tabs** über der Aufgabenfläche (`ViewTabBar`), mit Zähler-Badge. Ein Toggle-Button blendet die Seitenleiste bei Bedarf ein (schiebt die Fläche); jede Auswahl darin schließt sie wieder.
+- Panel-Flyout startet schmal (30 × 36 GU, Minimum 20 GU) und damit im Tab-Layout; Plasma merkt sich eine vom Nutzer geänderte Größe.
+
+## Kacheln und Inspektor (Richtung B)
+
+- **Kacheln** (`ViewTiles`, nur breites Layout, `showViewTiles`): Überfällig, Heute, Morgen, Geplant, Erledigt mit Zahl und Farbbalken (negativ / Akzent / Info / neutral / positiv). Klick = Ansicht wechseln (`FullView.pickView`), aktuelle Ansicht markiert. Plasma: weiche, gerundete Kachel; Kante / Kante Light: `KanteCard` mit Ecke, Zahl in Rajdhani.
+- **Inspektor** (`TaskInspector`, `showInspector`): aktiv, wenn nicht schmal und die Fläche ≥ Inspektorbreite (17 GU) + 24 GU hat. Ein Klick auf eine Aufgabe (Liste, Kanban, Swimlanes) zeigt sie rechts statt den Inline-Editor aufzuklappen; Doppelklick öffnet weiter den Full-Editor. Inhalt: Pfad (Projekt / Labels), Status, Titel, Eigenschaften, Unteraufgaben mit Fortschrittssegmenten (abhakbar), Notiz; Aktionen Erledigt / Morgen / Nächste Woche / Editor. Liest die Aufgabe live (`taskSnapshotById`, `childTasks`), aktualisiert bei jedem Rebuild, schließt sich, wenn die Aufgabe verschwindet. Inspizierte Zeile/Karte wird markiert; die Aufgabenfläche wird daneben beschnitten.
+
+## Hinweis „Überfällig“
+
+- `OverdueBanner` (`Kirigami.InlineMessage`, Warning) über der Aufgabenfläche, wenn überfällige Aufgaben existieren und die aktuelle View sie nicht zeigt (nicht in Überfällig/Erledigt). Aktionen: **Alle auf heute** (`rescheduleOverdueToToday`, Preset `today`: Uhrzeit bleibt, ganztägig → heute 00:00) und **Überfällige zeigen**. Schließen blendet ihn aus, bis die Zahl wieder steigt. Abschaltbar (`showOverdueBanner`).
+
 ## Farbe
 
 - Projekte/Labels/**Locations**: deterministisches HSL aus dem Schlüssel (`colors.js` / `colorForKey`), Sättigung 0,62, Helligkeit 0,46. Optional Hex-Override pro Projekt-ID, Label-Name und Location (`projectColors` / `labelColors` / `locationColors` in `kurrentrc`); leer = Hash. Locations nutzen `kind: "location"`.
@@ -209,6 +248,7 @@ Nur diese Stufen, keine ad-hoc `smallSpacing`/`largeSpacing`-Mischung:
 - Aus: Desktop → `TranslucentBackground` (durchscheinend, ohne Container-Blur). Panel-Flyout → `AppletPopup.SolidBackground`.
 - Einstellungen gemeinsam in `~/.config/com.github.shrippen.kurrent/kurrentrc`.
 - Kein eigenes Blur-Shader im Plasmoid.
+- Alle Stile respektieren das: durchscheinend, solange Plasma durchscheinend zeichnet (siehe **Stil › Transparenz**).
 
 ## Inline-Editor
 

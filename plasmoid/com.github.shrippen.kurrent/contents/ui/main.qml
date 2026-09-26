@@ -7,6 +7,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami 2.20 as Kirigami
 import "colors.js" as Colors
 import "." as KurrentUi
+import "Kante"
 
 PlasmoidItem {
     id: root
@@ -46,6 +47,13 @@ PlasmoidItem {
         applyPopupBackground()
     }
     onFullRepresentationItemChanged: applyPopupBackground()
+
+    // Style (Settings › Appearance): drives the shared Kante module for every view.
+    Binding {
+        target: KanteStyle
+        property: "kind"
+        value: KurrentUi.Design.kanteKind(KurrentUi.Design.uiStyle)
+    }
 
     readonly property bool inPanel: [
         PlasmaCore.Types.TopEdge,
@@ -272,15 +280,24 @@ PlasmoidItem {
 
     readonly property bool panelBadgeUseDot: (Plasmoid.configuration.panelBadgeStyle || "number") === "dot"
 
-    readonly property color panelBadgeColor: {
+    readonly property bool panelBadgeNegative: {
         var mode = Plasmoid.configuration.panelBadge || "open"
         var colorMode = Plasmoid.configuration.panelBadgeOverdueColor || "highlight"
         var counts = panelViewCounts
-        var useNegative = colorMode === "negative"
+        return colorMode === "negative"
                 && ((mode === "overdue")
                     || (mode === "today" && (counts["overdue"] || 0) > 0))
-        return useNegative ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.highlightColor
     }
+
+    readonly property color panelBadgeColor: panelBadgeNegative
+            ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.highlightColor
+
+    readonly property color panelBadgeFill: KanteStyle.themed
+            ? (panelBadgeNegative ? KanteStyle.negativeTextColor : KanteStyle.accentColor)
+            : panelBadgeColor
+    readonly property color panelBadgeTextColor: KanteStyle.themed
+            ? KanteStyle.accentForegroundColor
+            : (panelBadgeNegative ? "white" : Kirigami.Theme.highlightedTextColor)
 
     function defaultSortMode() {
         return "priority,due,title"
@@ -595,6 +612,12 @@ PlasmoidItem {
         KurrentUi.Design.overlayDimStep = Plasmoid.configuration.overlayDimStep !== undefined
                 ? Plasmoid.configuration.overlayDimStep : 1
         KurrentUi.Design.reducedMotion = Plasmoid.configuration.reducedMotion === true
+        KurrentUi.Design.uiStyle = Plasmoid.configuration.uiStyle || "plasma"
+        KurrentUi.Design.accentProjectColors = Plasmoid.configuration.accentProjectColors !== false
+        KurrentUi.Design.accentPriorityColors = Plasmoid.configuration.accentPriorityColors !== false
+        KurrentUi.Design.showOverdueBanner = Plasmoid.configuration.showOverdueBanner !== false
+        KurrentUi.Design.showViewTiles = Plasmoid.configuration.showViewTiles !== false
+        KurrentUi.Design.showInspector = Plasmoid.configuration.showInspector !== false
         KurrentUi.Design.scrollSpeed = Plasmoid.configuration.scrollSpeed !== undefined
                 ? Plasmoid.configuration.scrollSpeed : 50
     }
@@ -789,6 +812,30 @@ PlasmoidItem {
             root.persistSharedSettings()
         }
         function onDensityChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onUiStyleChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onAccentProjectColorsChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onAccentPriorityColorsChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onShowOverdueBannerChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onShowViewTilesChanged() {
+            root.persistSharedSettings()
+            root.applyDesignFromConfig()
+        }
+        function onShowInspectorChanged() {
             root.persistSharedSettings()
             root.applyDesignFromConfig()
         }
@@ -1083,17 +1130,30 @@ PlasmoidItem {
             isMask: true
             color: Kirigami.Theme.textColor
 
-            QQC2.Label {
+            // Filled badge like Plasma's notification counter (pill in the Plasma style,
+            // square in the shrippen style). A ring in the panel colour keeps it off the icon.
+            Rectangle {
+                id: countBadge
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                anchors.margins: -2
+                anchors.rightMargin: -Math.round(height * 0.25)
+                anchors.bottomMargin: -Math.round(height * 0.15)
                 visible: root.panelBadgeCount > 0 && !root.panelBadgeUseDot
-                text: root.panelBadgeCount
-                font.pixelSize: parent.height * 0.4
-                font.bold: true
-                color: root.panelBadgeColor
-                style: Text.Outline
-                styleColor: Kirigami.Theme.backgroundColor
+                height: Math.max(Kirigami.Units.iconSizes.small * 0.75, Math.round(parent.height * 0.5))
+                width: Math.max(height, badgeLabel.implicitWidth + Math.round(height * 0.5))
+                radius: KanteStyle.themed ? 0 : height / 2
+                color: root.panelBadgeFill
+                border.width: 1
+                border.color: Kirigami.Theme.backgroundColor
+
+                QQC2.Label {
+                    id: badgeLabel
+                    anchors.centerIn: parent
+                    text: root.panelBadgeCount > 99 ? "99+" : root.panelBadgeCount
+                    font.pixelSize: Math.round(parent.height * 0.68)
+                    font.bold: true
+                    color: root.panelBadgeTextColor
+                }
             }
 
             Rectangle {
@@ -1103,8 +1163,8 @@ PlasmoidItem {
                 visible: root.panelBadgeCount > 0 && root.panelBadgeUseDot
                 width: Math.max(4, parent.height * 0.22)
                 height: width
-                radius: width / 2
-                color: root.panelBadgeColor
+                radius: KanteStyle.themed ? 0 : width / 2
+                color: root.panelBadgeFill
                 border.width: 1
                 border.color: Kirigami.Theme.backgroundColor
             }
@@ -1142,9 +1202,10 @@ PlasmoidItem {
                     || fullLoader.status === Loader.Loading
                     || (fullLoader.status === Loader.Ready && !fullLoader.item))
 
-        implicitWidth: Kirigami.Units.gridUnit * 52
-        implicitHeight: Kirigami.Units.gridUnit * 40
-        Layout.minimumWidth: root.inPanel ? Kirigami.Units.gridUnit * 28 : Kirigami.Units.gridUnit * 12
+        // Panel flyout opens narrow: views as tabs, sidebar on demand (FullView.compactLayout).
+        implicitWidth: Kirigami.Units.gridUnit * (root.inPanel ? 30 : 52)
+        implicitHeight: Kirigami.Units.gridUnit * (root.inPanel ? 36 : 40)
+        Layout.minimumWidth: root.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
         Layout.minimumHeight: root.inPanel ? Kirigami.Units.gridUnit * 20 : Kirigami.Units.gridUnit * 12
         Layout.preferredWidth: implicitWidth
         Layout.preferredHeight: implicitHeight

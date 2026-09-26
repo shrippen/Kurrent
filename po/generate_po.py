@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extra_translations import EXTRA
+from strings_style import PLURAL_OVERDUE
 
 DOMAIN = "plasma_applet_com.github.shrippen.kurrent"
 VERSION = "1.0.0"
@@ -75,6 +76,8 @@ PLURALS = {
         "zh_CN": ["%1 个月", "%1 个月"],
     },
 }
+
+PLURALS.update(PLURAL_OVERDUE)
 
 LANGS = {
     "de": ("de", "nplurals=2; plural=(n != 1);"),

@@ -47,6 +47,18 @@ KCM.SimpleKCM {
     property int cfg_overlayDimStepDefault
     property bool cfg_reducedMotion
     property bool cfg_reducedMotionDefault
+    property string cfg_uiStyle
+    property string cfg_uiStyleDefault
+    property bool cfg_accentProjectColors
+    property bool cfg_accentProjectColorsDefault
+    property bool cfg_accentPriorityColors
+    property bool cfg_accentPriorityColorsDefault
+    property bool cfg_showOverdueBanner
+    property bool cfg_showOverdueBannerDefault
+    property bool cfg_showViewTiles
+    property bool cfg_showViewTilesDefault
+    property bool cfg_showInspector
+    property bool cfg_showInspectorDefault
     property int cfg_scrollSpeed
     property int cfg_scrollSpeedDefault
     property bool cfg_showEmptyProjects

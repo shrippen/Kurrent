@@ -10,6 +10,7 @@ import com.github.shrippen.kurrent 1.0
 import "../colors.js" as Colors
 import "../components"
 import ".."
+import "../Kante"
 
 Item {
     id: root
@@ -920,10 +921,9 @@ Item {
         controller.selectedLocation = ""
     }
 
-    component SidebarHoverBackground: KSvg.FrameSvgItem {
+    component SidebarHoverBackground: Item {
+        id: hoverBg
         required property Item control
-        imagePath: "widgets/listitem"
-        prefix: "hover"
         anchors.fill: parent
         visible: !Kirigami.Settings.isMobile
         opacity: root.rowHoverEnabled && control.hovered && !control.down ? 1 : 0
@@ -932,6 +932,21 @@ Item {
                 duration: Kirigami.Units.veryShortDuration
                 easing.type: Easing.OutQuad
             }
+        }
+
+        KSvg.FrameSvgItem {
+            anchors.fill: parent
+            visible: !KanteStyle.themed
+            imagePath: "widgets/listitem"
+            prefix: "hover"
+        }
+
+        // Kante: sunken tint instead of Plasma's rounded hover frame. Never over the selected
+        // row: the dark tint on the accent fill turned it muddy brown.
+        Rectangle {
+            anchors.fill: parent
+            visible: KanteStyle.themed && !hoverBg.control.highlighted
+            color: KanteStyle.sunkenColor
         }
     }
 
@@ -942,7 +957,7 @@ Item {
 
         anchors.fill: parent
 
-        PlasmaExtras.Highlight {
+        StyledHighlight {
             anchors.fill: parent
             visible: selectionBg.selected
             hovered: true
@@ -1017,7 +1032,7 @@ Item {
             }
         }
 
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: viewsList }
@@ -1095,7 +1110,7 @@ Item {
                     opacity: 0.55
                 }
 
-                QQC2.Label {
+                CountBadge {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.viewTaskCounts[modelData.viewId]
@@ -1103,8 +1118,8 @@ Item {
                     }
                     visible: root.showSidebarCounts && text.length > 0
                             && modelData.viewId !== root.viewsBackId
-                    opacity: 0.55
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    selected: viewDelegate.highlighted || viewDelegate.down
+                    negative: modelData.viewId === "overdue" && text !== "0" && !viewDelegate.highlighted
                 }
             }
         }
@@ -1136,7 +1151,7 @@ Item {
         spacing: 1
         model: root.visibleProjects
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
         leftMargin: 0
         rightMargin: root.scrollMarginFor(projectsList)
@@ -1171,8 +1186,9 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     text: i18n("Projects")
-                    font.bold: true
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                    font: KanteStyle.active ? KanteStyle.labelFont()
+                                             : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                     opacity: 0.65
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -1206,6 +1222,7 @@ Item {
 
                     contentItem: QQC2.Label {
                         text: i18n("All")
+                        color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                         opacity: allProjectsDelegate.highlighted || allProjectsDelegate.down ? 1.0 : 0.75
                         verticalAlignment: Text.AlignVCenter
@@ -1317,15 +1334,14 @@ Item {
                         selected: projectDelegate.highlighted || projectDelegate.down || projectDrop.containsDrag
                     }
 
-                    QQC2.Label {
+                    CountBadge {
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                         text: {
                             var n = controller.sidebarProjectCounts[String(modelData.collectionId)]
                             return n === undefined ? "" : String(n)
                         }
                         visible: root.showSidebarCounts && text.length > 0
-                        opacity: 0.55
-                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        selected: projectDelegate.highlighted || projectDelegate.down
                     }
                 }
         }
@@ -1357,7 +1373,7 @@ Item {
         spacing: 1
         model: root.visibleLabelItems
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
         leftMargin: 0
         rightMargin: root.scrollMarginFor(labelsList)
@@ -1391,8 +1407,9 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     text: i18n("Labels")
-                    font.bold: true
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                    font: KanteStyle.active ? KanteStyle.labelFont()
+                                             : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                     opacity: 0.65
                     verticalAlignment: Text.AlignVCenter
                 }
@@ -1426,6 +1443,7 @@ Item {
 
                     contentItem: QQC2.Label {
                         text: i18n("All")
+                        color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                         opacity: allLabelsDelegate.highlighted || allLabelsDelegate.down ? 1.0 : 0.75
                         verticalAlignment: Text.AlignVCenter
@@ -1530,15 +1548,14 @@ Item {
                         selected: labelDelegate.highlighted || labelDelegate.down || labelDrop.containsDrag
                     }
 
-                    QQC2.Label {
+                    CountBadge {
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                         text: {
                             var n = controller.sidebarLabelCounts[modelData]
                             return n === undefined ? "" : String(n)
                         }
                         visible: root.showSidebarCounts && text.length > 0
-                        opacity: 0.55
-                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                        selected: labelDelegate.highlighted || labelDelegate.down
                     }
                 }
         }
@@ -1572,7 +1589,7 @@ Item {
         rightMargin: root.scrollMarginFor(prioritiesList)
         model: root.priorityItems
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -1603,8 +1620,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: i18n("Priorities")
-                font.bold: true
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                font: KanteStyle.active ? KanteStyle.labelFont()
+                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                 opacity: 0.65
                 verticalAlignment: Text.AlignVCenter
             }
@@ -1638,6 +1656,7 @@ Item {
 
                 contentItem: QQC2.Label {
                     text: i18n("All")
+                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: allPrioritiesDelegate.highlighted || allPrioritiesDelegate.down ? 1.0 : 0.75
                     verticalAlignment: Text.AlignVCenter
@@ -1742,7 +1761,7 @@ Item {
                     Layout.preferredWidth: root.rowIconSize
                     Layout.preferredHeight: root.rowIconSize
                     source: "flag"
-                    color: Colors.colorForPriority(modelData.value)
+                    color: Design.priorityColor(modelData.value)
                     opacity: modelData.value > 0 ? 1 : 0.55
                     width: root.rowIconSize
                     height: root.rowIconSize
@@ -1756,15 +1775,14 @@ Item {
                     selected: priorityDelegate.highlighted || priorityDelegate.down || priorityDrop.containsDrag
                 }
 
-                QQC2.Label {
+                CountBadge {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarPriorityCounts[String(modelData.value)]
                         return n === undefined ? "" : String(n)
                     }
                     visible: root.showSidebarCounts && text.length > 0
-                    opacity: 0.55
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    selected: priorityDelegate.highlighted || priorityDelegate.down
                 }
             }
         }
@@ -1798,7 +1816,7 @@ Item {
         rightMargin: root.scrollMarginFor(progressList)
         model: root.progressItems
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -1829,8 +1847,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: i18n("Progress")
-                font.bold: true
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                font: KanteStyle.active ? KanteStyle.labelFont()
+                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                 opacity: 0.65
                 verticalAlignment: Text.AlignVCenter
             }
@@ -1864,6 +1883,7 @@ Item {
 
                 contentItem: QQC2.Label {
                     text: i18n("All")
+                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: allProgressDelegate.highlighted || allProgressDelegate.down ? 1.0 : 0.75
                     verticalAlignment: Text.AlignVCenter
@@ -1967,15 +1987,14 @@ Item {
                     selected: progressDelegate.highlighted || progressDelegate.down || progressDrop.containsDrag
                 }
 
-                QQC2.Label {
+                CountBadge {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarProgressCounts[modelData.value]
                         return n === undefined ? "" : String(n)
                     }
                     visible: root.showSidebarCounts && text.length > 0
-                    opacity: 0.55
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    selected: progressDelegate.highlighted || progressDelegate.down
                 }
             }
         }
@@ -2009,7 +2028,7 @@ Item {
         rightMargin: root.scrollMarginFor(statusList)
         model: root.statusItems
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -2040,8 +2059,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: i18n("Status")
-                font.bold: true
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                font: KanteStyle.active ? KanteStyle.labelFont()
+                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                 opacity: 0.65
                 verticalAlignment: Text.AlignVCenter
             }
@@ -2075,6 +2095,7 @@ Item {
 
                 contentItem: QQC2.Label {
                     text: i18n("All")
+                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: allStatusDelegate.highlighted || allStatusDelegate.down ? 1.0 : 0.75
                     verticalAlignment: Text.AlignVCenter
@@ -2178,15 +2199,14 @@ Item {
                     selected: statusDelegate.highlighted || statusDelegate.down || statusDrop.containsDrag
                 }
 
-                QQC2.Label {
+                CountBadge {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarStatusCounts[String(modelData.value)]
                         return n === undefined ? "" : String(n)
                     }
                     visible: root.showSidebarCounts && text.length > 0
-                    opacity: 0.55
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    selected: statusDelegate.highlighted || statusDelegate.down
                 }
             }
         }
@@ -2220,7 +2240,7 @@ Item {
         rightMargin: root.scrollMarginFor(secrecyList)
         model: root.secrecyItems
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -2251,8 +2271,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: i18n("Secrecy")
-                font.bold: true
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                font: KanteStyle.active ? KanteStyle.labelFont()
+                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                 opacity: 0.65
                 verticalAlignment: Text.AlignVCenter
             }
@@ -2286,6 +2307,7 @@ Item {
 
                 contentItem: QQC2.Label {
                     text: i18n("All")
+                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: allSecrecyDelegate.highlighted || allSecrecyDelegate.down ? 1.0 : 0.75
                     verticalAlignment: Text.AlignVCenter
@@ -2389,15 +2411,14 @@ Item {
                     selected: secrecyDelegate.highlighted || secrecyDelegate.down || secrecyDrop.containsDrag
                 }
 
-                QQC2.Label {
+                CountBadge {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarSecrecyCounts[String(modelData.value)]
                         return n === undefined ? "" : String(n)
                     }
                     visible: root.showSidebarCounts && text.length > 0
-                    opacity: 0.55
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    selected: secrecyDelegate.highlighted || secrecyDelegate.down
                 }
             }
         }
@@ -2429,7 +2450,7 @@ Item {
         spacing: 1
         model: root.visibleLocationItems
         currentIndex: -1
-        highlight: PlasmaExtras.Highlight {}
+        highlight: StyledHighlight {}
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -2464,8 +2485,9 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 text: i18n("Location")
-                font.bold: true
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
+                font: KanteStyle.active ? KanteStyle.labelFont()
+                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
                 opacity: 0.65
                 verticalAlignment: Text.AlignVCenter
             }
@@ -2499,6 +2521,7 @@ Item {
 
                 contentItem: QQC2.Label {
                     text: i18n("All")
+                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: allLocationsDelegate.highlighted || allLocationsDelegate.down ? 1.0 : 0.75
                     verticalAlignment: Text.AlignVCenter
@@ -2603,15 +2626,14 @@ Item {
                     selected: locationDelegate.highlighted || locationDelegate.down || locationDrop.containsDrag
                 }
 
-                QQC2.Label {
+                CountBadge {
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarLocationCounts[modelData]
                         return n === undefined ? "" : String(n)
                     }
                     visible: root.showSidebarCounts && text.length > 0
-                    opacity: 0.55
-                    font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+                    selected: locationDelegate.highlighted || locationDelegate.down
                 }
             }
         }
@@ -2628,6 +2650,7 @@ Item {
 
     QQC2.Dialog {
         id: confirmRemoveLabelDialog
+        KanteDialogSkin { dialog: confirmRemoveLabelDialog }
         parent: root.dragHost || root
         anchors.centerIn: parent
         popupType: QQC2.Popup.Item

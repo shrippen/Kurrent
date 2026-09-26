@@ -69,6 +69,26 @@
         <entry name="reducedMotion" type="Bool">
             <default>false</default>
         </entry>
+        <!-- plasma (default, Plasma colour scheme) | kante (Kante palette) | kanteLight (Kante shapes, Plasma colours) -->
+        <entry name="uiStyle" type="String">
+            <default>plasma</default>
+        </entry>
+        <entry name="accentProjectColors" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="accentPriorityColors" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showOverdueBanner" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- Direction B: view tiles above the pane, task inspector beside it (wide layout only) -->
+        <entry name="showViewTiles" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showInspector" type="Bool">
+            <default>true</default>
+        </entry>
         <entry name="scrollSpeed" type="Int">
             <default>50</default>
         </entry>
