@@ -62,7 +62,7 @@ ColumnLayout {
         function onSortModeChanged() { root.collapseInline() }
     }
 
-    // Screenshot mode (ScreenshotRunner): snapshot of the first loaded task row.
+    // Snapshot of the first loaded task row (for the internal screenshot tooling).
     function firstTaskSnapshot() {
         for (var i = 0; i < Math.min(taskList.count, 20); ++i) {
             var row = taskList.itemAtIndex(i)

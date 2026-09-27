@@ -16,6 +16,14 @@ cp "${META}" "${PKG}/metadata.json"
 cp -a "${ROOT}/plasmoid/com.github.shrippen.kurrent/contents" "${PKG}/contents"
 cp "${ROOT}/LICENSE" "${PKG}/LICENSE"
 
+# Screenshots and the demo are internal: none of it goes into the published package.
+rm -f "${PKG}/contents/ui/ScreenshotRunner.qml"
+sed -i '/BEGIN internal screenshots/,/END internal screenshots/d' "${PKG}/contents/ui/FullView.qml"
+if grep -rlE 'ScreenshotRunner|demoProjectColors|KURRENT_DEMO|world\.json' "${PKG}" >&2; then
+    echo "error: the package still references the internal screenshots/demo (files above)" >&2
+    exit 1
+fi
+
 if command -v msgfmt >/dev/null 2>&1; then
     shopt -s nullglob
     for po in "${ROOT}/po/"*.po; do

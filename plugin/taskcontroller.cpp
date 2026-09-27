@@ -1,7 +1,9 @@
 #include "taskcontroller.h"
 #include "akonaditaskstore.h"
 #include "kurrentlogging.h"
+#ifdef KURRENT_WITH_DEMO
 #include "demodata.h"
+#endif
 #include "memorytaskstore.h"
 #include "sharedsettings.h"
 #include "taskcalendar.h"
@@ -241,11 +243,15 @@ TaskController::TaskController(QObject *parent)
         KurrentLogging::reloadFromSharedSettings();
     });
 
+#ifdef KURRENT_WITH_DEMO
     if (DemoData::enabled()) {
         loadDemoData();
     } else {
         hydrateFromCache();
     }
+#else
+    hydrateFromCache();
+#endif
     loadRebuildPerfProfile();
     // D-Bus and GlobalAccel talk to the session bus; let QML finish constructing first.
     QTimer::singleShot(0, this, [this]() {
@@ -290,11 +296,7 @@ bool TaskController::demoMode() const
     return m_demo;
 }
 
-QString TaskController::demoProjectColors() const
-{
-    return m_demo ? DemoData::projectColorsJson() : QString();
-}
-
+#ifdef KURRENT_WITH_DEMO
 void TaskController::loadDemoData()
 {
     m_demo = true;
@@ -322,6 +324,11 @@ void TaskController::loadDemoData()
     Q_EMIT akonadiAvailableChanged();
     scheduleRebuildAll();
 }
+#else
+void TaskController::loadDemoData()
+{
+}
+#endif
 
 void TaskController::resetSharedStateForTest()
 {

@@ -2290,12 +2290,14 @@ Item {
         }
     }
 
+    // BEGIN internal screenshots (removed by scripts/package-plasmoid.sh)
     ScreenshotRunner {
         plasmoidRoot: fullRoot.plasmoidRoot
         backend: fullRoot.backend
         fullRoot: fullRoot
         taskFullEditor: taskFullEditor
     }
+    // END internal screenshots
 
     SmokeTest {
         id: smokeTest

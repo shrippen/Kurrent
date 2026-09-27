@@ -33,7 +33,5 @@ struct Data {
 // Language from KURRENT_DEMO, or an empty string when demo mode is off.
 QString language();
 bool enabled();
-// Collection id -> color, for the projectColors setting.
-QString projectColorsJson();
 Data load();
 }

@@ -28,7 +28,7 @@ TIMEOUT_SEC="${KURRENT_SCREENSHOT_TIMEOUT:-240}"
 APPLET_ID="com.github.shrippen.kurrent"
 
 command -v plasmoidviewer >/dev/null 2>&1 || { echo "plasmoidviewer not found (install plasma-sdk)"; exit 77; }
-PLUGIN="${ROOT}/build/qml/com/github/shrippen/kurrent/libkurrentplugin.so"
+PLUGIN="${KURRENT_SCREENSHOT_PLUGIN:-${ROOT}/build/qml/com/github/shrippen/kurrent/libkurrentplugin.so}"
 [[ -f "${PLUGIN}" ]] || { echo "Plugin not built: ${PLUGIN}"; exit 1; }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-shots-XXXXXX")"

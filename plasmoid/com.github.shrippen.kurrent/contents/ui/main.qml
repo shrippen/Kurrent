@@ -594,9 +594,7 @@ PlasmoidItem {
         var labels = {}
         var locations = {}
         try {
-            // Demo mode (KURRENT_DEMO): the demo projects bring their own colours.
-            var demoColors = backend && backend.demoMode ? backend.demoProjectColors() : ""
-            projects = JSON.parse(demoColors || Plasmoid.configuration.projectColors || "{}")
+            projects = JSON.parse(Plasmoid.configuration.projectColors || "{}")
         } catch (e) { projects = {} }
         try {
             labels = JSON.parse(Plasmoid.configuration.labelColors || "{}")

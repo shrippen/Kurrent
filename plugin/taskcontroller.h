@@ -408,7 +408,6 @@ public:
     // Demo mode (KURRENT_DEMO): the shared shrippen demo tasks in memory, no Akonadi.
     Q_PROPERTY(bool demoMode READ demoMode CONSTANT)
     bool demoMode() const;
-    Q_INVOKABLE QString demoProjectColors() const;
     void loadDemoData();
     QString testTaskLocation(qint64 id) const;
     QDateTime testTaskDue(qint64 id) const;

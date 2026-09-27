@@ -3,15 +3,15 @@
 # (demo/shots.json). Writes <name>.png into $SHOT_DIR (default build/demo-shots).
 # Language: $DEMO_LANG (de|en). Renders offscreen through tests/screenshot.sh.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(dirname "$0")/common.sh"
 OUT="${SHOT_DIR:-${ROOT}/build/demo-shots}"
 LANG_="${DEMO_LANG:-de}"
 RAW="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-demo-shots-XXXXXX")"
 CONFIG="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-demo-config-XXXXXX")"
 trap 'rm -rf "${RAW}" "${CONFIG}"' EXIT
-cp -p "${XDG_CONFIG_HOME:-${HOME}/.config}/kdeglobals" "${CONFIG}/" 2>/dev/null || true
+demo_config "${CONFIG}"
 
-XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
+KURRENT_SCREENSHOT_PLUGIN="${DEMO_PLUGIN}" XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
 KURRENT_SCREENSHOT_PLAN="styles=kante;modes=list,kanban,plan,heatmap,calendar;widths=60;editor=1;inspector=1" \
     "${ROOT}/tests/screenshot.sh" "${RAW}"
 

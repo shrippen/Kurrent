@@ -59,16 +59,6 @@ bool enabled()
     return !language().isEmpty();
 }
 
-QString projectColorsJson()
-{
-    QJsonObject colors;
-    const QJsonArray collections = world().value(QStringLiteral("tasks")).toObject().value(QStringLiteral("collections")).toArray();
-    for (int i = 0; i < collections.size(); ++i) {
-        colors.insert(QString::number(kCollectionBase + i), collections.at(i).toObject().value(QStringLiteral("color")).toString());
-    }
-    return QString::fromUtf8(QJsonDocument(colors).toJson(QJsonDocument::Compact));
-}
-
 Data load()
 {
     const QString lang = language();

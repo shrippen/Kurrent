@@ -29,9 +29,14 @@ add_library(kurrentplugin SHARED
     akonaditaskstore.h
     memorytaskstore.cpp
     memorytaskstore.h
-    demodata.cpp
-    demodata.h
 )
+
+# Internal demo mode for the landing-page screenshots (demo/). Never on in releases.
+option(KURRENT_DEMO "Internal demo mode for screenshots; never enable for releases" OFF)
+if(KURRENT_DEMO)
+    target_sources(kurrentplugin PRIVATE demodata.cpp demodata.h)
+    target_compile_definitions(kurrentplugin PRIVATE KURRENT_WITH_DEMO)
+endif()
 
 set_target_properties(kurrentplugin PROPERTIES
     AUTOMOC ON

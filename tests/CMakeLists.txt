@@ -96,6 +96,7 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
 )
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
+    KURRENT_WITH_DEMO
     KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
 target_include_directories(kurrent-taskcontroller-store-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
 target_link_libraries(kurrent-taskcontroller-store-test PRIVATE
