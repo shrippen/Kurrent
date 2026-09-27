@@ -125,9 +125,6 @@ msgstr "Journée entière"
 msgid "All views"
 msgstr "Toutes les vues"
 
-msgid "All-day task"
-msgstr "Tâche sur toute la journée"
-
 msgid "Already has no priority"
 msgstr "Déjà sans priorité"
 
@@ -401,6 +398,9 @@ msgstr "Colonne personnalisée :"
 msgid "Daily"
 msgstr "Quotidien"
 
+msgid "Date"
+msgstr "Date"
+
 msgid "Dates"
 msgstr "Dates"
 
@@ -527,6 +527,9 @@ msgstr "Chaque vue de la barre latérale conserve son propre tri. Les vues non m
 msgid "Edit Smart View"
 msgstr "Modifier la vue intelligente"
 
+msgid "Edit here"
+msgstr "Modifier ici"
+
 msgid "Edit task"
 msgstr "Modifier la tâche"
 
@@ -649,6 +652,9 @@ msgstr "Masqué"
 
 msgid "Hide sidebar"
 msgstr "Masquer la barre latérale"
+
+msgid "Hide the Canceled column"
+msgstr "Masquer la colonne Annulée"
 
 msgid "High"
 msgstr "Haute"
@@ -833,9 +839,6 @@ msgstr "Gérez quels calendriers Akonadi modifiables sont utilisés comme projet
 msgid "Many"
 msgstr "Beaucoup"
 
-msgid "Mark as done"
-msgstr "Marquer comme terminée"
-
 msgid "Medium"
 msgstr "Moyenne"
 
@@ -892,6 +895,9 @@ msgstr "Nouvelle étiquette"
 
 msgid "New location"
 msgstr "Nouveau lieu"
+
+msgid "New task"
+msgstr "Nouvelle tâche"
 
 msgid "New tasks"
 msgstr "Nouvelles tâches"
@@ -1562,6 +1568,9 @@ msgstr "Ce widget est en version %1 mais le moteur installé est %2. Réinstalle
 msgid "Tiles with the key views above the tasks"
 msgstr "Tuiles des vues principales au-dessus des tâches"
 
+msgid "Time"
+msgstr "Heure"
+
 msgid "Time grouping"
 msgstr "Regroupement temporel"
 
@@ -1691,8 +1700,17 @@ msgstr "tâches terminées"
 msgid "tasks due"
 msgstr "tâches à échéance"
 
+msgid "today"
+msgstr "aujourd’hui"
+
+msgid "tomorrow"
+msgstr "demain"
+
 msgid "unknown"
 msgstr "inconnu"
+
+msgid "yesterday"
+msgstr "hier"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
@@ -1748,3 +1766,13 @@ msgid "%1 minute before"
 msgid_plural "%1 minutes before"
 msgstr[0] "%1 minute avant"
 msgstr[1] "%1 minutes avant"
+
+msgid "in %1 day"
+msgid_plural "in %1 days"
+msgstr[0] "dans %1 jour"
+msgstr[1] "dans %1 jours"
+
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] "il y a %1 jour"
+msgstr[1] "il y a %1 jours"

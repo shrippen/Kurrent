@@ -1311,6 +1311,17 @@ Item {
                     color: KanteStyle.mutedTextColor
                     elide: Text.ElideRight
                 }
+
+                // "Sync now" sits with the sync state (moved from the list toolbar, l2).
+                KanteToolButton {
+                    icon.name: "view-refresh"
+                    display: QQC2.AbstractButton.IconOnly
+                    text: i18n("Sync now")
+                    enabled: !!backend && !backend.loading
+                    onClicked: backend.syncNow()
+                    QQC2.ToolTip.text: text
+                    QQC2.ToolTip.visible: hovered
+                }
             }
         }
 

@@ -236,6 +236,10 @@
         <entry name="kanbanWriteMode" type="String">
             <default>fields</default>
         </entry>
+        <!-- Kanban: hide the "Canceled" status column -->
+        <entry name="kanbanHideCanceled" type="Bool">
+            <default>false</default>
+        </entry>
         <entry name="kanbanManualOrder" type="String">
             <default>{}</default>
         </entry>

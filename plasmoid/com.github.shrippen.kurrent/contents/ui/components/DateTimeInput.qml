@@ -70,7 +70,11 @@ RowLayout {
     KanteTextField {
         id: field
         Layout.fillWidth: true
-        placeholderText: root.mode === "time" ? DateTime.timePlaceholder() : DateTime.datePlaceholder()
+        // Plain words; the expected format is in the tooltip (e7).
+        placeholderText: root.mode === "time" ? i18n("Time") : i18n("Date")
+        QQC2.ToolTip.text: root.mode === "time" ? DateTime.timePlaceholder() : DateTime.datePlaceholder()
+        QQC2.ToolTip.visible: hovered && text.length === 0
+        QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         inputMethodHints: Qt.ImhDigitsOnly
 
         onTextChanged: {

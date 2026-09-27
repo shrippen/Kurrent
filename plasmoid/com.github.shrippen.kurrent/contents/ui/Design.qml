@@ -231,7 +231,7 @@ QtObject {
     readonly property int matrixHeaderHeight: Kirigami.Units.gridUnit * 3
     readonly property int matrixRowHeaderMinWidth: Kirigami.Units.gridUnit * 8
     readonly property int matrixRowHeaderMaxWidth: Kirigami.Units.gridUnit * 14
-    readonly property int planCellHeight: Kirigami.Units.gridUnit * 3
+    readonly property int planCellHeight: Kirigami.Units.gridUnit * 3.6
     readonly property real matrixTodayTintOpacity: 0.08
     readonly property real matrixWeekendTintOpacity: 0.05
     readonly property real matrixLineOpacity: 0.12

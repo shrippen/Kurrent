@@ -3,17 +3,19 @@ import org.kde.kirigami as Kirigami
 import "."
 
 /**
- * Kante look for a check box or switch: place inside the control.
- * Hides the style's indicator and draws a square box (check box) or a square
- * track with a square knob (switch); checked uses the accent. Nothing in the
- * System style.
+ * Kante look for a check box, radio button or switch: place inside the control.
+ * Hides the style's indicator and draws a square box (check box), a diamond with
+ * a filled core (radio button, so single choice never reads as a check box) or a
+ * square track with a square knob (switch); checked uses the accent. Nothing in
+ * the System style.
  */
 Item {
     id: skin
 
     enum Shape {
         Box,
-        Switch
+        Switch,
+        Radio
     }
 
     required property Item control
@@ -24,7 +26,7 @@ Item {
     visible: KanteStyle.themed && indicator !== null
     x: indicator ? indicator.x : 0
     y: indicator ? indicator.y : 0
-    width: shape === KanteCheckSkin.Shape.Box ? Math.round(Kirigami.Units.gridUnit * 0.9) : Math.round(Kirigami.Units.gridUnit * 1.8)
+    width: shape === KanteCheckSkin.Shape.Switch ? Math.round(Kirigami.Units.gridUnit * 1.8) : Math.round(Kirigami.Units.gridUnit * 0.9)
     height: Math.round(Kirigami.Units.gridUnit * 0.9)
     anchors.verticalCenter: control ? control.verticalCenter : undefined
     opacity: control && control.enabled ? 1 : 0.5
@@ -53,6 +55,26 @@ Item {
             source: "checkmark"
             isMask: true
             color: KanteStyle.accentForegroundColor
+        }
+    }
+
+    // Radio button: diamond outline, accent core when checked.
+    Rectangle {
+        anchors.centerIn: parent
+        visible: skin.shape === KanteCheckSkin.Shape.Radio
+        width: Math.round(parent.width * 0.74)
+        height: width
+        rotation: 45
+        color: KanteStyle.sunkenColor
+        border.width: 1
+        border.color: skin.control && (skin.control.checked || skin.control.visualFocus) ? KanteStyle.accentColor : KanteStyle.frameColor
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: Math.round(parent.width * 0.5)
+            height: width
+            visible: skin.control && skin.control.checked
+            color: KanteStyle.accentColor
         }
     }
 

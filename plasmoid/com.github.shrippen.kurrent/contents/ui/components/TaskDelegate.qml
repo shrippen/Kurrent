@@ -718,8 +718,12 @@ Item {
                 }
             }
 
+            // Only on hover or focus (keeps its space, so dates do not jump); the inspector has
+            // its own edit buttons, so the column goes away while it is shown (l1).
             KanteToolButton {
                 id: editButton
+                visible: !(dragHost && dragHost.inspectorActive)
+                opacity: hoverHandler.hovered || hovered || visualFocus || root.expanded ? 1 : 0
                 icon.name: "document-edit"
                 display: QQC2.AbstractButton.IconOnly
                 enabled: !root.awaitingAkonadi

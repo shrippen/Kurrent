@@ -94,6 +94,7 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"smartViews", ValueType::String, QStringLiteral("[]")},
         {"kanbanColumnSource", ValueType::String, QStringLiteral("status")},
         {"kanbanWriteMode", ValueType::String, QStringLiteral("fields")},
+        {"kanbanHideCanceled", ValueType::Bool, false},
         {"kanbanManualOrder", ValueType::String, QStringLiteral("{}")},
         {"kanbanSortModeByViewColumn", ValueType::String, QStringLiteral("{}")},
         {"rebuildPerfProfile", ValueType::String, QString()},

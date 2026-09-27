@@ -120,10 +120,13 @@ Item {
         spacing: 0
         visible: root.projects.length > 0 && root.weeks.length > 0
 
+        // As tall as its rows (up to the pane), so the legend sits right below the table (s2).
         MatrixGrid {
             id: matrixGrid
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.preferredHeight: flickable.contentHeight + Design.scrollBarExtent * 2
+            Layout.maximumHeight: flickable.contentHeight + Design.scrollBarExtent * 2
             rows: root.projects
             columns: root.weeks
             columnWidth: Design.planColumnWidth(root.timeBucket)
@@ -377,6 +380,32 @@ Item {
                             font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
                             font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 1.15
                         }
+                        // Priority split of the open tasks: high · medium · low · none (s2).
+                        Row {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.topMargin: 2
+                            readonly property int open: Math.max(1, cell.st.open || 0)
+                            readonly property real barWidth: Math.min(cell.width - Design.spaceMedium * 2, Kirigami.Units.gridUnit * 4)
+                            visible: (cell.st.open || 0) > 0
+                            spacing: 1
+                            Repeater {
+                                model: [
+                                    { n: cell.st.high || 0, c: Design.priorityColor(1) },
+                                    { n: cell.st.medium || 0, c: Design.priorityColor(5) },
+                                    { n: cell.st.low || 0, c: Design.priorityColor(9) },
+                                    { n: Math.max(0, (cell.st.open || 0) - (cell.st.high || 0) - (cell.st.medium || 0) - (cell.st.low || 0)),
+                                      c: KanteStyle.frameColor }
+                                ]
+                                Rectangle {
+                                    required property var modelData
+                                    visible: modelData.n > 0
+                                    width: Math.max(2, parent.barWidth * modelData.n / parent.open)
+                                    height: 4
+                                    color: modelData.c
+                                }
+                            }
+                        }
+
                         RowLayout {
                             Layout.alignment: Qt.AlignHCenter
                             spacing: Design.spaceTiny
@@ -429,6 +458,7 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             Layout.margins: Design.spaceSmall
+            Layout.alignment: Qt.AlignTop
             spacing: Design.spaceMedium
 
             QQC2.Label {
@@ -460,5 +490,7 @@ Item {
                 font.pixelSize: Kirigami.Theme.smallFont.pixelSize
             }
         }
+
+        Item { Layout.fillHeight: true }
     }
 }

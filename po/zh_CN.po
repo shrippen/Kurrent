@@ -125,9 +125,6 @@ msgstr "全天"
 msgid "All views"
 msgstr "所有视图"
 
-msgid "All-day task"
-msgstr "全天任务"
-
 msgid "Already has no priority"
 msgstr "已无优先级"
 
@@ -401,6 +398,9 @@ msgstr "自定义列："
 msgid "Daily"
 msgstr "每天"
 
+msgid "Date"
+msgstr "日期"
+
 msgid "Dates"
 msgstr "日期"
 
@@ -527,6 +527,9 @@ msgstr "每个侧栏视图保留各自的排序。未更改的视图默认以优
 msgid "Edit Smart View"
 msgstr "编辑智能视图"
 
+msgid "Edit here"
+msgstr "在此编辑"
+
 msgid "Edit task"
 msgstr "编辑任务"
 
@@ -649,6 +652,9 @@ msgstr "隐藏"
 
 msgid "Hide sidebar"
 msgstr "隐藏侧边栏"
+
+msgid "Hide the Canceled column"
+msgstr "隐藏“已取消”列"
 
 msgid "High"
 msgstr "高"
@@ -833,9 +839,6 @@ msgstr "管理哪些可写的 Akonadi 日历用作项目。禁用的日历完全
 msgid "Many"
 msgstr "多"
 
-msgid "Mark as done"
-msgstr "标记为完成"
-
 msgid "Medium"
 msgstr "中"
 
@@ -892,6 +895,9 @@ msgstr "新标签"
 
 msgid "New location"
 msgstr "新地点"
+
+msgid "New task"
+msgstr "新任务"
 
 msgid "New tasks"
 msgstr "新任务"
@@ -1562,6 +1568,9 @@ msgstr "此部件版本为 %1，但已安装的后端为 %2。请重新安装后
 msgid "Tiles with the key views above the tasks"
 msgstr "在任务上方显示主要视图磁贴"
 
+msgid "Time"
+msgstr "时间"
+
 msgid "Time grouping"
 msgstr "时间分组"
 
@@ -1691,8 +1700,17 @@ msgstr "个任务已完成"
 msgid "tasks due"
 msgstr "个任务到期"
 
+msgid "today"
+msgstr "今天"
+
+msgid "tomorrow"
+msgstr "明天"
+
 msgid "unknown"
 msgstr "未知"
+
+msgid "yesterday"
+msgstr "昨天"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
@@ -1737,3 +1755,11 @@ msgstr[0] "提前 %1 小时"
 msgid "%1 minute before"
 msgid_plural "%1 minutes before"
 msgstr[0] "提前 %1 分钟"
+
+msgid "in %1 day"
+msgid_plural "in %1 days"
+msgstr[0] "%1 天后"
+
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] "%1 天前"

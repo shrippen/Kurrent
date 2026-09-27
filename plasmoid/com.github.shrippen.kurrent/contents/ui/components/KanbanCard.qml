@@ -132,16 +132,21 @@ Kirigami.AbstractCard {
         }
     }
 
-    // Compact cards (Swimlanes) open the editor on click; with the inspector active every card
-    // shows its task there instead.
+    // A click shows the task in the inspector when it is active, otherwise opens the editor
+    // (cards have no edit button, k1). Double click always opens the full editor.
     TapHandler {
-        enabled: (root.compact || root.inspectorOn) && !root.interactionsSuspended
+        enabled: !root.interactionsSuspended
         onTapped: {
             if (root.inspectorOn) {
                 root.dragHost.inspectTask(root.task.itemId)
                 return
             }
             root.requestFullEditor(root.task)
+        }
+        onDoubleTapped: {
+            if (root.inspectorOn) {
+                root.requestFullEditor(root.task)
+            }
         }
     }
     readonly property bool inspectorOn: !!(dragHost && dragHost.inspectorActive)
@@ -154,7 +159,7 @@ Kirigami.AbstractCard {
             Layout.fillWidth: true
             spacing: 2
             visible: (Plasmoid.configuration.showLabelChips !== false && (task.categories || []).length > 0)
-                     || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0)
+                     || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0 && !KanteStyle.active)
                      || (Plasmoid.configuration.showRecurringIcon !== false && task.recurring)
                      || (Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0)
                      || (Plasmoid.configuration.showStatusChip !== false && (task.status || 0) !== 0)
@@ -176,8 +181,9 @@ Kirigami.AbstractCard {
                 }
             }
 
+            // Kante draws the priority as the card's top bar; the flag would repeat it (k4).
             Kirigami.Icon {
-                visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0
+                visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0 && !KanteStyle.active
                 source: "flag"
                 color: Design.priorityColor(task.priority)
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
@@ -283,18 +289,11 @@ Kirigami.AbstractCard {
 
         RowLayout {
             Layout.fillWidth: true
-            visible: !root.compact
+            visible: !root.compact && (joinButton.visible || task.syncing === true)
             spacing: Design.spaceSmall
 
             KanteToolButton {
-                icon.name: "document-edit"
-                display: QQC2.AbstractButton.IconOnly
-                onClicked: root.requestFullEditor(task)
-                QQC2.ToolTip.text: i18n("Edit task")
-                QQC2.ToolTip.visible: hovered
-            }
-
-            KanteToolButton {
+                id: joinButton
                 visible: Plasmoid.configuration.showJoinButton !== false
                          && !!(task.joinUrl && String(task.joinUrl).length)
                 icon.name: "internet-services"

@@ -185,9 +185,10 @@ ColumnLayout {
             loops: Animation.Infinite
         }
 
+        // Batch delete: reveals a delete button on every row (a select icon, not a bin).
         KanteToolButton {
             id: deleteModeButton
-            icon.name: "edit-delete"
+            icon.name: "edit-select-all"
             checkable: true
             checked: root.deleteModeEnabled
             onToggled: root.deleteModeEnabled = checked
@@ -195,13 +196,6 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
         }
 
-        KanteToolButton {
-            icon.name: "view-refresh"
-            onClicked: controller.syncNow()
-            enabled: !controller.loading
-            QQC2.ToolTip.text: i18n("Sync now")
-            QQC2.ToolTip.visible: hovered
-        }
     }
 
     QQC2.ProgressBar {

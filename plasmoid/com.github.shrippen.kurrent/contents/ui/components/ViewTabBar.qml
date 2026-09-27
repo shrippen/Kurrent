@@ -34,8 +34,26 @@ RowLayout {
         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     }
 
+    // Overflow: arrows at the edges say there are more tabs and scroll by one page (n1).
+    KanteToolButton {
+        Layout.alignment: Qt.AlignVCenter
+        visible: strip.contentX > 1
+        icon.name: "go-previous"
+        display: QQC2.AbstractButton.IconOnly
+        text: i18n("Previous")
+        onClicked: strip.scrollBy(-strip.width * 0.8)
+    }
+
     Flickable {
         id: strip
+
+        function scrollBy(dx) {
+            contentX = Math.max(0, Math.min(contentWidth - width, contentX + dx))
+        }
+        Behavior on contentX {
+            enabled: !Design.reducedMotion && !strip.dragging && !strip.flicking
+            NumberAnimation { duration: Kirigami.Units.shortDuration; easing.type: Easing.OutCubic }
+        }
         Layout.fillWidth: true
         Layout.preferredHeight: tabRow.implicitHeight
         contentWidth: tabRow.implicitWidth
@@ -134,5 +152,14 @@ RowLayout {
                 }
             }
         }
+    }
+
+    KanteToolButton {
+        Layout.alignment: Qt.AlignVCenter
+        visible: strip.contentX < strip.contentWidth - strip.width - 1
+        icon.name: "go-next"
+        display: QQC2.AbstractButton.IconOnly
+        text: i18n("Next")
+        onClicked: strip.scrollBy(strip.width * 0.8)
     }
 }

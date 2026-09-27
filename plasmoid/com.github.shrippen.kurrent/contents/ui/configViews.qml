@@ -258,6 +258,12 @@ ConfigPageBase {
                 onActivated: cfg_kanbanWriteMode = model[currentIndex].value
             }
 
+            QQC2.CheckBox {
+                text: i18n("Hide the Canceled column")
+                checked: cfg_kanbanHideCanceled
+                onToggled: cfg_kanbanHideCanceled = checked
+            }
+
             // Swimlanes section
             Kirigami.Separator {
                 Kirigami.FormData.isSection: true

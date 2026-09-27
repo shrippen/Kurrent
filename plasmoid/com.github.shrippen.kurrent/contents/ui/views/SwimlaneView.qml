@@ -43,6 +43,11 @@ Item {
         return controller ? controller.swimlaneMatrixForVisibleTasks() : ({})
     }
     readonly property var lanes: matrix.lanes || []
+    // Cards per cell: lanes share the visible height so several rows show at once; the rest
+    // goes into "+N more" (click drills into the list). 3 to 8 cards (s3).
+    readonly property int cardsPerCell: Math.max(3, Math.min(Design.swimlaneMaxCardsPerCell,
+            Math.floor((height - Kirigami.Units.gridUnit * 4) / Math.max(1, Math.min(lanes.length, 3))
+                       / (Kirigami.Units.gridUnit * 4.5 + Design.kanbanCardGap)) - 1))
     readonly property var times: matrix.times || []
     readonly property var cells: matrix.cells || ({})
     readonly property var tasks: matrix.tasks || ({})
@@ -428,7 +433,7 @@ Item {
                 readonly property string timeKey: parent ? parent.columnKey : ""
                 readonly property string cellKey: laneKey + "|" + timeKey
                 readonly property var ids: root.cells[cellKey] || []
-                readonly property int shownCount: Math.min(ids.length, Design.swimlaneMaxCardsPerCell)
+                readonly property int shownCount: Math.min(ids.length, root.cardsPerCell)
                 readonly property int hiddenCount: ids.length - shownCount
                 readonly property bool isCurrent: timeKey === grid.currentColumn
                 readonly property bool droppable: timeKey !== "overdue" && timeKey !== "later"

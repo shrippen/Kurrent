@@ -36,6 +36,12 @@
 - Tile tones carry meaning only (overdue, today, completed; everything else muted). Zero counters are dimmed.
 - Kante: the brand moves from the sidebar into the wide header.
 - Sidebar: when a view hides sections (e.g. projects are the swimlane rows), a note at the bottom says why.
+- List: edit buttons only on hover, gone while the inspector is shown; "Sync now" moved to the sync line in the sidebar; batch delete uses a select icon.
+- Inspector: short due date with "in 3 days"; priority as flag plus plain text; label column fits the longest label; values with a picker (due, priority, project, status, progress, secrecy) open a menu; "Edit here" edits title, description and location in place; actions are "Done" plus icon buttons.
+- Kanban: no edit button on cards (click → inspector or editor, double click → editor); empty columns fold into a narrow strip; option to hide the Canceled column; Kante shows priority only as the card bar; thin horizontal scroll bar on hover.
+- Editor: title and status (segmented) at the top; "All day" hides the time fields; progress without scale; Kante radio buttons are diamonds; placeholders "Date" / "Time"; title field starts at the beginning.
+- Swimlanes: cards per cell adapt so several lanes fit; Plan: legend right below the table, taller cells with a priority split bar.
+- Narrow layout: arrows at the tab bar edges when more tabs exist.
 - Dates follow the system locale everywhere (day and month names were English); Kanban column names are translated; 120 missing strings translated in all five languages.
 - Full editor (Kante): accent bar in the task's priority colour.
 - Backend-missing page: Kante install card (title, cut corner, accent bar, primary copy button).

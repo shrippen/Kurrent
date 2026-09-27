@@ -184,6 +184,15 @@ _ROWS = [
     ('Open in calendar', 'Im Kalender öffnen', 'Abrir en el calendario', 'Ouvrir dans l’agenda', 'カレンダーで開く', '在日历中打开'),
     ('Tasks due', 'Fällige Aufgaben', 'Tareas pendientes', 'Tâches à échéance', '期限のタスク', '到期任务'),
     ('Tasks this week', 'Aufgaben diese Woche', 'Tareas esta semana', 'Tâches cette semaine', '今週のタスク', '本周任务'),
+    # Review: inspector, editor, Kanban setting.
+    ('Date', 'Datum', 'Fecha', 'Date', '日付', '日期'),
+    ('Edit here', 'Hier bearbeiten', 'Editar aquí', 'Modifier ici', 'ここで編集', '在此编辑'),
+    ('Hide the Canceled column', 'Spalte „Abgebrochen“ ausblenden', 'Ocultar la columna Cancelada', 'Masquer la colonne Annulée', '「キャンセル」列を隠す', '隐藏“已取消”列'),
+    ('New task', 'Neue Aufgabe', 'Nueva tarea', 'Nouvelle tâche', '新しいタスク', '新任务'),
+    ('Time', 'Uhrzeit', 'Hora', 'Heure', '時刻', '时间'),
+    ('today', 'heute', 'hoy', 'aujourd’hui', '今日', '今天'),
+    ('tomorrow', 'morgen', 'mañana', 'demain', '明日', '明天'),
+    ('yesterday', 'gestern', 'ayer', 'hier', '昨日', '昨天'),
 ]
 
 _LANGS = ["de", "es", "fr", "ja", "zh_CN"]
@@ -192,3 +201,24 @@ for _row in _ROWS:
     for _i, _lang in enumerate(_LANGS):
         if _row[_i + 1] is not None:
             REVIEW[_lang][_row[0]] = _row[_i + 1]
+
+
+# Relative due dates in the inspector (i18np).
+PLURAL_REVIEW = {
+    'in %1 day': {
+        'msgid_plural': 'in %1 days',
+        'de': ['in %1 Tag', 'in %1 Tagen'],
+        'es': ['en %1 día', 'en %1 días'],
+        'fr': ['dans %1 jour', 'dans %1 jours'],
+        'ja': ['%1 日後'],
+        'zh_CN': ['%1 天后', '%1 天后'],
+    },
+    '%1 day ago': {
+        'msgid_plural': '%1 days ago',
+        'de': ['vor %1 Tag', 'vor %1 Tagen'],
+        'es': ['hace %1 día', 'hace %1 días'],
+        'fr': ['il y a %1 jour', 'il y a %1 jours'],
+        'ja': ['%1 日前'],
+        'zh_CN': ['%1 天前', '%1 天前'],
+    },
+}

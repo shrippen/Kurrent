@@ -2926,6 +2926,8 @@ QVariantMap buildMatrix(const QList<TaskEntry> &tasks,
         int done = 0;
         int overdue = 0;
         int high = 0;
+        int medium = 0;
+        int low = 0;
     };
 
     QSet<QString> rowSeen;
@@ -2975,8 +2977,18 @@ QVariantMap buildMatrix(const QList<TaskEntry> &tasks,
             if (anchor.isValid() && anchor < today) {
                 ++st.overdue;
             }
-            if (priorityBand(task.priority) == PriorityBand::High) {
+            switch (priorityBand(task.priority)) {
+            case PriorityBand::High:
                 ++st.high;
+                break;
+            case PriorityBand::Medium:
+                ++st.medium;
+                break;
+            case PriorityBand::Low:
+                ++st.low;
+                break;
+            default:
+                break;
             }
         }
         rowTotals[row] += 1;
@@ -3044,6 +3056,8 @@ QVariantMap buildMatrix(const QList<TaskEntry> &tasks,
         m.insert(QStringLiteral("done"), st.done);
         m.insert(QStringLiteral("overdue"), st.overdue);
         m.insert(QStringLiteral("high"), st.high);
+        m.insert(QStringLiteral("medium"), st.medium);
+        m.insert(QStringLiteral("low"), st.low);
         statsOut.insert(it.key(), m);
     }
     QVariantMap rowTotalsOut;

@@ -9,7 +9,9 @@ import "../Kante"
 
 // Direction B: details of the clicked task beside the task pane (wide layout).
 // Reads the task live from the backend (taskSnapshotById), so edits made elsewhere show up;
-// closes itself when the task disappears. Actions: complete, tomorrow, +1 week, full editor.
+// closes itself when the task disappears. Actions: complete, tomorrow, +1 week, inline edit
+// (title, description, location in place), full editor. Values with a picker (due, priority,
+// project, status, progress, secrecy) open a menu on click.
 // Plasma: card with a hairline frame. Kante / Kante Light: KanteCard, priority bar on top.
 Item {
     id: inspector
@@ -42,19 +44,59 @@ Item {
     readonly property color priorityTone: hasTask && task.priority > 0 ? Design.priorityColor(task.priority) : KanteStyle.accentColor
     readonly property bool overdue: hasTask && !task.completed && task.dueDate && task.dueDate < new Date()
 
+    // Inline editor: title, description and location become fields until saved or cancelled.
+    property bool editing: false
+    onItemIdChanged: editing = false
+
     onHasTaskChanged: {
         if (!hasTask && itemId >= 0) {
             closeRequested()
         }
     }
 
+    function startEditing() {
+        titleField.text = task.summary || ""
+        descriptionField.text = task.description || ""
+        locationField.text = task.location || ""
+        editing = true
+        titleField.forceActiveFocus()
+    }
+
+    function saveEditing() {
+        controller.updateTaskFull(itemId, {
+            summary: titleField.text,
+            description: descriptionField.text,
+            location: locationField.text
+        })
+        editing = false
+    }
+
+    function update(fields) {
+        controller.updateTaskFull(itemId, fields)
+    }
+
+    // "today", "tomorrow", "in 3 days", "2 days ago" relative to the local day.
+    function relativeDay(d) {
+        if (!d || isNaN(d)) {
+            return ""
+        }
+        var now = new Date()
+        var a = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        var b = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+        var n = Math.round((b - a) / 86400000)
+        if (n === 0) return i18n("today")
+        if (n === 1) return i18n("tomorrow")
+        if (n === -1) return i18n("yesterday")
+        return n > 0 ? i18np("in %1 day", "in %1 days", n) : i18np("%1 day ago", "%1 days ago", -n)
+    }
+
+    // Short date ("Wed, 30 Sep"), plus the time for timed tasks.
     function formatDue(d) {
         if (!d || isNaN(d)) {
             return i18n("No due date")
         }
-        var fmt = task.allDay ? Qt.locale().dateFormat(Locale.LongFormat)
-                              : Qt.locale().dateTimeFormat(Locale.ShortFormat)
-        return task.allDay ? Qt.locale().toString(d, fmt) : Qt.locale().toString(d, fmt)
+        var day = Qt.locale().toString(d, "ddd, d. MMM")
+        return task.allDay ? day : day + ", " + Qt.locale().toString(d, Qt.locale().timeFormat(Locale.ShortFormat))
     }
 
     function priorityText(p) {
@@ -98,6 +140,120 @@ Item {
             return i18np("%1 hour before", "%1 hours before", m / 60)
         }
         return i18np("%1 minute before", "%1 minutes before", m)
+    }
+
+    readonly property font labelFont: KanteStyle.active ? KanteStyle.labelFont() : Kirigami.Theme.smallFont
+
+    // Widest property label; its width sizes the label column.
+    Column {
+        id: labelProbe
+        visible: false
+        Repeater {
+            model: [i18n("Due"), i18n("Priority"), i18n("Project"), i18n("Labels"), i18n("Status"),
+                    i18n("Reminder"), i18n("Progress"), i18n("Secrecy"), i18n("Location")]
+            QQC2.Label {
+                required property string modelData
+                text: modelData
+                font: inspector.labelFont
+            }
+        }
+    }
+
+    // ── Value pickers (i5) ──────────────────────────────────────────
+    QQC2.Menu {
+        id: dueMenu
+        KantePopupSkin { popup: dueMenu }
+        QQC2.MenuItem { text: i18n("Today"); onTriggered: inspector.controller.rescheduleTask(inspector.itemId, "today") }
+        QQC2.MenuItem { text: i18n("Tomorrow"); onTriggered: inspector.controller.rescheduleTask(inspector.itemId, "tomorrow") }
+        QQC2.MenuItem { text: i18n("Next week"); onTriggered: inspector.controller.rescheduleTask(inspector.itemId, "next-week") }
+        QQC2.MenuSeparator {}
+        QQC2.MenuItem { text: i18n("No due date"); onTriggered: inspector.update({ clearDue: true }) }
+        QQC2.MenuItem { text: i18n("Open full editor"); onTriggered: inspector.requestFullEditor(inspector.task) }
+    }
+
+    QQC2.Menu {
+        id: priorityMenu
+        KantePopupSkin { popup: priorityMenu }
+        Instantiator {
+            model: [{ p: 1, t: i18n("High") }, { p: 5, t: i18n("Medium") }, { p: 9, t: i18n("Low") }, { p: 0, t: i18n("None") }]
+            delegate: QQC2.MenuItem {
+                required property var modelData
+                text: modelData.t
+                icon.name: modelData.p > 0 ? "flag" : ""
+                icon.color: modelData.p > 0 ? Design.priorityColor(modelData.p) : "transparent"
+                checkable: true
+                checked: Colors.normalizePriority(inspector.task.priority) === modelData.p
+                onTriggered: inspector.controller.setTaskPriority(inspector.itemId, modelData.p)
+            }
+            onObjectAdded: (index, object) => priorityMenu.insertItem(index, object)
+        }
+    }
+
+    QQC2.Menu {
+        id: projectMenu
+        KantePopupSkin { popup: projectMenu }
+        Instantiator {
+            model: inspector.controller ? inspector.controller.collectionModel : null
+            delegate: QQC2.MenuItem {
+                required property var model
+                visible: model.enabled && model.writable
+                height: visible ? implicitHeight : 0
+                text: model.name
+                checkable: true
+                checked: inspector.task.collectionId === model.collectionId
+                onTriggered: inspector.controller.moveTaskToCollection(inspector.itemId, model.collectionId)
+            }
+            onObjectAdded: (index, object) => projectMenu.insertItem(index, object)
+            onObjectRemoved: (index, object) => projectMenu.removeItem(object)
+        }
+    }
+
+    QQC2.Menu {
+        id: statusMenu
+        KantePopupSkin { popup: statusMenu }
+        Instantiator {
+            model: [4, 6, 3, 5]
+            delegate: QQC2.MenuItem {
+                required property int modelData
+                text: inspector.statusText(modelData)
+                checkable: true
+                checked: Number(inspector.task.status) === modelData
+                onTriggered: inspector.update({ status: modelData })
+            }
+            onObjectAdded: (index, object) => statusMenu.insertItem(index, object)
+        }
+    }
+
+    QQC2.Menu {
+        id: progressMenu
+        KantePopupSkin { popup: progressMenu }
+        Instantiator {
+            model: [0, 25, 50, 75, 100]
+            delegate: QQC2.MenuItem {
+                required property int modelData
+                text: modelData + " %"
+                checkable: true
+                checked: (inspector.task.percentComplete || 0) === modelData
+                onTriggered: inspector.update({ percentComplete: modelData })
+            }
+            onObjectAdded: (index, object) => progressMenu.insertItem(index, object)
+        }
+    }
+
+    QQC2.Menu {
+        id: secrecyMenu
+        KantePopupSkin { popup: secrecyMenu }
+        Instantiator {
+            model: [0, 1, 2]
+            delegate: QQC2.MenuItem {
+                required property int modelData
+                text: inspector.secrecyText(modelData)
+                checkable: true
+                checked: Number(inspector.task.secrecy || 0) === modelData
+                onTriggered: inspector.update({ secrecy: modelData })
+            }
+            onObjectAdded: (index, object) => secrecyMenu.insertItem(index, object)
+        }
     }
 
     // ── Surface ─────────────────────────────────────────────────────
@@ -181,6 +337,7 @@ Item {
 
         Kirigami.Heading {
             Layout.fillWidth: true
+            visible: !inspector.editing
             level: 2
             text: inspector.hasTask ? (inspector.task.summary || i18n("(Untitled)")) : ""
             wrapMode: Text.Wrap
@@ -188,6 +345,16 @@ Item {
             elide: Text.ElideRight
             font.strikeout: inspector.hasTask && inspector.task.completed === true
             color: KanteStyle.strongTextColor
+        }
+
+        QQC2.TextField {
+            id: titleField
+            Layout.fillWidth: true
+            visible: inspector.editing
+            placeholderText: i18n("Title")
+            KanteFieldSkin { control: titleField }
+            onAccepted: inspector.saveEditing()
+            Keys.onEscapePressed: inspector.editing = false
         }
 
         QQC2.ScrollView {
@@ -211,47 +378,99 @@ Item {
                     Repeater {
                         model: inspector.hasTask ? [
                             { k: i18n("Due"), v: inspector.formatDue(inspector.task.dueDate),
+                              sub: inspector.relativeDay(inspector.task.dueDate), menu: dueMenu, mono: true,
                               tone: inspector.overdue ? KanteStyle.negativeTextColor : KanteStyle.textColor },
-                            { k: i18n("Priority"), v: inspector.priorityText(inspector.task.priority),
-                              tone: inspector.task.priority > 0 ? Design.priorityColor(inspector.task.priority) : KanteStyle.mutedTextColor },
-                            { k: i18n("Project"), v: inspector.task.collectionName || "", tone: KanteStyle.textColor },
+                            { k: i18n("Priority"), v: inspector.priorityText(inspector.task.priority), menu: priorityMenu,
+                              icon: inspector.task.priority > 0 ? "flag" : "",
+                              iconColor: inspector.task.priority > 0 ? Design.priorityColor(inspector.task.priority) : "transparent",
+                              tone: inspector.task.priority > 0 ? KanteStyle.textColor : KanteStyle.mutedTextColor },
+                            { k: i18n("Project"), v: inspector.task.collectionName || "", menu: projectMenu, tone: KanteStyle.textColor },
                             { k: i18n("Labels"), v: (inspector.task.categories || []).map(function(c) { return "#" + c }).join("  ") || "–",
                               tone: KanteStyle.textColor },
+                            { k: i18n("Status"), v: inspector.statusText(inspector.task.status) || "–", menu: statusMenu,
+                              tone: KanteStyle.textColor },
                             { k: i18n("Reminder"), v: inspector.reminderText(inspector.task.reminderMinutes), tone: KanteStyle.textColor },
-                            { k: i18n("Progress"), v: (inspector.task.percentComplete || 0) + " %", tone: KanteStyle.textColor },
-                            { k: i18n("Secrecy"), v: inspector.secrecyText(inspector.task.secrecy), tone: KanteStyle.mutedTextColor },
-                            { k: i18n("Location"), v: inspector.task.location || "–", tone: KanteStyle.textColor }
+                            { k: i18n("Progress"), v: (inspector.task.percentComplete || 0) + " %", menu: progressMenu, mono: true,
+                              tone: KanteStyle.textColor },
+                            { k: i18n("Secrecy"), v: inspector.secrecyText(inspector.task.secrecy), menu: secrecyMenu,
+                              tone: KanteStyle.mutedTextColor },
+                            { k: i18n("Location"), v: inspector.task.location || "–", tone: KanteStyle.textColor,
+                              hidden: inspector.editing }
                         ] : []
 
                         delegate: Item {
+                            id: propItem
                             required property var modelData
                             required property int index
                             Layout.columnSpan: 2
                             Layout.fillWidth: true
-                            implicitHeight: propRow.implicitHeight
+                            visible: !modelData.hidden
+                            implicitHeight: propRow.implicitHeight + 4
+
+                            // Hover tint marks values that open a picker.
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.leftMargin: labelProbe.width + Design.spaceMedium - 4
+                                radius: KanteStyle.active ? 0 : Kirigami.Units.cornerRadius
+                                visible: !!propItem.modelData.menu && propHover.hovered
+                                color: KanteStyle.tint(Kirigami.Theme.textColor, 0.07)
+                            }
 
                             RowLayout {
                                 id: propRow
                                 anchors.left: parent.left
                                 anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
                                 spacing: Design.spaceMedium
 
+                                // Label column as wide as its widest label (i1).
                                 QQC2.Label {
-                                    Layout.preferredWidth: Kirigami.Units.gridUnit * 5
+                                    Layout.preferredWidth: labelProbe.width
                                     Layout.alignment: Qt.AlignTop
-                                    text: modelData.k
-                                    elide: Text.ElideRight
-                                    font: KanteStyle.active ? KanteStyle.labelFont() : Kirigami.Theme.smallFont
+                                    text: propItem.modelData.k
+                                    font: inspector.labelFont
                                     color: KanteStyle.mutedTextColor
                                 }
-                                QQC2.Label {
-                                    Layout.fillWidth: true
-                                    text: modelData.v
-                                    wrapMode: Text.Wrap
-                                    color: modelData.tone
-                                    font: KanteStyle.active && (index === 0 || index === 5)
-                                          ? KanteStyle.monoFont(Kirigami.Theme.defaultFont.pointSize) : Kirigami.Theme.defaultFont
+                                Kirigami.Icon {
+                                    visible: !!propItem.modelData.icon
+                                    Layout.alignment: Qt.AlignTop
+                                    Layout.topMargin: 2
+                                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                                    source: propItem.modelData.icon || ""
+                                    color: propItem.modelData.iconColor || Kirigami.Theme.textColor
+                                    isMask: true
                                 }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 0
+                                    QQC2.Label {
+                                        Layout.fillWidth: true
+                                        text: propItem.modelData.v
+                                        wrapMode: Text.Wrap
+                                        color: propItem.modelData.tone
+                                        font: KanteStyle.active && propItem.modelData.mono
+                                              ? KanteStyle.monoFont(Kirigami.Theme.defaultFont.pointSize) : Kirigami.Theme.defaultFont
+                                    }
+                                    QQC2.Label {
+                                        Layout.fillWidth: true
+                                        visible: !!propItem.modelData.sub
+                                        text: propItem.modelData.sub || ""
+                                        font: Kirigami.Theme.smallFont
+                                        color: propItem.modelData.tone === KanteStyle.negativeTextColor
+                                               ? KanteStyle.negativeTextColor : KanteStyle.mutedTextColor
+                                    }
+                                }
+                            }
+
+                            HoverHandler {
+                                id: propHover
+                                enabled: !!propItem.modelData.menu
+                                cursorShape: Qt.PointingHandCursor
+                            }
+                            TapHandler {
+                                enabled: !!propItem.modelData.menu
+                                onTapped: propItem.modelData.menu.popup(propItem, labelProbe.width + Design.spaceMedium, propItem.height)
                             }
                         }
                     }
@@ -305,10 +524,10 @@ Item {
                     }
                 }
 
-                // Notes
+                // Notes; in the inline editor also the location.
                 ColumnLayout {
                     Layout.fillWidth: true
-                    visible: inspector.hasTask && !!inspector.task.description
+                    visible: inspector.editing || (inspector.hasTask && !!inspector.task.description)
                     spacing: Design.spaceTiny
 
                     QQC2.Label {
@@ -318,39 +537,88 @@ Item {
                     }
                     QQC2.Label {
                         Layout.fillWidth: true
+                        visible: !inspector.editing
                         text: inspector.hasTask ? (inspector.task.description || "") : ""
                         wrapMode: Text.Wrap
                         textFormat: Text.PlainText
                         color: KanteStyle.textColor
                     }
+                    QQC2.TextArea {
+                        id: descriptionField
+                        Layout.fillWidth: true
+                        Layout.minimumHeight: Kirigami.Units.gridUnit * 5
+                        visible: inspector.editing
+                        wrapMode: TextEdit.Wrap
+                        placeholderText: i18n("Description")
+                        KanteFieldSkin { control: descriptionField }
+                    }
+
+                    QQC2.Label {
+                        visible: inspector.editing
+                        Layout.topMargin: Design.spaceSmall
+                        text: i18n("Location")
+                        font: KanteStyle.active ? KanteStyle.labelFont() : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
+                        color: KanteStyle.mutedTextColor
+                    }
+                    QQC2.TextField {
+                        id: locationField
+                        Layout.fillWidth: true
+                        visible: inspector.editing
+                        placeholderText: i18n("Location")
+                        KanteFieldSkin { control: locationField }
+                        onAccepted: inspector.saveEditing()
+                    }
                 }
             }
         }
 
-        // Quick actions
-        Flow {
+        // Actions: "Done" as the main button, the rest as icon buttons (i4). Inline editor:
+        // Save / Cancel instead.
+        RowLayout {
             Layout.fillWidth: true
             spacing: Design.spaceSmall
 
             KanteButton {
+                visible: !inspector.editing
                 icon.name: "checkmark"
                 text: inspector.hasTask && inspector.task.completed ? i18n("Reopen") : i18n("Done")
                 highlighted: true
                 emphasis: KanteButton.Emphasis.Primary
                 onClicked: inspector.controller.setTaskCompleted(inspector.itemId, !(inspector.task.completed === true))
             }
+
+            Item { Layout.fillWidth: true; visible: !inspector.editing }
+
+            Repeater {
+                model: inspector.editing ? [] : [
+                    { icon: "go-next", text: i18n("Tomorrow"), act: function() { inspector.controller.rescheduleTask(inspector.itemId, "tomorrow") } },
+                    { icon: "view-calendar-week", text: i18n("Next week"), act: function() { inspector.controller.rescheduleTask(inspector.itemId, "next-week") } },
+                    { icon: "edit-rename", text: i18n("Edit here"), act: function() { inspector.startEditing() } },
+                    { icon: "document-edit", text: i18n("Open full editor"), act: function() { inspector.requestFullEditor(inspector.task) } }
+                ]
+                delegate: KanteToolButton {
+                    required property var modelData
+                    icon.name: modelData.icon
+                    display: QQC2.AbstractButton.IconOnly
+                    text: modelData.text
+                    QQC2.ToolTip.text: text
+                    QQC2.ToolTip.visible: hovered
+                    onClicked: modelData.act()
+                }
+            }
+
             KanteButton {
-                text: i18n("Tomorrow")
-                onClicked: inspector.controller.rescheduleTask(inspector.itemId, "tomorrow")
+                visible: inspector.editing
+                icon.name: "document-save"
+                text: i18n("Save")
+                highlighted: true
+                emphasis: KanteButton.Emphasis.Primary
+                onClicked: inspector.saveEditing()
             }
             KanteButton {
-                text: i18n("Next week")
-                onClicked: inspector.controller.rescheduleTask(inspector.itemId, "next-week")
-            }
-            KanteButton {
-                icon.name: "document-edit"
-                text: i18n("Editor")
-                onClicked: inspector.requestFullEditor(inspector.task)
+                visible: inspector.editing
+                text: i18n("Cancel")
+                onClicked: inspector.editing = false
             }
         }
     }

@@ -125,9 +125,6 @@ msgstr "終日"
 msgid "All views"
 msgstr "すべてのビュー"
 
-msgid "All-day task"
-msgstr "終日のタスク"
-
 msgid "Already has no priority"
 msgstr "すでに優先度なし"
 
@@ -401,6 +398,9 @@ msgstr "カスタム列:"
 msgid "Daily"
 msgstr "毎日"
 
+msgid "Date"
+msgstr "日付"
+
 msgid "Dates"
 msgstr "日付"
 
@@ -527,6 +527,9 @@ msgstr "各サイドバービューは独自の並べ替えを保持します。
 msgid "Edit Smart View"
 msgstr "スマートビューを編集"
 
+msgid "Edit here"
+msgstr "ここで編集"
+
 msgid "Edit task"
 msgstr "タスクを編集"
 
@@ -649,6 +652,9 @@ msgstr "非表示"
 
 msgid "Hide sidebar"
 msgstr "サイドバーを隠す"
+
+msgid "Hide the Canceled column"
+msgstr "「キャンセル」列を隠す"
 
 msgid "High"
 msgstr "高"
@@ -833,9 +839,6 @@ msgstr "プロジェクトとして使う書き込み可能な Akonadi カレン
 msgid "Many"
 msgstr "多"
 
-msgid "Mark as done"
-msgstr "完了にする"
-
 msgid "Medium"
 msgstr "中"
 
@@ -892,6 +895,9 @@ msgstr "新しいラベル"
 
 msgid "New location"
 msgstr "新しい場所"
+
+msgid "New task"
+msgstr "新しいタスク"
 
 msgid "New tasks"
 msgstr "新しいタスク"
@@ -1562,6 +1568,9 @@ msgstr "ウィジェットは %1 ですが、インストール済みバック�
 msgid "Tiles with the key views above the tasks"
 msgstr "タスクの上に主要ビューのタイルを表示"
 
+msgid "Time"
+msgstr "時刻"
+
 msgid "Time grouping"
 msgstr "時間のまとまり"
 
@@ -1691,8 +1700,17 @@ msgstr "件完了"
 msgid "tasks due"
 msgstr "件期限"
 
+msgid "today"
+msgstr "今日"
+
+msgid "tomorrow"
+msgstr "明日"
+
 msgid "unknown"
 msgstr "不明"
+
+msgid "yesterday"
+msgstr "昨日"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
@@ -1737,3 +1755,11 @@ msgstr[0] "%1 時間前"
 msgid "%1 minute before"
 msgid_plural "%1 minutes before"
 msgstr[0] "%1 分前"
+
+msgid "in %1 day"
+msgid_plural "in %1 days"
+msgstr[0] "%1 日後"
+
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] "%1 日前"

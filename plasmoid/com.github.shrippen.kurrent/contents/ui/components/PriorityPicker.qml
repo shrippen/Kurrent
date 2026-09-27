@@ -37,7 +37,7 @@ RowLayout {
 
         delegate: QQC2.RadioButton {
             id: priorityRadio
-            KanteCheckSkin { control: parent }
+            KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Radio }
             // The desktop style paints the flag together with the indicator, which the Kante
             // skin hides: draw it right after the option instead (the row spacing makes room).
             Kirigami.Icon {

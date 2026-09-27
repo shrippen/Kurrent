@@ -125,9 +125,6 @@ msgstr "Ganztägig"
 msgid "All views"
 msgstr "Alle Ansichten"
 
-msgid "All-day task"
-msgstr "Ganztägige Aufgabe"
-
 msgid "Already has no priority"
 msgstr "Bereits ohne Priorität"
 
@@ -401,6 +398,9 @@ msgstr "Eigene Spalte:"
 msgid "Daily"
 msgstr "Täglich"
 
+msgid "Date"
+msgstr "Datum"
+
 msgid "Dates"
 msgstr "Daten"
 
@@ -527,6 +527,9 @@ msgstr "Jede Seitenleistenansicht behält ihre eigene Sortierung. Unveränderte 
 msgid "Edit Smart View"
 msgstr "Smart View bearbeiten"
 
+msgid "Edit here"
+msgstr "Hier bearbeiten"
+
 msgid "Edit task"
 msgstr "Aufgabe bearbeiten"
 
@@ -649,6 +652,9 @@ msgstr "Ausgeblendet"
 
 msgid "Hide sidebar"
 msgstr "Seitenleiste ausblenden"
+
+msgid "Hide the Canceled column"
+msgstr "Spalte „Abgebrochen“ ausblenden"
 
 msgid "High"
 msgstr "Hoch"
@@ -833,9 +839,6 @@ msgstr "Lege fest, welche beschreibbaren Akonadi-Kalender als Projekte dienen. D
 msgid "Many"
 msgstr "Viele"
 
-msgid "Mark as done"
-msgstr "Als erledigt markieren"
-
 msgid "Medium"
 msgstr "Mittel"
 
@@ -892,6 +895,9 @@ msgstr "Neues Label"
 
 msgid "New location"
 msgstr "Neuer Ort"
+
+msgid "New task"
+msgstr "Neue Aufgabe"
 
 msgid "New tasks"
 msgstr "Neue Aufgaben"
@@ -1562,6 +1568,9 @@ msgstr "Dieses Widget ist Version %1, das installierte Backend ist %2. Backend n
 msgid "Tiles with the key views above the tasks"
 msgstr "Kacheln mit den wichtigsten Ansichten über den Aufgaben"
 
+msgid "Time"
+msgstr "Uhrzeit"
+
 msgid "Time grouping"
 msgstr "Zeiteinteilung"
 
@@ -1691,8 +1700,17 @@ msgstr "Aufgaben erledigt"
 msgid "tasks due"
 msgstr "Aufgaben fällig"
 
+msgid "today"
+msgstr "heute"
+
+msgid "tomorrow"
+msgstr "morgen"
+
 msgid "unknown"
 msgstr "unbekannt"
+
+msgid "yesterday"
+msgstr "gestern"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
@@ -1748,3 +1766,13 @@ msgid "%1 minute before"
 msgid_plural "%1 minutes before"
 msgstr[0] "%1 Minute vorher"
 msgstr[1] "%1 Minuten vorher"
+
+msgid "in %1 day"
+msgid_plural "in %1 days"
+msgstr[0] "in %1 Tag"
+msgstr[1] "in %1 Tagen"
+
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] "vor %1 Tag"
+msgstr[1] "vor %1 Tagen"

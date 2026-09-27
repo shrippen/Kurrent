@@ -6,6 +6,7 @@ import com.github.shrippen.kurrent 1.0
 import "../components"
 import ".."
 import "../Kante"
+import org.kde.plasma.plasmoid
 
 Flickable {
     id: root
@@ -185,7 +186,16 @@ Flickable {
         onTriggered: root.settleScrollBounds()
     }
 
-    readonly property var columnKeys: controller ? controller.kanbanColumnKeys : []
+    // Status columns can drop "Canceled" (Settings › Views › Kanban, k2).
+    readonly property var columnKeys: {
+        var keys = controller ? controller.kanbanColumnKeys : []
+        if (!Plasmoid.configuration.kanbanHideCanceled || !controller || controller.kanbanColumnSource !== "status") {
+            return keys
+        }
+        return keys.filter(function(k) { return k !== "5" && k !== "cancelled" })
+    }
+    // While a card is dragged every column stays open as a drop target.
+    readonly property bool dragging: !!(dragHost && dragHost.draggingTask)
     readonly property int layoutRevision: controller ? controller.kanbanRevision : 0
 
     QQC2.Label {
@@ -234,8 +244,43 @@ Flickable {
                 // Column surface. Plasma: a lightly tinted rounded lane (like Kirigami panels).
                 // Kante / Kante Light: no lane, a colour bar on top (status / priority / overdue).
                 Item {
-                    width: Design.kanbanColumnMinWidth
+                    id: columnItem
+                    // Empty columns fold to a narrow strip with title and count (k2).
+                    readonly property bool collapsed: cardList.count === 0 && !root.dragging
+                    width: collapsed ? Kirigami.Units.gridUnit * 2.5 : Design.kanbanColumnMinWidth
                     height: parent.height
+                    Behavior on width {
+                        enabled: !Design.reducedMotion
+                        NumberAnimation { duration: Kirigami.Units.shortDuration; easing.type: Easing.OutCubic }
+                    }
+
+                    // Folded: count on top, title running down the strip.
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.topMargin: Design.spaceSmall
+                        visible: columnItem.collapsed
+                        spacing: Design.spaceSmall
+
+                        CountBadge {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "0"
+                        }
+                        Item {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            QQC2.Label {
+                                x: (parent.width + height) / 2
+                                y: 0
+                                width: parent.height
+                                rotation: 90
+                                transformOrigin: Item.TopLeft
+                                text: root.columnTitle(columnKey)
+                                elide: Text.ElideRight
+                                font: KanteStyle.active ? KanteStyle.labelFont() : Kirigami.Theme.smallFont
+                                color: KanteStyle.mutedTextColor
+                            }
+                        }
+                    }
 
                     readonly property color barColor: {
                         var src = controller.kanbanColumnSource
@@ -275,6 +320,8 @@ Flickable {
 
                     ColumnLayout {
                         anchors.fill: parent
+                        opacity: columnItem.collapsed ? 0 : 1
+                        enabled: !columnItem.collapsed
                         anchors.margins: KanteStyle.active ? 0 : Design.spaceSmall
                         anchors.topMargin: KanteStyle.active ? Design.spaceSmall : Design.spaceSmall
                         spacing: Design.spaceSmall
@@ -498,9 +545,25 @@ Flickable {
         }
     }
 
+    // Thin, shown only while hovering the board or scrolling (n4).
     QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+        id: hBar
         policy: root.contentWidth > root.width ? QQC2.ScrollBar.AsNeeded : QQC2.ScrollBar.AlwaysOff
+        implicitHeight: Math.max(4, Design.scrollBarExtent)
+        opacity: boardHover.hovered || hBar.active ? 1 : 0
+        Behavior on opacity {
+            enabled: !Design.reducedMotion
+            NumberAnimation { duration: Kirigami.Units.shortDuration }
+        }
+        contentItem: Rectangle {
+            implicitHeight: Math.max(2, hBar.implicitHeight - 2)
+            radius: KanteStyle.active ? 0 : height / 2
+            color: Kirigami.Theme.textColor
+            opacity: hBar.pressed ? 0.7 : (hBar.hovered ? 0.55 : 0.35)
+        }
+        background: Item {}
     }
+    HoverHandler { id: boardHover }
 
     MouseArea {
         id: panArea

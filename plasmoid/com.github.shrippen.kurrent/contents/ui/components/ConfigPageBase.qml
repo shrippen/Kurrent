@@ -157,6 +157,8 @@ KCM.SimpleKCM {
     property string cfg_kanbanColumnSourceDefault
     property string cfg_kanbanWriteMode
     property string cfg_kanbanWriteModeDefault
+    property bool cfg_kanbanHideCanceled
+    property bool cfg_kanbanHideCanceledDefault
     property string cfg_kanbanManualOrder
     property string cfg_kanbanManualOrderDefault
     property string cfg_kanbanSortModeByViewColumn
