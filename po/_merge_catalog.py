@@ -15,7 +15,7 @@ from strings_1_0_addon import ADDON  # noqa: E402
 from strings_1_0_gaps2 import GAPS2  # noqa: E402
 from strings_matrix import MATRIX  # noqa: E402
 from strings_style import STYLE  # noqa: E402
-from strings_review import REVIEW  # noqa: E402
+from strings_review import REVIEW, REVIEW_OVERRIDES  # noqa: E402
 
 QML_I18N = re.compile(r'i18n(?:c\s*\(\s*"[^"]*"\s*,\s*)?\(\s*"((?:[^"\\]|\\.)*)"')
 
@@ -56,6 +56,7 @@ def main() -> None:
         merged.update(MATRIX.get(lang, {}))
         merged.update(STYLE.get(lang, {}))
         merged.update(OVERRIDES.get(lang, {}))
+        merged.update(REVIEW_OVERRIDES.get(lang, {}))
         catalogs[lang] = {msgid: merged[msgid] for msgid in qml_strings if msgid in merged}
 
     for lang in langs:

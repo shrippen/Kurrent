@@ -300,6 +300,11 @@ public:
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
     /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
     Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
+    /** Installed task app for the settings ("KOrganizer" / "Merkuro"); empty if none. */
+    Q_INVOKABLE QString taskAppName() const;
+    Q_INVOKABLE bool launchTaskApp() const;
+    /** Settings "Send test notification"; false without KNotifications support. */
+    Q_INVOKABLE bool sendTestNotification(const QString &title, const QString &text);
     Q_INVOKABLE void bulkCompleteTasks(const QVariantList &itemIds, bool completed);
     Q_INVOKABLE void bulkDeleteTasks(const QVariantList &itemIds);
     Q_INVOKABLE void bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId);

@@ -29,6 +29,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLocale>
+#include <QProcess>
 #include <QTime>
 #include <QDebug>
 #include <QFile>
@@ -5486,6 +5487,49 @@ void TaskController::checkReminders()
         notifyReminder(it.key(), it->todo->summary(), when);
     }
     m_lastReminderScan = now;
+}
+
+namespace {
+// Task apps the settings can open, preferred first: {executable, display name}.
+QPair<QString, QString> findTaskApp()
+{
+    static const QList<QPair<QString, QString>> apps = {
+        {QStringLiteral("korganizer"), QStringLiteral("KOrganizer")},
+        {QStringLiteral("merkuro-calendar"), QStringLiteral("Merkuro")},
+    };
+    for (const auto &app : apps) {
+        if (!QStandardPaths::findExecutable(app.first).isEmpty()) {
+            return app;
+        }
+    }
+    return {};
+}
+}
+
+QString TaskController::taskAppName() const
+{
+    return findTaskApp().second;
+}
+
+bool TaskController::launchTaskApp() const
+{
+    const auto app = findTaskApp();
+    return !app.first.isEmpty() && QProcess::startDetached(app.first, {});
+}
+
+bool TaskController::sendTestNotification(const QString &title, const QString &text)
+{
+#ifdef KURRENT_HAS_NOTIFICATIONS
+    auto *notification = new KNotification(QStringLiteral("taskReminder"), KNotification::CloseOnTimeout, this);
+    notification->setTitle(title);
+    notification->setText(text);
+    notification->sendEvent();
+    return true;
+#else
+    Q_UNUSED(title);
+    Q_UNUSED(text);
+    return false;
+#endif
 }
 
 void TaskController::notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when)

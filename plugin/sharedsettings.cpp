@@ -82,7 +82,7 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"sidebarViewOrder", ValueType::String, QString()},
         {"hiddenViews", ValueType::String, QString()},
         {"searchCaseSensitive", ValueType::Bool, false},
-        {"relativeDates", ValueType::Bool, false},
+        {"relativeDates", ValueType::Bool, true},
         {"showTimeOnRow", ValueType::Bool, true},
         {"completeNeedsModifier", ValueType::Bool, false},
         {"quietHoursEnabled", ValueType::Bool, false},

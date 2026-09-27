@@ -689,7 +689,7 @@ Item {
                         font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
                                                 : Kirigami.Theme.smallFont
                         text: DateTime.formatDueRowLabel(task.dueDate, {
-                            relativeDates: Plasmoid.configuration.relativeDates === true,
+                            relativeDates: Plasmoid.configuration.relativeDates !== false,
                             showTime: Plasmoid.configuration.showTimeOnRow !== false,
                             allDay: task.allDay === true,
                             today: i18n("Today"),

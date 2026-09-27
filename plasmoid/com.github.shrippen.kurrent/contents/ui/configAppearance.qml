@@ -21,7 +21,6 @@ ConfigPageBase {
     function syncControls() {
         selectCombo(densityCombo, cfg_density || "auto")
         selectCombo(overlayDimCombo, String(cfg_overlayDimStep))
-        selectCombo(previewLinesCombo, String(cfg_descriptionPreviewLines))
     }
 
     readonly property string currentStyle: cfg_uiStyle || "plasma"
@@ -78,13 +77,17 @@ ConfigPageBase {
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Flow {
+            // Three equal cards in one row; below 30 grid units they stack (b1).
+            GridLayout {
                 id: styleFlow
                 Kirigami.FormData.label: i18n("Style")
                 Kirigami.FormData.labelAlignment: Qt.AlignTop
                 Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 36
-                spacing: Kirigami.Units.largeSpacing
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 34
+                columns: width >= Kirigami.Units.gridUnit * 21 ? 3 : 1
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.largeSpacing
 
                 QQC2.ButtonGroup { id: styleGroup }
 
@@ -96,7 +99,10 @@ ConfigPageBase {
                         required property var modelData
                         readonly property bool current: root.currentStyle === modelData.value
 
-                        width: Kirigami.Units.gridUnit * 11
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 1
+                        Layout.minimumWidth: Kirigami.Units.gridUnit * 7
                         checkable: true
                         checked: current
                         QQC2.ButtonGroup.group: styleGroup
@@ -228,7 +234,7 @@ ConfigPageBase {
                                     Layout.fillWidth: true
                                     text: styleCard.modelData.title
                                     font.bold: true
-                                    elide: Text.ElideRight
+                                    wrapMode: Text.WordWrap
                                 }
                             }
 
@@ -257,12 +263,7 @@ ConfigPageBase {
                 onToggled: root.cfg_accentPriorityColors = checked
             }
 
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 30
-                wrapMode: Text.WordWrap
-                opacity: 0.7
-                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+            ConfigHint {
                 text: root.currentStyle === "kante"
                       ? i18n("Kante uses its own palette for the whole widget; priorities use its red, yellow and blue.")
                       : i18n("Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme.")
@@ -280,20 +281,8 @@ ConfigPageBase {
                 onToggled: root.cfg_blurBackground = checked
             }
 
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 30
-                wrapMode: Text.WordWrap
-                opacity: 0.7
-                font.pixelSize: Kirigami.Theme.smallFont.pixelSize
+            ConfigHint {
                 text: i18n("Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off.")
-            }
-
-            QQC2.CheckBox {
-                Kirigami.FormData.label: i18n("Hints")
-                text: i18n("Show a notice when tasks are overdue")
-                checked: root.cfg_showOverdueBanner
-                onToggled: root.cfg_showOverdueBanner = checked
             }
 
             QQC2.CheckBox {
@@ -304,9 +293,20 @@ ConfigPageBase {
             }
 
             QQC2.CheckBox {
-                text: i18n("Inspector: clicking a task shows its details beside the list")
+                text: i18n("Inspector beside the list")
                 checked: root.cfg_showInspector
                 onToggled: root.cfg_showInspector = checked
+            }
+
+            // Where overdue tasks show depends on the layout (b2).
+            QQC2.CheckBox {
+                Kirigami.FormData.label: i18n("Overdue")
+                text: i18n("Show overdue tasks (tile, chip or notice)")
+                checked: root.cfg_showOverdueBanner
+                onToggled: root.cfg_showOverdueBanner = checked
+            }
+            ConfigHint {
+                text: i18n("With tiles the overdue tile offers “Move all to today”; the narrow layout shows a chip in the header; otherwise a notice above the tasks.")
             }
 
             QQC2.ComboBox {
@@ -347,38 +347,22 @@ ConfigPageBase {
                 onToggled: root.cfg_reducedMotion = checked
             }
 
-            QQC2.ComboBox {
-                id: previewLinesCombo
-                Kirigami.FormData.label: i18n("Description preview")
-                Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
-                textRole: "text"
-                model: [
-                    { text: i18n("Hidden"), value: "0" },
-                    { text: i18n("1 line"), value: "1" },
-                    { text: i18n("2 lines"), value: "2" }
-                ]
-                onActivated: root.cfg_descriptionPreviewLines = Number(model[currentIndex].value)
-                Component.onCompleted: selectCombo(previewLinesCombo, String(plasmoid.configuration.descriptionPreviewLines || 0))
-            }
+        }
 
-            ConfigResetButton {
-                Kirigami.FormData.label: ""
-                page: root
-                defaults: ({
-                    uiStyle: "plasma",
-                    accentProjectColors: true,
-                    accentPriorityColors: true,
-                    showOverdueBanner: true,
-                    showViewTiles: true,
-                    showInspector: true,
-                    blurBackground: true,
-                    density: "auto",
-                    overlayDimStep: 1,
-                    reducedMotion: false,
-                    descriptionPreviewLines: 0
-                })
-            }
+        ConfigResetButton {
+            page: root
+            defaults: ({
+                uiStyle: "plasma",
+                accentProjectColors: true,
+                accentPriorityColors: true,
+                showOverdueBanner: true,
+                showViewTiles: true,
+                showInspector: true,
+                blurBackground: true,
+                density: "auto",
+                overlayDimStep: 1,
+                reducedMotion: false
+            })
         }
     }
 }

@@ -193,6 +193,67 @@ _ROWS = [
     ('today', 'heute', 'hoy', 'aujourd’hui', '今日', '今天'),
     ('tomorrow', 'morgen', 'mañana', 'demain', '明日', '明天'),
     ('yesterday', 'gestern', 'ayer', 'hier', '昨日', '昨天'),
+    # Settings review (eight pages).
+    ('%1 px', '%1 px', '%1 px', '%1 px', '%1 px', '%1 像素'),
+    ('Add CalDAV or Nextcloud calendars in %1 (DAV groupware resource).', 'CalDAV- oder Nextcloud-Kalender fügst du in %1 hinzu (DAV-Groupware-Ressource).', 'Añade calendarios CalDAV o Nextcloud en %1 (recurso DAV groupware).', 'Ajoutez des agendas CalDAV ou Nextcloud dans %1 (ressource DAV groupware).', 'CalDAV や Nextcloud のカレンダーは %1 で追加します (DAV グループウェアリソース)。', '在 %1 中添加 CalDAV 或 Nextcloud 日历（DAV 群件资源）。'),
+    ('Add CalDAV or Nextcloud calendars in KOrganizer or Merkuro (DAV groupware resource).', 'CalDAV- oder Nextcloud-Kalender fügst du in KOrganizer oder Merkuro hinzu (DAV-Groupware-Ressource).', 'Añade calendarios CalDAV o Nextcloud en KOrganizer o Merkuro (recurso DAV groupware).', 'Ajoutez des agendas CalDAV ou Nextcloud dans KOrganizer ou Merkuro (ressource DAV groupware).', 'CalDAV や Nextcloud のカレンダーは KOrganizer か Merkuro で追加します (DAV グループウェアリソース)。', '在 KOrganizer 或 Merkuro 中添加 CalDAV 或 Nextcloud 日历（DAV 群件资源）。'),
+    ('Advanced', 'Erweitert', 'Avanzado', 'Avancé', '詳細', '高级'),
+    ('Also complete subtasks', 'Unteraufgaben mit abhaken', 'Completar también las subtareas', 'Terminer aussi les sous-tâches', 'サブタスクも完了にする', '同时完成子任务'),
+    ('Automatic colour', 'Automatische Farbe', 'Color automático', 'Couleur automatique', '自動の色', '自动颜色'),
+    ('Behaviour', 'Verhalten', 'Comportamiento', 'Comportement', '動作', '行为'),
+    ('Call the plumber', 'Klempner anrufen', 'Llamar al fontanero', 'Appeler le plombier', '配管工に電話', '给水管工打电话'),
+    ('Choose colour…', 'Farbe wählen …', 'Elegir color…', 'Choisir une couleur…', '色を選択…', '选择颜色…'),
+    ('Colour %1', 'Farbe %1', 'Color %1', 'Couleur %1', '色 %1', '颜色 %1'),
+    ('Connected', 'Verbunden', 'Conectado', 'Connecté', '接続済み', '已连接'),
+    ('Connecting…', 'Verbinde …', 'Conectando…', 'Connexion…', '接続中…', '正在连接…'),
+    ('Copied', 'Kopiert', 'Copiado', 'Copié', 'コピーしました', '已复制'),
+    ('Day sections', 'Tagesabschnitte', 'Partes del día', 'Moments de la journée', '時間帯', '时段'),
+    ('Default project for new tasks', 'Standardprojekt für neue Aufgaben', 'Proyecto predeterminado para tareas nuevas', 'Projet par défaut des nouvelles tâches', '新しいタスクの既定のプロジェクト', '新任务的默认项目'),
+    ('Delete “%1”?', '„%1“ löschen?', '¿Eliminar «%1»?', 'Supprimer « %1 » ?', '「%1」を削除しますか?', '删除“%1”？'),
+    ('Delete…', 'Löschen …', 'Eliminar…', 'Supprimer…', '削除…', '删除…'),
+    ('Drag to reorder, switch to show or hide.', 'Ziehen zum Umsortieren, Schalter zum Ein- und Ausblenden.', 'Arrastra para reordenar; el interruptor muestra u oculta.', 'Glissez pour réordonner, l’interrupteur affiche ou masque.', 'ドラッグで並べ替え、スイッチで表示/非表示。', '拖动以排序，开关用于显示或隐藏。'),
+    ('Errands', 'Besorgungen', 'Recados', 'Courses', '用事', '跑腿'),
+    ('From', 'Von', 'De', 'De', '開始', '从'),
+    ('In the wide layout with the inspector on, a click shows the task in the inspector. Double-click always opens the full editor.', 'Im breiten Layout mit Inspektor zeigt ein Klick die Aufgabe im Inspektor. Doppelklick öffnet immer den vollständigen Editor.', 'En el diseño ancho con el inspector activo, un clic muestra la tarea en el inspector. El doble clic siempre abre el editor completo.', 'En disposition large avec l’inspecteur, un clic affiche la tâche dans l’inspecteur. Le double-clic ouvre toujours l’éditeur complet.', 'ワイドレイアウトでインスペクターが有効なら、クリックでタスクをインスペクターに表示します。ダブルクリックは常にフルエディターを開きます。', '在宽布局中开启检查器时，单击会在检查器中显示任务。双击始终打开完整编辑器。'),
+    ('Inspector beside the list', 'Inspektor neben der Liste', 'Inspector junto a la lista', 'Inspecteur à côté de la liste', 'リストの横にインスペクター', '列表旁的检查器'),
+    ('Labels are task categories in Akonadi. Hidden labels stay on the tasks but are not listed in the sidebar.', 'Labels sind Aufgabenkategorien in Akonadi. Ausgeblendete Labels bleiben an den Aufgaben, erscheinen aber nicht in der Seitenleiste.', 'Las etiquetas son categorías de tareas en Akonadi. Las ocultas siguen en las tareas, pero no aparecen en la barra lateral.', 'Les étiquettes sont les catégories de tâches d’Akonadi. Masquées, elles restent sur les tâches mais ne sont pas listées dans la barre latérale.', 'ラベルは Akonadi のタスクカテゴリです。非表示のラベルはタスクに残りますが、サイドバーには出ません。', '标签是 Akonadi 中的任务类别。隐藏的标签仍保留在任务上，但不在侧边栏列出。'),
+    ('Leaking tap in the kitchen, ask for Thursday morning.', 'Tropfender Wasserhahn in der Küche, nach Donnerstagvormittag fragen.', 'Grifo que gotea en la cocina, pedir el jueves por la mañana.', 'Robinet qui fuit dans la cuisine, demander jeudi matin.', '台所の蛇口の水漏れ、木曜の午前を頼む。', '厨房水龙头漏水，约周四上午。'),
+    ('Load', 'Laden', 'Cargar', 'Charger', '読み込む', '加载'),
+    ('Locations come from the task’s location field. Hidden locations stay on the tasks but are not listed in the sidebar.', 'Orte stammen aus dem Ortsfeld der Aufgabe. Ausgeblendete Orte bleiben an den Aufgaben, erscheinen aber nicht in der Seitenleiste.', 'Las ubicaciones vienen del campo de ubicación de la tarea. Las ocultas siguen en las tareas, pero no aparecen en la barra lateral.', 'Les lieux viennent du champ lieu de la tâche. Masqués, ils restent sur les tâches mais ne sont pas listés dans la barre latérale.', '場所はタスクの場所フィールドから取得します。非表示の場所はタスクに残りますが、サイドバーには出ません。', '地点来自任务的地点字段。隐藏的地点仍保留在任务上，但不在侧边栏列出。'),
+    ('Managed under Views › Smart Views.', 'Verwaltet unter Ansichten › Smart Views.', 'Se gestionan en Vistas › Vistas inteligentes.', 'Gérées dans Vues › Vues intelligentes.', 'ビュー › スマートビューで管理します。', '在 视图 › 智能视图 中管理。'),
+    ('More', 'Mehr', 'Más', 'Plus', 'その他', '更多'),
+    ('Moving a card changes', 'Verschieben einer Karte ändert', 'Mover una tarjeta cambia', 'Déplacer une carte modifie', 'カードの移動で変更するもの', '移动卡片时更改'),
+    ('Multi-select with Ctrl+click', 'Mehrfachauswahl mit Strg+Klick', 'Selección múltiple con Ctrl+clic', 'Sélection multiple avec Ctrl+clic', 'Ctrl+クリックで複数選択', 'Ctrl+单击多选'),
+    ('No Smart Views yet. Create one or copy a built-in view.', 'Noch keine Smart Views. Lege eine an oder kopiere eine eingebaute Ansicht.', 'Aún no hay vistas inteligentes. Crea una o copia una vista integrada.', 'Aucune vue intelligente pour l’instant. Créez-en une ou copiez une vue intégrée.', 'スマートビューはまだありません。作成するか組み込みビューをコピーしてください。', '还没有智能视图。新建一个或复制内置视图。'),
+    ('No reminders during busy events', 'Keine Erinnerungen während belegter Termine', 'Sin recordatorios durante eventos ocupados', 'Pas de rappels pendant les événements occupés', '予定のある時間は通知しない', '忙碌事件期间不提醒'),
+    ('No reminders during these hours', 'Keine Erinnerungen in diesen Stunden', 'Sin recordatorios en estas horas', 'Pas de rappels pendant ces heures', 'この時間帯は通知しない', '这些时段不提醒'),
+    ('None yet. Create them under Views › Smart Views.', 'Noch keine. Lege sie unter Ansichten › Smart Views an.', 'Ninguna aún. Créalas en Vistas › Vistas inteligentes.', 'Aucune pour l’instant. Créez-les dans Vues › Vues intelligentes.', 'まだありません。ビュー › スマートビューで作成します。', '还没有。在 视图 › 智能视图 中创建。'),
+    ('Notifications work.', 'Benachrichtigungen funktionieren.', 'Las notificaciones funcionan.', 'Les notifications fonctionnent.', '通知は正常に動作しています。', '通知正常。'),
+    ('Off under “Load”: the calendar is not read at all. Off under “Sidebar”: its tasks load but the project is not listed.', 'Aus bei „Laden“: Der Kalender wird gar nicht gelesen. Aus bei „Seitenleiste“: Die Aufgaben werden geladen, das Projekt aber nicht aufgeführt.', 'Desactivado en «Cargar»: el calendario no se lee. Desactivado en «Barra lateral»: sus tareas se cargan, pero el proyecto no aparece.', 'Désactivé sous « Charger » : l’agenda n’est pas lu du tout. Désactivé sous « Barre latérale » : ses tâches sont chargées mais le projet n’est pas listé.', '「読み込む」がオフ: カレンダーを読みません。「サイドバー」がオフ: タスクは読み込みますが、プロジェクトは表示しません。', '“加载”关闭：完全不读取该日历。“侧边栏”关闭：任务会加载，但项目不列出。'),
+    ('Only the custom column', 'Nur die eigene Spalte', 'Solo la columna propia', 'Seulement la colonne personnalisée', 'カスタム列のみ', '仅自定义列'),
+    ('Only with Shift or Ctrl held', 'Nur mit gedrückter Umschalt- oder Strg-Taste', 'Solo manteniendo Mayús o Ctrl', 'Seulement avec Maj ou Ctrl enfoncé', 'Shift か Ctrl を押しているときのみ', '仅在按住 Shift 或 Ctrl 时'),
+    ('Open %1', '%1 öffnen', 'Abrir %1', 'Ouvrir %1', '%1 を開く', '打开 %1'),
+    ('Organize', 'Organisieren', 'Organizar', 'Organiser', '整理', '整理'),
+    ('Panel & notifications', 'Panel & Hinweise', 'Panel y notificaciones', 'Panneau et notifications', 'パネルと通知', '面板与通知'),
+    ('Preview', 'Vorschau', 'Vista previa', 'Aperçu', 'プレビュー', '预览'),
+    ('Read this calendar when loading tasks', 'Diesen Kalender beim Laden der Aufgaben lesen', 'Leer este calendario al cargar tareas', 'Lire cet agenda au chargement des tâches', 'タスクの読み込み時にこのカレンダーを読む', '加载任务时读取此日历'),
+    ('Select only', 'Nur auswählen', 'Solo seleccionar', 'Sélectionner seulement', '選択のみ', '仅选择'),
+    ('Send test notification', 'Test-Benachrichtigung senden', 'Enviar notificación de prueba', 'Envoyer une notification de test', 'テスト通知を送る', '发送测试通知'),
+    ('Sent.', 'Gesendet.', 'Enviada.', 'Envoyée.', '送信しました。', '已发送。'),
+    ('Show overdue tasks (tile, chip or notice)', 'Überfällige anzeigen (Kachel, Chip oder Hinweis)', 'Mostrar vencidas (mosaico, chip o aviso)', 'Afficher les tâches en retard (tuile, puce ou avis)', '期限切れを表示 (タイル・チップ・通知)', '显示逾期任务（磁贴、标签或提示）'),
+    ('Snoozing only moves the reminder, not the due date.', 'Schlummern verschiebt nur die Erinnerung, nicht die Fälligkeit.', 'Posponer solo mueve el recordatorio, no el vencimiento.', 'Répéter ne déplace que le rappel, pas l’échéance.', 'スヌーズで動くのはリマインダーだけで、期限は変わりません。', '稍后提醒只推迟提醒，不改截止日期。'),
+    ('The field of the column (default)', 'Das Feld der Spalte (Standard)', 'El campo de la columna (predeterminado)', 'Le champ de la colonne (par défaut)', '列のフィールド (既定)', '该列对应的字段（默认）'),
+    ('This build has no notification support.', 'Dieser Build unterstützt keine Benachrichtigungen.', 'Esta compilación no admite notificaciones.', 'Cette version ne prend pas en charge les notifications.', 'このビルドは通知に対応していません。', '此版本不支持通知。'),
+    ('Tick off', 'Abhaken', 'Marcar', 'Cocher', 'チェック', '勾选'),
+    ('Today groups its tasks into morning, afternoon and evening from these times.', 'Heute gruppiert seine Aufgaben ab diesen Uhrzeiten in Morgen, Nachmittag und Abend.', 'Hoy agrupa sus tareas en mañana, tarde y noche a partir de estas horas.', 'Aujourd’hui groupe ses tâches en matin, après-midi et soir à partir de ces heures.', '今日ビューはこの時刻でタスクを朝・午後・夜に分けます。', '“今天”按这些时间将任务分为上午、下午和晚上。'),
+    ('Version', 'Version', 'Versión', 'Version', 'バージョン', '版本'),
+    ('Widget %1 · Plugin %2', 'Widget %1 · Plugin %2', 'Widget %1 · Plugin %2', 'Widget %1 · Plugin %2', 'ウィジェット %1 · プラグイン %2', '小部件 %1 · 插件 %2'),
+    ('Widget and plugin versions differ. Reinstall Kurrent so both match.', 'Widget- und Plugin-Version unterscheiden sich. Installiere Kurrent neu, damit beide passen.', 'Las versiones del widget y del plugin difieren. Reinstala Kurrent para que coincidan.', 'Les versions du widget et du plugin diffèrent. Réinstallez Kurrent pour les aligner.', 'ウィジェットとプラグインのバージョンが違います。Kurrent を再インストールしてください。', '小部件与插件版本不一致。请重新安装 Kurrent。'),
+    ('With tiles the overdue tile offers “Move all to today”; the narrow layout shows a chip in the header; otherwise a notice above the tasks.', 'Mit Kacheln bietet die Überfällig-Kachel „Alle auf heute“; das schmale Layout zeigt einen Chip in der Kopfzeile; sonst erscheint ein Hinweis über den Aufgaben.', 'Con mosaicos, el de vencidas ofrece «Mover todo a hoy»; el diseño estrecho muestra un chip en la cabecera; si no, un aviso sobre las tareas.', 'Avec les tuiles, la tuile « En retard » propose « Tout à aujourd’hui » ; la disposition étroite affiche une puce dans l’en-tête ; sinon un avis au-dessus des tâches.', 'タイルがあれば期限切れタイルに「すべて今日へ」、狭いレイアウトではヘッダーにチップ、それ以外はタスクの上に通知を表示します。', '有磁贴时，逾期磁贴提供“全部移到今天”；窄布局在标题栏显示标签；否则在任务上方显示提示。'),
+    ('You can also drag the edge of the sidebar.', 'Du kannst auch den Rand der Seitenleiste ziehen.', 'También puedes arrastrar el borde de la barra lateral.', 'Vous pouvez aussi faire glisser le bord de la barre latérale.', 'サイドバーの端をドラッグしても変えられます。', '也可以拖动侧边栏边缘。'),
+    ('to', 'bis', 'a', 'à', 'から', '到'),
+    ('Writes and sync state', 'Schreibvorgänge und Sync-Status', 'Escrituras y estado de sincronización', 'Écritures et état de synchro', '書き込みと同期状態', '写入与同步状态'),
+    ('Fetch, monitor and collection details', 'Abruf-, Monitor- und Sammlungsdetails', 'Detalles de obtención, monitor y colecciones', 'Détails de récupération, de suivi et de collections', '取得・監視・コレクションの詳細', '获取、监视与集合详情'),
 ]
 
 _LANGS = ["de", "es", "fr", "ja", "zh_CN"]
@@ -203,8 +264,32 @@ for _row in _ROWS:
             REVIEW[_lang][_row[0]] = _row[_i + 1]
 
 
-# Relative due dates in the inspector (i18np).
+# Consistent terms (x4): win over older catalog entries.
+REVIEW_OVERRIDES = {
+    'de': {
+        'Priorities': 'Prioritäten',
+        'Duplicate built-in view…': 'Eingebaute Ansicht kopieren …',
+    },
+}
+
+# Relative due dates in the inspector, settings counts (i18np).
 PLURAL_REVIEW = {
+    '%1 calendar': {
+        'msgid_plural': '%1 calendars',
+        'de': ['%1 Kalender', '%1 Kalender'],
+        'es': ['%1 calendario', '%1 calendarios'],
+        'fr': ['%1 agenda', '%1 agendas'],
+        'ja': ['%1 個のカレンダー'],
+        'zh_CN': ['%1 个日历', '%1 个日历'],
+    },
+    'It is removed from %1 task.': {
+        'msgid_plural': 'It is removed from %1 tasks.',
+        'de': ['Es wird von %1 Aufgabe entfernt.', 'Es wird von %1 Aufgaben entfernt.'],
+        'es': ['Se quitará de %1 tarea.', 'Se quitará de %1 tareas.'],
+        'fr': ['Il sera retiré de %1 tâche.', 'Il sera retiré de %1 tâches.'],
+        'ja': ['%1 件のタスクから外されます。'],
+        'zh_CN': ['将从 %1 个任务中移除。', '将从 %1 个任务中移除。'],
+    },
     'in %1 day': {
         'msgid_plural': 'in %1 days',
         'de': ['in %1 Tag', 'in %1 Tagen'],

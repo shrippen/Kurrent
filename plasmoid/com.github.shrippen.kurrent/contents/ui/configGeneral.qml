@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "components"
+import org.kde.plasma.plasmoid
 
 ConfigPageBase {
     id: root
@@ -20,6 +21,26 @@ ConfigPageBase {
     function syncControls() {
         selectCombo(defaultViewCombo, cfg_defaultView || "inbox")
         selectCombo(defaultDueCombo, cfg_defaultDueMode || "none")
+        selectCombo(reminderCombo, String(cfg_defaultReminderMinutes))
+    }
+
+    readonly property bool akonadiOnline: !!settingsController && settingsController.akonadiAvailable
+    readonly property string taskAppName: settingsController ? settingsController.taskAppName() : ""
+    readonly property int calendarCount: {
+        var m = settingsController ? settingsController.collectionModel : null
+        if (!m) return 0
+        var n = 0
+        for (var i = 0; i < m.count; ++i) if (m.enabledAt(i)) ++n
+        return n
+    }
+    readonly property int taskTotal: {
+        // Re-count when tasks arrive (the model's counts change without a count change).
+        var dep = settingsController ? settingsController.viewTaskCounts : null
+        var m = settingsController ? settingsController.collectionModel : null
+        if (!m) return 0
+        var n = 0
+        for (var i = 0; i < m.count; ++i) if (m.enabledAt(i)) n += m.taskCountAt(i)
+        return n
     }
 
     function normalizeReleaseVersion(v) {
@@ -62,19 +83,39 @@ ConfigPageBase {
                 backendVersion: root.configBackendVersion
             }
 
-            Kirigami.Heading {
+            // Akonadi at a glance: connection, calendars, tasks, and the app to set up more (a1).
+            RowLayout {
                 Kirigami.FormData.label: i18n("Akonadi")
-                text: i18n("Tasks are loaded from your existing Akonadi setup.")
-                level: 3
-                wrapMode: Text.WordWrap
                 Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                Kirigami.Icon {
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                    source: root.akonadiOnline ? "checkmark" : "network-disconnect"
+                    color: root.akonadiOnline ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
+                }
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    text: !settingsController ? i18n("Connecting…")
+                        : !root.akonadiOnline ? i18n("Akonadi is not running")
+                        : i18n("Connected") + " · " + i18np("%1 calendar", "%1 calendars", root.calendarCount)
+                          + " · " + i18np("%1 task", "%1 tasks", root.taskTotal)
+                }
             }
 
-            QQC2.Label {
-                Kirigami.FormData.label: i18n("Setup")
-                text: i18n("Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource).")
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
+            QQC2.Button {
+                visible: root.taskAppName.length > 0
+                icon.name: "view-calendar-tasks"
+                text: i18n("Open %1", root.taskAppName)
+                onClicked: settingsController.launchTaskApp()
+            }
+
+            ConfigHint {
+                text: root.taskAppName.length > 0
+                      ? i18n("Add CalDAV or Nextcloud calendars in %1 (DAV groupware resource).", root.taskAppName)
+                      : i18n("Add CalDAV or Nextcloud calendars in KOrganizer or Merkuro (DAV groupware resource).")
             }
 
             QQC2.ComboBox {
@@ -105,17 +146,15 @@ ConfigPageBase {
                 onCheckedChanged: root.cfg_rememberLastView = checked
             }
 
-            QQC2.CheckBox {
-                id: showCompletedCheck
-                Kirigami.FormData.label: i18n("Completed tasks")
-                text: i18n("Show completed tasks")              
-                checked: root.cfg_showCompleted
-                onCheckedChanged: root.cfg_showCompleted = checked
-                        }
+            // Defaults for new tasks in one place (a3).
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("New tasks")
+            }
 
             QQC2.RadioButton {
                 id: newTaskAskRadio
-                Kirigami.FormData.label: i18n("New tasks")
+                Kirigami.FormData.label: i18n("Project")
                 text: i18n("Ask which project to use")
                 checked: (root.cfg_newTaskProjectMode || "ask") === "ask"
                 QQC2.ButtonGroup.group: newTaskModeGroup
@@ -139,9 +178,8 @@ ConfigPageBase {
             ProjectPicker {
                 id: defaultProjectPicker
                 visible: root.cfg_newTaskProjectMode === "fixed"
-                Kirigami.FormData.label: visible ? i18n("Default project") : ""
                 Layout.fillWidth: true
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 24
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 20
                 collectionModel: settingsController ? settingsController.collectionModel : null
                 hiddenProjects: plasmoid.configuration.hiddenProjects || ""
                 includeEmptyProjects: true
@@ -159,7 +197,7 @@ ConfigPageBase {
 
             QQC2.ComboBox {
                 id: defaultDueCombo
-                Kirigami.FormData.label: i18n("Default due date")
+                Kirigami.FormData.label: i18n("Due date")
                 Layout.fillWidth: true
                 Layout.maximumWidth: Kirigami.Units.gridUnit * 16
                 textRole: "text"
@@ -172,36 +210,68 @@ ConfigPageBase {
                 Component.onCompleted: selectCombo(defaultDueCombo, plasmoid.configuration.defaultDueMode || "none")
             }
 
+            QQC2.ComboBox {
+                id: reminderCombo
+                Kirigami.FormData.label: i18n("Reminder")
+                Layout.fillWidth: true
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                textRole: "text"
+                model: [
+                    { text: i18n("Off"), value: "-1" },
+                    { text: i18n("At due time"), value: "0" },
+                    { text: i18n("15 minutes before"), value: "15" },
+                    { text: i18n("1 hour before"), value: "60" },
+                    { text: i18n("1 day before"), value: "1440" }
+                ]
+                onActivated: cfg_defaultReminderMinutes = Number(model[currentIndex].value)
+                Component.onCompleted: selectCombo(reminderCombo, String(plasmoid.configuration.defaultReminderMinutes !== undefined ? plasmoid.configuration.defaultReminderMinutes : -1))
+            }
+
+            // One section instead of one heading per check box (a2).
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("Behaviour")
+            }
+
             QQC2.CheckBox {
-                id: confirmDeleteCheck
-                Kirigami.FormData.label: i18n("Delete")
-                text: i18n("Ask before deleting a task")
+                id: showCompletedCheck
+                Kirigami.FormData.label: i18n("Completed tasks")
+                text: i18n("Show completed tasks")
                 checked: root.cfg_showCompleted
                 onCheckedChanged: root.cfg_showCompleted = checked
             }
 
             QQC2.CheckBox {
-                id: modifierCheck
-                Kirigami.FormData.label: i18n("Checkbox")
-                text: i18n("Complete only with Shift or Ctrl held")
+                id: confirmDeleteCheck
+                Kirigami.FormData.label: i18n("Delete")
+                text: i18n("Ask before deleting a task")
                 checked: root.cfg_confirmDelete
                 onCheckedChanged: root.cfg_confirmDelete = checked
             }
 
-            ConfigResetButton {
-                Kirigami.FormData.label: ""
-                page: root
-                defaults: ({
-                    defaultView: "inbox",
-                    rememberLastView: false,
-                    showCompleted: false,
-                    newTaskProjectMode: "ask",
-                    newTaskDefaultCollectionId: "",
-                    defaultDueMode: "none",
-                    confirmDelete: false,
-                    completeNeedsModifier: false
-                })
+            QQC2.CheckBox {
+                id: modifierCheck
+                Kirigami.FormData.label: i18n("Tick off")
+                text: i18n("Only with Shift or Ctrl held")
+                checked: root.cfg_completeNeedsModifier
+                onCheckedChanged: root.cfg_completeNeedsModifier = checked
             }
+
+        }
+
+        ConfigResetButton {
+            page: root
+            defaults: ({
+                defaultView: "inbox",
+                rememberLastView: false,
+                showCompleted: false,
+                newTaskProjectMode: "ask",
+                newTaskDefaultCollectionId: "",
+                defaultDueMode: "none",
+                defaultReminderMinutes: -1,
+                confirmDelete: false,
+                completeNeedsModifier: false
+            })
         }
     }
 
@@ -212,6 +282,7 @@ ConfigPageBase {
     ConfigControllerLoader {
         id: settingsControllerLoader
         onLoaded: {
+            refresh()
             var raw = plasmoid.configuration.enabledCollections || ""
             if (!raw.trim()) {
                 defaultProjectPicker.rebuild()

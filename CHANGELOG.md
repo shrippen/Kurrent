@@ -42,6 +42,8 @@
 - Editor: title and status (segmented) at the top; "All day" hides the time fields; progress without scale; Kante radio buttons are diamonds; placeholders "Date" / "Time"; title field starts at the beginning.
 - Swimlanes: cards per cell adapt so several lanes fit; Plan: legend right below the table, taller cells with a priority split bar.
 - Narrow layout: arrows at the tab bar edges when more tabs exist.
+- Settings: eight pages instead of twelve. General (Akonadi status with task app button, new-task defaults incl. reminder, behaviour), Appearance, Tasks (click action, live row preview, two-column chips, description preview), Sidebar, Views (Smart Views, Today day sections, Kanban, Swimlanes, Plan, Advanced), Panel & notifications (badge preview, test notification, quiet hours in one line), Organize (projects, labels, locations as tabs with one compact list: colour picker, inline rename, delete with count, default-project star), Diagnostics (widget and plugin version side by side).
+- Settings layout: labels sit left of the fields on every page; left-aligned section heads; "Reset this page" on every page at the bottom left; consistent terms (Priorities, built-in view); relative dates on by default.
 - Dates follow the system locale everywhere (day and month names were English); Kanban column names are translated; 120 missing strings translated in all five languages.
 - Full editor (Kante): accent bar in the task's priority colour.
 - Backend-missing page: Kante install card (title, cut corner, accent bar, primary copy button).
@@ -71,6 +73,7 @@
 - Weekend columns are computed once per matrix instead of per cell.
 
 ### Fixed
+- Settings › General: "Ask before deleting" toggled "Show completed tasks", and "Complete only with Shift or Ctrl" toggled "Ask before deleting".
 - Settings showed no options: `config.qml` imported the generated dev-build marker as a directory, so the category list failed to load.
 - Tasks completed in Kurrent had no completion date (COMPLETED), so the heatmap did not count them; completions after midnight UTC landed on the previous day.
 - Translation catalogs were stale (the merge step failed on missing strings), and msgids with QML escapes (`\u201c`, `\"`) never matched at runtime.

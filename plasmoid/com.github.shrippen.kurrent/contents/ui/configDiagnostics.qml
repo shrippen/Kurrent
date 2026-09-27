@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "components"
+import org.kde.plasma.plasmoid
 
 ConfigPageBase {
     id: root
@@ -11,6 +12,10 @@ ConfigPageBase {
         Component.onCompleted: refresh()
     }
     readonly property var settingsController: settingsControllerLoader.controller
+    readonly property string widgetVersion: (typeof Plasmoid !== "undefined" && Plasmoid.metaData) ? Plasmoid.metaData.version : ""
+    readonly property bool versionMismatch: !!settingsController && widgetVersion.length > 0
+            && String(settingsController.pluginVersion).split(".").slice(0, 2).join(".")
+               !== widgetVersion.split(".").slice(0, 2).join(".")
 
     function copyDebugBundle() {
         var lines = []
@@ -36,11 +41,10 @@ ConfigPageBase {
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Kirigami.Heading {
-                Kirigami.FormData.label: i18n("Status")
-                text: i18n("Akonadi and plugin diagnostics")
-                level: 3
-                Layout.fillWidth: true
+            // Real section heads instead of form rows (m1).
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("Status")
             }
 
             QQC2.Label {
@@ -53,9 +57,18 @@ ConfigPageBase {
                         : Kirigami.Theme.negativeTextColor
             }
 
+            // Widget and plugin side by side; a mismatch is the usual cause after updates (m2).
             QQC2.Label {
-                Kirigami.FormData.label: i18n("Plugin version")
-                text: settingsController ? settingsController.pluginVersion : i18n("Not loaded")
+                Kirigami.FormData.label: i18n("Version")
+                text: i18n("Widget %1 · Plugin %2", root.widgetVersion,
+                           settingsController ? settingsController.pluginVersion : i18n("Not loaded"))
+            }
+            QQC2.Label {
+                visible: root.versionMismatch
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                color: Kirigami.Theme.negativeTextColor
+                text: i18n("Widget and plugin versions differ. Reinstall Kurrent so both match.")
             }
 
             QQC2.Label {
@@ -74,52 +87,57 @@ ConfigPageBase {
             ScrollableTextArea {
                 Kirigami.FormData.label: i18n("Debug info")
                 Layout.fillWidth: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 18
                 preferredLines: 8
                 readOnly: true
                 text: settingsController ? (settingsController.debugInfo || "") : ""
             }
 
             QQC2.Button {
-                Kirigami.FormData.label: i18n("Copy")
-                text: i18n("Copy debug bundle")
+                id: copyButton
+                // Confirms the copy for two seconds (m3).
+                property bool copied: false
+                text: copied ? i18n("Copied") : i18n("Copy debug bundle")
+                icon.name: copied ? "checkmark" : "edit-copy"
                 enabled: !!settingsController
-                onClicked: root.copyDebugBundle()
+                onClicked: {
+                    root.copyDebugBundle()
+                    copied = true
+                    copiedTimer.restart()
+                }
+                Timer {
+                    id: copiedTimer
+                    interval: 2000
+                    onTriggered: copyButton.copied = false
+                }
             }
 
-            Kirigami.Heading {
-                Kirigami.FormData.label: i18n("Logging")
-                text: i18n("Journal diagnostics")
-                level: 3
-                Layout.fillWidth: true
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("Logging")
             }
 
             QQC2.CheckBox {
                 Kirigami.FormData.label: i18n("Info journal")
-                text: i18n("Log Akonadi writes and sync state to the system journal")
+                text: i18n("Writes and sync state")
                 checked: root.cfg_infoJournalLogging
                 onCheckedChanged: root.cfg_infoJournalLogging = checked
             }
 
             QQC2.CheckBox {
                 Kirigami.FormData.label: i18n("Verbose journal")
-                text: i18n("Log fetch, monitor, and collection details to the system journal")
+                text: i18n("Fetch, monitor and collection details")
                 checked: root.cfg_verboseJournalLogging
                 onCheckedChanged: root.cfg_verboseJournalLogging = checked
             }
 
-            QQC2.Label {
+            ConfigHint {
                 Kirigami.FormData.label: i18n("Category")
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                opacity: 0.75
                 text: i18n("Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug).")
             }
 
-            QQC2.Label {
+            ConfigHint {
                 Kirigami.FormData.label: i18n("Smoke test")
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                opacity: 0.75
                 text: i18n("Set KURRENT_SMOKE=1 and check ~/.cache/kurrent-smoke/ for logs.")
             }
         }

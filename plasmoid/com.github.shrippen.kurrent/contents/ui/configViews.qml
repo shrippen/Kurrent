@@ -16,6 +16,35 @@ ConfigPageBase {
 
     property int editingIndex: -1
 
+    readonly property var hourModel: (function() {
+        var rows = []
+        for (var h = 0; h < 24; ++h) {
+            rows.push({ text: i18n("%1:00", h), value: h })
+        }
+        return rows
+    })()
+
+    // "8 weeks", "14 days"; 0 = zeroText.
+    function periodText(n, bucket, zeroText) {
+        if (n === 0) {
+            return zeroText
+        }
+        if (bucket === "day") return i18np("%1 day", "%1 days", n)
+        if (bucket === "month") return i18np("%1 month", "%1 months", n)
+        return i18np("%1 week", "%1 weeks", n)
+    }
+
+    // Reset: re-read the combos from cfg_ (ConfigResetButton calls this).
+    function syncControls() {
+        kanbanSourceCombo.currentIndex = Math.max(0, kanbanSourceCombo.indexOfValue(cfg_kanbanColumnSource || "status"))
+        kanbanWriteCombo.currentIndex = Math.max(0, kanbanWriteCombo.indexOfValue(cfg_kanbanWriteMode || "fields"))
+        swimlaneAxisCombo.currentIndex = Math.max(0, swimlaneAxisCombo.indexOfValue(cfg_swimlaneLaneAxis || "project"))
+        swimlaneTimeCombo.currentIndex = Math.max(0, swimlaneTimeCombo.indexOfValue(cfg_swimlaneTimeBucket || "week"))
+        planTimeCombo.currentIndex = Math.max(0, planTimeCombo.indexOfValue(cfg_planTimeBucket || "week"))
+        swimlaneHorizonSpin.value = cfg_swimlaneHorizon
+        planHorizonSpin.value = cfg_planHorizon
+    }
+
     readonly property var smartViewsListModel: {
         // Re-evaluate whenever cfg_smartViews changes.
         var _unused = cfg_smartViews
@@ -107,20 +136,17 @@ ConfigPageBase {
         Kirigami.FormLayout {
             Layout.fillWidth: true
 
-            Kirigami.Separator {
+            ConfigSection {
                 Kirigami.FormData.isSection: true
-                Kirigami.FormData.label: i18n("Smart Views")
+                text: i18n("Smart Views")
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                QQC2.Label {
+                ConfigHint {
                     text: i18n("Saved filters appear in the sidebar. Each can set filter rules and a default main-pane mode.")
-                    opacity: 0.65
-                    wrapMode: Text.WordWrap
-                    Layout.fillWidth: true
                 }
 
                 RowLayout {
@@ -170,6 +196,15 @@ ConfigPageBase {
                     }
                 }
 
+                // Empty state (d4).
+                QQC2.Label {
+                    visible: root.smartViewsListModel.length === 0
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.6
+                    text: i18n("No Smart Views yet. Create one or copy a built-in view.")
+                }
+
                 Repeater {
                     model: root.smartViewsListModel
                     delegate: RowLayout {
@@ -213,9 +248,51 @@ ConfigPageBase {
                 }
             }
 
-            Kirigami.Separator {
+            // Day sections of the Today view, moved here from Tasks (d5, e2).
+            ConfigSection {
                 Kirigami.FormData.isSection: true
-                Kirigami.FormData.label: i18n("Kanban")
+                text: i18n("Today")
+            }
+
+            Flow {
+                Kirigami.FormData.label: i18n("Day sections")
+                Layout.fillWidth: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 18
+                spacing: Kirigami.Units.smallSpacing
+
+                Repeater {
+                    model: [
+                        { key: "morningHour", label: i18n("Morning"), def: 6 },
+                        { key: "afternoonHour", label: i18n("Afternoon"), def: 12 },
+                        { key: "eveningHour", label: i18n("Evening"), def: 18 }
+                    ]
+                    RowLayout {
+                        required property var modelData
+                        spacing: Kirigami.Units.smallSpacing
+                        QQC2.Label { text: modelData.label }
+                        QQC2.ComboBox {
+                            id: hourCombo
+                            Layout.preferredWidth: Kirigami.Units.gridUnit * 4.5
+                            textRole: "text"
+                            valueRole: "value"
+                            model: root.hourModel
+                            currentIndex: {
+                                var v = root["cfg_" + modelData.key]
+                                return v === undefined || v === null ? modelData.def : v
+                            }
+                            onActivated: root["cfg_" + modelData.key] = currentValue
+                        }
+                    }
+                }
+            }
+
+            ConfigHint {
+                text: i18n("Today groups its tasks into morning, afternoon and evening from these times.")
+            }
+
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("Kanban")
             }
 
             QQC2.ComboBox {
@@ -241,23 +318,6 @@ ConfigPageBase {
                 onActivated: cfg_kanbanColumnSource = model[currentIndex].value
             }
 
-            QQC2.ComboBox {
-                id: kanbanWriteCombo
-                Kirigami.FormData.label: i18n("Kanban writes")
-                Layout.fillWidth: true
-                textRole: "text"
-                valueRole: "value"
-                model: [
-                    { text: i18n("Standard VTODO fields"), value: "fields" },
-                    { text: i18n("KURRENT/COLUMN only"), value: "custom" },
-                    { text: i18n("Both"), value: "both" }
-                ]
-                Component.onCompleted: {
-                    currentIndex = Math.max(0, indexOfValue(cfg_kanbanWriteMode || "fields"))
-                }
-                onActivated: cfg_kanbanWriteMode = model[currentIndex].value
-            }
-
             QQC2.CheckBox {
                 text: i18n("Hide the Canceled column")
                 checked: cfg_kanbanHideCanceled
@@ -265,9 +325,9 @@ ConfigPageBase {
             }
 
             // Swimlanes section
-            Kirigami.Separator {
+            ConfigSection {
                 Kirigami.FormData.isSection: true
-                Kirigami.FormData.label: i18n("Swimlanes")
+                text: i18n("Swimlanes")
             }
 
             QQC2.ComboBox {
@@ -307,20 +367,23 @@ ConfigPageBase {
 
             QQC2.SpinBox {
                 id: swimlaneHorizonSpin
-                Kirigami.FormData.label: i18n("Swimlane horizon")
+                Kirigami.FormData.label: i18n("Look ahead")
                 Layout.fillWidth: true
                 from: 0
                 to: 52
                 value: cfg_swimlaneHorizon !== undefined ? cfg_swimlaneHorizon : 0
                 onValueModified: cfg_swimlaneHorizon = value
+                // Unit follows the column axis; 0 reads "Automatic" (d2).
+                textFromValue: function(v) { return root.periodText(v, swimlaneTimeCombo.currentValue, i18n("Automatic")) }
+                valueFromText: function(t) { return parseInt(t, 10) || 0 }
                 QQC2.ToolTip.text: i18n("Periods shown ahead of the current one. 0 = automatic (14 days, 8 weeks or 6 months). Later tasks are collected in one column.")
                 QQC2.ToolTip.visible: hovered
             }
 
             // Project plan section
-            Kirigami.Separator {
+            ConfigSection {
                 Kirigami.FormData.isSection: true
-                Kirigami.FormData.label: i18n("Project plan")
+                text: i18n("Project plan")
             }
 
             QQC2.ComboBox {
@@ -348,21 +411,66 @@ ConfigPageBase {
                 to: 52
                 value: cfg_planHorizon !== undefined ? cfg_planHorizon : 8
                 onValueModified: cfg_planHorizon = value
+                textFromValue: function(v) { return root.periodText(v, planTimeCombo.currentValue, i18n("All")) }
+                valueFromText: function(t) { return parseInt(t, 10) || 0 }
                 QQC2.ToolTip.text: i18n("0 = show all time periods")
                 QQC2.ToolTip.visible: hovered
             }
 
             QQC2.CheckBox {
-                Kirigami.FormData.label: i18n("Show undated tasks")
+                Kirigami.FormData.label: i18n("Tasks")
+                text: i18n("Show undated tasks")
                 checked: cfg_planShowUndated !== undefined ? cfg_planShowUndated : true
-                onCheckedChanged: cfg_planShowUndated = checked
+                onToggled: cfg_planShowUndated = checked
             }
 
             QQC2.CheckBox {
-                Kirigami.FormData.label: i18n("Show completed tasks")
+                text: i18n("Show completed tasks")
                 checked: cfg_planShowCompleted === true
-                onCheckedChanged: cfg_planShowCompleted = checked
+                onToggled: cfg_planShowCompleted = checked
             }
+
+            // Rarely needed, technical (d3).
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("Advanced")
+            }
+
+            QQC2.ComboBox {
+                id: kanbanWriteCombo
+                Kirigami.FormData.label: i18n("Moving a card changes")
+                Layout.fillWidth: true
+                textRole: "text"
+                valueRole: "value"
+                model: [
+                    { text: i18n("The field of the column (default)"), value: "fields" },
+                    { text: i18n("Only the custom column"), value: "custom" },
+                    { text: i18n("Both"), value: "both" }
+                ]
+                Component.onCompleted: {
+                    currentIndex = Math.max(0, indexOfValue(cfg_kanbanWriteMode || "fields"))
+                }
+                onActivated: cfg_kanbanWriteMode = model[currentIndex].value
+            }
+        }
+
+        ConfigResetButton {
+            page: root
+            defaults: ({
+                morningHour: 6,
+                afternoonHour: 12,
+                eveningHour: 18,
+                kanbanColumnSource: "status",
+                kanbanWriteMode: "fields",
+                kanbanHideCanceled: false,
+                swimlaneLaneAxis: "project",
+                swimlaneTimeBucket: "week",
+                swimlaneHorizon: 0,
+                planTimeBucket: "week",
+                planHorizon: 8,
+                planShowUndated: true,
+                planShowCompleted: false
+            })
         }
     }
 

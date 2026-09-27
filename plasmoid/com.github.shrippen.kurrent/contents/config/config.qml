@@ -17,6 +17,7 @@ ConfigModel {
         return dev
     }
 
+    // Eight pages; projects, labels and locations share "Organize".
     ConfigCategory {
         name: i18n("General")
         icon: "configure"
@@ -26,6 +27,11 @@ ConfigModel {
         name: i18n("Appearance")
         icon: "preferences-desktop-theme"
         source: "configAppearance.qml"
+    }
+    ConfigCategory {
+        name: i18n("Tasks")
+        icon: "view-list-details"
+        source: "configTasks.qml"
     }
     ConfigCategory {
         name: i18n("Sidebar")
@@ -38,39 +44,14 @@ ConfigModel {
         source: "configViews.qml"
     }
     ConfigCategory {
-        name: i18n("Tasks")
-        icon: "view-list-details"
-        source: "configTasks.qml"
-    }
-    ConfigCategory {
-        name: i18n("Editor")
-        icon: "document-edit"
-        source: "configEditor.qml"
-    }
-    ConfigCategory {
-        name: i18n("Panel")
-        icon: "plasmashell"
+        name: i18n("Panel & notifications")
+        icon: "preferences-desktop-notification"
         source: "configPanel.qml"
     }
     ConfigCategory {
-        name: i18n("Notifications")
-        icon: "preferences-desktop-notification"
-        source: "configNotifications.qml"
-    }
-    ConfigCategory {
-        name: i18n("Projects")
-        icon: "folder"
-        source: "configProjects.qml"
-    }
-    ConfigCategory {
-        name: i18n("Labels")
-        icon: "tag"
-        source: "configLabels.qml"
-    }
-    ConfigCategory {
-        name: i18n("Locations")
-        icon: "mark-location"
-        source: "configLocations.qml"
+        name: i18n("Organize")
+        icon: "folder-tag"
+        source: "configOrganize.qml"
     }
     ConfigCategory {
         name: i18n("Diagnostics")
