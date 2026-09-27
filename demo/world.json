@@ -1,14 +1,14 @@
 {
  "version": 1,
- "about": "Shared demo data of all shrippen projects: Studio Weber, a small film and media studio in Hamburg, currently also shooting a mystery series in Graufeld, a foggy stretch of marsh at the Elbe mouth. Everything is made up. Dates are day offsets from the anchor (Monday of the week that contains 'today', DEMO_TODAY=YYYY-MM-DD fixes 'today'). Texts are {de, en}. Edit this file, then run demo/tools/sync-demo.py. See demo/README.md.",
+ "about": "Shared demo data of all shrippen projects: Studio Weber, a small film and sound studio in Hamburg that likes to shoot at night, currently also in Graufeld, a foggy stretch of marsh at the Elbe mouth, where it films a mystery series. Under the ordinary data runs a quiet homage to Alan Wake (see 'oddities'). Everything is made up. Dates are day offsets from the anchor (Monday of the week that contains 'today', DEMO_TODAY=YYYY-MM-DD fixes 'today'). Texts are {de, en}. Edit this file, then run demo/tools/sync-demo.py. See demo/README.md.",
  "screenshot_today": "2026-09-16",
  "timezone": "Europe/Berlin",
  "currency": "EUR",
  "studio": {
   "name": "Studio Weber",
   "tagline": {
-   "de": "Film und Medien aus Hamburg",
-   "en": "Film and media from Hamburg"
+   "de": "Film und Ton aus Hamburg, auch bei Nacht",
+   "en": "Film and sound from Hamburg, by night too"
   },
   "city": "Hamburg",
   "address": "Kranichweg 12, 22765 Hamburg",
@@ -65,8 +65,8 @@
    "color": "#8ec07c",
    "hours_per_week": 30,
    "title": {
-    "de": "Ton",
-    "en": "Sound"
+    "de": "Ton und Musik",
+    "en": "Sound and music"
    }
   },
   {
@@ -129,15 +129,15 @@
   },
   {
    "id": "elbgruen",
-   "name": "Elbgrün Stiftung",
+   "name": "Stiftung Elbfeuer",
    "color": "#689d6a",
    "clash_color": "#8ec07c",
    "city": "Hamburg-HafenCity",
    "country": "DE",
    "vat_id": "",
    "kind": {
-    "de": "Stiftung",
-    "en": "Foundation"
+    "de": "Stiftung für Leuchtfeuer und Feuerschiffe",
+    "en": "Foundation for lighthouses and light vessels"
    }
   },
   {
@@ -211,10 +211,10 @@
    "id": "tidenhub",
    "customer": "elbgruen",
    "name": {
-    "de": "Imagefilm Tidenhub",
-    "en": "Tidenhub image film"
+    "de": "Imagefilm „Feuer an der Elbe“",
+    "en": "Image film “Fire on the Elbe”"
    },
-   "short": "Tidenhub",
+   "short": "Elbfeuer",
    "color": "#8ec07c",
    "clash_color": "#689d6a",
    "hourly_rate": 90,
@@ -224,8 +224,8 @@
    "id": "spring",
    "customer": "speiche",
    "name": {
-    "de": "Frühjahrsspot",
-    "en": "Spring commercial"
+    "de": "Herbstspot „Licht an“",
+    "en": "Autumn spot “Lights on”"
    },
    "short": "Speiche Spot",
    "color": "#83a598",
@@ -370,8 +370,8 @@
       "10:00",
       "13:00",
       {
-       "de": "Drehplan Folge 4 abstimmen",
-       "en": "Align shooting schedule for episode 4"
+       "de": "Drehplan Folge 4 „Nebelhorn“ abstimmen",
+       "en": "Align the shooting schedule for episode 4 “Foghorn”"
       }
      ],
      [
@@ -381,8 +381,8 @@
       "14:00",
       "15:30",
       {
-       "de": "Abnahme Storyboard mit Speiche",
-       "en": "Storyboard sign-off with Speiche"
+       "de": "Storyboard „Licht an“ mit Speiche abnehmen",
+       "en": "“Lights on” storyboard sign-off with Speiche"
       }
      ],
      [
@@ -392,8 +392,8 @@
       "07:30",
       "17:30",
       {
-       "de": "Dreh Landungsbrücken",
-       "en": "Shoot at Landungsbrücken"
+       "de": "Dreh Landungsbrücken, Nebelszenen",
+       "en": "Shoot at Landungsbrücken, fog scenes"
       }
      ],
      [
@@ -403,8 +403,8 @@
       "09:00",
       "12:30",
       {
-       "de": "Feinschnitt Interviews",
-       "en": "Fine cut of the interviews"
+       "de": "Feinschnitt Interviews Feuerschiff",
+       "en": "Fine cut of the light vessel interviews"
       }
      ],
      [
@@ -414,8 +414,8 @@
       "09:40",
       "12:10",
       {
-       "de": "Motivsuche Werkstatt",
-       "en": "Location scout at the workshop"
+       "de": "Motivsuche Werkstatt bei Nacht",
+       "en": "Night location scout at the workshop"
       }
      ],
      [
@@ -436,8 +436,8 @@
       "08:00",
       "18:00",
       {
-       "de": "Dreh Övelgönne",
-       "en": "Shoot at Övelgönne"
+       "de": "Dreh Övelgönne in der Dämmerung",
+       "en": "Shoot at Övelgönne at dusk"
       }
      ],
      [
@@ -447,8 +447,8 @@
       "10:00",
       "12:00",
       {
-       "de": "Showreel: neue Szenen",
-       "en": "Showreel: new scenes"
+       "de": "Showreel: Nachtszenen",
+       "en": "Showreel: night scenes"
       }
      ],
      [
@@ -458,8 +458,8 @@
       "13:00",
       "14:30",
       {
-       "de": "Rohschnitt-Abnahme Elbgrün",
-       "en": "Rough cut review with Elbgrün"
+       "de": "Rohschnitt-Abnahme Elbfeuer",
+       "en": "Rough cut review with Elbfeuer"
       }
      ],
      [
@@ -493,8 +493,8 @@
       "10:00",
       "12:30",
       {
-       "de": "Casting Fahrradkurier",
-       "en": "Casting the bike courier"
+       "de": "Casting Nachtkurier",
+       "en": "Casting the night courier"
       }
      ],
      [
@@ -504,8 +504,8 @@
       "08:00",
       "16:30",
       {
-       "de": "Dreh Speiche-Werkstatt",
-       "en": "Shoot at the Speiche workshop"
+       "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+       "en": "Shoot at the Speiche workshop: lights off, dynamo on"
       }
      ],
      [
@@ -515,8 +515,8 @@
       "09:00",
       "11:00",
       {
-       "de": "Interviewfragen Stiftung",
-       "en": "Interview questions for the foundation"
+       "de": "Interviewfragen Stiftung Elbfeuer",
+       "en": "Interview questions for Elbfeuer"
       }
      ],
      [
@@ -537,8 +537,8 @@
       "09:30",
       "13:00",
       {
-       "de": "Dispo Folge 5",
-       "en": "Call sheet episode 5"
+       "de": "Dispo Folge 5 „Drei Uhr dreizehn“",
+       "en": "Call sheet episode 5 “Three Thirteen”"
       }
      ],
      [
@@ -548,8 +548,8 @@
       "14:00",
       "18:00",
       {
-       "de": "Dreh HafenCity",
-       "en": "Shoot in HafenCity"
+       "de": "Dreh am Feuerschiff, HafenCity",
+       "en": "Shoot on the light vessel, HafenCity"
       }
      ],
      [
@@ -585,8 +585,8 @@
       "09:00",
       "15:00",
       {
-       "de": "Kamera-Check und Objektivtest",
-       "en": "Camera check and lens test"
+       "de": "Kamera-Check, Nachtobjektive testen",
+       "en": "Camera check, testing the night lenses"
       }
      ],
      [
@@ -596,8 +596,8 @@
       "07:00",
       "18:30",
       {
-       "de": "Dreh Landungsbrücken",
-       "en": "Shoot at Landungsbrücken"
+       "de": "Dreh Landungsbrücken, Nebelszenen",
+       "en": "Shoot at Landungsbrücken, fog scenes"
       }
      ],
      [
@@ -607,8 +607,8 @@
       "07:00",
       "17:00",
       {
-       "de": "Dreh Fischmarkt",
-       "en": "Shoot at the fish market"
+       "de": "Dreh Fischmarkt im Morgennebel",
+       "en": "Shoot at the fish market in the morning fog"
       }
      ],
      [
@@ -618,8 +618,8 @@
       "08:00",
       "19:00",
       {
-       "de": "Dreh Övelgönne",
-       "en": "Shoot at Övelgönne"
+       "de": "Dreh Övelgönne in der Dämmerung",
+       "en": "Shoot at Övelgönne at dusk"
       }
      ],
      [
@@ -653,8 +653,8 @@
       "09:00",
       "13:00",
       {
-       "de": "Licht-Setup testen",
-       "en": "Test the lighting setup"
+       "de": "Licht-Setup: nur das Fahrradlicht",
+       "en": "Lighting setup: the bike light only"
       }
      ],
      [
@@ -664,8 +664,8 @@
       "07:30",
       "16:30",
       {
-       "de": "Dreh Speiche-Werkstatt",
-       "en": "Shoot at the Speiche workshop"
+       "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+       "en": "Shoot at the Speiche workshop: lights off, dynamo on"
       }
      ],
      [
@@ -675,8 +675,8 @@
       "06:00",
       "16:00",
       {
-       "de": "Dreh Hafenfähre",
-       "en": "Shoot on the harbour ferry"
+       "de": "Dreh Hafenfähre im Nebel",
+       "en": "Shoot on the harbour ferry in fog"
       }
      ],
      [
@@ -686,8 +686,8 @@
       "13:00",
       "18:30",
       {
-       "de": "Dreh HafenCity",
-       "en": "Shoot in HafenCity"
+       "de": "Dreh am Feuerschiff, HafenCity",
+       "en": "Shoot on the light vessel, HafenCity"
       }
      ],
      [
@@ -712,8 +712,8 @@
       "09:00",
       "13:00",
       {
-       "de": "Material sichten",
-       "en": "Review footage"
+       "de": "Material der Nachtdrehs sichten",
+       "en": "Review the night shoot footage"
       }
      ],
      [
@@ -734,8 +734,8 @@
       "09:00",
       "17:00",
       {
-       "de": "Schnitt Folge 3",
-       "en": "Edit episode 3"
+       "de": "Schnitt Folge 3 „Irrlicht“",
+       "en": "Edit episode 3 “Will-o'-the-Wisp”"
       }
      ],
      [
@@ -745,8 +745,8 @@
       "09:00",
       "13:00",
       {
-       "de": "Schnitt Folge 3",
-       "en": "Edit episode 3"
+       "de": "Schnitt Folge 3 „Irrlicht“",
+       "en": "Edit episode 3 “Will-o'-the-Wisp”"
       }
      ],
      [
@@ -756,8 +756,8 @@
       "09:00",
       "17:00",
       {
-       "de": "Farbkorrektur Spot",
-       "en": "Colour grading the spot"
+       "de": "Farbkorrektur Spot, Nachtlook",
+       "en": "Colour grading the spot, night look"
       }
      ]
     ],
@@ -769,8 +769,8 @@
       "09:00",
       "17:00",
       {
-       "de": "Schnitt Folge 4",
-       "en": "Edit episode 4"
+       "de": "Schnitt Folge 4 „Nebelhorn“",
+       "en": "Edit episode 4 “Foghorn”"
       }
      ],
      [
@@ -780,8 +780,8 @@
       "09:00",
       "17:00",
       {
-       "de": "Schnitt Folge 4",
-       "en": "Edit episode 4"
+       "de": "Schnitt Folge 4 „Nebelhorn“",
+       "en": "Edit episode 4 “Foghorn”"
       }
      ],
      [
@@ -861,8 +861,8 @@
       "10:00",
       "14:00",
       {
-       "de": "Score: Nebelhorn",
-       "en": "Score: Nebelhorn"
+       "de": "Score: Nebelhorn, 03:13",
+       "en": "Score: Nebelhorn, 03:13"
       }
      ]
     ],
@@ -874,8 +874,8 @@
       "10:00",
       "15:00",
       {
-       "de": "Sounddesign Spot",
-       "en": "Sound design for the spot"
+       "de": "Sounddesign Spot: Dynamo-Surren",
+       "en": "Sound design for the spot: dynamo hum"
       }
      ],
      [
@@ -896,8 +896,8 @@
       "13:00",
       "18:30",
       {
-       "de": "Originalton HafenCity",
-       "en": "Location sound in HafenCity"
+       "de": "Originalton Feuerschiff",
+       "en": "Location sound on the light vessel"
       }
      ],
      [
@@ -933,8 +933,8 @@
       "10:00",
       "17:00",
       {
-       "de": "Drehgenehmigungen",
-       "en": "Shooting permits"
+       "de": "Drehgenehmigungen für die Nachtdrehs",
+       "en": "Permits for the night shoots"
       }
      ],
      [
@@ -977,8 +977,8 @@
       "09:00",
       "14:00",
       {
-       "de": "Requisiten besorgen",
-       "en": "Source props"
+       "de": "Requisiten: Laternen, Handscheinwerfer",
+       "en": "Props: lanterns, floodlights"
       }
      ]
     ],
@@ -1045,8 +1045,8 @@
       "09:00",
       "15:00",
       {
-       "de": "Genehmigung HafenCity",
-       "en": "HafenCity permit"
+       "de": "Drehgenehmigung Feuerschiff",
+       "en": "Light vessel shooting permit"
       }
      ],
      [
@@ -1071,8 +1071,8 @@
    "activity": "prep",
    "start": "13:15",
    "description": {
-    "de": "Drehbuch Frühjahrsspot überarbeiten",
-    "en": "Revise the spring commercial script"
+    "de": "Drehbuch „Licht an“ überarbeiten",
+    "en": "Revise the “Lights on” script"
    }
   },
   {
@@ -1081,8 +1081,8 @@
    "activity": "edit",
    "start": "13:30",
    "description": {
-    "de": "Feinschnitt Interviews",
-    "en": "Fine cut of the interviews"
+    "de": "Feinschnitt Interviews Feuerschiff",
+    "en": "Fine cut of the light vessel interviews"
    }
   }
  ],
@@ -1160,8 +1160,8 @@
    "to": 18,
    "status": "rejected",
    "comment": {
-    "de": "Dreh Folge 6",
-    "en": "Shoot of episode 6"
+    "de": "Nachtdreh Folge 6",
+    "en": "Night shoot of episode 6"
    }
   },
   {
@@ -1344,8 +1344,8 @@
     "break_min": 60,
     "location": "beach",
     "note": {
-     "de": "Folge 3, Strand",
-     "en": "Episode 3, beach"
+     "de": "Folge 3, Strand bei Ebbe",
+     "en": "Episode 3, beach at low tide"
     }
    },
    {
@@ -1366,8 +1366,8 @@
     "break_min": 60,
     "location": "ferry",
     "note": {
-     "de": "Folge 4, Hafenfähre",
-     "en": "Episode 4, harbour ferry"
+     "de": "Folge 4, Hafenfähre im Nebel",
+     "en": "Episode 4, harbour ferry in fog"
     }
    },
    {
@@ -1421,8 +1421,8 @@
     "break_min": 60,
     "location": "harbour-pier",
     "note": {
-     "de": "Folge 5, Szenen 1–7",
-     "en": "Episode 5, scenes 1–7"
+     "de": "Folge 5, Leuchtfeuer, Szenen 1–7",
+     "en": "Episode 5, beacon, scenes 1–7"
     }
    },
    {
@@ -1443,8 +1443,8 @@
     "break_min": 60,
     "location": "beach",
     "note": {
-     "de": "Folge 5, Strand",
-     "en": "Episode 5, beach"
+     "de": "Folge 5, Strand bei Nebel",
+     "en": "Episode 5, beach in fog"
     }
    }
   ]
@@ -1534,7 +1534,7 @@
   },
   {
    "id": "elbgruen-office",
-   "name": "Elbgrün Stiftung",
+   "name": "Stiftung Elbfeuer",
    "address": "Am Kaiserkai 40, 20457 Hamburg",
    "lat": 53.5413,
    "lon": 9.9842,
@@ -1646,8 +1646,8 @@
    "vehicle": "van",
    "project": "harbour",
    "purpose": {
-    "de": "Technik zurück",
-    "en": "Gear back"
+    "de": "Technik zurück, Scheinwerfer gezählt",
+    "en": "Gear back, floodlights counted"
    },
    "status": "approved"
   },
@@ -1702,8 +1702,8 @@
    "vehicle": "van",
    "project": "tidenhub",
    "purpose": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "status": "submitted"
   },
@@ -1758,8 +1758,8 @@
    "vehicle": "van",
    "project": "harbour",
    "purpose": {
-    "de": "Dreh Hafenfähre",
-    "en": "Shoot on the ferry"
+    "de": "Dreh Hafenfähre im Nebel",
+    "en": "Shoot on the ferry in fog"
    },
    "status": "submitted"
   },
@@ -1895,8 +1895,8 @@
    },
    "project": "harbour",
    "note": {
-    "de": "XLR-Kabel, Gaffa",
-    "en": "XLR cables, gaffer tape"
+    "de": "XLR-Kabel, Gaffa, 5 l Nebelfluid",
+    "en": "XLR cables, gaffer tape, 5 l fog fluid"
    },
    "state": "linked"
   },
@@ -1963,8 +1963,8 @@
    },
    "project": "spring",
    "note": {
-    "de": "Storyboards A3",
-    "en": "A3 storyboards"
+    "de": "Storyboards „Licht an“, A3",
+    "en": "“Lights on” storyboards, A3"
    },
    "state": "open"
   },
@@ -2340,8 +2340,8 @@
     "uid": "t07",
     "collection": "spring",
     "summary": {
-     "de": "Drehbuch Frühjahrsspot überarbeiten",
-     "en": "Revise the spring commercial script"
+     "de": "Drehbuch „Licht an“ überarbeiten",
+     "en": "Revise the “Lights on” script"
     },
     "due": 0,
     "priority": 1,
@@ -2354,8 +2354,8 @@
     "uid": "t08",
     "collection": "spring",
     "summary": {
-     "de": "Speiche wegen Produkt-Farben anrufen",
-     "en": "Call Speiche about product colours"
+     "de": "Speiche wegen der Lichtfarbe des Dynamos anrufen",
+     "en": "Call Speiche about the dynamo light's colour"
     },
     "due": 1,
     "priority": 5,
@@ -2420,8 +2420,8 @@
     "uid": "t13",
     "collection": "studio",
     "summary": {
-     "de": "Objektive zur Wartung bringen",
-     "en": "Take lenses in for service"
+     "de": "Objektive zur Wartung bringen, eins beschlägt immer",
+     "en": "Take the lenses in for service, one keeps fogging up"
     },
     "due": -4,
     "priority": 5,
@@ -2452,7 +2452,11 @@
     "priority": 9,
     "labels": [
      "orga"
-    ]
+    ],
+    "description": {
+     "de": "Eine gelöschte Datei ist wieder da.",
+     "en": "A deleted file is back."
+    }
    },
    {
     "uid": "t16",
@@ -2494,8 +2498,8 @@
     "uid": "t19",
     "collection": "studio",
     "summary": {
-     "de": "Angebot Elbgrün Teil 2",
-     "en": "Quote for Elbgrün part 2"
+     "de": "Angebot Elbfeuer Teil 2",
+     "en": "Quote for Elbfeuer part 2"
     },
     "due": 6,
     "priority": 1,
@@ -2618,8 +2622,8 @@
     "start": "07:00",
     "end": "17:30",
     "summary": {
-     "de": "Dreh Landungsbrücken",
-     "en": "Shoot at Landungsbrücken"
+     "de": "Dreh Landungsbrücken, Nebelszenen",
+     "en": "Shoot at Landungsbrücken, fog scenes"
     },
     "collection": "harbour"
    },
@@ -2628,8 +2632,8 @@
     "start": "11:00",
     "end": "12:00",
     "summary": {
-     "de": "Rohschnitt-Abnahme Elbgrün",
-     "en": "Rough cut review with Elbgrün"
+     "de": "Rohschnitt-Abnahme Elbfeuer",
+     "en": "Rough cut review with Elbfeuer"
     },
     "collection": "studio"
    },
@@ -2671,12 +2675,12 @@
     "length_s": 236
    },
    {
-    "title": "Kranichflug",
+    "title": "Leuchtfeuer",
     "length_s": 201
    },
    {
-    "title": "Landungsbrücken",
-    "length_s": 159
+    "title": "Drei Uhr dreizehn",
+    "length_s": 193
    }
   ],
   "players": [
@@ -2773,8 +2777,8 @@
    ]
   ],
   "scenario": {
-   "de": "Rendern des Rohschnitts",
-   "en": "Rendering the rough cut"
+   "de": "Rendern: der Kolk, Nacht 3",
+   "en": "Rendering: the Kolk, night 3"
   }
  },
  "terminal": {
@@ -2803,8 +2807,8 @@
    "Filesystem  Size  Used Avail Use%",
    "/dev/sda1   7.3T  4.9T  2.4T  67%",
    "",
-   "$ ls /srv/footage/harbour-lights",
-   "folge-03  folge-04  folge-05  sound  score",
+   "$ ls /srv/footage/nachtwache",
+   "kolk-nacht-1  kolk-nacht-2  kolk-nacht-3  seite-7.pdf",
    "$ _"
   ]
  },
@@ -2886,6 +2890,15 @@
   "minutes": 7,
   "manuscript_pages": [
    {
+    "page": 3,
+    "found": -12,
+    "place": "harbour-pier",
+    "text": {
+     "de": "Das Nebelhorn setzte aus. Sieben Sekunden lang hörte niemand die Elbe.",
+     "en": "The foghorn stopped. For seven seconds nobody heard the Elbe."
+    }
+   },
+   {
     "page": 7,
     "found": -5,
     "place": "studio",
@@ -2953,8 +2966,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Kamera-Check und Objektivtest",
-    "en": "Camera check and lens test"
+    "de": "Kamera-Check, Nachtobjektive testen",
+    "en": "Camera check, testing the night lenses"
    },
    "exported": true,
    "id": 1
@@ -2995,8 +3008,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Material sichten",
-    "en": "Review footage"
+    "de": "Material der Nachtdrehs sichten",
+    "en": "Review the night shoot footage"
    },
    "exported": true,
    "id": 4
@@ -3009,8 +3022,8 @@
    "start": "10:00",
    "end": "17:00",
    "description": {
-    "de": "Drehgenehmigungen",
-    "en": "Shooting permits"
+    "de": "Drehgenehmigungen für die Nachtdrehs",
+    "en": "Permits for the night shoots"
    },
    "exported": true,
    "id": 5
@@ -3023,8 +3036,8 @@
    "start": "10:00",
    "end": "13:00",
    "description": {
-    "de": "Drehplan Folge 4 abstimmen",
-    "en": "Align shooting schedule for episode 4"
+    "de": "Drehplan Folge 4 „Nebelhorn“ abstimmen",
+    "en": "Align the shooting schedule for episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 6
@@ -3051,8 +3064,8 @@
    "start": "14:00",
    "end": "15:30",
    "description": {
-    "de": "Abnahme Storyboard mit Speiche",
-    "en": "Storyboard sign-off with Speiche"
+    "de": "Storyboard „Licht an“ mit Speiche abnehmen",
+    "en": "“Lights on” storyboard sign-off with Speiche"
    },
    "exported": true,
    "id": 8
@@ -3065,8 +3078,8 @@
    "start": "07:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": true,
    "id": 9
@@ -3093,8 +3106,8 @@
    "start": "07:30",
    "end": "17:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": true,
    "id": 11
@@ -3121,8 +3134,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": true,
    "id": 13
@@ -3135,8 +3148,8 @@
    "start": "07:00",
    "end": "17:00",
    "description": {
-    "de": "Dreh Fischmarkt",
-    "en": "Shoot at the fish market"
+    "de": "Dreh Fischmarkt im Morgennebel",
+    "en": "Shoot at the fish market in the morning fog"
    },
    "exported": true,
    "id": 14
@@ -3163,8 +3176,8 @@
    "start": "09:00",
    "end": "12:30",
    "description": {
-    "de": "Feinschnitt Interviews",
-    "en": "Fine cut of the interviews"
+    "de": "Feinschnitt Interviews Feuerschiff",
+    "en": "Fine cut of the light vessel interviews"
    },
    "exported": true,
    "id": 16
@@ -3177,8 +3190,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": true,
    "id": 17
@@ -3191,8 +3204,8 @@
    "start": "09:40",
    "end": "12:10",
    "description": {
-    "de": "Motivsuche Werkstatt",
-    "en": "Location scout at the workshop"
+    "de": "Motivsuche Werkstatt bei Nacht",
+    "en": "Night location scout at the workshop"
    },
    "exported": true,
    "id": 18
@@ -3247,8 +3260,8 @@
    "start": "08:00",
    "end": "19:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": true,
    "id": 22
@@ -3261,8 +3274,8 @@
    "start": "08:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": true,
    "id": 23
@@ -3289,8 +3302,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Farbkorrektur Spot",
-    "en": "Colour grading the spot"
+    "de": "Farbkorrektur Spot, Nachtlook",
+    "en": "Colour grading the spot, night look"
    },
    "exported": true,
    "id": 25
@@ -3303,8 +3316,8 @@
    "start": "09:00",
    "end": "14:00",
    "description": {
-    "de": "Requisiten besorgen",
-    "en": "Source props"
+    "de": "Requisiten: Laternen, Handscheinwerfer",
+    "en": "Props: lanterns, floodlights"
    },
    "exported": true,
    "id": 26
@@ -3331,8 +3344,8 @@
    "start": "10:00",
    "end": "12:00",
    "description": {
-    "de": "Showreel: neue Szenen",
-    "en": "Showreel: new scenes"
+    "de": "Showreel: Nachtszenen",
+    "en": "Showreel: night scenes"
    },
    "exported": false,
    "id": 28
@@ -3345,8 +3358,8 @@
    "start": "10:00",
    "end": "14:00",
    "description": {
-    "de": "Score: Nebelhorn",
-    "en": "Score: Nebelhorn"
+    "de": "Score: Nebelhorn, 03:13",
+    "en": "Score: Nebelhorn, 03:13"
    },
    "exported": true,
    "id": 29
@@ -3359,8 +3372,8 @@
    "start": "13:00",
    "end": "14:30",
    "description": {
-    "de": "Rohschnitt-Abnahme Elbgrün",
-    "en": "Rough cut review with Elbgrün"
+    "de": "Rohschnitt-Abnahme Elbfeuer",
+    "en": "Rough cut review with Elbfeuer"
    },
    "exported": true,
    "id": 30
@@ -3401,8 +3414,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Licht-Setup testen",
-    "en": "Test the lighting setup"
+    "de": "Licht-Setup: nur das Fahrradlicht",
+    "en": "Lighting setup: the bike light only"
    },
    "exported": true,
    "id": 33
@@ -3443,8 +3456,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 36
@@ -3471,8 +3484,8 @@
    "start": "10:00",
    "end": "12:30",
    "description": {
-    "de": "Casting Fahrradkurier",
-    "en": "Casting the bike courier"
+    "de": "Casting Nachtkurier",
+    "en": "Casting the night courier"
    },
    "exported": true,
    "id": 38
@@ -3485,8 +3498,8 @@
    "start": "10:00",
    "end": "15:00",
    "description": {
-    "de": "Sounddesign Spot",
-    "en": "Sound design for the spot"
+    "de": "Sounddesign Spot: Dynamo-Surren",
+    "en": "Sound design for the spot: dynamo hum"
    },
    "exported": true,
    "id": 39
@@ -3499,8 +3512,8 @@
    "start": "07:30",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": true,
    "id": 40
@@ -3527,8 +3540,8 @@
    "start": "08:00",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": true,
    "id": 42
@@ -3541,8 +3554,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 43
@@ -3569,8 +3582,8 @@
    "start": "06:00",
    "end": "16:00",
    "description": {
-    "de": "Dreh Hafenfähre",
-    "en": "Shoot on the harbour ferry"
+    "de": "Dreh Hafenfähre im Nebel",
+    "en": "Shoot on the harbour ferry in fog"
    },
    "exported": true,
    "id": 45
@@ -3611,8 +3624,8 @@
    "start": "09:00",
    "end": "11:00",
    "description": {
-    "de": "Interviewfragen Stiftung",
-    "en": "Interview questions for the foundation"
+    "de": "Interviewfragen Stiftung Elbfeuer",
+    "en": "Interview questions for Elbfeuer"
    },
    "exported": true,
    "id": 48
@@ -3667,8 +3680,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Genehmigung HafenCity",
-    "en": "HafenCity permit"
+    "de": "Drehgenehmigung Feuerschiff",
+    "en": "Light vessel shooting permit"
    },
    "exported": true,
    "id": 52
@@ -3695,8 +3708,8 @@
    "start": "09:30",
    "end": "13:00",
    "description": {
-    "de": "Dispo Folge 5",
-    "en": "Call sheet episode 5"
+    "de": "Dispo Folge 5 „Drei Uhr dreizehn“",
+    "en": "Call sheet episode 5 “Three Thirteen”"
    },
    "exported": true,
    "id": 54
@@ -3709,8 +3722,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": true,
    "id": 55
@@ -3723,8 +3736,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Originalton HafenCity",
-    "en": "Location sound in HafenCity"
+    "de": "Originalton Feuerschiff",
+    "en": "Location sound on the light vessel"
    },
    "exported": true,
    "id": 56
@@ -3737,8 +3750,8 @@
    "start": "14:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": true,
    "id": 57
@@ -3821,8 +3834,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Kamera-Check und Objektivtest",
-    "en": "Camera check and lens test"
+    "de": "Kamera-Check, Nachtobjektive testen",
+    "en": "Camera check, testing the night lenses"
    },
    "exported": true,
    "id": 63
@@ -3863,8 +3876,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Material sichten",
-    "en": "Review footage"
+    "de": "Material der Nachtdrehs sichten",
+    "en": "Review the night shoot footage"
    },
    "exported": true,
    "id": 66
@@ -3877,8 +3890,8 @@
    "start": "10:00",
    "end": "17:00",
    "description": {
-    "de": "Drehgenehmigungen",
-    "en": "Shooting permits"
+    "de": "Drehgenehmigungen für die Nachtdrehs",
+    "en": "Permits for the night shoots"
    },
    "exported": true,
    "id": 67
@@ -3891,8 +3904,8 @@
    "start": "10:00",
    "end": "13:00",
    "description": {
-    "de": "Drehplan Folge 4 abstimmen",
-    "en": "Align shooting schedule for episode 4"
+    "de": "Drehplan Folge 4 „Nebelhorn“ abstimmen",
+    "en": "Align the shooting schedule for episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 68
@@ -3919,8 +3932,8 @@
    "start": "14:00",
    "end": "15:30",
    "description": {
-    "de": "Abnahme Storyboard mit Speiche",
-    "en": "Storyboard sign-off with Speiche"
+    "de": "Storyboard „Licht an“ mit Speiche abnehmen",
+    "en": "“Lights on” storyboard sign-off with Speiche"
    },
    "exported": true,
    "id": 70
@@ -3933,8 +3946,8 @@
    "start": "07:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": true,
    "id": 71
@@ -3961,8 +3974,8 @@
    "start": "07:30",
    "end": "17:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": true,
    "id": 73
@@ -3989,8 +4002,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": true,
    "id": 75
@@ -4003,8 +4016,8 @@
    "start": "07:00",
    "end": "17:00",
    "description": {
-    "de": "Dreh Fischmarkt",
-    "en": "Shoot at the fish market"
+    "de": "Dreh Fischmarkt im Morgennebel",
+    "en": "Shoot at the fish market in the morning fog"
    },
    "exported": true,
    "id": 76
@@ -4031,8 +4044,8 @@
    "start": "09:00",
    "end": "12:30",
    "description": {
-    "de": "Feinschnitt Interviews",
-    "en": "Fine cut of the interviews"
+    "de": "Feinschnitt Interviews Feuerschiff",
+    "en": "Fine cut of the light vessel interviews"
    },
    "exported": true,
    "id": 78
@@ -4045,8 +4058,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": true,
    "id": 79
@@ -4059,8 +4072,8 @@
    "start": "09:40",
    "end": "12:10",
    "description": {
-    "de": "Motivsuche Werkstatt",
-    "en": "Location scout at the workshop"
+    "de": "Motivsuche Werkstatt bei Nacht",
+    "en": "Night location scout at the workshop"
    },
    "exported": true,
    "id": 80
@@ -4115,8 +4128,8 @@
    "start": "08:00",
    "end": "19:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": true,
    "id": 84
@@ -4129,8 +4142,8 @@
    "start": "08:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": true,
    "id": 85
@@ -4157,8 +4170,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Farbkorrektur Spot",
-    "en": "Colour grading the spot"
+    "de": "Farbkorrektur Spot, Nachtlook",
+    "en": "Colour grading the spot, night look"
    },
    "exported": true,
    "id": 87
@@ -4171,8 +4184,8 @@
    "start": "09:00",
    "end": "14:00",
    "description": {
-    "de": "Requisiten besorgen",
-    "en": "Source props"
+    "de": "Requisiten: Laternen, Handscheinwerfer",
+    "en": "Props: lanterns, floodlights"
    },
    "exported": true,
    "id": 88
@@ -4199,8 +4212,8 @@
    "start": "10:00",
    "end": "12:00",
    "description": {
-    "de": "Showreel: neue Szenen",
-    "en": "Showreel: new scenes"
+    "de": "Showreel: Nachtszenen",
+    "en": "Showreel: night scenes"
    },
    "exported": false,
    "id": 90
@@ -4213,8 +4226,8 @@
    "start": "10:00",
    "end": "14:00",
    "description": {
-    "de": "Score: Nebelhorn",
-    "en": "Score: Nebelhorn"
+    "de": "Score: Nebelhorn, 03:13",
+    "en": "Score: Nebelhorn, 03:13"
    },
    "exported": true,
    "id": 91
@@ -4227,8 +4240,8 @@
    "start": "13:00",
    "end": "14:30",
    "description": {
-    "de": "Rohschnitt-Abnahme Elbgrün",
-    "en": "Rough cut review with Elbgrün"
+    "de": "Rohschnitt-Abnahme Elbfeuer",
+    "en": "Rough cut review with Elbfeuer"
    },
    "exported": true,
    "id": 92
@@ -4269,8 +4282,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Licht-Setup testen",
-    "en": "Test the lighting setup"
+    "de": "Licht-Setup: nur das Fahrradlicht",
+    "en": "Lighting setup: the bike light only"
    },
    "exported": true,
    "id": 95
@@ -4311,8 +4324,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 98
@@ -4339,8 +4352,8 @@
    "start": "10:00",
    "end": "12:30",
    "description": {
-    "de": "Casting Fahrradkurier",
-    "en": "Casting the bike courier"
+    "de": "Casting Nachtkurier",
+    "en": "Casting the night courier"
    },
    "exported": true,
    "id": 100
@@ -4353,8 +4366,8 @@
    "start": "10:00",
    "end": "15:00",
    "description": {
-    "de": "Sounddesign Spot",
-    "en": "Sound design for the spot"
+    "de": "Sounddesign Spot: Dynamo-Surren",
+    "en": "Sound design for the spot: dynamo hum"
    },
    "exported": true,
    "id": 101
@@ -4367,8 +4380,8 @@
    "start": "07:30",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": true,
    "id": 102
@@ -4395,8 +4408,8 @@
    "start": "08:00",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": true,
    "id": 104
@@ -4409,8 +4422,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 105
@@ -4437,8 +4450,8 @@
    "start": "06:00",
    "end": "16:00",
    "description": {
-    "de": "Dreh Hafenfähre",
-    "en": "Shoot on the harbour ferry"
+    "de": "Dreh Hafenfähre im Nebel",
+    "en": "Shoot on the harbour ferry in fog"
    },
    "exported": true,
    "id": 107
@@ -4479,8 +4492,8 @@
    "start": "09:00",
    "end": "11:00",
    "description": {
-    "de": "Interviewfragen Stiftung",
-    "en": "Interview questions for the foundation"
+    "de": "Interviewfragen Stiftung Elbfeuer",
+    "en": "Interview questions for Elbfeuer"
    },
    "exported": true,
    "id": 110
@@ -4535,8 +4548,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Genehmigung HafenCity",
-    "en": "HafenCity permit"
+    "de": "Drehgenehmigung Feuerschiff",
+    "en": "Light vessel shooting permit"
    },
    "exported": true,
    "id": 114
@@ -4549,8 +4562,8 @@
    "start": "09:30",
    "end": "13:00",
    "description": {
-    "de": "Dispo Folge 5",
-    "en": "Call sheet episode 5"
+    "de": "Dispo Folge 5 „Drei Uhr dreizehn“",
+    "en": "Call sheet episode 5 “Three Thirteen”"
    },
    "exported": true,
    "id": 115
@@ -4563,8 +4576,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": true,
    "id": 116
@@ -4577,8 +4590,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Originalton HafenCity",
-    "en": "Location sound in HafenCity"
+    "de": "Originalton Feuerschiff",
+    "en": "Location sound on the light vessel"
    },
    "exported": true,
    "id": 117
@@ -4591,8 +4604,8 @@
    "start": "14:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": true,
    "id": 118
@@ -4661,8 +4674,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Kamera-Check und Objektivtest",
-    "en": "Camera check and lens test"
+    "de": "Kamera-Check, Nachtobjektive testen",
+    "en": "Camera check, testing the night lenses"
    },
    "exported": true,
    "id": 123
@@ -4703,8 +4716,8 @@
    "start": "10:00",
    "end": "17:00",
    "description": {
-    "de": "Drehgenehmigungen",
-    "en": "Shooting permits"
+    "de": "Drehgenehmigungen für die Nachtdrehs",
+    "en": "Permits for the night shoots"
    },
    "exported": true,
    "id": 126
@@ -4717,8 +4730,8 @@
    "start": "10:00",
    "end": "13:00",
    "description": {
-    "de": "Drehplan Folge 4 abstimmen",
-    "en": "Align shooting schedule for episode 4"
+    "de": "Drehplan Folge 4 „Nebelhorn“ abstimmen",
+    "en": "Align the shooting schedule for episode 4 “Foghorn”"
    },
    "exported": true,
    "id": 127
@@ -4731,8 +4744,8 @@
    "start": "14:00",
    "end": "15:30",
    "description": {
-    "de": "Abnahme Storyboard mit Speiche",
-    "en": "Storyboard sign-off with Speiche"
+    "de": "Storyboard „Licht an“ mit Speiche abnehmen",
+    "en": "“Lights on” storyboard sign-off with Speiche"
    },
    "exported": true,
    "id": 128
@@ -4745,8 +4758,8 @@
    "start": "07:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": true,
    "id": 129
@@ -4773,8 +4786,8 @@
    "start": "07:30",
    "end": "17:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": true,
    "id": 131
@@ -4801,8 +4814,8 @@
    "start": "07:00",
    "end": "17:00",
    "description": {
-    "de": "Dreh Fischmarkt",
-    "en": "Shoot at the fish market"
+    "de": "Dreh Fischmarkt im Morgennebel",
+    "en": "Shoot at the fish market in the morning fog"
    },
    "exported": true,
    "id": 133
@@ -4829,8 +4842,8 @@
    "start": "09:00",
    "end": "12:30",
    "description": {
-    "de": "Feinschnitt Interviews",
-    "en": "Fine cut of the interviews"
+    "de": "Feinschnitt Interviews Feuerschiff",
+    "en": "Fine cut of the light vessel interviews"
    },
    "exported": true,
    "id": 135
@@ -4843,8 +4856,8 @@
    "start": "09:40",
    "end": "12:10",
    "description": {
-    "de": "Motivsuche Werkstatt",
-    "en": "Location scout at the workshop"
+    "de": "Motivsuche Werkstatt bei Nacht",
+    "en": "Night location scout at the workshop"
    },
    "exported": true,
    "id": 136
@@ -4899,8 +4912,8 @@
    "start": "08:00",
    "end": "19:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": true,
    "id": 140
@@ -4913,8 +4926,8 @@
    "start": "08:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": true,
    "id": 141
@@ -4941,8 +4954,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Farbkorrektur Spot",
-    "en": "Colour grading the spot"
+    "de": "Farbkorrektur Spot, Nachtlook",
+    "en": "Colour grading the spot, night look"
    },
    "exported": true,
    "id": 143
@@ -4955,8 +4968,8 @@
    "start": "09:00",
    "end": "14:00",
    "description": {
-    "de": "Requisiten besorgen",
-    "en": "Source props"
+    "de": "Requisiten: Laternen, Handscheinwerfer",
+    "en": "Props: lanterns, floodlights"
    },
    "exported": true,
    "id": 144
@@ -4983,8 +4996,8 @@
    "start": "10:00",
    "end": "12:00",
    "description": {
-    "de": "Showreel: neue Szenen",
-    "en": "Showreel: new scenes"
+    "de": "Showreel: Nachtszenen",
+    "en": "Showreel: night scenes"
    },
    "exported": false,
    "id": 146
@@ -4997,8 +5010,8 @@
    "start": "10:00",
    "end": "14:00",
    "description": {
-    "de": "Score: Nebelhorn",
-    "en": "Score: Nebelhorn"
+    "de": "Score: Nebelhorn, 03:13",
+    "en": "Score: Nebelhorn, 03:13"
    },
    "exported": true,
    "id": 147
@@ -5011,8 +5024,8 @@
    "start": "13:00",
    "end": "14:30",
    "description": {
-    "de": "Rohschnitt-Abnahme Elbgrün",
-    "en": "Rough cut review with Elbgrün"
+    "de": "Rohschnitt-Abnahme Elbfeuer",
+    "en": "Rough cut review with Elbfeuer"
    },
    "exported": true,
    "id": 148
@@ -5053,8 +5066,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Licht-Setup testen",
-    "en": "Test the lighting setup"
+    "de": "Licht-Setup: nur das Fahrradlicht",
+    "en": "Lighting setup: the bike light only"
    },
    "exported": false,
    "id": 151
@@ -5095,8 +5108,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 154
@@ -5123,8 +5136,8 @@
    "start": "10:00",
    "end": "12:30",
    "description": {
-    "de": "Casting Fahrradkurier",
-    "en": "Casting the bike courier"
+    "de": "Casting Nachtkurier",
+    "en": "Casting the night courier"
    },
    "exported": false,
    "id": 156
@@ -5137,8 +5150,8 @@
    "start": "10:00",
    "end": "15:00",
    "description": {
-    "de": "Sounddesign Spot",
-    "en": "Sound design for the spot"
+    "de": "Sounddesign Spot: Dynamo-Surren",
+    "en": "Sound design for the spot: dynamo hum"
    },
    "exported": false,
    "id": 157
@@ -5151,8 +5164,8 @@
    "start": "07:30",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": false,
    "id": 158
@@ -5179,8 +5192,8 @@
    "start": "08:00",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": false,
    "id": 160
@@ -5193,8 +5206,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 161
@@ -5221,8 +5234,8 @@
    "start": "06:00",
    "end": "16:00",
    "description": {
-    "de": "Dreh Hafenfähre",
-    "en": "Shoot on the harbour ferry"
+    "de": "Dreh Hafenfähre im Nebel",
+    "en": "Shoot on the harbour ferry in fog"
    },
    "exported": false,
    "id": 163
@@ -5263,8 +5276,8 @@
    "start": "09:00",
    "end": "11:00",
    "description": {
-    "de": "Interviewfragen Stiftung",
-    "en": "Interview questions for the foundation"
+    "de": "Interviewfragen Stiftung Elbfeuer",
+    "en": "Interview questions for Elbfeuer"
    },
    "exported": false,
    "id": 166
@@ -5319,8 +5332,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Genehmigung HafenCity",
-    "en": "HafenCity permit"
+    "de": "Drehgenehmigung Feuerschiff",
+    "en": "Light vessel shooting permit"
    },
    "exported": false,
    "id": 170
@@ -5347,8 +5360,8 @@
    "start": "09:30",
    "end": "13:00",
    "description": {
-    "de": "Dispo Folge 5",
-    "en": "Call sheet episode 5"
+    "de": "Dispo Folge 5 „Drei Uhr dreizehn“",
+    "en": "Call sheet episode 5 “Three Thirteen”"
    },
    "exported": false,
    "id": 172
@@ -5361,8 +5374,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": false,
    "id": 173
@@ -5375,8 +5388,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Originalton HafenCity",
-    "en": "Location sound in HafenCity"
+    "de": "Originalton Feuerschiff",
+    "en": "Location sound on the light vessel"
    },
    "exported": false,
    "id": 174
@@ -5389,8 +5402,8 @@
    "start": "14:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": false,
    "id": 175
@@ -5473,8 +5486,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Kamera-Check und Objektivtest",
-    "en": "Camera check and lens test"
+    "de": "Kamera-Check, Nachtobjektive testen",
+    "en": "Camera check, testing the night lenses"
    },
    "exported": false,
    "id": 181
@@ -5515,8 +5528,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Material sichten",
-    "en": "Review footage"
+    "de": "Material der Nachtdrehs sichten",
+    "en": "Review the night shoot footage"
    },
    "exported": false,
    "id": 184
@@ -5529,8 +5542,8 @@
    "start": "10:00",
    "end": "17:00",
    "description": {
-    "de": "Drehgenehmigungen",
-    "en": "Shooting permits"
+    "de": "Drehgenehmigungen für die Nachtdrehs",
+    "en": "Permits for the night shoots"
    },
    "exported": false,
    "id": 185
@@ -5543,8 +5556,8 @@
    "start": "10:00",
    "end": "13:00",
    "description": {
-    "de": "Drehplan Folge 4 abstimmen",
-    "en": "Align shooting schedule for episode 4"
+    "de": "Drehplan Folge 4 „Nebelhorn“ abstimmen",
+    "en": "Align the shooting schedule for episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 186
@@ -5571,8 +5584,8 @@
    "start": "14:00",
    "end": "15:30",
    "description": {
-    "de": "Abnahme Storyboard mit Speiche",
-    "en": "Storyboard sign-off with Speiche"
+    "de": "Storyboard „Licht an“ mit Speiche abnehmen",
+    "en": "“Lights on” storyboard sign-off with Speiche"
    },
    "exported": false,
    "id": 188
@@ -5585,8 +5598,8 @@
    "start": "07:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": false,
    "id": 189
@@ -5613,8 +5626,8 @@
    "start": "07:30",
    "end": "17:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": false,
    "id": 191
@@ -5641,8 +5654,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": false,
    "id": 193
@@ -5655,8 +5668,8 @@
    "start": "07:00",
    "end": "17:00",
    "description": {
-    "de": "Dreh Fischmarkt",
-    "en": "Shoot at the fish market"
+    "de": "Dreh Fischmarkt im Morgennebel",
+    "en": "Shoot at the fish market in the morning fog"
    },
    "exported": false,
    "id": 194
@@ -5683,8 +5696,8 @@
    "start": "09:00",
    "end": "12:30",
    "description": {
-    "de": "Feinschnitt Interviews",
-    "en": "Fine cut of the interviews"
+    "de": "Feinschnitt Interviews Feuerschiff",
+    "en": "Fine cut of the light vessel interviews"
    },
    "exported": false,
    "id": 196
@@ -5697,8 +5710,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": false,
    "id": 197
@@ -5711,8 +5724,8 @@
    "start": "09:40",
    "end": "12:10",
    "description": {
-    "de": "Motivsuche Werkstatt",
-    "en": "Location scout at the workshop"
+    "de": "Motivsuche Werkstatt bei Nacht",
+    "en": "Night location scout at the workshop"
    },
    "exported": false,
    "id": 198
@@ -5767,8 +5780,8 @@
    "start": "08:00",
    "end": "19:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": false,
    "id": 202
@@ -5781,8 +5794,8 @@
    "start": "08:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": false,
    "id": 203
@@ -5809,8 +5822,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Farbkorrektur Spot",
-    "en": "Colour grading the spot"
+    "de": "Farbkorrektur Spot, Nachtlook",
+    "en": "Colour grading the spot, night look"
    },
    "exported": false,
    "id": 205
@@ -5823,8 +5836,8 @@
    "start": "09:00",
    "end": "14:00",
    "description": {
-    "de": "Requisiten besorgen",
-    "en": "Source props"
+    "de": "Requisiten: Laternen, Handscheinwerfer",
+    "en": "Props: lanterns, floodlights"
    },
    "exported": false,
    "id": 206
@@ -5851,8 +5864,8 @@
    "start": "10:00",
    "end": "12:00",
    "description": {
-    "de": "Showreel: neue Szenen",
-    "en": "Showreel: new scenes"
+    "de": "Showreel: Nachtszenen",
+    "en": "Showreel: night scenes"
    },
    "exported": false,
    "id": 208
@@ -5865,8 +5878,8 @@
    "start": "10:00",
    "end": "14:00",
    "description": {
-    "de": "Score: Nebelhorn",
-    "en": "Score: Nebelhorn"
+    "de": "Score: Nebelhorn, 03:13",
+    "en": "Score: Nebelhorn, 03:13"
    },
    "exported": false,
    "id": 209
@@ -5879,8 +5892,8 @@
    "start": "13:00",
    "end": "14:30",
    "description": {
-    "de": "Rohschnitt-Abnahme Elbgrün",
-    "en": "Rough cut review with Elbgrün"
+    "de": "Rohschnitt-Abnahme Elbfeuer",
+    "en": "Rough cut review with Elbfeuer"
    },
    "exported": false,
    "id": 210
@@ -5921,8 +5934,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Licht-Setup testen",
-    "en": "Test the lighting setup"
+    "de": "Licht-Setup: nur das Fahrradlicht",
+    "en": "Lighting setup: the bike light only"
    },
    "exported": false,
    "id": 213
@@ -5963,8 +5976,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 216
@@ -5991,8 +6004,8 @@
    "start": "10:00",
    "end": "12:30",
    "description": {
-    "de": "Casting Fahrradkurier",
-    "en": "Casting the bike courier"
+    "de": "Casting Nachtkurier",
+    "en": "Casting the night courier"
    },
    "exported": false,
    "id": 218
@@ -6005,8 +6018,8 @@
    "start": "10:00",
    "end": "15:00",
    "description": {
-    "de": "Sounddesign Spot",
-    "en": "Sound design for the spot"
+    "de": "Sounddesign Spot: Dynamo-Surren",
+    "en": "Sound design for the spot: dynamo hum"
    },
    "exported": false,
    "id": 219
@@ -6019,8 +6032,8 @@
    "start": "07:30",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": false,
    "id": 220
@@ -6047,8 +6060,8 @@
    "start": "08:00",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": false,
    "id": 222
@@ -6061,8 +6074,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 223
@@ -6089,8 +6102,8 @@
    "start": "06:00",
    "end": "16:00",
    "description": {
-    "de": "Dreh Hafenfähre",
-    "en": "Shoot on the harbour ferry"
+    "de": "Dreh Hafenfähre im Nebel",
+    "en": "Shoot on the harbour ferry in fog"
    },
    "exported": false,
    "id": 225
@@ -6131,8 +6144,8 @@
    "start": "09:00",
    "end": "11:00",
    "description": {
-    "de": "Interviewfragen Stiftung",
-    "en": "Interview questions for the foundation"
+    "de": "Interviewfragen Stiftung Elbfeuer",
+    "en": "Interview questions for Elbfeuer"
    },
    "exported": false,
    "id": 228
@@ -6187,8 +6200,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Genehmigung HafenCity",
-    "en": "HafenCity permit"
+    "de": "Drehgenehmigung Feuerschiff",
+    "en": "Light vessel shooting permit"
    },
    "exported": false,
    "id": 232
@@ -6215,8 +6228,8 @@
    "start": "09:30",
    "end": "13:00",
    "description": {
-    "de": "Dispo Folge 5",
-    "en": "Call sheet episode 5"
+    "de": "Dispo Folge 5 „Drei Uhr dreizehn“",
+    "en": "Call sheet episode 5 “Three Thirteen”"
    },
    "exported": false,
    "id": 234
@@ -6229,8 +6242,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": false,
    "id": 235
@@ -6243,8 +6256,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Originalton HafenCity",
-    "en": "Location sound in HafenCity"
+    "de": "Originalton Feuerschiff",
+    "en": "Location sound on the light vessel"
    },
    "exported": false,
    "id": 236
@@ -6257,8 +6270,8 @@
    "start": "14:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": false,
    "id": 237
@@ -6341,8 +6354,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Kamera-Check und Objektivtest",
-    "en": "Camera check and lens test"
+    "de": "Kamera-Check, Nachtobjektive testen",
+    "en": "Camera check, testing the night lenses"
    },
    "exported": false,
    "id": 243
@@ -6383,8 +6396,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Material sichten",
-    "en": "Review footage"
+    "de": "Material der Nachtdrehs sichten",
+    "en": "Review the night shoot footage"
    },
    "exported": false,
    "id": 246
@@ -6397,8 +6410,8 @@
    "start": "10:00",
    "end": "17:00",
    "description": {
-    "de": "Drehgenehmigungen",
-    "en": "Shooting permits"
+    "de": "Drehgenehmigungen für die Nachtdrehs",
+    "en": "Permits for the night shoots"
    },
    "exported": false,
    "id": 247
@@ -6411,8 +6424,8 @@
    "start": "10:00",
    "end": "13:00",
    "description": {
-    "de": "Drehplan Folge 4 abstimmen",
-    "en": "Align shooting schedule for episode 4"
+    "de": "Drehplan Folge 4 „Nebelhorn“ abstimmen",
+    "en": "Align the shooting schedule for episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 248
@@ -6439,8 +6452,8 @@
    "start": "14:00",
    "end": "15:30",
    "description": {
-    "de": "Abnahme Storyboard mit Speiche",
-    "en": "Storyboard sign-off with Speiche"
+    "de": "Storyboard „Licht an“ mit Speiche abnehmen",
+    "en": "“Lights on” storyboard sign-off with Speiche"
    },
    "exported": false,
    "id": 250
@@ -6453,8 +6466,8 @@
    "start": "07:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": false,
    "id": 251
@@ -6481,8 +6494,8 @@
    "start": "07:30",
    "end": "17:30",
    "description": {
-    "de": "Dreh Landungsbrücken",
-    "en": "Shoot at Landungsbrücken"
+    "de": "Dreh Landungsbrücken, Nebelszenen",
+    "en": "Shoot at Landungsbrücken, fog scenes"
    },
    "exported": false,
    "id": 253
@@ -6509,8 +6522,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": false,
    "id": 255
@@ -6523,8 +6536,8 @@
    "start": "07:00",
    "end": "17:00",
    "description": {
-    "de": "Dreh Fischmarkt",
-    "en": "Shoot at the fish market"
+    "de": "Dreh Fischmarkt im Morgennebel",
+    "en": "Shoot at the fish market in the morning fog"
    },
    "exported": false,
    "id": 256
@@ -6551,8 +6564,8 @@
    "start": "09:00",
    "end": "12:30",
    "description": {
-    "de": "Feinschnitt Interviews",
-    "en": "Fine cut of the interviews"
+    "de": "Feinschnitt Interviews Feuerschiff",
+    "en": "Fine cut of the light vessel interviews"
    },
    "exported": false,
    "id": 258
@@ -6565,8 +6578,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Schnitt Folge 3",
-    "en": "Edit episode 3"
+    "de": "Schnitt Folge 3 „Irrlicht“",
+    "en": "Edit episode 3 “Will-o'-the-Wisp”"
    },
    "exported": false,
    "id": 259
@@ -6579,8 +6592,8 @@
    "start": "09:40",
    "end": "12:10",
    "description": {
-    "de": "Motivsuche Werkstatt",
-    "en": "Location scout at the workshop"
+    "de": "Motivsuche Werkstatt bei Nacht",
+    "en": "Night location scout at the workshop"
    },
    "exported": false,
    "id": 260
@@ -6635,8 +6648,8 @@
    "start": "08:00",
    "end": "19:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": false,
    "id": 264
@@ -6649,8 +6662,8 @@
    "start": "08:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh Övelgönne",
-    "en": "Shoot at Övelgönne"
+    "de": "Dreh Övelgönne in der Dämmerung",
+    "en": "Shoot at Övelgönne at dusk"
    },
    "exported": false,
    "id": 265
@@ -6663,8 +6676,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Farbkorrektur Spot",
-    "en": "Colour grading the spot"
+    "de": "Farbkorrektur Spot, Nachtlook",
+    "en": "Colour grading the spot, night look"
    },
    "exported": false,
    "id": 266
@@ -6677,8 +6690,8 @@
    "start": "09:00",
    "end": "14:00",
    "description": {
-    "de": "Requisiten besorgen",
-    "en": "Source props"
+    "de": "Requisiten: Laternen, Handscheinwerfer",
+    "en": "Props: lanterns, floodlights"
    },
    "exported": false,
    "id": 267
@@ -6705,8 +6718,8 @@
    "start": "10:00",
    "end": "12:00",
    "description": {
-    "de": "Showreel: neue Szenen",
-    "en": "Showreel: new scenes"
+    "de": "Showreel: Nachtszenen",
+    "en": "Showreel: night scenes"
    },
    "exported": false,
    "id": 269
@@ -6719,8 +6732,8 @@
    "start": "13:00",
    "end": "14:30",
    "description": {
-    "de": "Rohschnitt-Abnahme Elbgrün",
-    "en": "Rough cut review with Elbgrün"
+    "de": "Rohschnitt-Abnahme Elbfeuer",
+    "en": "Rough cut review with Elbfeuer"
    },
    "exported": false,
    "id": 270
@@ -6761,8 +6774,8 @@
    "start": "09:00",
    "end": "13:00",
    "description": {
-    "de": "Licht-Setup testen",
-    "en": "Test the lighting setup"
+    "de": "Licht-Setup: nur das Fahrradlicht",
+    "en": "Lighting setup: the bike light only"
    },
    "exported": false,
    "id": 273
@@ -6803,8 +6816,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 276
@@ -6831,8 +6844,8 @@
    "start": "10:00",
    "end": "12:30",
    "description": {
-    "de": "Casting Fahrradkurier",
-    "en": "Casting the bike courier"
+    "de": "Casting Nachtkurier",
+    "en": "Casting the night courier"
    },
    "exported": false,
    "id": 278
@@ -6845,8 +6858,8 @@
    "start": "10:00",
    "end": "15:00",
    "description": {
-    "de": "Sounddesign Spot",
-    "en": "Sound design for the spot"
+    "de": "Sounddesign Spot: Dynamo-Surren",
+    "en": "Sound design for the spot: dynamo hum"
    },
    "exported": false,
    "id": 279
@@ -6859,8 +6872,8 @@
    "start": "07:30",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": false,
    "id": 280
@@ -6887,8 +6900,8 @@
    "start": "08:00",
    "end": "16:30",
    "description": {
-    "de": "Dreh Speiche-Werkstatt",
-    "en": "Shoot at the Speiche workshop"
+    "de": "Dreh Speiche-Werkstatt: Licht aus, Dynamo an",
+    "en": "Shoot at the Speiche workshop: lights off, dynamo on"
    },
    "exported": false,
    "id": 282
@@ -6901,8 +6914,8 @@
    "start": "09:00",
    "end": "17:00",
    "description": {
-    "de": "Schnitt Folge 4",
-    "en": "Edit episode 4"
+    "de": "Schnitt Folge 4 „Nebelhorn“",
+    "en": "Edit episode 4 “Foghorn”"
    },
    "exported": false,
    "id": 283
@@ -6929,8 +6942,8 @@
    "start": "06:00",
    "end": "16:00",
    "description": {
-    "de": "Dreh Hafenfähre",
-    "en": "Shoot on the harbour ferry"
+    "de": "Dreh Hafenfähre im Nebel",
+    "en": "Shoot on the harbour ferry in fog"
    },
    "exported": false,
    "id": 285
@@ -6971,8 +6984,8 @@
    "start": "09:00",
    "end": "11:00",
    "description": {
-    "de": "Interviewfragen Stiftung",
-    "en": "Interview questions for the foundation"
+    "de": "Interviewfragen Stiftung Elbfeuer",
+    "en": "Interview questions for Elbfeuer"
    },
    "exported": false,
    "id": 288
@@ -7027,8 +7040,8 @@
    "start": "09:00",
    "end": "15:00",
    "description": {
-    "de": "Genehmigung HafenCity",
-    "en": "HafenCity permit"
+    "de": "Drehgenehmigung Feuerschiff",
+    "en": "Light vessel shooting permit"
    },
    "exported": false,
    "id": 292
@@ -7041,8 +7054,8 @@
    "start": "09:30",
    "end": "13:00",
    "description": {
-    "de": "Dispo Folge 5",
-    "en": "Call sheet episode 5"
+    "de": "Dispo Folge 5 „Drei Uhr dreizehn“",
+    "en": "Call sheet episode 5 “Three Thirteen”"
    },
    "exported": false,
    "id": 293
@@ -7055,8 +7068,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": false,
    "id": 294
@@ -7069,8 +7082,8 @@
    "start": "13:00",
    "end": "18:30",
    "description": {
-    "de": "Originalton HafenCity",
-    "en": "Location sound in HafenCity"
+    "de": "Originalton Feuerschiff",
+    "en": "Location sound on the light vessel"
    },
    "exported": false,
    "id": 295
@@ -7083,8 +7096,8 @@
    "start": "14:00",
    "end": "18:00",
    "description": {
-    "de": "Dreh HafenCity",
-    "en": "Shoot in HafenCity"
+    "de": "Dreh am Feuerschiff, HafenCity",
+    "en": "Shoot on the light vessel, HafenCity"
    },
    "exported": false,
    "id": 296
