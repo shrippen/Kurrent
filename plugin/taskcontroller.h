@@ -405,6 +405,11 @@ public:
     int testTaskPriority(qint64 id) const;
     int testTaskStatus(qint64 id) const;
     int testTaskSecrecy(qint64 id) const;
+    // Demo mode (KURRENT_DEMO): the shared shrippen demo tasks in memory, no Akonadi.
+    Q_PROPERTY(bool demoMode READ demoMode CONSTANT)
+    bool demoMode() const;
+    Q_INVOKABLE QString demoProjectColors() const;
+    void loadDemoData();
     QString testTaskLocation(qint64 id) const;
     QDateTime testTaskDue(qint64 id) const;
     QString testKanbanColumnKey(qint64 id) const;
@@ -581,6 +586,7 @@ enum class SyncResult { Error, Ok };
     void updateDebugInfo(int builtTasks, int filteredTasks, int filteredOutCompleted, int filteredOutView, int filteredOutSearch);
 
     bool m_akonadiAvailable = false;
+    bool m_demo = false;
     bool m_loading = false;
     bool m_listReorganizing = false;
     double m_rebuildMsPerTask = 0.08;

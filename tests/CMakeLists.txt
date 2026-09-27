@@ -92,7 +92,13 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonaditaskstore.cpp
     ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
+)
+qt_add_resources(kurrent-taskcontroller-store-test "kurrent_demo_test"
+    PREFIX "/kurrent"
+    BASE ${CMAKE_SOURCE_DIR}
+    FILES ${CMAKE_SOURCE_DIR}/demo/world.json
 )
 target_include_directories(kurrent-taskcontroller-store-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
 target_link_libraries(kurrent-taskcontroller-store-test PRIVATE

@@ -1,6 +1,7 @@
 #include "taskcontroller.h"
 #include "akonaditaskstore.h"
 #include "kurrentlogging.h"
+#include "demodata.h"
 #include "memorytaskstore.h"
 #include "sharedsettings.h"
 #include "taskcalendar.h"
@@ -240,7 +241,11 @@ TaskController::TaskController(QObject *parent)
         KurrentLogging::reloadFromSharedSettings();
     });
 
-    hydrateFromCache();
+    if (DemoData::enabled()) {
+        loadDemoData();
+    } else {
+        hydrateFromCache();
+    }
     loadRebuildPerfProfile();
     // D-Bus and GlobalAccel talk to the session bus; let QML finish constructing first.
     QTimer::singleShot(0, this, [this]() {
@@ -278,6 +283,42 @@ void TaskController::setTaskStore(AbstractTaskStore *store)
         m_store->setParent(this);
     }
     connect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
+}
+
+bool TaskController::demoMode() const
+{
+    return m_demo;
+}
+
+QString TaskController::demoProjectColors() const
+{
+    return m_demo ? DemoData::projectColorsJson() : QString();
+}
+
+void TaskController::loadDemoData()
+{
+    m_demo = true;
+    setTaskStore(new MemoryTaskStore);
+    const DemoData::Data data = DemoData::load();
+    s_tasks.clear();
+    installTestCollections(data.collections);
+    for (const DemoData::Task &task : data.tasks) {
+        Akonadi::Item item;
+        item.setId(task.id);
+        item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+        item.setPayload(task.todo);
+        item.setParentCollection(Akonadi::Collection(task.collectionId));
+        CachedTask cached;
+        cached.item = item;
+        cached.todo = task.todo;
+        s_tasks.insert(task.id, cached);
+        if (auto *memory = qobject_cast<MemoryTaskStore *>(m_store)) {
+            memory->seedItem(item);
+        }
+    }
+    m_akonadiAvailable = true;
+    Q_EMIT akonadiAvailableChanged();
+    scheduleRebuildAll();
 }
 
 void TaskController::resetSharedStateForTest()
@@ -2356,6 +2397,9 @@ void TaskController::setEnabledCollectionIds(const QVariantList &ids)
 
 void TaskController::refresh()
 {
+    if (m_demo) {
+        return;
+    }
     if (!initializeAkonadi()) {
         return;
     }
@@ -2364,6 +2408,9 @@ void TaskController::refresh()
 
 void TaskController::syncNow()
 {
+    if (m_demo) {
+        return;
+    }
     if (!m_akonadiAvailable) {
         // Try to (re)connect; retry timer keeps trying if this still fails.
         refresh();
@@ -4132,6 +4179,9 @@ void TaskController::ensureServerWatch()
 
 bool TaskController::initializeAkonadi()
 {
+    if (m_demo) {
+        return m_akonadiAvailable;
+    }
     if (m_monitor) {
         return true;
     }
@@ -5387,7 +5437,7 @@ void TaskController::refreshBusyEvents()
 {
     // Busy events feed both reminder suppression and the Agenda view,
     // so they are fetched whenever Akonadi is available.
-    if (!m_akonadiAvailable) {
+    if (!m_akonadiAvailable || m_demo) {
         m_busyIntervals.clear();
         return;
     }

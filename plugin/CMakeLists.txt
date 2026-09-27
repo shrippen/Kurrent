@@ -29,6 +29,15 @@ add_library(kurrentplugin SHARED
     akonaditaskstore.h
     memorytaskstore.cpp
     memorytaskstore.h
+    demodata.cpp
+    demodata.h
+)
+
+# Demo tasks (KURRENT_DEMO): the shared shrippen demo world, see demo/world.json
+qt_add_resources(kurrentplugin "kurrent_demo"
+    PREFIX "/kurrent"
+    BASE ".."
+    FILES ../demo/world.json
 )
 
 set_target_properties(kurrentplugin PROPERTIES

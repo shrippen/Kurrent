@@ -33,6 +33,7 @@ private Q_SLOTS:
     void matrixDropWritesLaneAndDue();
     void inspectorSnapshotAndChildren();
     void heatmapTasksForDay();
+    void demoModeLoadsWorldTasks();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -464,6 +465,24 @@ void TaskControllerStoreTest::heatmapTasksForDay()
     QCOMPARE(done.at(1).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("b done"));
     QVERIFY(m_controller->heatmapTasksForDay(QDate::currentDate().addDays(-1), QStringLiteral("completed")).isEmpty());
     QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
+}
+
+void TaskControllerStoreTest::demoModeLoadsWorldTasks()
+{
+    qputenv("KURRENT_DEMO", "en");
+    qputenv("DEMO_TODAY", "2026-09-16");
+    auto *demo = new TaskController;
+    qunsetenv("KURRENT_DEMO");
+    qunsetenv("DEMO_TODAY");
+
+    QVERIFY(demo->demoMode());
+    QVERIFY(demo->testTaskExists(20));
+    QCOMPARE(demo->testTaskSummary(2), QStringLiteral("Send episode 4 rough cut to Northlight"));
+    QVERIFY(demo->testTaskCompleted(5));
+    QVERIFY(demo->testTaskCategories(10).contains(QStringLiteral("Calls")));
+    QVERIFY(demo->demoProjectColors().contains(QStringLiteral("#fe8019")));
+    demo->resetSharedStateForTest();
+    delete demo;
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

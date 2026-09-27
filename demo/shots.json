@@ -1,0 +1,15 @@
+{
+  "kind": "command",
+  "start": "demo/shots.sh",
+  "today": "real",
+  "timeout": 300,
+  "format": "webp",
+  "shots": [
+    {"name": "tasks"},
+    {"name": "kanban"},
+    {"name": "plan"},
+    {"name": "heatmap"},
+    {"name": "editor"},
+    {"name": "inspector"}
+  ]
+}

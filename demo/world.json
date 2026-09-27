@@ -1,0 +1,6247 @@
+{
+ "version": 1,
+ "about": "Shared demo data of all shrippen projects: Studio Weber, a small film and media studio in Hamburg. Everything is made up. Dates are day offsets from the anchor (Monday of the week that contains 'today', DEMO_TODAY=YYYY-MM-DD fixes 'today'). Texts are {de, en}. Edit this file, then run tools/sync-demo.py. See demo/README.md.",
+ "screenshot_today": "2026-09-16",
+ "timezone": "Europe/Berlin",
+ "currency": "EUR",
+ "studio": {
+  "name": "Studio Weber",
+  "tagline": {
+   "de": "Film und Medien aus Hamburg",
+   "en": "Film and media from Hamburg"
+  },
+  "city": "Hamburg",
+  "address": "Kranichweg 12, 22765 Hamburg",
+  "domain": "studio-weber.example.test",
+  "hostname": "studio-pi",
+  "laptop": "schnitt-laptop"
+ },
+ "people": [
+  {
+   "id": "mara",
+   "name": "Mara Weber",
+   "alias": "Mara",
+   "email": "mara@studio-weber.example.test",
+   "kimai_role": "ROLE_SUPER_ADMIN",
+   "color": "#fe8019",
+   "hours_per_week": 40,
+   "title": {
+    "de": "Inhaberin, Produzentin",
+    "en": "Owner, producer"
+   }
+  },
+  {
+   "id": "jonas",
+   "name": "Jonas Brandt",
+   "alias": "Jonas",
+   "email": "jonas@studio-weber.example.test",
+   "kimai_role": "ROLE_USER",
+   "color": "#fabd2f",
+   "hours_per_week": 40,
+   "title": {
+    "de": "Kamera",
+    "en": "Camera"
+   }
+  },
+  {
+   "id": "selin",
+   "name": "Selin Aydın",
+   "alias": "Selin",
+   "email": "selin@studio-weber.example.test",
+   "kimai_role": "ROLE_USER",
+   "color": "#83a598",
+   "hours_per_week": 32,
+   "title": {
+    "de": "Schnitt",
+    "en": "Editing"
+   }
+  },
+  {
+   "id": "theo",
+   "name": "Theo Lindqvist",
+   "alias": "Theo",
+   "email": "theo@studio-weber.example.test",
+   "kimai_role": "ROLE_USER",
+   "color": "#8ec07c",
+   "hours_per_week": 30,
+   "title": {
+    "de": "Ton",
+    "en": "Sound"
+   }
+  },
+  {
+   "id": "lena",
+   "name": "Lena Kraus",
+   "alias": "Lena",
+   "email": "lena@studio-weber.example.test",
+   "kimai_role": "ROLE_TEAMLEAD",
+   "color": "#d3869b",
+   "hours_per_week": 40,
+   "title": {
+    "de": "Produktionsassistenz",
+    "en": "Production assistant"
+   }
+  }
+ ],
+ "demo_password": "demo-password-1",
+ "teams": [
+  {
+   "id": "production",
+   "name": {
+    "de": "Produktion",
+    "en": "Production"
+   },
+   "lead": "lena",
+   "members": [
+    "mara",
+    "jonas",
+    "theo",
+    "lena"
+   ]
+  },
+  {
+   "id": "post",
+   "name": {
+    "de": "Postproduktion",
+    "en": "Post-production"
+   },
+   "lead": "mara",
+   "members": [
+    "mara",
+    "selin",
+    "theo"
+   ]
+  }
+ ],
+ "customers": [
+  {
+   "id": "northlight",
+   "name": "Northlight Pictures",
+   "color": "#d65d0e",
+   "clash_color": "#fe8019",
+   "city": "Hamburg-Altona",
+   "country": "DE",
+   "vat_id": "DE318204417",
+   "kind": {
+    "de": "Produktionsfirma",
+    "en": "Production company"
+   }
+  },
+  {
+   "id": "elbgruen",
+   "name": "Elbgrün Stiftung",
+   "color": "#689d6a",
+   "clash_color": "#8ec07c",
+   "city": "Hamburg-HafenCity",
+   "country": "DE",
+   "vat_id": "",
+   "kind": {
+    "de": "Stiftung",
+    "en": "Foundation"
+   }
+  },
+  {
+   "id": "speiche",
+   "name": "Speiche Fahrradmanufaktur",
+   "color": "#458588",
+   "clash_color": "#83a598",
+   "city": "Hamburg-Wilhelmsburg",
+   "country": "DE",
+   "vat_id": "DE294117820",
+   "kind": {
+    "de": "Fahrradmanufaktur",
+    "en": "Bicycle maker"
+   }
+  },
+  {
+   "id": "studio",
+   "name": "Studio Weber",
+   "color": "#a89984",
+   "clash_color": "#a89984",
+   "city": "Hamburg-Ottensen",
+   "country": "DE",
+   "vat_id": "",
+   "kind": {
+    "de": "Intern",
+    "en": "Internal"
+   }
+  },
+  {
+   "id": "donaulicht",
+   "name": "Donaulicht Film",
+   "color": "#d79921",
+   "clash_color": "#fabd2f",
+   "city": "Wien",
+   "country": "AT",
+   "vat_id": "",
+   "kind": {
+    "de": "Koproduzent in Österreich",
+    "en": "Co-producer in Austria"
+   }
+  }
+ ],
+ "projects": [
+  {
+   "id": "harbour",
+   "customer": "northlight",
+   "name": {
+    "de": "Harbour Lights – Staffel 2",
+    "en": "Harbour Lights – Season 2"
+   },
+   "short": "Harbour Lights",
+   "color": "#fe8019",
+   "clash_color": "#d65d0e",
+   "hourly_rate": 85,
+   "billable": true
+  },
+  {
+   "id": "tidenhub",
+   "customer": "elbgruen",
+   "name": {
+    "de": "Imagefilm Tidenhub",
+    "en": "Tidenhub image film"
+   },
+   "short": "Tidenhub",
+   "color": "#8ec07c",
+   "clash_color": "#689d6a",
+   "hourly_rate": 90,
+   "billable": true
+  },
+  {
+   "id": "spring",
+   "customer": "speiche",
+   "name": {
+    "de": "Frühjahrsspot",
+    "en": "Spring commercial"
+   },
+   "short": "Speiche Spot",
+   "color": "#83a598",
+   "clash_color": "#458588",
+   "hourly_rate": 95,
+   "billable": true
+  },
+  {
+   "id": "showreel",
+   "customer": "studio",
+   "name": {
+    "de": "Showreel 2026",
+    "en": "Showreel 2026"
+   },
+   "short": "Showreel",
+   "color": "#d3869b",
+   "clash_color": "#b16286",
+   "hourly_rate": 0,
+   "billable": false
+  },
+  {
+   "id": "trailer",
+   "customer": "donaulicht",
+   "name": {
+    "de": "Trailer Donaulicht",
+    "en": "Donaulicht trailer"
+   },
+   "short": "Donaulicht",
+   "color": "#d79921",
+   "clash_color": "#fabd2f",
+   "hourly_rate": 90,
+   "billable": true
+  },
+  {
+   "id": "admin",
+   "customer": "studio",
+   "name": {
+    "de": "Verwaltung",
+    "en": "Admin"
+   },
+   "short": "Admin",
+   "color": "#a89984",
+   "clash_color": "#928374",
+   "hourly_rate": 0,
+   "billable": false
+  }
+ ],
+ "activities": [
+  {
+   "id": "shoot",
+   "name": {
+    "de": "Dreh",
+    "en": "Shooting"
+   },
+   "color": "#fabd2f"
+  },
+  {
+   "id": "prep",
+   "name": {
+    "de": "Vorproduktion",
+    "en": "Pre-production"
+   },
+   "color": "#d3869b"
+  },
+  {
+   "id": "edit",
+   "name": {
+    "de": "Schnitt",
+    "en": "Editing"
+   },
+   "color": "#83a598"
+  },
+  {
+   "id": "sound",
+   "name": {
+    "de": "Tonmischung",
+    "en": "Sound mix"
+   },
+   "color": "#8ec07c"
+  },
+  {
+   "id": "travel",
+   "name": {
+    "de": "Fahrt",
+    "en": "Travel"
+   },
+   "color": "#b8bb26"
+  },
+  {
+   "id": "meeting",
+   "name": {
+    "de": "Besprechung",
+    "en": "Meeting"
+   },
+   "color": "#b16286"
+  },
+  {
+   "id": "bookkeeping",
+   "name": {
+    "de": "Buchhaltung",
+    "en": "Bookkeeping"
+   },
+   "color": "#689d6a"
+  }
+ ],
+ "timesheet_weeks": {
+  "from_week": -8,
+  "to_week": 1,
+  "exported_before_day": -21,
+  "note": "Each person has week templates; week w uses templates[w mod n]. Rows: [weekday 0=Mon, project, activity, start, end, description]. Days covered by an absence or a public holiday are skipped. Consumers drop rows after 'now'.",
+  "templates": {
+   "mara": [
+    [
+     [
+      0,
+      "admin",
+      "meeting",
+      "09:00",
+      "09:45",
+      {
+       "de": "Wochenplanung mit dem Team",
+       "en": "Weekly planning with the team"
+      }
+     ],
+     [
+      0,
+      "harbour",
+      "prep",
+      "10:00",
+      "13:00",
+      {
+       "de": "Drehplan Folge 4 abstimmen",
+       "en": "Align shooting schedule for episode 4"
+      }
+     ],
+     [
+      0,
+      "spring",
+      "meeting",
+      "14:00",
+      "15:30",
+      {
+       "de": "Abnahme Storyboard mit Speiche",
+       "en": "Storyboard sign-off with Speiche"
+      }
+     ],
+     [
+      1,
+      "harbour",
+      "shoot",
+      "07:30",
+      "17:30",
+      {
+       "de": "Dreh Landungsbrücken",
+       "en": "Shoot at Landungsbrücken"
+      }
+     ],
+     [
+      2,
+      "tidenhub",
+      "edit",
+      "09:00",
+      "12:30",
+      {
+       "de": "Feinschnitt Interviews",
+       "en": "Fine cut of the interviews"
+      }
+     ],
+     [
+      2,
+      "spring",
+      "prep",
+      "09:40",
+      "12:10",
+      {
+       "de": "Motivsuche Werkstatt",
+       "en": "Location scout at the workshop"
+      }
+     ],
+     [
+      2,
+      "admin",
+      "bookkeeping",
+      "14:00",
+      "16:00",
+      {
+       "de": "Belege zuordnen",
+       "en": "Match receipts"
+      }
+     ],
+     [
+      3,
+      "harbour",
+      "shoot",
+      "08:00",
+      "18:00",
+      {
+       "de": "Dreh Övelgönne",
+       "en": "Shoot at Övelgönne"
+      }
+     ],
+     [
+      4,
+      "showreel",
+      "edit",
+      "10:00",
+      "12:00",
+      {
+       "de": "Showreel: neue Szenen",
+       "en": "Showreel: new scenes"
+      }
+     ],
+     [
+      4,
+      "tidenhub",
+      "meeting",
+      "13:00",
+      "14:30",
+      {
+       "de": "Rohschnitt-Abnahme Elbgrün",
+       "en": "Rough cut review with Elbgrün"
+      }
+     ],
+     [
+      4,
+      "trailer",
+      "edit",
+      "14:45",
+      "17:30",
+      {
+       "de": "Trailer-Schnitt für Donaulicht",
+       "en": "Trailer edit for Donaulicht"
+      }
+     ]
+    ],
+    [
+     [
+      0,
+      "admin",
+      "meeting",
+      "09:00",
+      "09:45",
+      {
+       "de": "Wochenplanung mit dem Team",
+       "en": "Weekly planning with the team"
+      }
+     ],
+     [
+      0,
+      "spring",
+      "prep",
+      "10:00",
+      "12:30",
+      {
+       "de": "Casting Fahrradkurier",
+       "en": "Casting the bike courier"
+      }
+     ],
+     [
+      1,
+      "spring",
+      "shoot",
+      "08:00",
+      "16:30",
+      {
+       "de": "Dreh Speiche-Werkstatt",
+       "en": "Shoot at the Speiche workshop"
+      }
+     ],
+     [
+      2,
+      "tidenhub",
+      "prep",
+      "09:00",
+      "11:00",
+      {
+       "de": "Interviewfragen Stiftung",
+       "en": "Interview questions for the foundation"
+      }
+     ],
+     [
+      2,
+      "admin",
+      "bookkeeping",
+      "13:00",
+      "15:30",
+      {
+       "de": "Rechnungen Northlight",
+       "en": "Invoices for Northlight"
+      }
+     ],
+     [
+      3,
+      "harbour",
+      "prep",
+      "09:30",
+      "13:00",
+      {
+       "de": "Dispo Folge 5",
+       "en": "Call sheet episode 5"
+      }
+     ],
+     [
+      3,
+      "tidenhub",
+      "shoot",
+      "14:00",
+      "18:00",
+      {
+       "de": "Dreh HafenCity",
+       "en": "Shoot in HafenCity"
+      }
+     ],
+     [
+      4,
+      "spring",
+      "edit",
+      "09:00",
+      "13:00",
+      {
+       "de": "Schnittfassung 1",
+       "en": "Edit version 1"
+      }
+     ]
+    ]
+   ],
+   "jonas": [
+    [
+     [
+      0,
+      "harbour",
+      "prep",
+      "09:00",
+      "15:00",
+      {
+       "de": "Kamera-Check und Objektivtest",
+       "en": "Camera check and lens test"
+      }
+     ],
+     [
+      1,
+      "harbour",
+      "shoot",
+      "07:00",
+      "18:30",
+      {
+       "de": "Dreh Landungsbrücken",
+       "en": "Shoot at Landungsbrücken"
+      }
+     ],
+     [
+      2,
+      "harbour",
+      "shoot",
+      "07:00",
+      "17:00",
+      {
+       "de": "Dreh Fischmarkt",
+       "en": "Shoot at the fish market"
+      }
+     ],
+     [
+      3,
+      "harbour",
+      "shoot",
+      "08:00",
+      "19:00",
+      {
+       "de": "Dreh Övelgönne",
+       "en": "Shoot at Övelgönne"
+      }
+     ],
+     [
+      4,
+      "showreel",
+      "edit",
+      "10:00",
+      "13:00",
+      {
+       "de": "Kamera-Reel sichten",
+       "en": "Review the camera reel"
+      }
+     ]
+    ],
+    [
+     [
+      0,
+      "spring",
+      "prep",
+      "09:00",
+      "13:00",
+      {
+       "de": "Licht-Setup testen",
+       "en": "Test the lighting setup"
+      }
+     ],
+     [
+      1,
+      "spring",
+      "shoot",
+      "07:30",
+      "16:30",
+      {
+       "de": "Dreh Speiche-Werkstatt",
+       "en": "Shoot at the Speiche workshop"
+      }
+     ],
+     [
+      2,
+      "harbour",
+      "shoot",
+      "06:00",
+      "16:00",
+      {
+       "de": "Dreh Hafenfähre",
+       "en": "Shoot on the harbour ferry"
+      }
+     ],
+     [
+      3,
+      "tidenhub",
+      "shoot",
+      "13:00",
+      "18:30",
+      {
+       "de": "Dreh HafenCity",
+       "en": "Shoot in HafenCity"
+      }
+     ],
+     [
+      4,
+      "harbour",
+      "shoot",
+      "15:00",
+      "23:30",
+      {
+       "de": "Nachtdreh Speicherstadt",
+       "en": "Night shoot in Speicherstadt"
+      }
+     ]
+    ]
+   ],
+   "selin": [
+    [
+     [
+      0,
+      "tidenhub",
+      "edit",
+      "09:00",
+      "13:00",
+      {
+       "de": "Material sichten",
+       "en": "Review footage"
+      }
+     ],
+     [
+      0,
+      "tidenhub",
+      "edit",
+      "13:30",
+      "16:30",
+      {
+       "de": "Interviews schneiden",
+       "en": "Cut the interviews"
+      }
+     ],
+     [
+      1,
+      "harbour",
+      "edit",
+      "09:00",
+      "17:00",
+      {
+       "de": "Schnitt Folge 3",
+       "en": "Edit episode 3"
+      }
+     ],
+     [
+      2,
+      "harbour",
+      "edit",
+      "09:00",
+      "13:00",
+      {
+       "de": "Schnitt Folge 3",
+       "en": "Edit episode 3"
+      }
+     ],
+     [
+      3,
+      "spring",
+      "edit",
+      "09:00",
+      "17:00",
+      {
+       "de": "Farbkorrektur Spot",
+       "en": "Colour grading the spot"
+      }
+     ]
+    ],
+    [
+     [
+      0,
+      "harbour",
+      "edit",
+      "09:00",
+      "17:00",
+      {
+       "de": "Schnitt Folge 4",
+       "en": "Edit episode 4"
+      }
+     ],
+     [
+      1,
+      "harbour",
+      "edit",
+      "09:00",
+      "17:00",
+      {
+       "de": "Schnitt Folge 4",
+       "en": "Edit episode 4"
+      }
+     ],
+     [
+      2,
+      "tidenhub",
+      "edit",
+      "09:00",
+      "13:00",
+      {
+       "de": "Feinschnitt",
+       "en": "Fine cut"
+      }
+     ],
+     [
+      3,
+      "showreel",
+      "edit",
+      "09:00",
+      "15:00",
+      {
+       "de": "Showreel-Schnitt",
+       "en": "Showreel edit"
+      }
+     ]
+    ]
+   ],
+   "theo": [
+    [
+     [
+      1,
+      "harbour",
+      "shoot",
+      "07:30",
+      "17:30",
+      {
+       "de": "Originalton Landungsbrücken",
+       "en": "Location sound at Landungsbrücken"
+      }
+     ],
+     [
+      2,
+      "tidenhub",
+      "sound",
+      "10:00",
+      "16:00",
+      {
+       "de": "Tonmischung Interviews",
+       "en": "Sound mix of the interviews"
+      }
+     ],
+     [
+      3,
+      "harbour",
+      "shoot",
+      "08:00",
+      "18:00",
+      {
+       "de": "Originalton Övelgönne",
+       "en": "Location sound at Övelgönne"
+      }
+     ],
+     [
+      4,
+      "harbour",
+      "sound",
+      "10:00",
+      "14:00",
+      {
+       "de": "Score: Nebelhorn",
+       "en": "Score: Nebelhorn"
+      }
+     ]
+    ],
+    [
+     [
+      0,
+      "spring",
+      "sound",
+      "10:00",
+      "15:00",
+      {
+       "de": "Sounddesign Spot",
+       "en": "Sound design for the spot"
+      }
+     ],
+     [
+      2,
+      "harbour",
+      "sound",
+      "10:00",
+      "17:00",
+      {
+       "de": "Mischung Folge 3",
+       "en": "Mix episode 3"
+      }
+     ],
+     [
+      3,
+      "tidenhub",
+      "shoot",
+      "13:00",
+      "18:30",
+      {
+       "de": "Originalton HafenCity",
+       "en": "Location sound in HafenCity"
+      }
+     ]
+    ]
+   ],
+   "lena": [
+    [
+     [
+      0,
+      "admin",
+      "meeting",
+      "09:00",
+      "09:45",
+      {
+       "de": "Wochenplanung mit dem Team",
+       "en": "Weekly planning with the team"
+      }
+     ],
+     [
+      0,
+      "harbour",
+      "prep",
+      "10:00",
+      "17:00",
+      {
+       "de": "Drehgenehmigungen",
+       "en": "Shooting permits"
+      }
+     ],
+     [
+      1,
+      "harbour",
+      "shoot",
+      "07:00",
+      "18:30",
+      {
+       "de": "Set-Aufnahmeleitung",
+       "en": "Set management"
+      }
+     ],
+     [
+      2,
+      "admin",
+      "bookkeeping",
+      "09:00",
+      "12:00",
+      {
+       "de": "Reisekosten",
+       "en": "Travel expenses"
+      }
+     ],
+     [
+      3,
+      "harbour",
+      "shoot",
+      "07:30",
+      "18:30",
+      {
+       "de": "Set-Aufnahmeleitung",
+       "en": "Set management"
+      }
+     ],
+     [
+      4,
+      "spring",
+      "prep",
+      "09:00",
+      "14:00",
+      {
+       "de": "Requisiten besorgen",
+       "en": "Source props"
+      }
+     ]
+    ],
+    [
+     [
+      0,
+      "admin",
+      "meeting",
+      "09:00",
+      "09:45",
+      {
+       "de": "Wochenplanung mit dem Team",
+       "en": "Weekly planning with the team"
+      }
+     ],
+     [
+      0,
+      "spring",
+      "prep",
+      "10:00",
+      "16:00",
+      {
+       "de": "Dispo Werkstattdreh",
+       "en": "Call sheet for the workshop shoot"
+      }
+     ],
+     [
+      1,
+      "spring",
+      "shoot",
+      "07:30",
+      "16:30",
+      {
+       "de": "Set-Aufnahmeleitung",
+       "en": "Set management"
+      }
+     ],
+     [
+      2,
+      "harbour",
+      "travel",
+      "08:00",
+      "09:00",
+      {
+       "de": "Fahrt Northlight-Büro",
+       "en": "Drive to the Northlight office"
+      }
+     ],
+     [
+      2,
+      "harbour",
+      "meeting",
+      "09:00",
+      "11:30",
+      {
+       "de": "Produktionsbesprechung",
+       "en": "Production meeting"
+      }
+     ],
+     [
+      3,
+      "tidenhub",
+      "prep",
+      "09:00",
+      "15:00",
+      {
+       "de": "Genehmigung HafenCity",
+       "en": "HafenCity permit"
+      }
+     ]
+    ]
+   ]
+  }
+ },
+ "running": [
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "start": "13:15",
+   "description": {
+    "de": "Drehbuch Frühjahrsspot überarbeiten",
+    "en": "Revise the spring commercial script"
+   }
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "start": "13:30",
+   "description": {
+    "de": "Feinschnitt Interviews",
+    "en": "Fine cut of the interviews"
+   }
+  }
+ ],
+ "absences": [
+  {
+   "user": "selin",
+   "type": "holiday",
+   "from": -32,
+   "to": -26,
+   "status": "approved",
+   "comment": {
+    "de": "Sommerurlaub",
+    "en": "Summer holiday"
+   }
+  },
+  {
+   "user": "selin",
+   "type": "holiday",
+   "from": 10,
+   "to": 14,
+   "status": "approved",
+   "comment": {
+    "de": "Herbsturlaub",
+    "en": "Autumn holiday"
+   }
+  },
+  {
+   "user": "theo",
+   "type": "sickness",
+   "from": -3,
+   "to": -2,
+   "status": "approved",
+   "comment": {
+    "de": "",
+    "en": ""
+   }
+  },
+  {
+   "user": "lena",
+   "type": "holiday",
+   "from": 24,
+   "to": 28,
+   "status": "pending",
+   "comment": {
+    "de": "Städtereise",
+    "en": "City trip"
+   }
+  },
+  {
+   "user": "jonas",
+   "type": "time_off",
+   "from": -9,
+   "to": -9,
+   "status": "approved",
+   "comment": {
+    "de": "Ausgleich Nachtdreh",
+    "en": "Time off after the night shoot"
+   }
+  },
+  {
+   "user": "mara",
+   "type": "holiday",
+   "from": 38,
+   "to": 42,
+   "status": "pending",
+   "comment": {
+    "de": "Herbstferien",
+    "en": "Autumn break"
+   }
+  },
+  {
+   "user": "jonas",
+   "type": "holiday",
+   "from": 17,
+   "to": 18,
+   "status": "rejected",
+   "comment": {
+    "de": "Dreh Folge 6",
+    "en": "Shoot of episode 6"
+   }
+  },
+  {
+   "user": "theo",
+   "type": "holiday",
+   "from": 3,
+   "to": 4,
+   "status": "approved",
+   "comment": {
+    "de": "Brückentage",
+    "en": "Long weekend"
+   }
+  }
+ ],
+ "public_holidays": {
+  "region": "DE-HH",
+  "dates": {
+   "2025-01-01": {
+    "de": "Neujahr",
+    "en": "New Year's Day"
+   },
+   "2025-04-18": {
+    "de": "Karfreitag",
+    "en": "Good Friday"
+   },
+   "2025-04-21": {
+    "de": "Ostermontag",
+    "en": "Easter Monday"
+   },
+   "2025-05-01": {
+    "de": "Tag der Arbeit",
+    "en": "Labour Day"
+   },
+   "2025-05-29": {
+    "de": "Christi Himmelfahrt",
+    "en": "Ascension Day"
+   },
+   "2025-06-09": {
+    "de": "Pfingstmontag",
+    "en": "Whit Monday"
+   },
+   "2025-10-03": {
+    "de": "Tag der Deutschen Einheit",
+    "en": "German Unity Day"
+   },
+   "2025-10-31": {
+    "de": "Reformationstag",
+    "en": "Reformation Day"
+   },
+   "2025-12-25": {
+    "de": "1. Weihnachtstag",
+    "en": "Christmas Day"
+   },
+   "2025-12-26": {
+    "de": "2. Weihnachtstag",
+    "en": "Boxing Day"
+   },
+   "2026-01-01": {
+    "de": "Neujahr",
+    "en": "New Year's Day"
+   },
+   "2026-04-03": {
+    "de": "Karfreitag",
+    "en": "Good Friday"
+   },
+   "2026-04-06": {
+    "de": "Ostermontag",
+    "en": "Easter Monday"
+   },
+   "2026-05-01": {
+    "de": "Tag der Arbeit",
+    "en": "Labour Day"
+   },
+   "2026-05-14": {
+    "de": "Christi Himmelfahrt",
+    "en": "Ascension Day"
+   },
+   "2026-05-25": {
+    "de": "Pfingstmontag",
+    "en": "Whit Monday"
+   },
+   "2026-10-03": {
+    "de": "Tag der Deutschen Einheit",
+    "en": "German Unity Day"
+   },
+   "2026-10-31": {
+    "de": "Reformationstag",
+    "en": "Reformation Day"
+   },
+   "2026-12-25": {
+    "de": "1. Weihnachtstag",
+    "en": "Christmas Day"
+   },
+   "2026-12-26": {
+    "de": "2. Weihnachtstag",
+    "en": "Boxing Day"
+   },
+   "2027-01-01": {
+    "de": "Neujahr",
+    "en": "New Year's Day"
+   },
+   "2027-03-26": {
+    "de": "Karfreitag",
+    "en": "Good Friday"
+   },
+   "2027-03-29": {
+    "de": "Ostermontag",
+    "en": "Easter Monday"
+   },
+   "2027-05-01": {
+    "de": "Tag der Arbeit",
+    "en": "Labour Day"
+   },
+   "2027-05-06": {
+    "de": "Christi Himmelfahrt",
+    "en": "Ascension Day"
+   },
+   "2027-05-17": {
+    "de": "Pfingstmontag",
+    "en": "Whit Monday"
+   },
+   "2027-10-03": {
+    "de": "Tag der Deutschen Einheit",
+    "en": "German Unity Day"
+   },
+   "2027-10-31": {
+    "de": "Reformationstag",
+    "en": "Reformation Day"
+   },
+   "2027-12-25": {
+    "de": "1. Weihnachtstag",
+    "en": "Christmas Day"
+   },
+   "2027-12-26": {
+    "de": "2. Weihnachtstag",
+    "en": "Boxing Day"
+   }
+  }
+ },
+ "film_engagement": {
+  "user": "jonas",
+  "project": "harbour",
+  "activity": "shoot",
+  "employer": "northlight",
+  "position": {
+   "de": "1. Kameraassistenz",
+   "en": "1st camera assistant"
+  },
+  "ruleset": "tv-ffs",
+  "weekly_gage": 1850,
+  "from": -21,
+  "to": 25,
+  "days": [
+   {
+    "day": -14,
+    "call": "07:00",
+    "wrap": "18:30",
+    "break_min": 60,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 3, Szenen 12–18",
+     "en": "Episode 3, scenes 12–18"
+    }
+   },
+   {
+    "day": -13,
+    "call": "07:00",
+    "wrap": "17:00",
+    "break_min": 60,
+    "location": "fishmarket",
+    "note": {
+     "de": "Folge 3, Szenen 19–24",
+     "en": "Episode 3, scenes 19–24"
+    }
+   },
+   {
+    "day": -12,
+    "call": "08:00",
+    "wrap": "19:00",
+    "break_min": 60,
+    "location": "beach",
+    "note": {
+     "de": "Folge 3, Strand",
+     "en": "Episode 3, beach"
+    }
+   },
+   {
+    "day": -11,
+    "call": "10:00",
+    "wrap": "20:30",
+    "break_min": 45,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 3, Anschlüsse",
+     "en": "Episode 3, pick-ups"
+    }
+   },
+   {
+    "day": -8,
+    "call": "06:00",
+    "wrap": "16:00",
+    "break_min": 60,
+    "location": "ferry",
+    "note": {
+     "de": "Folge 4, Hafenfähre",
+     "en": "Episode 4, harbour ferry"
+    }
+   },
+   {
+    "day": -7,
+    "call": "07:00",
+    "wrap": "18:00",
+    "break_min": 60,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 4, Szenen 1–9",
+     "en": "Episode 4, scenes 1–9"
+    }
+   },
+   {
+    "day": -6,
+    "call": "13:00",
+    "wrap": "18:30",
+    "break_min": 30,
+    "location": "hafencity",
+    "note": {
+     "de": "Folge 4, Außen HafenCity",
+     "en": "Episode 4, exterior HafenCity"
+    }
+   },
+   {
+    "day": -5,
+    "call": "15:00",
+    "wrap": "23:30",
+    "break_min": 60,
+    "location": "speicherstadt",
+    "note": {
+     "de": "Nachtdreh Speicherstadt",
+     "en": "Night shoot in Speicherstadt"
+    }
+   },
+   {
+    "day": -2,
+    "call": "09:00",
+    "wrap": "19:30",
+    "break_min": 60,
+    "location": "beach",
+    "note": {
+     "de": "Samstagsdreh Övelgönne",
+     "en": "Saturday shoot at Övelgönne"
+    }
+   },
+   {
+    "day": 0,
+    "call": "07:00",
+    "wrap": "17:30",
+    "break_min": 60,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 5, Szenen 1–7",
+     "en": "Episode 5, scenes 1–7"
+    }
+   },
+   {
+    "day": 1,
+    "call": "07:00",
+    "wrap": "18:00",
+    "break_min": 60,
+    "location": "fishmarket",
+    "note": {
+     "de": "Folge 5, Szenen 8–15",
+     "en": "Episode 5, scenes 8–15"
+    }
+   },
+   {
+    "day": 2,
+    "call": "08:00",
+    "wrap": "19:15",
+    "break_min": 60,
+    "location": "beach",
+    "note": {
+     "de": "Folge 5, Strand",
+     "en": "Episode 5, beach"
+    }
+   }
+  ]
+ },
+ "places": [
+  {
+   "id": "studio",
+   "name": "Studio Weber",
+   "address": "Kranichweg 12, 22765 Hamburg",
+   "lat": 53.5537,
+   "lon": 9.9275,
+   "kind": "office"
+  },
+  {
+   "id": "home-mara",
+   "name": {
+    "de": "Zuhause",
+    "en": "Home"
+   },
+   "address": "Lotsenstieg 3, 22605 Hamburg",
+   "lat": 53.5582,
+   "lon": 9.8849,
+   "kind": "home"
+  },
+  {
+   "id": "harbour-pier",
+   "name": "Landungsbrücken",
+   "address": "St. Pauli Landungsbrücken, 20359 Hamburg",
+   "lat": 53.5456,
+   "lon": 9.9669,
+   "kind": "location"
+  },
+  {
+   "id": "fishmarket",
+   "name": {
+    "de": "Fischmarkt",
+    "en": "Fish market"
+   },
+   "address": "Große Elbstraße 9, 22767 Hamburg",
+   "lat": 53.5454,
+   "lon": 9.9515,
+   "kind": "location"
+  },
+  {
+   "id": "beach",
+   "name": "Elbstrand Övelgönne",
+   "address": "Övelgönne, 22605 Hamburg",
+   "lat": 53.5445,
+   "lon": 9.9106,
+   "kind": "location"
+  },
+  {
+   "id": "ferry",
+   "name": {
+    "de": "Fähranleger Finkenwerder",
+    "en": "Finkenwerder ferry pier"
+   },
+   "address": "Finkenwerder, 21129 Hamburg",
+   "lat": 53.5373,
+   "lon": 9.8763,
+   "kind": "location"
+  },
+  {
+   "id": "speicherstadt",
+   "name": "Speicherstadt",
+   "address": "Brooktorkai, 20457 Hamburg",
+   "lat": 53.5437,
+   "lon": 9.9937,
+   "kind": "location"
+  },
+  {
+   "id": "hafencity",
+   "name": "HafenCity",
+   "address": "Am Sandtorkai, 20457 Hamburg",
+   "lat": 53.5419,
+   "lon": 9.9888,
+   "kind": "location"
+  },
+  {
+   "id": "northlight-office",
+   "name": "Northlight Pictures",
+   "address": "Museumstraße 20, 22765 Hamburg",
+   "lat": 53.5489,
+   "lon": 9.9362,
+   "kind": "customer",
+   "customer": "northlight"
+  },
+  {
+   "id": "elbgruen-office",
+   "name": "Elbgrün Stiftung",
+   "address": "Am Kaiserkai 40, 20457 Hamburg",
+   "lat": 53.5413,
+   "lon": 9.9842,
+   "kind": "customer",
+   "customer": "elbgruen"
+  },
+  {
+   "id": "speiche-workshop",
+   "name": "Speiche Fahrradmanufaktur",
+   "address": "Veringstraße 88, 21107 Hamburg",
+   "lat": 53.5048,
+   "lon": 10.0027,
+   "kind": "customer",
+   "customer": "speiche"
+  },
+  {
+   "id": "rental-station",
+   "name": "Mietwagen Nord",
+   "address": "Holstenstraße 1, 22767 Hamburg",
+   "lat": 53.5555,
+   "lon": 9.948,
+   "kind": "other"
+  }
+ ],
+ "vehicles": [
+  {
+   "id": "van",
+   "name": {
+    "de": "Transporter",
+    "en": "Van"
+   },
+   "plate": "HH-SW 204",
+   "owner": "studio",
+   "fuel": "diesel",
+   "odometer_start": 48210
+  },
+  {
+   "id": "bike",
+   "name": {
+    "de": "Lastenrad",
+    "en": "Cargo bike"
+   },
+   "plate": "",
+   "owner": "studio",
+   "fuel": "none",
+   "odometer_start": 0
+  }
+ ],
+ "trips": [
+  {
+   "user": "mara",
+   "day": -14,
+   "from": "studio",
+   "to": "harbour-pier",
+   "km": 5.1,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Technik zum Set",
+    "en": "Gear to the set"
+   },
+   "status": "approved"
+  },
+  {
+   "user": "mara",
+   "day": -14,
+   "from": "harbour-pier",
+   "to": "studio",
+   "km": 5.3,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Technik zurück",
+    "en": "Gear back"
+   },
+   "status": "approved"
+  },
+  {
+   "user": "mara",
+   "day": -12,
+   "from": "studio",
+   "to": "beach",
+   "km": 2.4,
+   "vehicle": "bike",
+   "project": "harbour",
+   "purpose": {
+    "de": "Drehort Övelgönne",
+    "en": "Location Övelgönne"
+   },
+   "status": "approved"
+  },
+  {
+   "user": "mara",
+   "day": -9,
+   "from": "studio",
+   "to": "speiche-workshop",
+   "km": 9.8,
+   "vehicle": "van",
+   "project": "spring",
+   "purpose": {
+    "de": "Motivbesichtigung",
+    "en": "Location visit"
+   },
+   "status": "approved"
+  },
+  {
+   "user": "mara",
+   "day": -9,
+   "from": "speiche-workshop",
+   "to": "studio",
+   "km": 10.2,
+   "vehicle": "van",
+   "project": "spring",
+   "purpose": {
+    "de": "Rückfahrt",
+    "en": "Return"
+   },
+   "status": "approved"
+  },
+  {
+   "user": "mara",
+   "day": -6,
+   "from": "studio",
+   "to": "hafencity",
+   "km": 5.6,
+   "vehicle": "van",
+   "project": "tidenhub",
+   "purpose": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "status": "submitted"
+  },
+  {
+   "user": "mara",
+   "day": -6,
+   "from": "hafencity",
+   "to": "studio",
+   "km": 5.9,
+   "vehicle": "van",
+   "project": "tidenhub",
+   "purpose": {
+    "de": "Rückfahrt",
+    "en": "Return"
+   },
+   "status": "submitted"
+  },
+  {
+   "user": "mara",
+   "day": -3,
+   "from": "studio",
+   "to": "northlight-office",
+   "km": 1.6,
+   "vehicle": "bike",
+   "project": "harbour",
+   "purpose": {
+    "de": "Produktionsbesprechung",
+    "en": "Production meeting"
+   },
+   "status": "draft"
+  },
+  {
+   "user": "mara",
+   "day": 1,
+   "from": "studio",
+   "to": "harbour-pier",
+   "km": 5.1,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Technik zum Set",
+    "en": "Gear to the set"
+   },
+   "status": "draft"
+  },
+  {
+   "user": "jonas",
+   "day": -8,
+   "from": "studio",
+   "to": "ferry",
+   "km": 12.7,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Dreh Hafenfähre",
+    "en": "Shoot on the ferry"
+   },
+   "status": "submitted"
+  },
+  {
+   "user": "jonas",
+   "day": -8,
+   "from": "ferry",
+   "to": "studio",
+   "km": 12.9,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Rückfahrt",
+    "en": "Return"
+   },
+   "status": "submitted"
+  },
+  {
+   "user": "lena",
+   "day": -5,
+   "from": "studio",
+   "to": "speicherstadt",
+   "km": 6.3,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Nachtdreh Speicherstadt",
+    "en": "Night shoot in Speicherstadt"
+   },
+   "status": "submitted"
+  },
+  {
+   "user": "lena",
+   "day": -5,
+   "from": "speicherstadt",
+   "to": "studio",
+   "km": 6.5,
+   "vehicle": "van",
+   "project": "harbour",
+   "purpose": {
+    "de": "Rückfahrt",
+    "en": "Return"
+   },
+   "status": "submitted"
+  }
+ ],
+ "rentals": [
+  {
+   "user": "mara",
+   "from": -16,
+   "to": -15,
+   "provider": "Mietwagen Nord",
+   "car": {
+    "de": "Kombi mit Dachträger",
+    "en": "Estate car with roof rack"
+   },
+   "plate": "HH-MN 1187",
+   "km": 138,
+   "cost": 164.9,
+   "project": "spring",
+   "pickup": "rental-station"
+  }
+ ],
+ "receipts": [
+  {
+   "id": 1,
+   "vendor": "Fotohaus Elbe",
+   "day": -18,
+   "amount": 342.0,
+   "number": "FE-2026-0917",
+   "category": {
+    "de": "Filmmaterial",
+    "en": "Film stock"
+   },
+   "project": "showreel",
+   "note": {
+    "de": "10 Rollen Farbnegativfilm 35 mm",
+    "en": "10 rolls of 35 mm colour negative film"
+   },
+   "state": "linked"
+  },
+  {
+   "id": 2,
+   "vendor": "Kabelwerk Studiobedarf",
+   "day": -15,
+   "amount": 89.7,
+   "number": "KW-55821",
+   "category": {
+    "de": "Technik",
+    "en": "Equipment"
+   },
+   "project": "harbour",
+   "note": {
+    "de": "XLR-Kabel, Gaffa",
+    "en": "XLR cables, gaffer tape"
+   },
+   "state": "linked"
+  },
+  {
+   "id": 3,
+   "vendor": "Kombüse Catering",
+   "day": -14,
+   "amount": 486.5,
+   "number": "2026-114",
+   "category": {
+    "de": "Catering",
+    "en": "Catering"
+   },
+   "project": "harbour",
+   "note": {
+    "de": "Catering Drehtag Landungsbrücken",
+    "en": "Catering for the Landungsbrücken shoot"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 4,
+   "vendor": "Mietwagen Nord",
+   "day": -15,
+   "amount": 164.9,
+   "number": "MN-7710-26",
+   "category": {
+    "de": "Fahrzeug",
+    "en": "Vehicle"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Kombi, 2 Tage",
+    "en": "Estate car, 2 days"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 5,
+   "vendor": "Tankstelle Elbchaussee",
+   "day": -9,
+   "amount": 72.14,
+   "number": "0048812",
+   "category": {
+    "de": "Kraftstoff",
+    "en": "Fuel"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Diesel Transporter",
+    "en": "Diesel for the van"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 6,
+   "vendor": "Druckerei Nordlicht",
+   "day": -7,
+   "amount": 58.0,
+   "number": "DN-3391",
+   "category": {
+    "de": "Druck",
+    "en": "Printing"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Storyboards A3",
+    "en": "A3 storyboards"
+   },
+   "state": "open"
+  },
+  {
+   "id": 7,
+   "vendor": "Kombüse Catering",
+   "day": -5,
+   "amount": 212.0,
+   "number": "2026-121",
+   "category": {
+    "de": "Catering",
+    "en": "Catering"
+   },
+   "project": "harbour",
+   "note": {
+    "de": "Nachtdreh-Verpflegung",
+    "en": "Night shoot catering"
+   },
+   "state": "open"
+  },
+  {
+   "id": 8,
+   "vendor": "Kabelwerk Studiobedarf",
+   "day": -2,
+   "amount": 129.0,
+   "number": "KW-56107",
+   "category": {
+    "de": "Technik",
+    "en": "Equipment"
+   },
+   "project": "tidenhub",
+   "note": {
+    "de": "Ansteckmikrofon",
+    "en": "Lavalier microphone"
+   },
+   "state": "ignored"
+  }
+ ],
+ "tasks": {
+  "collections": [
+   {
+    "id": "harbour",
+    "name": "Harbour Lights",
+    "color": "#fe8019"
+   },
+   {
+    "id": "spring",
+    "name": "Speiche Spot",
+    "color": "#83a598"
+   },
+   {
+    "id": "studio",
+    "name": "Studio",
+    "color": "#d3869b"
+   },
+   {
+    "id": "private",
+    "name": {
+     "de": "Privat",
+     "en": "Personal"
+    },
+    "color": "#b8bb26"
+   }
+  ],
+  "labels": [
+   {
+    "id": "shoot",
+    "name": {
+     "de": "Dreh",
+     "en": "Shoot"
+    }
+   },
+   {
+    "id": "post",
+    "name": "Post"
+   },
+   {
+    "id": "orga",
+    "name": {
+     "de": "Orga",
+     "en": "Admin"
+    }
+   },
+   {
+    "id": "calls",
+    "name": {
+     "de": "Anrufe",
+     "en": "Calls"
+    }
+   }
+  ],
+  "items": [
+   {
+    "uid": "t01",
+    "collection": "harbour",
+    "summary": {
+     "de": "Drehgenehmigung Landungsbrücken beantragen",
+     "en": "Apply for the Landungsbrücken shooting permit"
+    },
+    "due": -2,
+    "priority": 1,
+    "labels": [
+     "orga"
+    ],
+    "percent": 50
+   },
+   {
+    "uid": "t02",
+    "collection": "harbour",
+    "summary": {
+     "de": "Rohschnitt Folge 4 an Northlight schicken",
+     "en": "Send episode 4 rough cut to Northlight"
+    },
+    "due": 0,
+    "priority": 1,
+    "labels": [
+     "post"
+    ],
+    "description": {
+     "de": "Link zur Sichtung mit Timecode-Einblendung.",
+     "en": "Review link with burnt-in timecode."
+    }
+   },
+   {
+    "uid": "t03",
+    "collection": "harbour",
+    "summary": {
+     "de": "Dispo Folge 5 verteilen",
+     "en": "Send out call sheet for episode 5"
+    },
+    "due": 0,
+    "priority": 5,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t04",
+    "collection": "harbour",
+    "summary": {
+     "de": "Nachtdreh Speicherstadt nachbereiten",
+     "en": "Wrap up the Speicherstadt night shoot"
+    },
+    "due": 1,
+    "priority": 5,
+    "labels": [
+     "shoot"
+    ],
+    "children": [
+     "t05",
+     "t06"
+    ]
+   },
+   {
+    "uid": "t05",
+    "collection": "harbour",
+    "parent": "t04",
+    "summary": {
+     "de": "Karten sichern und doppelt backupen",
+     "en": "Offload cards and double back-up"
+    },
+    "due": 1,
+    "priority": 5,
+    "labels": [
+     "post"
+    ],
+    "completed": -4
+   },
+   {
+    "uid": "t06",
+    "collection": "harbour",
+    "parent": "t04",
+    "summary": {
+     "de": "Anwohner-Dankeschön verschicken",
+     "en": "Send thank-you notes to residents"
+    },
+    "due": 1,
+    "priority": 9,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t07",
+    "collection": "spring",
+    "summary": {
+     "de": "Drehbuch Frühjahrsspot überarbeiten",
+     "en": "Revise the spring commercial script"
+    },
+    "due": 0,
+    "priority": 1,
+    "labels": [
+     "shoot"
+    ],
+    "start": -1
+   },
+   {
+    "uid": "t08",
+    "collection": "spring",
+    "summary": {
+     "de": "Speiche wegen Produkt-Farben anrufen",
+     "en": "Call Speiche about product colours"
+    },
+    "due": 1,
+    "priority": 5,
+    "labels": [
+     "calls"
+    ]
+   },
+   {
+    "uid": "t09",
+    "collection": "spring",
+    "summary": {
+     "de": "Schnittfassung 2 exportieren",
+     "en": "Export edit version 2"
+    },
+    "due": 4,
+    "priority": 5,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t10",
+    "collection": "spring",
+    "summary": {
+     "de": "Musikrechte klären",
+     "en": "Clear the music rights"
+    },
+    "due": 8,
+    "priority": 1,
+    "labels": [
+     "orga",
+     "calls"
+    ]
+   },
+   {
+    "uid": "t11",
+    "collection": "studio",
+    "summary": {
+     "de": "Belege September zuordnen",
+     "en": "Match September receipts"
+    },
+    "due": 3,
+    "priority": 5,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t12",
+    "collection": "studio",
+    "summary": {
+     "de": "Showreel: Harbour-Lights-Szenen einbauen",
+     "en": "Showreel: add Harbour Lights scenes"
+    },
+    "due": 11,
+    "priority": 9,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t13",
+    "collection": "studio",
+    "summary": {
+     "de": "Objektive zur Wartung bringen",
+     "en": "Take lenses in for service"
+    },
+    "due": -4,
+    "priority": 5,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t14",
+    "collection": "studio",
+    "summary": {
+     "de": "Filmrollen 03 und 04 scannen",
+     "en": "Scan film rolls 03 and 04"
+    },
+    "due": 2,
+    "priority": 5,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t15",
+    "collection": "studio",
+    "summary": {
+     "de": "Server-Backup prüfen",
+     "en": "Check the server backup"
+    },
+    "priority": 9,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t16",
+    "collection": "private",
+    "summary": {
+     "de": "Fahrrad zur Inspektion",
+     "en": "Bike service"
+    },
+    "due": 5,
+    "priority": 9,
+    "labels": []
+   },
+   {
+    "uid": "t17",
+    "collection": "private",
+    "summary": {
+     "de": "Geschenk für Theo",
+     "en": "Present for Theo"
+    },
+    "due": 9,
+    "priority": 5,
+    "labels": []
+   },
+   {
+    "uid": "t18",
+    "collection": "harbour",
+    "summary": {
+     "de": "Kostüme Folge 5 abnehmen",
+     "en": "Approve costumes for episode 5"
+    },
+    "due": -1,
+    "priority": 5,
+    "labels": [
+     "shoot"
+    ],
+    "completed": -1
+   },
+   {
+    "uid": "t19",
+    "collection": "studio",
+    "summary": {
+     "de": "Angebot Elbgrün Teil 2",
+     "en": "Quote for Elbgrün part 2"
+    },
+    "due": 6,
+    "priority": 1,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t20",
+    "collection": "harbour",
+    "summary": {
+     "de": "Tonaufnahmen an Theo übergeben",
+     "en": "Hand location sound over to Theo"
+    },
+    "completed": -3,
+    "due": -3,
+    "priority": 5,
+    "labels": [
+     "post"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "day": 0,
+    "start": "09:00",
+    "end": "09:45",
+    "summary": {
+     "de": "Wochenplanung",
+     "en": "Weekly planning"
+    },
+    "collection": "studio"
+   },
+   {
+    "day": 0,
+    "start": "14:00",
+    "end": "15:00",
+    "summary": {
+     "de": "Call mit Speiche",
+     "en": "Call with Speiche"
+    },
+    "collection": "spring"
+   },
+   {
+    "day": 1,
+    "start": "07:00",
+    "end": "17:30",
+    "summary": {
+     "de": "Dreh Landungsbrücken",
+     "en": "Shoot at Landungsbrücken"
+    },
+    "collection": "harbour"
+   },
+   {
+    "day": 2,
+    "start": "11:00",
+    "end": "12:00",
+    "summary": {
+     "de": "Rohschnitt-Abnahme Elbgrün",
+     "en": "Rough cut review with Elbgrün"
+    },
+    "collection": "studio"
+   }
+  ]
+ },
+ "media": {
+  "album": {
+   "title": "Harbour Lights (Original Score)",
+   "artist": "Theo Lindqvist",
+   "year": 2026
+  },
+  "tracks": [
+   {
+    "title": "Ebbe",
+    "length_s": 184
+   },
+   {
+    "title": "Nebelhorn",
+    "length_s": 236
+   },
+   {
+    "title": "Kranichflug",
+    "length_s": 201
+   },
+   {
+    "title": "Landungsbrücken",
+    "length_s": 159
+   }
+  ],
+  "players": [
+   {
+    "identity": "Elisa",
+    "status": "Playing",
+    "track": "Nebelhorn"
+   },
+   {
+    "identity": "VLC media player",
+    "status": "Paused",
+    "track": "Ebbe"
+   }
+  ],
+  "audio_files": [
+   {
+    "name": "hl_s02e03_interview_hafenmeister.m4a",
+    "seconds": 42,
+    "tone": 220
+   },
+   {
+    "name": "hl_s02e03_atmo_landungsbruecken.m4a",
+    "seconds": 30,
+    "tone": 330
+   },
+   {
+    "name": "hl_s02e04_nebelhorn_take2.aac",
+    "seconds": 18,
+    "tone": 110
+   },
+   {
+    "name": "tidenhub_interview_stiftung.m4a",
+    "seconds": 55,
+    "tone": 262
+   },
+   {
+    "name": "speiche_spot_voiceover_v3.m4a",
+    "seconds": 24,
+    "tone": 294
+   }
+  ],
+  "film_rolls": [
+   {
+    "name": "Rolle 03 – Övelgönne",
+    "frames": 12,
+    "stock": "Farbnegativ 35 mm"
+   },
+   {
+    "name": "Rolle 04 – Speiche",
+    "frames": 10,
+    "stock": "Farbnegativ 35 mm"
+   }
+  ]
+ },
+ "hardware": {
+  "model": "Framework Laptop 13",
+  "cpu": "AMD Ryzen 7 7840U",
+  "charge_limit": 80,
+  "battery_percent": 76,
+  "cycle_count": 212,
+  "design_capacity_mwh": 61000,
+  "full_capacity_mwh": 57400,
+  "fan_curve": [
+   [
+    40,
+    0
+   ],
+   [
+    55,
+    25
+   ],
+   [
+    70,
+    55
+   ],
+   [
+    85,
+    100
+   ]
+  ],
+  "scenario": {
+   "de": "Rendern des Rohschnitts",
+   "en": "Rendering the rough cut"
+  }
+ },
+ "terminal": {
+  "user": "mara",
+  "host": "studio-pi",
+  "session": [
+   "$ cat dispo-folge-5.txt",
+   {
+    "de": "HARBOUR LIGHTS – STAFFEL 2 · FOLGE 5",
+    "en": "HARBOUR LIGHTS – SEASON 2 · EPISODE 5"
+   },
+   {
+    "de": "Drehtag 1   Landungsbrücken   Treff 07:00",
+    "en": "Day 1   Landungsbrücken   Call 07:00"
+   },
+   {
+    "de": "Drehtag 2   Fischmarkt        Treff 07:00",
+    "en": "Day 2   Fish market       Call 07:00"
+   },
+   {
+    "de": "Drehtag 3   Övelgönne         Treff 08:00",
+    "en": "Day 3   Övelgönne         Call 08:00"
+   },
+   "",
+   "$ df -h /srv/footage",
+   "Filesystem  Size  Used Avail Use%",
+   "/dev/sda1   7.3T  4.9T  2.4T  67%",
+   "",
+   "$ ls /srv/footage/harbour-lights",
+   "folge-03  folge-04  folge-05  sound  score",
+   "$ _"
+  ]
+ },
+ "dashboard": {
+  "title": "Studio Weber",
+  "services": [
+   "Kimai",
+   "Invoice Ninja",
+   "Paperless-ngx",
+   "Dawarich",
+   "Immich",
+   "Nextcloud",
+   "Gitea",
+   "Uptime Kuma"
+  ]
+ },
+ "known_but_internal": [
+  "Kintsugi"
+ ],
+ "timesheets": [
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -56,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Kamera-Check und Objektivtest",
+    "en": "Camera check and lens test"
+   },
+   "exported": true,
+   "id": 1
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -56,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 2
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -56,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 3
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -56,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Material sichten",
+    "en": "Review footage"
+   },
+   "exported": true,
+   "id": 4
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -56,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Drehgenehmigungen",
+    "en": "Shooting permits"
+   },
+   "exported": true,
+   "id": 5
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -56,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Drehplan Folge 4 abstimmen",
+    "en": "Align shooting schedule for episode 4"
+   },
+   "exported": true,
+   "id": 6
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -56,
+   "start": "13:30",
+   "end": "16:30",
+   "description": {
+    "de": "Interviews schneiden",
+    "en": "Cut the interviews"
+   },
+   "exported": true,
+   "id": 7
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "meeting",
+   "day": -56,
+   "start": "14:00",
+   "end": "15:30",
+   "description": {
+    "de": "Abnahme Storyboard mit Speiche",
+    "en": "Storyboard sign-off with Speiche"
+   },
+   "exported": true,
+   "id": 8
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -55,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 9
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -55,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 10
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -55,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 11
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -55,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Originalton Landungsbrücken",
+    "en": "Location sound at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 12
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -55,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": true,
+   "id": 13
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -54,
+   "start": "07:00",
+   "end": "17:00",
+   "description": {
+    "de": "Dreh Fischmarkt",
+    "en": "Shoot at the fish market"
+   },
+   "exported": true,
+   "id": 14
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -54,
+   "start": "09:00",
+   "end": "12:00",
+   "description": {
+    "de": "Reisekosten",
+    "en": "Travel expenses"
+   },
+   "exported": false,
+   "id": 15
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -54,
+   "start": "09:00",
+   "end": "12:30",
+   "description": {
+    "de": "Feinschnitt Interviews",
+    "en": "Fine cut of the interviews"
+   },
+   "exported": true,
+   "id": 16
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -54,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": true,
+   "id": 17
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -54,
+   "start": "09:40",
+   "end": "12:10",
+   "description": {
+    "de": "Motivsuche Werkstatt",
+    "en": "Location scout at the workshop"
+   },
+   "exported": true,
+   "id": 18
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "sound",
+   "day": -54,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Tonmischung Interviews",
+    "en": "Sound mix of the interviews"
+   },
+   "exported": true,
+   "id": 19
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -54,
+   "start": "14:00",
+   "end": "16:00",
+   "description": {
+    "de": "Belege zuordnen",
+    "en": "Match receipts"
+   },
+   "exported": false,
+   "id": 20
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -53,
+   "start": "07:30",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 21
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -53,
+   "start": "08:00",
+   "end": "19:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": true,
+   "id": 22
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -53,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": true,
+   "id": 23
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -53,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Originalton Övelgönne",
+    "en": "Location sound at Övelgönne"
+   },
+   "exported": true,
+   "id": 24
+  },
+  {
+   "user": "selin",
+   "project": "spring",
+   "activity": "edit",
+   "day": -53,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Farbkorrektur Spot",
+    "en": "Colour grading the spot"
+   },
+   "exported": true,
+   "id": 25
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -52,
+   "start": "09:00",
+   "end": "14:00",
+   "description": {
+    "de": "Requisiten besorgen",
+    "en": "Source props"
+   },
+   "exported": true,
+   "id": 26
+  },
+  {
+   "user": "jonas",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -52,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Kamera-Reel sichten",
+    "en": "Review the camera reel"
+   },
+   "exported": false,
+   "id": 27
+  },
+  {
+   "user": "mara",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -52,
+   "start": "10:00",
+   "end": "12:00",
+   "description": {
+    "de": "Showreel: neue Szenen",
+    "en": "Showreel: new scenes"
+   },
+   "exported": false,
+   "id": 28
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -52,
+   "start": "10:00",
+   "end": "14:00",
+   "description": {
+    "de": "Score: Nebelhorn",
+    "en": "Score: Nebelhorn"
+   },
+   "exported": true,
+   "id": 29
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "meeting",
+   "day": -52,
+   "start": "13:00",
+   "end": "14:30",
+   "description": {
+    "de": "Rohschnitt-Abnahme Elbgrün",
+    "en": "Rough cut review with Elbgrün"
+   },
+   "exported": true,
+   "id": 30
+  },
+  {
+   "user": "mara",
+   "project": "trailer",
+   "activity": "edit",
+   "day": -52,
+   "start": "14:45",
+   "end": "17:30",
+   "description": {
+    "de": "Trailer-Schnitt für Donaulicht",
+    "en": "Trailer edit for Donaulicht"
+   },
+   "exported": true,
+   "id": 31
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "prep",
+   "day": -49,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Licht-Setup testen",
+    "en": "Test the lighting setup"
+   },
+   "exported": true,
+   "id": 32
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -49,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 33
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -49,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 34
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -49,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": true,
+   "id": 35
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -49,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dispo Werkstattdreh",
+    "en": "Call sheet for the workshop shoot"
+   },
+   "exported": true,
+   "id": 36
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -49,
+   "start": "10:00",
+   "end": "12:30",
+   "description": {
+    "de": "Casting Fahrradkurier",
+    "en": "Casting the bike courier"
+   },
+   "exported": true,
+   "id": 37
+  },
+  {
+   "user": "theo",
+   "project": "spring",
+   "activity": "sound",
+   "day": -49,
+   "start": "10:00",
+   "end": "15:00",
+   "description": {
+    "de": "Sounddesign Spot",
+    "en": "Sound design for the spot"
+   },
+   "exported": true,
+   "id": 38
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -48,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": true,
+   "id": 39
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -48,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 40
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -48,
+   "start": "08:00",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": true,
+   "id": 41
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -48,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": true,
+   "id": 42
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -47,
+   "start": "06:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dreh Hafenfähre",
+    "en": "Shoot on the harbour ferry"
+   },
+   "exported": true,
+   "id": 43
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "travel",
+   "day": -47,
+   "start": "08:00",
+   "end": "09:00",
+   "description": {
+    "de": "Fahrt Northlight-Büro",
+    "en": "Drive to the Northlight office"
+   },
+   "exported": true,
+   "id": 44
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "meeting",
+   "day": -47,
+   "start": "09:00",
+   "end": "11:30",
+   "description": {
+    "de": "Produktionsbesprechung",
+    "en": "Production meeting"
+   },
+   "exported": true,
+   "id": 45
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -47,
+   "start": "09:00",
+   "end": "11:00",
+   "description": {
+    "de": "Interviewfragen Stiftung",
+    "en": "Interview questions for the foundation"
+   },
+   "exported": true,
+   "id": 46
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -47,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Feinschnitt",
+    "en": "Fine cut"
+   },
+   "exported": true,
+   "id": 47
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -47,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Mischung Folge 3",
+    "en": "Mix episode 3"
+   },
+   "exported": true,
+   "id": 48
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -47,
+   "start": "13:00",
+   "end": "15:30",
+   "description": {
+    "de": "Rechnungen Northlight",
+    "en": "Invoices for Northlight"
+   },
+   "exported": false,
+   "id": 49
+  },
+  {
+   "user": "lena",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -46,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Genehmigung HafenCity",
+    "en": "HafenCity permit"
+   },
+   "exported": true,
+   "id": 50
+  },
+  {
+   "user": "selin",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -46,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Showreel-Schnitt",
+    "en": "Showreel edit"
+   },
+   "exported": false,
+   "id": 51
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -46,
+   "start": "09:30",
+   "end": "13:00",
+   "description": {
+    "de": "Dispo Folge 5",
+    "en": "Call sheet episode 5"
+   },
+   "exported": true,
+   "id": 52
+  },
+  {
+   "user": "jonas",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -46,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": true,
+   "id": 53
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -46,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Originalton HafenCity",
+    "en": "Location sound in HafenCity"
+   },
+   "exported": true,
+   "id": 54
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -46,
+   "start": "14:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": true,
+   "id": 55
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "edit",
+   "day": -45,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnittfassung 1",
+    "en": "Edit version 1"
+   },
+   "exported": true,
+   "id": 56
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -45,
+   "start": "15:00",
+   "end": "23:30",
+   "description": {
+    "de": "Nachtdreh Speicherstadt",
+    "en": "Night shoot in Speicherstadt"
+   },
+   "exported": true,
+   "id": 57
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -42,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Kamera-Check und Objektivtest",
+    "en": "Camera check and lens test"
+   },
+   "exported": true,
+   "id": 58
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -42,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 59
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -42,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 60
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -42,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Material sichten",
+    "en": "Review footage"
+   },
+   "exported": true,
+   "id": 61
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -42,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Drehgenehmigungen",
+    "en": "Shooting permits"
+   },
+   "exported": true,
+   "id": 62
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -42,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Drehplan Folge 4 abstimmen",
+    "en": "Align shooting schedule for episode 4"
+   },
+   "exported": true,
+   "id": 63
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -42,
+   "start": "13:30",
+   "end": "16:30",
+   "description": {
+    "de": "Interviews schneiden",
+    "en": "Cut the interviews"
+   },
+   "exported": true,
+   "id": 64
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "meeting",
+   "day": -42,
+   "start": "14:00",
+   "end": "15:30",
+   "description": {
+    "de": "Abnahme Storyboard mit Speiche",
+    "en": "Storyboard sign-off with Speiche"
+   },
+   "exported": true,
+   "id": 65
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -41,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 66
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -41,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 67
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -41,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 68
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -41,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Originalton Landungsbrücken",
+    "en": "Location sound at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 69
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -41,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": true,
+   "id": 70
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -40,
+   "start": "07:00",
+   "end": "17:00",
+   "description": {
+    "de": "Dreh Fischmarkt",
+    "en": "Shoot at the fish market"
+   },
+   "exported": true,
+   "id": 71
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -40,
+   "start": "09:00",
+   "end": "12:00",
+   "description": {
+    "de": "Reisekosten",
+    "en": "Travel expenses"
+   },
+   "exported": false,
+   "id": 72
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -40,
+   "start": "09:00",
+   "end": "12:30",
+   "description": {
+    "de": "Feinschnitt Interviews",
+    "en": "Fine cut of the interviews"
+   },
+   "exported": true,
+   "id": 73
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -40,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": true,
+   "id": 74
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -40,
+   "start": "09:40",
+   "end": "12:10",
+   "description": {
+    "de": "Motivsuche Werkstatt",
+    "en": "Location scout at the workshop"
+   },
+   "exported": true,
+   "id": 75
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "sound",
+   "day": -40,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Tonmischung Interviews",
+    "en": "Sound mix of the interviews"
+   },
+   "exported": true,
+   "id": 76
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -40,
+   "start": "14:00",
+   "end": "16:00",
+   "description": {
+    "de": "Belege zuordnen",
+    "en": "Match receipts"
+   },
+   "exported": false,
+   "id": 77
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -39,
+   "start": "07:30",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 78
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -39,
+   "start": "08:00",
+   "end": "19:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": true,
+   "id": 79
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -39,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": true,
+   "id": 80
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -39,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Originalton Övelgönne",
+    "en": "Location sound at Övelgönne"
+   },
+   "exported": true,
+   "id": 81
+  },
+  {
+   "user": "selin",
+   "project": "spring",
+   "activity": "edit",
+   "day": -39,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Farbkorrektur Spot",
+    "en": "Colour grading the spot"
+   },
+   "exported": true,
+   "id": 82
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -38,
+   "start": "09:00",
+   "end": "14:00",
+   "description": {
+    "de": "Requisiten besorgen",
+    "en": "Source props"
+   },
+   "exported": true,
+   "id": 83
+  },
+  {
+   "user": "jonas",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -38,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Kamera-Reel sichten",
+    "en": "Review the camera reel"
+   },
+   "exported": false,
+   "id": 84
+  },
+  {
+   "user": "mara",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -38,
+   "start": "10:00",
+   "end": "12:00",
+   "description": {
+    "de": "Showreel: neue Szenen",
+    "en": "Showreel: new scenes"
+   },
+   "exported": false,
+   "id": 85
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -38,
+   "start": "10:00",
+   "end": "14:00",
+   "description": {
+    "de": "Score: Nebelhorn",
+    "en": "Score: Nebelhorn"
+   },
+   "exported": true,
+   "id": 86
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "meeting",
+   "day": -38,
+   "start": "13:00",
+   "end": "14:30",
+   "description": {
+    "de": "Rohschnitt-Abnahme Elbgrün",
+    "en": "Rough cut review with Elbgrün"
+   },
+   "exported": true,
+   "id": 87
+  },
+  {
+   "user": "mara",
+   "project": "trailer",
+   "activity": "edit",
+   "day": -38,
+   "start": "14:45",
+   "end": "17:30",
+   "description": {
+    "de": "Trailer-Schnitt für Donaulicht",
+    "en": "Trailer edit for Donaulicht"
+   },
+   "exported": true,
+   "id": 88
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "prep",
+   "day": -35,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Licht-Setup testen",
+    "en": "Test the lighting setup"
+   },
+   "exported": true,
+   "id": 89
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -35,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 90
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -35,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 91
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -35,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": true,
+   "id": 92
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -35,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dispo Werkstattdreh",
+    "en": "Call sheet for the workshop shoot"
+   },
+   "exported": true,
+   "id": 93
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -35,
+   "start": "10:00",
+   "end": "12:30",
+   "description": {
+    "de": "Casting Fahrradkurier",
+    "en": "Casting the bike courier"
+   },
+   "exported": true,
+   "id": 94
+  },
+  {
+   "user": "theo",
+   "project": "spring",
+   "activity": "sound",
+   "day": -35,
+   "start": "10:00",
+   "end": "15:00",
+   "description": {
+    "de": "Sounddesign Spot",
+    "en": "Sound design for the spot"
+   },
+   "exported": true,
+   "id": 95
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -34,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": true,
+   "id": 96
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -34,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 97
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -34,
+   "start": "08:00",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": true,
+   "id": 98
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -34,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": true,
+   "id": 99
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -33,
+   "start": "06:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dreh Hafenfähre",
+    "en": "Shoot on the harbour ferry"
+   },
+   "exported": true,
+   "id": 100
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "travel",
+   "day": -33,
+   "start": "08:00",
+   "end": "09:00",
+   "description": {
+    "de": "Fahrt Northlight-Büro",
+    "en": "Drive to the Northlight office"
+   },
+   "exported": true,
+   "id": 101
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "meeting",
+   "day": -33,
+   "start": "09:00",
+   "end": "11:30",
+   "description": {
+    "de": "Produktionsbesprechung",
+    "en": "Production meeting"
+   },
+   "exported": true,
+   "id": 102
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -33,
+   "start": "09:00",
+   "end": "11:00",
+   "description": {
+    "de": "Interviewfragen Stiftung",
+    "en": "Interview questions for the foundation"
+   },
+   "exported": true,
+   "id": 103
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -33,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Feinschnitt",
+    "en": "Fine cut"
+   },
+   "exported": true,
+   "id": 104
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -33,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Mischung Folge 3",
+    "en": "Mix episode 3"
+   },
+   "exported": true,
+   "id": 105
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -33,
+   "start": "13:00",
+   "end": "15:30",
+   "description": {
+    "de": "Rechnungen Northlight",
+    "en": "Invoices for Northlight"
+   },
+   "exported": false,
+   "id": 106
+  },
+  {
+   "user": "lena",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -32,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Genehmigung HafenCity",
+    "en": "HafenCity permit"
+   },
+   "exported": true,
+   "id": 107
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -32,
+   "start": "09:30",
+   "end": "13:00",
+   "description": {
+    "de": "Dispo Folge 5",
+    "en": "Call sheet episode 5"
+   },
+   "exported": true,
+   "id": 108
+  },
+  {
+   "user": "jonas",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -32,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": true,
+   "id": 109
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -32,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Originalton HafenCity",
+    "en": "Location sound in HafenCity"
+   },
+   "exported": true,
+   "id": 110
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -32,
+   "start": "14:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": true,
+   "id": 111
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "edit",
+   "day": -31,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnittfassung 1",
+    "en": "Edit version 1"
+   },
+   "exported": true,
+   "id": 112
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -31,
+   "start": "15:00",
+   "end": "23:30",
+   "description": {
+    "de": "Nachtdreh Speicherstadt",
+    "en": "Night shoot in Speicherstadt"
+   },
+   "exported": true,
+   "id": 113
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -28,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Kamera-Check und Objektivtest",
+    "en": "Camera check and lens test"
+   },
+   "exported": true,
+   "id": 114
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -28,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 115
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -28,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 116
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -28,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Drehgenehmigungen",
+    "en": "Shooting permits"
+   },
+   "exported": true,
+   "id": 117
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -28,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Drehplan Folge 4 abstimmen",
+    "en": "Align shooting schedule for episode 4"
+   },
+   "exported": true,
+   "id": 118
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "meeting",
+   "day": -28,
+   "start": "14:00",
+   "end": "15:30",
+   "description": {
+    "de": "Abnahme Storyboard mit Speiche",
+    "en": "Storyboard sign-off with Speiche"
+   },
+   "exported": true,
+   "id": 119
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -27,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 120
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -27,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 121
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -27,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 122
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -27,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Originalton Landungsbrücken",
+    "en": "Location sound at Landungsbrücken"
+   },
+   "exported": true,
+   "id": 123
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -26,
+   "start": "07:00",
+   "end": "17:00",
+   "description": {
+    "de": "Dreh Fischmarkt",
+    "en": "Shoot at the fish market"
+   },
+   "exported": true,
+   "id": 124
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -26,
+   "start": "09:00",
+   "end": "12:00",
+   "description": {
+    "de": "Reisekosten",
+    "en": "Travel expenses"
+   },
+   "exported": false,
+   "id": 125
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -26,
+   "start": "09:00",
+   "end": "12:30",
+   "description": {
+    "de": "Feinschnitt Interviews",
+    "en": "Fine cut of the interviews"
+   },
+   "exported": true,
+   "id": 126
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -26,
+   "start": "09:40",
+   "end": "12:10",
+   "description": {
+    "de": "Motivsuche Werkstatt",
+    "en": "Location scout at the workshop"
+   },
+   "exported": true,
+   "id": 127
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "sound",
+   "day": -26,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Tonmischung Interviews",
+    "en": "Sound mix of the interviews"
+   },
+   "exported": true,
+   "id": 128
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -26,
+   "start": "14:00",
+   "end": "16:00",
+   "description": {
+    "de": "Belege zuordnen",
+    "en": "Match receipts"
+   },
+   "exported": false,
+   "id": 129
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -25,
+   "start": "07:30",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": true,
+   "id": 130
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -25,
+   "start": "08:00",
+   "end": "19:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": true,
+   "id": 131
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -25,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": true,
+   "id": 132
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -25,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Originalton Övelgönne",
+    "en": "Location sound at Övelgönne"
+   },
+   "exported": true,
+   "id": 133
+  },
+  {
+   "user": "selin",
+   "project": "spring",
+   "activity": "edit",
+   "day": -25,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Farbkorrektur Spot",
+    "en": "Colour grading the spot"
+   },
+   "exported": true,
+   "id": 134
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -24,
+   "start": "09:00",
+   "end": "14:00",
+   "description": {
+    "de": "Requisiten besorgen",
+    "en": "Source props"
+   },
+   "exported": true,
+   "id": 135
+  },
+  {
+   "user": "jonas",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -24,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Kamera-Reel sichten",
+    "en": "Review the camera reel"
+   },
+   "exported": false,
+   "id": 136
+  },
+  {
+   "user": "mara",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -24,
+   "start": "10:00",
+   "end": "12:00",
+   "description": {
+    "de": "Showreel: neue Szenen",
+    "en": "Showreel: new scenes"
+   },
+   "exported": false,
+   "id": 137
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -24,
+   "start": "10:00",
+   "end": "14:00",
+   "description": {
+    "de": "Score: Nebelhorn",
+    "en": "Score: Nebelhorn"
+   },
+   "exported": true,
+   "id": 138
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "meeting",
+   "day": -24,
+   "start": "13:00",
+   "end": "14:30",
+   "description": {
+    "de": "Rohschnitt-Abnahme Elbgrün",
+    "en": "Rough cut review with Elbgrün"
+   },
+   "exported": true,
+   "id": 139
+  },
+  {
+   "user": "mara",
+   "project": "trailer",
+   "activity": "edit",
+   "day": -24,
+   "start": "14:45",
+   "end": "17:30",
+   "description": {
+    "de": "Trailer-Schnitt für Donaulicht",
+    "en": "Trailer edit for Donaulicht"
+   },
+   "exported": true,
+   "id": 140
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "prep",
+   "day": -21,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Licht-Setup testen",
+    "en": "Test the lighting setup"
+   },
+   "exported": false,
+   "id": 141
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -21,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 142
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -21,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 143
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -21,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": false,
+   "id": 144
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -21,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dispo Werkstattdreh",
+    "en": "Call sheet for the workshop shoot"
+   },
+   "exported": false,
+   "id": 145
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -21,
+   "start": "10:00",
+   "end": "12:30",
+   "description": {
+    "de": "Casting Fahrradkurier",
+    "en": "Casting the bike courier"
+   },
+   "exported": false,
+   "id": 146
+  },
+  {
+   "user": "theo",
+   "project": "spring",
+   "activity": "sound",
+   "day": -21,
+   "start": "10:00",
+   "end": "15:00",
+   "description": {
+    "de": "Sounddesign Spot",
+    "en": "Sound design for the spot"
+   },
+   "exported": false,
+   "id": 147
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -20,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": false,
+   "id": 148
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -20,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 149
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -20,
+   "start": "08:00",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": false,
+   "id": 150
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -20,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": false,
+   "id": 151
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -19,
+   "start": "06:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dreh Hafenfähre",
+    "en": "Shoot on the harbour ferry"
+   },
+   "exported": false,
+   "id": 152
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "travel",
+   "day": -19,
+   "start": "08:00",
+   "end": "09:00",
+   "description": {
+    "de": "Fahrt Northlight-Büro",
+    "en": "Drive to the Northlight office"
+   },
+   "exported": false,
+   "id": 153
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "meeting",
+   "day": -19,
+   "start": "09:00",
+   "end": "11:30",
+   "description": {
+    "de": "Produktionsbesprechung",
+    "en": "Production meeting"
+   },
+   "exported": false,
+   "id": 154
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -19,
+   "start": "09:00",
+   "end": "11:00",
+   "description": {
+    "de": "Interviewfragen Stiftung",
+    "en": "Interview questions for the foundation"
+   },
+   "exported": false,
+   "id": 155
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -19,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Feinschnitt",
+    "en": "Fine cut"
+   },
+   "exported": false,
+   "id": 156
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -19,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Mischung Folge 3",
+    "en": "Mix episode 3"
+   },
+   "exported": false,
+   "id": 157
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -19,
+   "start": "13:00",
+   "end": "15:30",
+   "description": {
+    "de": "Rechnungen Northlight",
+    "en": "Invoices for Northlight"
+   },
+   "exported": false,
+   "id": 158
+  },
+  {
+   "user": "lena",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -18,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Genehmigung HafenCity",
+    "en": "HafenCity permit"
+   },
+   "exported": false,
+   "id": 159
+  },
+  {
+   "user": "selin",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -18,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Showreel-Schnitt",
+    "en": "Showreel edit"
+   },
+   "exported": false,
+   "id": 160
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -18,
+   "start": "09:30",
+   "end": "13:00",
+   "description": {
+    "de": "Dispo Folge 5",
+    "en": "Call sheet episode 5"
+   },
+   "exported": false,
+   "id": 161
+  },
+  {
+   "user": "jonas",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -18,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": false,
+   "id": 162
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -18,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Originalton HafenCity",
+    "en": "Location sound in HafenCity"
+   },
+   "exported": false,
+   "id": 163
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -18,
+   "start": "14:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": false,
+   "id": 164
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "edit",
+   "day": -17,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnittfassung 1",
+    "en": "Edit version 1"
+   },
+   "exported": false,
+   "id": 165
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -17,
+   "start": "15:00",
+   "end": "23:30",
+   "description": {
+    "de": "Nachtdreh Speicherstadt",
+    "en": "Night shoot in Speicherstadt"
+   },
+   "exported": false,
+   "id": 166
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -14,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Kamera-Check und Objektivtest",
+    "en": "Camera check and lens test"
+   },
+   "exported": false,
+   "id": 167
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -14,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 168
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -14,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 169
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -14,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Material sichten",
+    "en": "Review footage"
+   },
+   "exported": false,
+   "id": 170
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -14,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Drehgenehmigungen",
+    "en": "Shooting permits"
+   },
+   "exported": false,
+   "id": 171
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -14,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Drehplan Folge 4 abstimmen",
+    "en": "Align shooting schedule for episode 4"
+   },
+   "exported": false,
+   "id": 172
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -14,
+   "start": "13:30",
+   "end": "16:30",
+   "description": {
+    "de": "Interviews schneiden",
+    "en": "Cut the interviews"
+   },
+   "exported": false,
+   "id": 173
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "meeting",
+   "day": -14,
+   "start": "14:00",
+   "end": "15:30",
+   "description": {
+    "de": "Abnahme Storyboard mit Speiche",
+    "en": "Storyboard sign-off with Speiche"
+   },
+   "exported": false,
+   "id": 174
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -13,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": false,
+   "id": 175
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -13,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 176
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -13,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": false,
+   "id": 177
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -13,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Originalton Landungsbrücken",
+    "en": "Location sound at Landungsbrücken"
+   },
+   "exported": false,
+   "id": 178
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -13,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": false,
+   "id": 179
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -12,
+   "start": "07:00",
+   "end": "17:00",
+   "description": {
+    "de": "Dreh Fischmarkt",
+    "en": "Shoot at the fish market"
+   },
+   "exported": false,
+   "id": 180
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -12,
+   "start": "09:00",
+   "end": "12:00",
+   "description": {
+    "de": "Reisekosten",
+    "en": "Travel expenses"
+   },
+   "exported": false,
+   "id": 181
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -12,
+   "start": "09:00",
+   "end": "12:30",
+   "description": {
+    "de": "Feinschnitt Interviews",
+    "en": "Fine cut of the interviews"
+   },
+   "exported": false,
+   "id": 182
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -12,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": false,
+   "id": 183
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -12,
+   "start": "09:40",
+   "end": "12:10",
+   "description": {
+    "de": "Motivsuche Werkstatt",
+    "en": "Location scout at the workshop"
+   },
+   "exported": false,
+   "id": 184
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "sound",
+   "day": -12,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Tonmischung Interviews",
+    "en": "Sound mix of the interviews"
+   },
+   "exported": false,
+   "id": 185
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -12,
+   "start": "14:00",
+   "end": "16:00",
+   "description": {
+    "de": "Belege zuordnen",
+    "en": "Match receipts"
+   },
+   "exported": false,
+   "id": 186
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -11,
+   "start": "07:30",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 187
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -11,
+   "start": "08:00",
+   "end": "19:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": false,
+   "id": 188
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -11,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": false,
+   "id": 189
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -11,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Originalton Övelgönne",
+    "en": "Location sound at Övelgönne"
+   },
+   "exported": false,
+   "id": 190
+  },
+  {
+   "user": "selin",
+   "project": "spring",
+   "activity": "edit",
+   "day": -11,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Farbkorrektur Spot",
+    "en": "Colour grading the spot"
+   },
+   "exported": false,
+   "id": 191
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -10,
+   "start": "09:00",
+   "end": "14:00",
+   "description": {
+    "de": "Requisiten besorgen",
+    "en": "Source props"
+   },
+   "exported": false,
+   "id": 192
+  },
+  {
+   "user": "jonas",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -10,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Kamera-Reel sichten",
+    "en": "Review the camera reel"
+   },
+   "exported": false,
+   "id": 193
+  },
+  {
+   "user": "mara",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -10,
+   "start": "10:00",
+   "end": "12:00",
+   "description": {
+    "de": "Showreel: neue Szenen",
+    "en": "Showreel: new scenes"
+   },
+   "exported": false,
+   "id": 194
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -10,
+   "start": "10:00",
+   "end": "14:00",
+   "description": {
+    "de": "Score: Nebelhorn",
+    "en": "Score: Nebelhorn"
+   },
+   "exported": false,
+   "id": 195
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "meeting",
+   "day": -10,
+   "start": "13:00",
+   "end": "14:30",
+   "description": {
+    "de": "Rohschnitt-Abnahme Elbgrün",
+    "en": "Rough cut review with Elbgrün"
+   },
+   "exported": false,
+   "id": 196
+  },
+  {
+   "user": "mara",
+   "project": "trailer",
+   "activity": "edit",
+   "day": -10,
+   "start": "14:45",
+   "end": "17:30",
+   "description": {
+    "de": "Trailer-Schnitt für Donaulicht",
+    "en": "Trailer edit for Donaulicht"
+   },
+   "exported": false,
+   "id": 197
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "prep",
+   "day": -7,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Licht-Setup testen",
+    "en": "Test the lighting setup"
+   },
+   "exported": false,
+   "id": 198
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -7,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 199
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": -7,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 200
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -7,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": false,
+   "id": 201
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": -7,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dispo Werkstattdreh",
+    "en": "Call sheet for the workshop shoot"
+   },
+   "exported": false,
+   "id": 202
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": -7,
+   "start": "10:00",
+   "end": "12:30",
+   "description": {
+    "de": "Casting Fahrradkurier",
+    "en": "Casting the bike courier"
+   },
+   "exported": false,
+   "id": 203
+  },
+  {
+   "user": "theo",
+   "project": "spring",
+   "activity": "sound",
+   "day": -7,
+   "start": "10:00",
+   "end": "15:00",
+   "description": {
+    "de": "Sounddesign Spot",
+    "en": "Sound design for the spot"
+   },
+   "exported": false,
+   "id": 204
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -6,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": false,
+   "id": 205
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -6,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 206
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "shoot",
+   "day": -6,
+   "start": "08:00",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": false,
+   "id": 207
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": -6,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": false,
+   "id": 208
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -5,
+   "start": "06:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dreh Hafenfähre",
+    "en": "Shoot on the harbour ferry"
+   },
+   "exported": false,
+   "id": 209
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "travel",
+   "day": -5,
+   "start": "08:00",
+   "end": "09:00",
+   "description": {
+    "de": "Fahrt Northlight-Büro",
+    "en": "Drive to the Northlight office"
+   },
+   "exported": false,
+   "id": 210
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "meeting",
+   "day": -5,
+   "start": "09:00",
+   "end": "11:30",
+   "description": {
+    "de": "Produktionsbesprechung",
+    "en": "Production meeting"
+   },
+   "exported": false,
+   "id": 211
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -5,
+   "start": "09:00",
+   "end": "11:00",
+   "description": {
+    "de": "Interviewfragen Stiftung",
+    "en": "Interview questions for the foundation"
+   },
+   "exported": false,
+   "id": 212
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": -5,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Feinschnitt",
+    "en": "Fine cut"
+   },
+   "exported": false,
+   "id": 213
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": -5,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Mischung Folge 3",
+    "en": "Mix episode 3"
+   },
+   "exported": false,
+   "id": 214
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": -5,
+   "start": "13:00",
+   "end": "15:30",
+   "description": {
+    "de": "Rechnungen Northlight",
+    "en": "Invoices for Northlight"
+   },
+   "exported": false,
+   "id": 215
+  },
+  {
+   "user": "lena",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": -4,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Genehmigung HafenCity",
+    "en": "HafenCity permit"
+   },
+   "exported": false,
+   "id": 216
+  },
+  {
+   "user": "selin",
+   "project": "showreel",
+   "activity": "edit",
+   "day": -4,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Showreel-Schnitt",
+    "en": "Showreel edit"
+   },
+   "exported": false,
+   "id": 217
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": -4,
+   "start": "09:30",
+   "end": "13:00",
+   "description": {
+    "de": "Dispo Folge 5",
+    "en": "Call sheet episode 5"
+   },
+   "exported": false,
+   "id": 218
+  },
+  {
+   "user": "jonas",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -4,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": false,
+   "id": 219
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -4,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Originalton HafenCity",
+    "en": "Location sound in HafenCity"
+   },
+   "exported": false,
+   "id": 220
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": -4,
+   "start": "14:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": false,
+   "id": 221
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "edit",
+   "day": -3,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnittfassung 1",
+    "en": "Edit version 1"
+   },
+   "exported": false,
+   "id": 222
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": -3,
+   "start": "15:00",
+   "end": "23:30",
+   "description": {
+    "de": "Nachtdreh Speicherstadt",
+    "en": "Night shoot in Speicherstadt"
+   },
+   "exported": false,
+   "id": 223
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "prep",
+   "day": 0,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Kamera-Check und Objektivtest",
+    "en": "Camera check and lens test"
+   },
+   "exported": false,
+   "id": 224
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": 0,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 225
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": 0,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 226
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": 0,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Material sichten",
+    "en": "Review footage"
+   },
+   "exported": false,
+   "id": 227
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "prep",
+   "day": 0,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Drehgenehmigungen",
+    "en": "Shooting permits"
+   },
+   "exported": false,
+   "id": 228
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": 0,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Drehplan Folge 4 abstimmen",
+    "en": "Align shooting schedule for episode 4"
+   },
+   "exported": false,
+   "id": 229
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": 0,
+   "start": "13:30",
+   "end": "16:30",
+   "description": {
+    "de": "Interviews schneiden",
+    "en": "Cut the interviews"
+   },
+   "exported": false,
+   "id": 230
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "meeting",
+   "day": 0,
+   "start": "14:00",
+   "end": "15:30",
+   "description": {
+    "de": "Abnahme Storyboard mit Speiche",
+    "en": "Storyboard sign-off with Speiche"
+   },
+   "exported": false,
+   "id": 231
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 1,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": false,
+   "id": 232
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 1,
+   "start": "07:00",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 233
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 1,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Dreh Landungsbrücken",
+    "en": "Shoot at Landungsbrücken"
+   },
+   "exported": false,
+   "id": 234
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 1,
+   "start": "07:30",
+   "end": "17:30",
+   "description": {
+    "de": "Originalton Landungsbrücken",
+    "en": "Location sound at Landungsbrücken"
+   },
+   "exported": false,
+   "id": 235
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": 1,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": false,
+   "id": 236
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 2,
+   "start": "07:00",
+   "end": "17:00",
+   "description": {
+    "de": "Dreh Fischmarkt",
+    "en": "Shoot at the fish market"
+   },
+   "exported": false,
+   "id": 237
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": 2,
+   "start": "09:00",
+   "end": "12:00",
+   "description": {
+    "de": "Reisekosten",
+    "en": "Travel expenses"
+   },
+   "exported": false,
+   "id": 238
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": 2,
+   "start": "09:00",
+   "end": "12:30",
+   "description": {
+    "de": "Feinschnitt Interviews",
+    "en": "Fine cut of the interviews"
+   },
+   "exported": false,
+   "id": 239
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": 2,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnitt Folge 3",
+    "en": "Edit episode 3"
+   },
+   "exported": false,
+   "id": 240
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": 2,
+   "start": "09:40",
+   "end": "12:10",
+   "description": {
+    "de": "Motivsuche Werkstatt",
+    "en": "Location scout at the workshop"
+   },
+   "exported": false,
+   "id": 241
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "sound",
+   "day": 2,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Tonmischung Interviews",
+    "en": "Sound mix of the interviews"
+   },
+   "exported": false,
+   "id": 242
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": 2,
+   "start": "14:00",
+   "end": "16:00",
+   "description": {
+    "de": "Belege zuordnen",
+    "en": "Match receipts"
+   },
+   "exported": false,
+   "id": 243
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 3,
+   "start": "07:30",
+   "end": "18:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 244
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 3,
+   "start": "08:00",
+   "end": "19:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": false,
+   "id": 245
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 3,
+   "start": "08:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh Övelgönne",
+    "en": "Shoot at Övelgönne"
+   },
+   "exported": false,
+   "id": 246
+  },
+  {
+   "user": "selin",
+   "project": "spring",
+   "activity": "edit",
+   "day": 3,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Farbkorrektur Spot",
+    "en": "Colour grading the spot"
+   },
+   "exported": false,
+   "id": 247
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": 4,
+   "start": "09:00",
+   "end": "14:00",
+   "description": {
+    "de": "Requisiten besorgen",
+    "en": "Source props"
+   },
+   "exported": false,
+   "id": 248
+  },
+  {
+   "user": "jonas",
+   "project": "showreel",
+   "activity": "edit",
+   "day": 4,
+   "start": "10:00",
+   "end": "13:00",
+   "description": {
+    "de": "Kamera-Reel sichten",
+    "en": "Review the camera reel"
+   },
+   "exported": false,
+   "id": 249
+  },
+  {
+   "user": "mara",
+   "project": "showreel",
+   "activity": "edit",
+   "day": 4,
+   "start": "10:00",
+   "end": "12:00",
+   "description": {
+    "de": "Showreel: neue Szenen",
+    "en": "Showreel: new scenes"
+   },
+   "exported": false,
+   "id": 250
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "meeting",
+   "day": 4,
+   "start": "13:00",
+   "end": "14:30",
+   "description": {
+    "de": "Rohschnitt-Abnahme Elbgrün",
+    "en": "Rough cut review with Elbgrün"
+   },
+   "exported": false,
+   "id": 251
+  },
+  {
+   "user": "mara",
+   "project": "trailer",
+   "activity": "edit",
+   "day": 4,
+   "start": "14:45",
+   "end": "17:30",
+   "description": {
+    "de": "Trailer-Schnitt für Donaulicht",
+    "en": "Trailer edit for Donaulicht"
+   },
+   "exported": false,
+   "id": 252
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "prep",
+   "day": 7,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Licht-Setup testen",
+    "en": "Test the lighting setup"
+   },
+   "exported": false,
+   "id": 253
+  },
+  {
+   "user": "lena",
+   "project": "admin",
+   "activity": "meeting",
+   "day": 7,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 254
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "meeting",
+   "day": 7,
+   "start": "09:00",
+   "end": "09:45",
+   "description": {
+    "de": "Wochenplanung mit dem Team",
+    "en": "Weekly planning with the team"
+   },
+   "exported": false,
+   "id": 255
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": 7,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": false,
+   "id": 256
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "prep",
+   "day": 7,
+   "start": "10:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dispo Werkstattdreh",
+    "en": "Call sheet for the workshop shoot"
+   },
+   "exported": false,
+   "id": 257
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "prep",
+   "day": 7,
+   "start": "10:00",
+   "end": "12:30",
+   "description": {
+    "de": "Casting Fahrradkurier",
+    "en": "Casting the bike courier"
+   },
+   "exported": false,
+   "id": 258
+  },
+  {
+   "user": "theo",
+   "project": "spring",
+   "activity": "sound",
+   "day": 7,
+   "start": "10:00",
+   "end": "15:00",
+   "description": {
+    "de": "Sounddesign Spot",
+    "en": "Sound design for the spot"
+   },
+   "exported": false,
+   "id": 259
+  },
+  {
+   "user": "jonas",
+   "project": "spring",
+   "activity": "shoot",
+   "day": 8,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": false,
+   "id": 260
+  },
+  {
+   "user": "lena",
+   "project": "spring",
+   "activity": "shoot",
+   "day": 8,
+   "start": "07:30",
+   "end": "16:30",
+   "description": {
+    "de": "Set-Aufnahmeleitung",
+    "en": "Set management"
+   },
+   "exported": false,
+   "id": 261
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "shoot",
+   "day": 8,
+   "start": "08:00",
+   "end": "16:30",
+   "description": {
+    "de": "Dreh Speiche-Werkstatt",
+    "en": "Shoot at the Speiche workshop"
+   },
+   "exported": false,
+   "id": 262
+  },
+  {
+   "user": "selin",
+   "project": "harbour",
+   "activity": "edit",
+   "day": 8,
+   "start": "09:00",
+   "end": "17:00",
+   "description": {
+    "de": "Schnitt Folge 4",
+    "en": "Edit episode 4"
+   },
+   "exported": false,
+   "id": 263
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 9,
+   "start": "06:00",
+   "end": "16:00",
+   "description": {
+    "de": "Dreh Hafenfähre",
+    "en": "Shoot on the harbour ferry"
+   },
+   "exported": false,
+   "id": 264
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "travel",
+   "day": 9,
+   "start": "08:00",
+   "end": "09:00",
+   "description": {
+    "de": "Fahrt Northlight-Büro",
+    "en": "Drive to the Northlight office"
+   },
+   "exported": false,
+   "id": 265
+  },
+  {
+   "user": "lena",
+   "project": "harbour",
+   "activity": "meeting",
+   "day": 9,
+   "start": "09:00",
+   "end": "11:30",
+   "description": {
+    "de": "Produktionsbesprechung",
+    "en": "Production meeting"
+   },
+   "exported": false,
+   "id": 266
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": 9,
+   "start": "09:00",
+   "end": "11:00",
+   "description": {
+    "de": "Interviewfragen Stiftung",
+    "en": "Interview questions for the foundation"
+   },
+   "exported": false,
+   "id": 267
+  },
+  {
+   "user": "selin",
+   "project": "tidenhub",
+   "activity": "edit",
+   "day": 9,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Feinschnitt",
+    "en": "Fine cut"
+   },
+   "exported": false,
+   "id": 268
+  },
+  {
+   "user": "theo",
+   "project": "harbour",
+   "activity": "sound",
+   "day": 9,
+   "start": "10:00",
+   "end": "17:00",
+   "description": {
+    "de": "Mischung Folge 3",
+    "en": "Mix episode 3"
+   },
+   "exported": false,
+   "id": 269
+  },
+  {
+   "user": "mara",
+   "project": "admin",
+   "activity": "bookkeeping",
+   "day": 9,
+   "start": "13:00",
+   "end": "15:30",
+   "description": {
+    "de": "Rechnungen Northlight",
+    "en": "Invoices for Northlight"
+   },
+   "exported": false,
+   "id": 270
+  },
+  {
+   "user": "lena",
+   "project": "tidenhub",
+   "activity": "prep",
+   "day": 10,
+   "start": "09:00",
+   "end": "15:00",
+   "description": {
+    "de": "Genehmigung HafenCity",
+    "en": "HafenCity permit"
+   },
+   "exported": false,
+   "id": 271
+  },
+  {
+   "user": "mara",
+   "project": "harbour",
+   "activity": "prep",
+   "day": 10,
+   "start": "09:30",
+   "end": "13:00",
+   "description": {
+    "de": "Dispo Folge 5",
+    "en": "Call sheet episode 5"
+   },
+   "exported": false,
+   "id": 272
+  },
+  {
+   "user": "jonas",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": 10,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": false,
+   "id": 273
+  },
+  {
+   "user": "theo",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": 10,
+   "start": "13:00",
+   "end": "18:30",
+   "description": {
+    "de": "Originalton HafenCity",
+    "en": "Location sound in HafenCity"
+   },
+   "exported": false,
+   "id": 274
+  },
+  {
+   "user": "mara",
+   "project": "tidenhub",
+   "activity": "shoot",
+   "day": 10,
+   "start": "14:00",
+   "end": "18:00",
+   "description": {
+    "de": "Dreh HafenCity",
+    "en": "Shoot in HafenCity"
+   },
+   "exported": false,
+   "id": 275
+  },
+  {
+   "user": "mara",
+   "project": "spring",
+   "activity": "edit",
+   "day": 11,
+   "start": "09:00",
+   "end": "13:00",
+   "description": {
+    "de": "Schnittfassung 1",
+    "en": "Edit version 1"
+   },
+   "exported": false,
+   "id": 276
+  },
+  {
+   "user": "jonas",
+   "project": "harbour",
+   "activity": "shoot",
+   "day": 11,
+   "start": "15:00",
+   "end": "23:30",
+   "description": {
+    "de": "Nachtdreh Speicherstadt",
+    "en": "Night shoot in Speicherstadt"
+   },
+   "exported": false,
+   "id": 277
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+// Demo data for Kurrent: the tasks of Studio Weber, the demo world shared by all
+// shrippen projects (demo/world.json, copied from shrippen.github.io/demo; do not edit).
+// KURRENT_DEMO=de|en (or 1: language from the locale) starts Kurrent with these tasks in
+// memory instead of Akonadi. Dates are day offsets from Monday of the current week;
+// DEMO_TODAY=YYYY-MM-DD fixes "today".
+#pragma once
+
+#include <Akonadi/Collection>
+#include <KCalendarCore/Todo>
+#include <QList>
+#include <QString>
+
+namespace DemoData
+{
+struct Task {
+    qint64 id = 0;
+    qint64 collectionId = 0;
+    KCalendarCore::Todo::Ptr todo;
+};
+
+struct Data {
+    QList<Akonadi::Collection> collections;
+    QList<Task> tasks;
+};
+
+// Language from KURRENT_DEMO, or an empty string when demo mode is off.
+QString language();
+bool enabled();
+// Collection id -> color, for the projectColors setting.
+QString projectColorsJson();
+Data load();
+}
