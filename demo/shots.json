@@ -5,11 +5,28 @@
   "timeout": 300,
   "format": "webp",
   "shots": [
-    {"name": "tasks"},
-    {"name": "kanban"},
-    {"name": "plan"},
-    {"name": "heatmap"},
-    {"name": "editor"},
-    {"name": "inspector"}
-  ]
+    {
+      "name": "tasks"
+    },
+    {
+      "name": "kanban"
+    },
+    {
+      "name": "plan"
+    },
+    {
+      "name": "heatmap"
+    },
+    {
+      "name": "editor"
+    },
+    {
+      "name": "inspector"
+    }
+  ],
+  "page": {
+    "tasks.jpg": "tasks",
+    "kanban.jpg": "kanban",
+    "heatmap.jpg": "heatmap"
+  }
 }
