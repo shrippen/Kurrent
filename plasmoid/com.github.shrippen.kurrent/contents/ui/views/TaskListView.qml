@@ -6,8 +6,10 @@ import org.kde.plasma.plasmoid 2.0
 import com.github.shrippen.kurrent 1.0
 import "../components"
 import "../colors.js" as Colors
+import "../taskmeta.js" as TaskMeta
 import ".."
 import "."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -17,6 +19,9 @@ ColumnLayout {
     property string hiddenProjects: ""
     property string newTaskProjectMode: "ask"
     property string newTaskDefaultCollectionId: ""
+    property bool multiSelectEnabled: false
+    // Full-editor overlay: suppress row hover under the dim.
+    property bool interactionsSuspended: false
 
     property var expandedItemId: -1
     property var selectedItemId: -1
@@ -57,6 +62,17 @@ ColumnLayout {
         function onSortModeChanged() { root.collapseInline() }
     }
 
+    // Snapshot of the first loaded task row (for the internal screenshot tooling).
+    function firstTaskSnapshot() {
+        for (var i = 0; i < Math.min(taskList.count, 20); ++i) {
+            var row = taskList.itemAtIndex(i)
+            if (row && row.taskSnapshot) {
+                return row.taskSnapshot()
+            }
+        }
+        return null
+    }
+
     function acceptDropAsParent(parentUid) {
         if (!dragHost || !dragHost.draggingTask) {
             return false
@@ -77,6 +93,14 @@ ColumnLayout {
 
     function focusNewTask() {
         newTaskField.forceActiveFocus()
+    }
+
+    function bulkItemIds() {
+        var ids = []
+        for (var i = 0; i < controller.selectedTaskIds.length; ++i) {
+            ids.push(parseInt(controller.selectedTaskIds[i], 10))
+        }
+        return ids
     }
 
     function openSelectedFullEditor() {
@@ -103,6 +127,25 @@ ColumnLayout {
 
     property var pendingDeleteId: -1
 
+    Timer {
+        id: searchDebounce
+        interval: 150
+        onTriggered: controller.searchQuery = searchField.text
+    }
+
+    // Show animated gear after 500ms of reorganization.
+    Timer {
+        id: reorgGearTimer
+        interval: 500
+        repeat: false
+        running: controller && controller.listReorganizing
+        onTriggered: reorgGearTimer.triggered = true
+        property bool triggered: false
+        onRunningChanged: {
+            if (!running) triggered = false
+        }
+    }
+
     RowLayout {
         Layout.fillWidth: true
 
@@ -110,7 +153,7 @@ ColumnLayout {
             id: searchField
             Layout.fillWidth: true
             placeholderText: i18n("Search tasks…")
-            onTextChanged: controller.searchQuery = text
+            onTextChanged: searchDebounce.restart()
             rightActions: [
                 Kirigami.Action {
                     icon.name: "edit-clear"
@@ -124,9 +167,28 @@ ColumnLayout {
             ]
         }
 
-        QQC2.ToolButton {
+        Kirigami.Icon {
+            id: reorgGear
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+            source: "view-refresh"
+            visible: reorgGearTimer.triggered && searchField.text.length > 0
+        }
+
+        RotationAnimator {
+            target: reorgGear
+            running: reorgGear.visible
+            from: 0
+            to: 360
+            duration: Kirigami.Units.longDuration * 6
+            loops: Animation.Infinite
+        }
+
+        // Batch delete: reveals a delete button on every row (a select icon, not a bin).
+        KanteToolButton {
             id: deleteModeButton
-            icon.name: "edit-delete"
+            icon.name: "edit-select-all"
             checkable: true
             checked: root.deleteModeEnabled
             onToggled: root.deleteModeEnabled = checked
@@ -134,29 +196,6 @@ ColumnLayout {
             QQC2.ToolTip.visible: hovered
         }
 
-        QQC2.ToolButton {
-            visible: controller.canUndo
-            icon.name: "edit-undo"
-            onClicked: controller.undo()
-            QQC2.ToolTip.text: {
-                switch (controller.undoKind) {
-                case "complete": return i18n("Undo complete")
-                case "reschedule": return i18n("Undo reschedule")
-                case "move": return i18n("Undo move")
-                case "delete": return i18n("Undo delete")
-                default: return i18n("Undo")
-                }
-            }
-            QQC2.ToolTip.visible: hovered
-        }
-
-        QQC2.ToolButton {
-            icon.name: "view-refresh"
-            onClicked: controller.syncNow()
-            enabled: !controller.loading
-            QQC2.ToolTip.text: i18n("Sync now")
-            QQC2.ToolTip.visible: hovered
-        }
     }
 
     QQC2.ProgressBar {
@@ -274,10 +313,14 @@ ColumnLayout {
         }
     }
 
-    ListView {
-        id: taskList
+    Item {
         Layout.fillWidth: true
         Layout.fillHeight: true
+        implicitHeight: 0
+
+        ListView {
+        id: taskList
+        anchors.fill: parent
         implicitHeight: 0
         clip: true
         model: controller.taskModel
@@ -288,36 +331,104 @@ ColumnLayout {
         section.property: "bucket"
         section.criteria: ViewSection.FullString
         section.delegate: Item {
+            id: sectionRoot
             required property string section
             width: taskList.width - taskList.leftMargin - taskList.rightMargin
-            height: sectionLabel.implicitHeight + Design.spaceSmall
-            QQC2.Label {
-                id: sectionLabel
+            height: sectionRow.implicitHeight + Design.spaceSmall
+
+            readonly property string groupMode: controller.listGroupMode || ""
+            readonly property string sectionIconName: TaskMeta.listSectionIcon(groupMode, section)
+            readonly property var sectionTint: TaskMeta.listSectionIconTint(groupMode, section)
+
+            RowLayout {
+                id: sectionRow
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
-                text: {
-                    switch (parent.section) {
-                    case "catchup": return i18n("Still open")
-                    case "morning": return i18n("Morning")
-                    case "afternoon": return i18n("Afternoon")
-                    case "evening": return i18n("Evening")
-                    case "unspecified": return i18n("Anytime")
-                    default: return parent.section
+                spacing: Design.spaceSmall
+
+                Kirigami.Icon {
+                    visible: sectionRoot.sectionIconName.length > 0
+                    Layout.preferredWidth: Design.listSectionIconSize
+                    Layout.preferredHeight: Design.listSectionIconSize
+                    source: sectionRoot.sectionIconName
+                    opacity: sectionRoot.sectionTint.opacity !== undefined
+                            ? sectionRoot.sectionTint.opacity : 0.7
+                    color: {
+                        var tint = sectionRoot.sectionTint
+                        if (tint.kind === "project") {
+                            return Design.colorForKey(tint.key)
+                        }
+                        if (tint.kind === "label") {
+                            return Design.colorForKey(tint.key, "label")
+                        }
+                        if (tint.kind === "location") {
+                            return Design.colorForKey(tint.key, "location")
+                        }
+                        if (tint.priority !== undefined) {
+                            return Design.priorityColor(tint.priority)
+                        }
+                        return Kirigami.Theme.textColor
                     }
                 }
-                font.bold: true
-                opacity: 0.7
-                visible: text.length > 0
+
+                QQC2.Label {
+                    text: {
+                        var gm = sectionRoot.groupMode
+                        if (gm.length > 0 && gm !== "none") {
+                            return controller.listGroupLabelForKey(sectionRoot.section)
+                        }
+                        switch (sectionRoot.section) {
+                        case "catchup": return i18n("Still open")
+                        case "morning": return i18n("Morning")
+                        case "afternoon": return i18n("Afternoon")
+                        case "evening": return i18n("Evening")
+                        case "unspecified": return i18n("Anytime")
+                        default: return sectionRoot.section
+                        }
+                    }
+                    // Kante / Kante Light: section label (small uppercase mono) followed by a rule.
+                    Layout.fillWidth: !KanteStyle.active
+                    font: KanteStyle.active ? KanteStyle.labelFont()
+                                            : Qt.font({ family: Kirigami.Theme.defaultFont.family,
+                                                        pointSize: Kirigami.Theme.defaultFont.pointSize, bold: true })
+                    color: KanteStyle.active ? KanteStyle.mutedTextColor : Kirigami.Theme.textColor
+                    opacity: KanteStyle.active ? 1 : 0.7
+                    visible: text.length > 0
+                }
+
+                Rectangle {
+                    visible: KanteStyle.active
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.preferredHeight: 1
+                    color: KanteStyle.ruleColor
+                }
             }
         }
         // Prefetch ~2 viewports so scroll rarely instantiates rows mid-gesture.
         cacheBuffer: Math.max(Math.round(height * 2), Math.round(Kirigami.Units.gridUnit * 24))
         spacing: 0
+
+        // When the model is applying chunked row operations, snap rows
+        // instantly (duration 0) to prevent displaced-transition overlap
+        // artifacts.  Normal animated repositioning resumes when chunks
+        // finish.
+        readonly property bool chunksActive: controller.taskModel
+                                             ? controller.taskModel.chunksActive : false
+
         // Allow flick/touchpad overshoot with rebound (StopAtBounds left the list
         // stuck past the edge when inertia ran out without a bounce-back).
         boundsBehavior: Flickable.OvershootBounds
         flickableDirection: Flickable.VerticalFlick
+
+        displaced: Transition {
+            NumberAnimation {
+                properties: "y"
+                duration: taskList.chunksActive ? 0 : Kirigami.Units.shortDuration
+                easing.type: Easing.OutCubic
+            }
+        }
 
         function settleScrollBounds() {
             var maxY = Math.max(0, contentHeight - height)
@@ -406,6 +517,7 @@ ColumnLayout {
             controller: root.controller
             dragHost: root.dragHost
             taskListRoot: root
+            interactionsSuspended: root.interactionsSuspended
             expanded: root.expandedItemId === model.itemId
             deleteModeEnabled: root.deleteModeEnabled
             // Height applied imperatively for the expanded row only (see syncInlineGeometry).
@@ -467,6 +579,7 @@ ColumnLayout {
                 }
             }
         }
+    }
     }
 
     readonly property real expandedEditorHeight: sharedInline.visible
@@ -570,7 +683,10 @@ ColumnLayout {
             return
         }
 
-        delegateItem.editorReserveHeight = root.expandedEditorHeight
+        var reserve = root.expandedEditorHeight
+        if (Math.abs(delegateItem.editorReserveHeight - reserve) > 0.5) {
+            delegateItem.editorReserveHeight = reserve
+        }
 
         // Full delegate width (same edges as row hover; ignore hierarchy indent).
         var left = 0
@@ -592,14 +708,14 @@ ColumnLayout {
         sharedInline.width = width
     }
 
-    // Keep editor aligned when the expanded row finishes laying out.
+    // Keep editor aligned when the expanded row finishes laying out (width only —
+    // height changes often come from editorReserveHeight and must not re-enter sync).
     Connections {
         target: (sharedInline.visible && expandedIndex >= 0)
                 ? taskList.itemAtIndex(expandedIndex)
                 : null
         ignoreUnknownSignals: true
         function onWidthChanged() { root.syncInlineGeometry() }
-        function onHeightChanged() { root.syncInlineGeometry() }
     }
 
     Timer {
@@ -682,16 +798,40 @@ ColumnLayout {
             onAccepted: root.addTask()
         }
 
-        QQC2.ToolButton {
+        // Primary action next to Quick Add: highlighted button (Plasma), accent square (Kante).
+        KanteButton {
             icon.name: "list-add"
-            onClicked: addTask()
-            QQC2.ToolTip.text: i18n("Add task")
+            display: QQC2.AbstractButton.IconOnly
+            highlighted: true
+            emphasis: KanteButton.Emphasis.Primary
+            text: i18n("Open full editor")
+            Layout.preferredHeight: newTaskField.height
+            onClicked: {
+                var text = newTaskField.text.trim()
+                var colId = controller.selectedCollectionId
+                if (colId <= 0) {
+                    var projs = root.writableProjects
+                    if (projs && projs.length > 0) {
+                        colId = projs[0].collectionId
+                    }
+                }
+                var parsedQA = null
+                if (text) {
+                    parsedQA = controller.parseQuickAdd(text,
+                        Qt.locale().name, root.writableProjects)
+                }
+                if (dragHost && dragHost.openNewTaskEditor) {
+                    dragHost.openNewTaskEditor(colId, parsedQA)
+                }
+            }
+            QQC2.ToolTip.text: i18n("Open full editor")
             QQC2.ToolTip.visible: hovered
         }
     }
 
     QQC2.Dialog {
         id: confirmDeleteDialog
+        KanteDialogSkin { dialog: confirmDeleteDialog }
         parent: root.dragHost || root
         popupType: QQC2.Popup.Item
         modal: true
@@ -721,6 +861,7 @@ ColumnLayout {
 
         QQC2.Popup {
             id: projectAskPopup
+            KantePopupSkin { popup: projectAskPopup }
             parent: root.dragHost || root
             popupType: QQC2.Popup.Item
             modal: true
@@ -797,7 +938,7 @@ ColumnLayout {
                 }
             }
 
-            QQC2.Button {
+            KanteButton {
                 Layout.alignment: Qt.AlignRight
                 text: i18n("Cancel")
                 onClicked: projectAskPopup.close()

@@ -16,6 +16,7 @@ private Q_SLOTS:
     void modifyWithMoveAfter();
     void unknownIdErrors();
     void createIdsMonotonic();
+    void customVendorPropertyPreservedOnModify();
 };
 
 static Akonadi::Item makeTodoItem(const QString &summary)
@@ -204,6 +205,48 @@ void TaskStoreTest::createIdsMonotonic()
     const qint64 idB = spy.takeFirst().at(0).value<AbstractTaskStore::Result>().item.id();
 
     QVERIFY(idB > idA);
+}
+
+void TaskStoreTest::customVendorPropertyPreservedOnModify()
+{
+    qRegisterMetaType<AbstractTaskStore::Result>();
+    MemoryTaskStore store;
+    QSignalSpy spy(&store, &AbstractTaskStore::finished);
+
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setSummary(QStringLiteral("vendor"));
+    todo->setNonKDECustomProperty(QByteArray("X-OC-HIDESUBTASKS"), QStringLiteral("1"));
+    Akonadi::Item item;
+    item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+    item.setPayload(todo);
+
+    AbstractTaskStore::Request create;
+    create.kind = AbstractTaskStore::Kind::Create;
+    create.clientId = -20;
+    create.item = item;
+    create.collection = Akonadi::Collection(3);
+    store.submit(create);
+    QVERIFY(spy.wait(1000));
+    const auto created = spy.takeFirst().at(0).value<AbstractTaskStore::Result>();
+    QVERIFY(created.ok);
+
+    auto stored = created.item.payload<KCalendarCore::Todo::Ptr>();
+    stored->setSummary(QStringLiteral("vendor-updated"));
+    Akonadi::Item modified = created.item;
+    modified.setPayload(stored);
+
+    AbstractTaskStore::Request modify;
+    modify.kind = AbstractTaskStore::Kind::Modify;
+    modify.clientId = created.item.id();
+    modify.item = modified;
+    store.submit(modify);
+    QVERIFY(spy.wait(1000));
+    const auto modifiedResult = spy.takeFirst().at(0).value<AbstractTaskStore::Result>();
+    QVERIFY(modifiedResult.ok);
+
+    const auto roundTrip = store.item(created.item.id()).payload<KCalendarCore::Todo::Ptr>();
+    QCOMPARE(roundTrip->summary(), QStringLiteral("vendor-updated"));
+    QCOMPARE(roundTrip->nonKDECustomProperty(QByteArray("X-OC-HIDESUBTASKS")), QStringLiteral("1"));
 }
 
 QTEST_MAIN(TaskStoreTest)

@@ -35,6 +35,10 @@ private Q_SLOTS:
     void compareTasksPriorityThenTitle();
     void compareTasksDuePutsUndatedLast();
     void compareTasksDescending();
+    void sortFlatForListGroupOrdersBySidebar();
+    void sortFlatForListGroupUnknownKeysLast();
+    void listGroupStatusMatchesSidebar();
+    void listGroupSubtasksFollowParentBucket();
 
     void parentCycleDetection();
 
@@ -75,14 +79,20 @@ private Q_SLOTS:
     void cursorAndDragLimits();
     void dateTimeTokensAndIsoParse();
 
-    void todayCatchUpIncludesAllOverdue();
-    void catchUpMatchesOverdueAndDisabled();
+    void todayViewExcludesOverdueTasks();
     void dayPartsAndListBuckets();
     void reschedulePresets();
     void joinUrlExtraction();
     void parseQuickAddTokens();
     void parseQuickAddFuzzyLanguageAndProjects();
     void suggestQuickAddScoresAndTypos();
+
+    void kanbanColumnKeyMapping();
+    void smartViewFilterJson();
+    void smartViewFilterAppliesInComputeCounts();
+    void planMatrixGridOverdueConsolidationAndHorizon();
+    void swimlanePlanHeatmapHelpers();
+    void matrixBucketsAndSwimlane();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -194,12 +204,66 @@ void TaskLogicTest::matchesFiltersByProjectLabelPriority()
     task.collectionId = 7;
     task.categories = QStringList{QStringLiteral("office")};
     task.priority = 2;
+    task.percentComplete = 40;
+    task.status = 6;
+    task.secrecy = 1;
+    task.location = QStringLiteral("Office");
 
-    QVERIFY(TaskLogic::matchesFilters(task, -1, QString(), -1));
-    QVERIFY(TaskLogic::matchesFilters(task, 7, QStringLiteral("office"), 1));
-    QVERIFY(!TaskLogic::matchesFilters(task, 8, QString(), -1));
-    QVERIFY(!TaskLogic::matchesFilters(task, -1, QStringLiteral("home"), -1));
-    QVERIFY(!TaskLogic::matchesFilters(task, -1, QString(), 5));
+    TaskLogic::FilterState none;
+    QVERIFY(TaskLogic::matchesFilters(task, none));
+
+    TaskLogic::FilterState match;
+    match.selectedCollectionId = 7;
+    match.selectedLabel = QStringLiteral("office");
+    match.selectedPriority = 1;
+    match.selectedProgressBand = QStringLiteral("26-50");
+    match.selectedStatus = 6;
+    match.selectedSecrecy = 1;
+    match.selectedLocation = QStringLiteral("Office");
+    QVERIFY(TaskLogic::matchesFilters(task, match));
+
+    TaskLogic::FilterState badProject = none;
+    badProject.selectedCollectionId = 8;
+    QVERIFY(!TaskLogic::matchesFilters(task, badProject));
+
+    TaskLogic::FilterState badLabel = none;
+    badLabel.selectedLabel = QStringLiteral("home");
+    QVERIFY(!TaskLogic::matchesFilters(task, badLabel));
+
+    TaskLogic::FilterState badPriority = none;
+    badPriority.selectedPriority = 5;
+    QVERIFY(!TaskLogic::matchesFilters(task, badPriority));
+
+    TaskLogic::FilterState badProgress = none;
+    badProgress.selectedProgressBand = QStringLiteral("0-25");
+    QVERIFY(!TaskLogic::matchesFilters(task, badProgress));
+
+    TaskEntry withReminder = makeTask(QStringLiteral("Ping"));
+    withReminder.reminderMinutes = 10;
+    QVERIFY(TaskLogic::matchesView(withReminder, QStringLiteral("reminder"), QDate(2026, 8, 30)));
+    QVERIFY(!TaskLogic::matchesView(task, QStringLiteral("reminder"), QDate(2026, 8, 30)));
+
+    TaskEntry noLoc = makeTask(QStringLiteral("No place"));
+    QVERIFY(TaskLogic::matchesView(noLoc, QStringLiteral("nolocation"), QDate(2026, 8, 30)));
+    noLoc.location = QStringLiteral("Office");
+    QVERIFY(!TaskLogic::matchesView(noLoc, QStringLiteral("nolocation"), QDate(2026, 8, 30)));
+
+    TaskEntry noPri = makeTask(QStringLiteral("Plain"));
+    noPri.priority = 0;
+    QVERIFY(TaskLogic::matchesView(noPri, QStringLiteral("nopriority"), QDate(2026, 8, 30)));
+    noPri.priority = 1;
+    QVERIFY(!TaskLogic::matchesView(noPri, QStringLiteral("nopriority"), QDate(2026, 8, 30)));
+
+    TaskEntry noStat = makeTask(QStringLiteral("Fresh"));
+    noStat.status = 0;
+    QVERIFY(TaskLogic::matchesView(noStat, QStringLiteral("nostatus"), QDate(2026, 8, 30)));
+    noStat.status = 4;
+    QVERIFY(!TaskLogic::matchesView(noStat, QStringLiteral("nostatus"), QDate(2026, 8, 30)));
+
+    QCOMPARE(TaskLogic::progressBandKey(0), QStringLiteral("0-25"));
+    QCOMPARE(TaskLogic::progressBandKey(25), QStringLiteral("0-25"));
+    QCOMPARE(TaskLogic::progressBandKey(26), QStringLiteral("26-50"));
+    QCOMPARE(TaskLogic::progressBandKey(100), QStringLiteral("76-100"));
 }
 
 void TaskLogicTest::compareTasksPriorityThenTitle()
@@ -260,6 +324,189 @@ void TaskLogicTest::compareTasksDescending()
     started.startDate = QDateTime(QDate(2026, 8, 1), QTime(9, 0));
     TaskEntry notStarted = makeTask(QStringLiteral("Later"));
     QVERIFY(TaskLogic::compareTasks(started, notStarted, QStringLiteral("start")) < 0);
+
+    TaskEntry alphaProject = makeTask(QStringLiteral("Alpha"));
+    alphaProject.collectionName = QStringLiteral("Alpha list");
+    TaskEntry betaProject = makeTask(QStringLiteral("Beta"));
+    betaProject.collectionName = QStringLiteral("Beta list");
+    QVERIFY(TaskLogic::compareTasks(alphaProject, betaProject, QStringLiteral("project")) < 0);
+    QVERIFY(TaskLogic::compareTasks(betaProject, alphaProject, QStringLiteral("projectDesc")) < 0);
+
+    TaskEntry tagged = makeTask(QStringLiteral("Tagged"));
+    tagged.categories = {QStringLiteral("work")};
+    TaskEntry untagged = makeTask(QStringLiteral("Plain"));
+    QVERIFY(TaskLogic::compareTasks(tagged, untagged, QStringLiteral("label")) < 0);
+
+    TaskEntry needsAction = makeTask(QStringLiteral("Needs"));
+    needsAction.status = 4;
+    TaskEntry inProcess = makeTask(QStringLiteral("Doing"));
+    inProcess.status = 6;
+    QVERIFY(TaskLogic::compareTasks(needsAction, inProcess, QStringLiteral("status")) < 0);
+
+    TaskEntry publicTask = makeTask(QStringLiteral("Public"));
+    TaskEntry privateTask = makeTask(QStringLiteral("Private"));
+    privateTask.secrecy = 1;
+    QVERIFY(TaskLogic::compareTasks(publicTask, privateTask, QStringLiteral("secrecy")) < 0);
+
+    TaskEntry office = makeTask(QStringLiteral("Office"));
+    office.location = QStringLiteral("Office");
+    TaskEntry remote = makeTask(QStringLiteral("Remote"));
+    remote.location = QStringLiteral("Remote");
+    QVERIFY(TaskLogic::compareTasks(office, remote, QStringLiteral("location")) < 0);
+}
+
+void TaskLogicTest::sortFlatForListGroupOrdersBySidebar()
+{
+    TaskLogic::ListGroupOrderContext ctx;
+    ctx.projectKeys = {QStringLiteral("1"), QStringLiteral("2")};
+
+    TaskEntry zebra = makeTask(QStringLiteral("Z task"));
+    zebra.itemId = 1;
+    zebra.bucket = QStringLiteral("2");
+    zebra.collectionName = QStringLiteral("Zebra");
+    zebra.collectionId = 2;
+
+    TaskEntry alpha = makeTask(QStringLiteral("A task"));
+    alpha.itemId = 2;
+    alpha.bucket = QStringLiteral("1");
+    alpha.collectionName = QStringLiteral("Alpha");
+    alpha.collectionId = 1;
+
+    TaskEntry alphaLate = makeTask(QStringLiteral("B task"));
+    alphaLate.itemId = 3;
+    alphaLate.bucket = QStringLiteral("1");
+    alphaLate.collectionName = QStringLiteral("Alpha");
+    alphaLate.collectionId = 1;
+
+    const QList<TaskEntry> sorted = TaskLogic::sortFlatForListGroup(
+            {zebra, alphaLate, alpha},
+            QStringLiteral("project"),
+            QStringLiteral("title"),
+            ctx);
+
+    QCOMPARE(sorted.size(), 3);
+    QCOMPARE(sorted.at(0).summary, QStringLiteral("A task"));
+    QCOMPARE(sorted.at(1).summary, QStringLiteral("B task"));
+    QCOMPARE(sorted.at(2).summary, QStringLiteral("Z task"));
+
+    ctx.projectKeys = {QStringLiteral("2"), QStringLiteral("1")};
+    const QList<TaskEntry> sidebarOrder = TaskLogic::sortFlatForListGroup(
+            {alpha, zebra},
+            QStringLiteral("project"),
+            QStringLiteral("title"),
+            ctx);
+    QCOMPARE(sidebarOrder.at(0).collectionId, 2);
+    QCOMPARE(sidebarOrder.at(1).collectionId, 1);
+
+    TaskEntry high = makeTask(QStringLiteral("Urgent"));
+    high.itemId = 10;
+    high.bucket = QStringLiteral("high");
+    high.priority = 1;
+    TaskEntry low = makeTask(QStringLiteral("Later"));
+    low.itemId = 11;
+    low.bucket = QStringLiteral("low");
+    low.priority = 9;
+    const QList<TaskEntry> byPriority = TaskLogic::sortFlatForListGroup(
+            {low, high}, QStringLiteral("priority"), QStringLiteral("title"));
+    QCOMPARE(byPriority.at(0).bucket, QStringLiteral("high"));
+    QCOMPARE(byPriority.at(1).bucket, QStringLiteral("low"));
+}
+
+void TaskLogicTest::sortFlatForListGroupUnknownKeysLast()
+{
+    TaskLogic::ListGroupOrderContext ctx;
+    ctx.locationKeys = {QStringLiteral("Office"), QStringLiteral("Remote")};
+
+    TaskEntry noLoc = makeTask(QStringLiteral("No place"));
+    noLoc.itemId = 1;
+    noLoc.bucket = QStringLiteral("none");
+
+    TaskEntry remote = makeTask(QStringLiteral("Remote task"));
+    remote.itemId = 2;
+    remote.bucket = QStringLiteral("Remote");
+
+    TaskEntry office = makeTask(QStringLiteral("Office task"));
+    office.itemId = 3;
+    office.bucket = QStringLiteral("Office");
+
+    TaskEntry attic = makeTask(QStringLiteral("Attic task"));
+    attic.itemId = 4;
+    attic.bucket = QStringLiteral("Attic");
+
+    const QList<TaskEntry> sorted = TaskLogic::sortFlatForListGroup(
+            {noLoc, attic, remote, office},
+            QStringLiteral("location"),
+            QStringLiteral("title"),
+            ctx);
+
+    QCOMPARE(sorted.at(0).bucket, QStringLiteral("Office"));
+    QCOMPARE(sorted.at(1).bucket, QStringLiteral("Remote"));
+    QCOMPARE(sorted.at(2).bucket, QStringLiteral("Attic"));
+    QCOMPARE(sorted.at(3).bucket, QStringLiteral("none"));
+}
+
+void TaskLogicTest::listGroupStatusMatchesSidebar()
+{
+    TaskEntry none = makeTask(QStringLiteral("Keine"));
+    none.status = 0;
+    none.bucket = QStringLiteral("0");
+
+    TaskEntry needs = makeTask(QStringLiteral("Handlung"));
+    needs.status = 4;
+    needs.bucket = QStringLiteral("4");
+
+    TaskLogic::ListGroupOrderContext ctx;
+    const QList<TaskEntry> grouped = TaskLogic::sortFlatForListGroup(
+            {needs, none},
+            QStringLiteral("status"),
+            QStringLiteral("title"),
+            ctx);
+
+    QCOMPARE(grouped.at(0).bucket, QStringLiteral("4"));
+    QCOMPARE(grouped.at(1).bucket, QStringLiteral("0"));
+    QCOMPARE(TaskLogic::listGroupKey(none, QStringLiteral("status"), TaskLogic::FilterState{}, QDate(2026, 8, 30)),
+             QStringLiteral("0"));
+    QCOMPARE(TaskLogic::listGroupKey(needs, QStringLiteral("status"), TaskLogic::FilterState{}, QDate(2026, 8, 30)),
+             QStringLiteral("4"));
+}
+
+void TaskLogicTest::listGroupSubtasksFollowParentBucket()
+{
+    TaskEntry parent = makeTask(QStringLiteral("Parent"));
+    parent.uid = QStringLiteral("p");
+    parent.itemId = 1;
+    parent.priority = 1;
+
+    TaskEntry child = makeTask(QStringLiteral("Child"));
+    child.uid = QStringLiteral("c");
+    child.parentUid = QStringLiteral("p");
+    child.itemId = 2;
+    child.priority = 9;
+
+    TaskEntry other = makeTask(QStringLiteral("Other"));
+    other.uid = QStringLiteral("o");
+    other.itemId = 3;
+    other.priority = 9;
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("inbox");
+    filters.listGroupMode = QStringLiteral("priority");
+
+    TaskLogic::TaskRebuildInput input;
+    input.allTasks = {parent, child, other};
+    input.filters = filters;
+    input.listGroupMode = QStringLiteral("priority");
+    input.sortMode = QStringLiteral("title");
+
+    const TaskLogic::TaskRebuildOutput out = TaskLogic::computeTaskRebuild(input, QDate(2026, 8, 30));
+    QCOMPARE(out.tasks.size(), 3);
+    QCOMPARE(out.tasks.at(0).uid, QStringLiteral("p"));
+    QCOMPARE(out.tasks.at(1).uid, QStringLiteral("c"));
+    QCOMPARE(out.tasks.at(1).indentLevel, 1);
+    QCOMPARE(out.tasks.at(2).uid, QStringLiteral("o"));
+    QCOMPARE(out.tasks.at(0).bucket, QStringLiteral("high"));
+    QCOMPARE(out.tasks.at(1).bucket, out.tasks.at(0).bucket);
+    QCOMPARE(out.tasks.at(2).bucket, QStringLiteral("low"));
 }
 
 void TaskLogicTest::parentCycleDetection()
@@ -436,14 +683,19 @@ void TaskLogicTest::flattenTreeHidesCollapsedChildren()
     const QList<TaskEntry> collapsed = TaskLogic::flattenTree({root, child, grand, sibling},
                                                               QStringLiteral("title"),
                                                               {QStringLiteral("root")});
-    QCOMPARE(collapsed.size(), 2);
+    QCOMPARE(collapsed.size(), 4);
     QCOMPARE(collapsed.at(0).uid, QStringLiteral("root"));
     QVERIFY(collapsed.at(0).hasChildren);
     QVERIFY(collapsed.at(0).treeCollapsed);
     QVERIFY(!collapsed.at(0).treeHidden);
-    QCOMPARE(collapsed.at(1).uid, QStringLiteral("other"));
-    QVERIFY(!collapsed.at(1).treeCollapsed);
-    QVERIFY(!collapsed.at(1).treeHidden);
+    // Children of collapsed root remain in the list with treeHidden = true
+    // so the ListView can animate height without row removal.
+    QCOMPARE(collapsed.at(1).uid, QStringLiteral("child"));
+    QVERIFY(collapsed.at(1).treeHidden);
+    QCOMPARE(collapsed.at(2).uid, QStringLiteral("grand"));
+    QVERIFY(collapsed.at(2).treeHidden);
+    QCOMPARE(collapsed.at(3).uid, QStringLiteral("other"));
+    QVERIFY(!collapsed.at(3).treeHidden);
 
     const QList<TaskEntry> open = TaskLogic::flattenTree({root, child, grand, sibling},
                                                          QStringLiteral("title"),
@@ -504,6 +756,8 @@ void TaskLogicTest::undoStackReplacesPrevious()
     TaskLogic::UndoStack stack;
     QVERIFY(!stack.canUndo());
     QCOMPARE(TaskLogic::undoKindName(TaskLogic::UndoRecord::Kind::None), QString());
+    QCOMPARE(TaskLogic::undoKindName(TaskLogic::UndoRecord::Kind::Edit), QStringLiteral("edit"));
+    QCOMPARE(TaskLogic::undoKindName(TaskLogic::UndoRecord::Kind::KanbanLayout), QStringLiteral("kanban"));
 
     TaskLogic::UndoRecord complete;
     complete.kind = TaskLogic::UndoRecord::Kind::Complete;
@@ -667,7 +921,9 @@ void TaskLogicTest::labelMutationsAndCreateGuard()
     QCOMPARE(added, QStringList({QStringLiteral("a"), QStringLiteral("b")}));
     QCOMPARE(TaskLogic::addLabel(added, QStringLiteral("a")), added);
     QCOMPARE(TaskLogic::removeLabel(added, QStringLiteral("a")), QStringList({QStringLiteral("b")}));
+    QCOMPARE(TaskLogic::removeLabel({QStringLiteral("tag")}, QStringLiteral(" tag ")), QStringList());
     QVERIFY(TaskLogic::containsLabel(added, QStringLiteral("a")));
+    QVERIFY(TaskLogic::containsLabel(added, QStringLiteral(" a ")));
 }
 
 void TaskLogicTest::renameLabelAndHiddenTokens()
@@ -862,7 +1118,7 @@ void TaskLogicTest::dateTimeTokensAndIsoParse()
     QVERIFY(!TaskLogic::parseHmsTime(QStringLiteral("25:00"), &hours, &minutes));
 }
 
-void TaskLogicTest::todayCatchUpIncludesAllOverdue()
+void TaskLogicTest::todayViewExcludesOverdueTasks()
 {
     const QDate today(2026, 8, 13);
     TaskEntry dueToday = makeTask(QStringLiteral("Today"));
@@ -880,48 +1136,16 @@ void TaskLogicTest::todayCatchUpIncludesAllOverdue()
     TaskLogic::FilterState filters;
     filters.currentView = QStringLiteral("today");
     filters.catchUpEnabled = true;
-    filters.catchUpDays = 14; // ignored: catch-up = full overdue set
+    filters.catchUpDays = 14;
 
     const TaskLogic::VisibleFilterResult visible = TaskLogic::filterVisibleTasks({dueToday, overdue, ancient}, filters, today);
-    QCOMPARE(visible.tasks.size(), 3);
+    QCOMPARE(visible.tasks.size(), 1);
+    QCOMPARE(visible.tasks.first().summary, QStringLiteral("Today"));
 
     TaskLogic::FilterState overdueFilters;
     overdueFilters.currentView = QStringLiteral("overdue");
     const TaskLogic::VisibleFilterResult overdueOnly = TaskLogic::filterVisibleTasks({dueToday, overdue, ancient}, overdueFilters, today);
     QCOMPARE(overdueOnly.tasks.size(), 2);
-
-    int catchupCount = 0;
-    for (const TaskEntry &task : visible.tasks) {
-        if (task.bucket == QLatin1String("catchup")) {
-            ++catchupCount;
-        }
-    }
-    QCOMPARE(catchupCount, 2);
-    QCOMPARE(catchupCount, overdueOnly.tasks.size());
-}
-
-void TaskLogicTest::catchUpMatchesOverdueAndDisabled()
-{
-    const QDate today(2026, 8, 13);
-    TaskEntry recent = makeTask(QStringLiteral("Recent"));
-    recent.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
-    TaskEntry old = makeTask(QStringLiteral("Old"));
-    old.dueDate = QDateTime(QDate(2026, 7, 1), QTime(9, 0));
-    TaskEntry done = makeTask(QStringLiteral("Done"));
-    done.dueDate = QDateTime(QDate(2026, 8, 10), QTime(9, 0));
-    done.completed = true;
-
-    QVERIFY(TaskLogic::isCatchUp(recent, today, 14));
-    QVERIFY(TaskLogic::isCatchUp(old, today, 14));
-    QVERIFY(TaskLogic::isCatchUp(old, today, -1));
-    QVERIFY(!TaskLogic::isCatchUp(done, today, 14));
-    QCOMPARE(TaskLogic::isCatchUp(recent, today), TaskLogic::matchesView(recent, QStringLiteral("overdue"), today));
-    QCOMPARE(TaskLogic::isCatchUp(old, today), TaskLogic::matchesView(old, QStringLiteral("overdue"), today));
-
-    TaskLogic::FilterState filters;
-    filters.currentView = QStringLiteral("today");
-    filters.catchUpEnabled = false;
-    QCOMPARE(TaskLogic::filterVisibleTasks({recent, old}, filters, today).tasks.size(), 0);
 }
 
 void TaskLogicTest::dayPartsAndListBuckets()
@@ -960,6 +1184,13 @@ void TaskLogicTest::reschedulePresets()
     QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("tomorrow")).time(), QTime(15, 0));
     QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::AllDay, now, QStringLiteral("tomorrow")).date(), QDate(2026, 8, 14));
     QCOMPARE(TaskLogic::rescheduleDue(due, TaskLogic::DaySpan::Timed, now, QStringLiteral("next-week")).date(), QDate(2026, 8, 20));
+
+    // "today" keeps the time of an overdue timed task and moves all-day tasks to today 00:00.
+    const QDateTime overdue(QDate(2026, 8, 9), QTime(18, 30));
+    QCOMPARE(TaskLogic::rescheduleDue(overdue, TaskLogic::DaySpan::Timed, now, QStringLiteral("today")),
+             QDateTime(QDate(2026, 8, 13), QTime(18, 30)));
+    QCOMPARE(TaskLogic::rescheduleDue(overdue, TaskLogic::DaySpan::AllDay, now, QStringLiteral("today")),
+             QDateTime(QDate(2026, 8, 13), QTime(0, 0)));
 }
 
 void TaskLogicTest::joinUrlExtraction()
@@ -1090,6 +1321,317 @@ void TaskLogicTest::suggestQuickAddScoresAndTypos()
     QVERIFY(!exact.items.isEmpty());
     QCOMPARE(exact.items.first().collectionId, qint64(7));
     QVERIFY(exact.items.first().score >= 3000);
+}
+
+void TaskLogicTest::kanbanColumnKeyMapping()
+{
+    TaskLogic::FilterState filters;
+    const QDate today(2026, 8, 29);
+
+    TaskEntry open;
+    open.summary = QStringLiteral("Open");
+    open.status = 0;
+    open.completed = false;
+    QCOMPARE(TaskLogic::kanbanColumnKey(open, TaskLogic::KanbanSource::Status, filters, today),
+             QStringLiteral("0"));
+
+    TaskEntry inProcess;
+    inProcess.status = 6; // KCalendarCore::Incidence::StatusInProcess
+    QCOMPARE(TaskLogic::kanbanColumnKey(inProcess, TaskLogic::KanbanSource::Status, filters, today),
+             QStringLiteral("6"));
+
+    TaskEntry needsAction;
+    needsAction.status = 4;
+    QCOMPARE(TaskLogic::kanbanColumnKey(needsAction, TaskLogic::KanbanSource::Status, filters, today),
+             QStringLiteral("4"));
+
+    TaskEntry cancelled;
+    cancelled.status = 5; // KCalendarCore::Incidence::StatusCanceled
+    QCOMPARE(TaskLogic::kanbanColumnKey(cancelled, TaskLogic::KanbanSource::Status, filters, today),
+             QStringLiteral("5"));
+
+    TaskEntry completedFlag;
+    completedFlag.completed = true;
+    completedFlag.status = 4;
+    QCOMPARE(TaskLogic::kanbanColumnKey(completedFlag, TaskLogic::KanbanSource::Status, filters, today),
+             QStringLiteral("4"));
+
+    TaskEntry done;
+    done.completed = true;
+    QCOMPARE(TaskLogic::kanbanColumnKey(done, TaskLogic::KanbanSource::Completion, filters, today),
+             QStringLiteral("done"));
+
+    TaskEntry dueToday;
+    dueToday.dueDate = QDateTime(today, QTime(12, 0));
+    QCOMPARE(TaskLogic::kanbanColumnKey(dueToday, TaskLogic::KanbanSource::Due, filters, today),
+             QStringLiteral("today"));
+
+    TaskEntry overdue;
+    overdue.dueDate = QDateTime(today.addDays(-2), QTime(9, 0));
+    QCOMPARE(TaskLogic::kanbanColumnKey(overdue, TaskLogic::KanbanSource::Due, filters, today),
+             QStringLiteral("overdue"));
+
+    const QStringList dueKeys = TaskLogic::orderKanbanColumnKeys(
+            {QStringLiteral("later"), QStringLiteral("overdue"), QStringLiteral("today")},
+            TaskLogic::KanbanSource::Due);
+    QCOMPARE(dueKeys, QStringList({QStringLiteral("overdue"), QStringLiteral("today"),
+                                    QStringLiteral("tomorrow"), QStringLiteral("this-week"),
+                                    QStringLiteral("later"), QStringLiteral("no-date")}));
+
+    const QStringList prioKeys = TaskLogic::orderKanbanColumnKeys(
+            {QStringLiteral("high"), QStringLiteral("none")}, TaskLogic::KanbanSource::Priority);
+    QCOMPARE(prioKeys, QStringList({QStringLiteral("none"), QStringLiteral("low"),
+                                    QStringLiteral("medium"), QStringLiteral("high")}));
+
+    const QStringList statusKeys = TaskLogic::orderKanbanColumnKeys(
+            {QStringLiteral("6")}, TaskLogic::KanbanSource::Status);
+    QCOMPARE(statusKeys, QStringList({QStringLiteral("4"), QStringLiteral("6"), QStringLiteral("3"),
+                                      QStringLiteral("5"), QStringLiteral("0")}));
+
+    QCOMPARE(TaskLogic::normalizeStatusColumnKey(QStringLiteral("needs-action")), QStringLiteral("4"));
+    QCOMPARE(TaskLogic::normalizeStatusColumnKey(QStringLiteral("in-process")), QStringLiteral("6"));
+
+    const QStringList secrecyKeys = TaskLogic::fixedKanbanColumnKeys(TaskLogic::KanbanSource::Secrecy);
+    QCOMPARE(secrecyKeys, QStringList({QStringLiteral("public"), QStringLiteral("private"),
+                                       QStringLiteral("confidential")}));
+
+    TaskEntry privateTask;
+    privateTask.secrecy = 1;
+    QCOMPARE(TaskLogic::kanbanColumnKey(privateTask, TaskLogic::KanbanSource::Secrecy, filters, today),
+             QStringLiteral("private"));
+
+    const QList<qint64> ordered = TaskLogic::applyManualKanbanOrder({3, 1, 2}, {2, 9, 1});
+    QCOMPARE(ordered, QList<qint64>({2, 1, 3}));
+}
+
+void TaskLogicTest::smartViewFilterJson()
+{
+    const QString json = QStringLiteral(
+        R"([{"id":"work","name":"Work","icon":"briefcase","mode":"kanban","rules":{"label":"work","status":"open"}}])");
+    const QList<TaskLogic::SmartViewDef> views = TaskLogic::parseSmartViews(json);
+    QCOMPARE(views.size(), 1);
+    QCOMPARE(views.first().id, QStringLiteral("work"));
+    QCOMPARE(views.first().defaultMode, QStringLiteral("kanban"));
+
+    TaskEntry match;
+    match.categories = {QStringLiteral("work")};
+    match.completed = false;
+    TaskEntry miss;
+    miss.categories = {QStringLiteral("home")};
+    const QDate today(2026, 8, 29);
+    QVERIFY(TaskLogic::matchesSmartView(match, views.first().rules, today));
+    QVERIFY(!TaskLogic::matchesSmartView(miss, views.first().rules, today));
+}
+
+void TaskLogicTest::smartViewFilterAppliesInComputeCounts()
+{
+    const QDate today(2026, 8, 29);
+
+    // Two tasks: one has label "work", the other doesn't.
+    TaskEntry workTask;
+    workTask.summary = QStringLiteral("Write report");
+    workTask.categories = {QStringLiteral("work")};
+    workTask.completed = false;
+    workTask.collectionId = 10;
+
+    TaskEntry homeTask;
+    homeTask.summary = QStringLiteral("Buy groceries");
+    homeTask.categories = {QStringLiteral("home")};
+    homeTask.completed = false;
+    homeTask.collectionId = 20;
+
+    // Configure a smart view that filters by label "work".
+    TaskLogic::SmartViewRules rules;
+    rules.label = QStringLiteral("work");
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("smart:work-label");
+    filters.hasSmartRules = true;
+    filters.smartRules = rules;
+    filters.allSmartViews.append({QStringLiteral("work-label"), rules});
+
+    const TaskLogic::SidebarCounts counts =
+        TaskLogic::computeCounts({workTask, homeTask}, filters, {}, today);
+
+    // The smart view badge count should include only the matching task.
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("smart:work-label")).toInt(), 1);
+
+    // The sidebar project breakdown within the smart view should also be
+    // filtered — only the work task's project appears.
+    QCOMPARE(counts.sidebarProjects.value(QStringLiteral("10")).toInt(), 1);
+    QVERIFY(!counts.sidebarProjects.contains(QStringLiteral("20")));
+
+    // Verify matchesViewFilter delegates to smart rules.
+    QVERIFY(TaskLogic::matchesViewFilter(workTask, filters, today));
+    QVERIFY(!TaskLogic::matchesViewFilter(homeTask, filters, today));
+}
+
+
+
+void TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon()
+{
+    const QDate today(2026, 8, 29); // Saturday
+
+    // Overdue task: due last week
+    TaskEntry overdue;
+    overdue.summary = QStringLiteral("Overdue task");
+    overdue.dueDate = QDateTime(today.addDays(-10), QTime(10, 0));
+    overdue.collectionId = 10;
+    overdue.completed = false;
+
+    // Current week task
+    TaskEntry current;
+    current.summary = QStringLiteral("Current task");
+    current.dueDate = QDateTime(today.addDays(2), QTime(10, 0));
+    current.collectionId = 10;
+    current.completed = false;
+
+    // Future task (beyond horizon)
+    TaskEntry farFuture;
+    farFuture.summary = QStringLiteral("Far future");
+    farFuture.dueDate = QDateTime(today.addDays(90), QTime(10, 0));
+    farFuture.collectionId = 10;
+    farFuture.completed = false;
+
+    // Undated task
+    TaskEntry undated;
+    undated.summary = QStringLiteral("No date");
+    undated.collectionId = 10;
+    undated.completed = false;
+
+    // Completed task (should be excluded by default)
+    TaskEntry done;
+    done.summary = QStringLiteral("Done");
+    done.dueDate = QDateTime(today, QTime(10, 0));
+    done.collectionId = 10;
+    done.completed = true;
+
+    // Default: week bucket, horizon=8, showUndated=true, showCompleted=false
+    const QVariantMap grid = TaskLogic::buildPlanMatrixGrid(
+        {overdue, current, farFuture, undated, done},
+        QStringLiteral("week"), 8, true, false, {}, today);
+
+    const QStringList weeks = grid.value(QStringLiteral("weeks")).toStringList();
+
+    // Should have overdue + current week + undated (farFuture clipped)
+    QVERIFY(weeks.contains(QStringLiteral("overdue")));
+    QVERIFY(weeks.contains(QStringLiteral("unscheduled")));
+    QVERIFY(weeks.last() == QStringLiteral("unscheduled")); // unscheduled is always last
+    QVERIFY(weeks.contains(QStringLiteral("later"))); // farFuture collected beyond horizon
+    QVERIFY(weeks.indexOf(QStringLiteral("overdue")) < weeks.indexOf(weeks.value(weeks.indexOf("overdue") + 1)));
+
+    // Overdue task should be under "overdue" key
+    const QVariantMap counts = grid.value(QStringLiteral("counts")).toMap();
+    const QString overdueCell = QStringLiteral("10|overdue");
+    QCOMPARE(counts.value(overdueCell).toInt(), 1);
+
+    // Far future task should be clipped (horizon=8)
+    QString farFutureBucket = TaskLogic::swimlaneTimeBucket(farFuture, QStringLiteral("week"), today);
+    const QString farFutureCell = QStringLiteral("10|") + farFutureBucket;
+    QCOMPARE(counts.value(farFutureCell).toInt(), 0); // not its own column
+    QCOMPARE(counts.value(QStringLiteral("10|later")).toInt(), 1);
+
+    // showCompleted=true should include the done task
+    const QVariantMap gridWithDone = TaskLogic::buildPlanMatrixGrid(
+        {overdue, current, done},
+        QStringLiteral("week"), 8, true, true, {}, today);
+    const QVariantMap countsDone = gridWithDone.value(QStringLiteral("counts")).toMap();
+    QVERIFY(countsDone.value(QStringLiteral("10|") + TaskLogic::swimlaneTimeBucket(done, QStringLiteral("week"), today)).toInt() == 1);
+
+    // horizon=0 means no clipping
+    const QVariantMap gridNoClip = TaskLogic::buildPlanMatrixGrid(
+        {overdue, farFuture},
+        QStringLiteral("week"), 0, false, false, {}, today);
+    const QVariantMap countsNoClip = gridNoClip.value(QStringLiteral("counts")).toMap();
+    QString ffBucket = TaskLogic::swimlaneTimeBucket(farFuture, QStringLiteral("week"), today);
+    QCOMPARE(countsNoClip.value(QStringLiteral("10|") + ffBucket).toInt(), 1);
+
+    // Day bucket test
+    const QVariantMap dayGrid = TaskLogic::buildPlanMatrixGrid(
+        {current},
+        QStringLiteral("day"), 7, false, false, {}, today);
+    QVERIFY(!dayGrid.value(QStringLiteral("weeks")).toStringList().isEmpty());
+}
+
+void TaskLogicTest::matrixBucketsAndSwimlane()
+{
+    // ISO week across a year boundary: 2026-12-31 is in 2026-W53, 2027-01-01 too.
+    QCOMPARE(TaskLogic::matrixBucketKey(QDate(2026, 12, 31), QStringLiteral("week")), QStringLiteral("2026-W53"));
+    QCOMPARE(TaskLogic::matrixBucketKey(QDate(2027, 1, 1), QStringLiteral("week")), QStringLiteral("2026-W53"));
+    QCOMPARE(TaskLogic::matrixBucketKey(QDate(2024, 12, 30), QStringLiteral("week")), QStringLiteral("2025-W01"));
+    QCOMPARE(TaskLogic::matrixBucketStart(QStringLiteral("2025-W01"), QStringLiteral("week")), QDate(2024, 12, 30));
+    QCOMPARE(TaskLogic::matrixBucketEnd(QStringLiteral("2025-W01"), QStringLiteral("week")), QDate(2025, 1, 5));
+    QCOMPARE(TaskLogic::matrixBucketStart(QStringLiteral("2026-09"), QStringLiteral("month")), QDate(2026, 9, 1));
+    QCOMPARE(TaskLogic::matrixBucketEnd(QStringLiteral("2026-09"), QStringLiteral("month")), QDate(2026, 9, 30));
+
+    QCOMPARE(TaskLogic::matrixHorizon(QStringLiteral("week"), 0, true), 8);
+    QCOMPARE(TaskLogic::matrixHorizon(QStringLiteral("week"), 3, true), 3);
+    QCOMPARE(TaskLogic::matrixHorizon(QStringLiteral("week"), 0, false), 104);
+
+    const QDate today(2026, 9, 16); // Wednesday, ISO week 38
+    TaskEntry task;
+    task.itemId = 1;
+    task.collectionId = 5;
+    task.dueDate = QDateTime(today.addDays(-14), QTime(9, 0));
+    QCOMPARE(TaskLogic::matrixTimeKey(task, QStringLiteral("week"), 4, today), QStringLiteral("overdue"));
+    task.dueDate = QDateTime(today.addDays(200), QTime(9, 0));
+    QCOMPARE(TaskLogic::matrixTimeKey(task, QStringLiteral("week"), 4, today), QStringLiteral("later"));
+    task.dueDate = QDateTime();
+    QCOMPARE(TaskLogic::matrixTimeKey(task, QStringLiteral("week"), 4, today), QStringLiteral("unscheduled"));
+
+    // Swimlane: empty periods up to the horizon exist as drop targets, known lanes stay visible.
+    task.dueDate = QDateTime(today.addDays(1), QTime(9, 0));
+    const QVariantMap matrix = TaskLogic::buildSwimlaneMatrix({task}, QStringLiteral("project"),
+                                                              QStringLiteral("week"), 3,
+                                                              {QStringLiteral("7"), QStringLiteral("5")}, today);
+    const QStringList times = matrix.value(QStringLiteral("times")).toStringList();
+    QCOMPARE(times.size(), 5); // current + 3 ahead + unscheduled
+    QCOMPARE(times.first(), QStringLiteral("2026-W38"));
+    QCOMPARE(times.last(), QStringLiteral("unscheduled"));
+    QCOMPARE(matrix.value(QStringLiteral("lanes")).toStringList(),
+             (QStringList{QStringLiteral("7"), QStringLiteral("5")}));
+    QCOMPARE(matrix.value(QStringLiteral("cells")).toMap().value(QStringLiteral("5|2026-W38")).toList().size(), 1);
+
+    // Drop onto another week keeps the weekday and time, clamped to today in the running period.
+    const QDateTime due(QDate(2026, 9, 14), QTime(9, 30)); // Monday of W38
+    QCOMPARE(TaskLogic::dueForBucketDrop(due, QStringLiteral("2026-W39"), QStringLiteral("week"), today),
+             QDateTime(QDate(2026, 9, 21), QTime(9, 30)));
+    QCOMPARE(TaskLogic::dueForBucketDrop(due, QStringLiteral("2026-W38"), QStringLiteral("week"), today).date(), today);
+    QCOMPARE(TaskLogic::dueForBucketDrop({}, QStringLiteral("2026-10"), QStringLiteral("month"), today).date(),
+             QDate(2026, 10, 1));
+    QVERIFY(!TaskLogic::dueForBucketDrop(due, QStringLiteral("unscheduled"), QStringLiteral("week"), today).isValid());
+
+    // Drill filter: only the requested lane × time cell survives.
+    TaskLogic::TaskRebuildInput input;
+    TaskEntry other = task;
+    other.itemId = 2;
+    other.collectionId = 6;
+    input.allTasks = {task, other};
+    input.matrixDrillActive = true;
+    input.matrixDrillAxis = QStringLiteral("project");
+    input.matrixDrillLane = QStringLiteral("5");
+    input.matrixDrillBucket = QStringLiteral("week");
+    input.matrixDrillHorizon = 3;
+    input.matrixDrillTime = QStringLiteral("2026-W38");
+    const TaskLogic::TaskRebuildOutput out = TaskLogic::computeTaskRebuild(input, today);
+    QCOMPARE(out.tasks.size(), 1);
+    QCOMPARE(out.tasks.first().itemId, qint64(1));
+}
+
+void TaskLogicTest::swimlanePlanHeatmapHelpers()
+{
+    const QDate today(2026, 8, 29);
+    TaskEntry task;
+    task.dueDate = QDateTime(today, QTime(10, 0));
+    task.collectionId = 42;
+    QCOMPARE(TaskLogic::swimlaneTimeBucket(task, QStringLiteral("day"), today), today.toString(Qt::ISODate));
+    QCOMPARE(TaskLogic::swimlaneLaneKey(task, QStringLiteral("project")), QStringLiteral("42"));
+    QVERIFY(!TaskLogic::planWeekKey(task, today).isEmpty());
+
+    task.completed = true;
+    task.completedDate = QDateTime(today, QTime(12, 0));
+    const QVariantMap heat = TaskLogic::heatmapCounts({task}, QStringLiteral("completed"), today);
+    QVERIFY(heat.contains(today.toString(Qt::ISODate)));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

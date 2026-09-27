@@ -1,0 +1,15 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Kurrent"
+            }
+        ],
+        "Name": "Kurrent",
+        "Description": "Open Kurrent and add or search tasks",
+        "Icon": "kurrent",
+        "License": "GPL",
+        "Version": "1.0.0",
+        "Website": "https://github.com/shrippen/Kurrent"
+    }
+}

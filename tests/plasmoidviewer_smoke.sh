@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PREFIX="${KURRENT_PREFIX:-${PREFIX:-${HOME}/.local}}"
 APPLET="${KURRENT_APPLET:-com.github.shrippen.kurrent}"
-TIMEOUT_SEC="${KURRENT_VIEWER_TIMEOUT:-30}"
+TIMEOUT_SEC="${KURRENT_VIEWER_TIMEOUT:-60}"
 
 if [[ "${SKIP_PLASMOIDVIEWER:-0}" == "1" ]]; then
     echo "Skipping plasmoidviewer smoke tests (SKIP_PLASMOIDVIEWER=1)."
@@ -57,6 +57,7 @@ scan_log() {
     hits="$(printf '%s\n' "${plain}" | grep -F 'com.github.shrippen.kurrent' | grep -Ei \
         -e 'TypeError' \
         -e 'ReferenceError' \
+        -e 'SyntaxError' \
         -e 'is not a type' \
         -e 'is not installed' \
         -e 'Cannot assign' \
@@ -66,6 +67,9 @@ scan_log() {
         -e 'Unable to assign' \
         -e 'Error loading QML' \
         -e 'Binding loop' \
+        -e 'Invalid argument passed to formatDate' \
+        -e 'Invalid argument passed to formatTime' \
+        -e ': Error:' \
         || true)"
 
     local fatal

@@ -39,6 +39,12 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"sidebarWidthUnits", ValueType::Int, 10},
         {"overlayDimStep", ValueType::Int, 1},
         {"reducedMotion", ValueType::Bool, false},
+        {"uiStyle", ValueType::String, QStringLiteral("plasma")},
+        {"accentProjectColors", ValueType::Bool, true},
+        {"accentPriorityColors", ValueType::Bool, true},
+        {"showOverdueBanner", ValueType::Bool, true},
+        {"showViewTiles", ValueType::Bool, true},
+        {"showInspector", ValueType::Bool, true},
         {"scrollSpeed", ValueType::Int, 50},
         {"showEmptyProjects", ValueType::Bool, false},
         {"showSidebarCounts", ValueType::Bool, true},
@@ -47,12 +53,17 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"showLabelChips", ValueType::Bool, true},
         {"showPriorityChip", ValueType::Bool, true},
         {"showRecurringIcon", ValueType::Bool, true},
+        {"showProgressChip", ValueType::Bool, true},
+        {"showStatusChip", ValueType::Bool, true},
+        {"showSecrecyChip", ValueType::Bool, true},
+        {"showLocationChip", ValueType::Bool, true},
         {"defaultDueMode", ValueType::String, QStringLiteral("none")},
         {"confirmDelete", ValueType::Bool, false},
         {"clickAction", ValueType::String, QStringLiteral("inline")},
         {"sortMode", ValueType::String, QString()},
         {"sortScope", ValueType::String, QStringLiteral("global")},
         {"sortModeByView", ValueType::String, QStringLiteral("{}")},
+        {"listGroupMode", ValueType::String, QString()},
         {"panelBadge", ValueType::String, QStringLiteral("open")},
         {"panelBadgeStyle", ValueType::String, QStringLiteral("number")},
         {"panelBadgeOverdueColor", ValueType::String, QStringLiteral("highlight")},
@@ -63,13 +74,15 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"defaultReminderMinutes", ValueType::Int, -1},
         {"projectColors", ValueType::String, QString()},
         {"labelColors", ValueType::String, QString()},
+        {"locationColors", ValueType::String, QString()},
+        {"hiddenLocations", ValueType::String, QString()},
         {"descriptionPreviewLines", ValueType::Int, 0},
-        {"sidebarSectionOrder", ValueType::String, QStringLiteral("views,projects,labels,priorities")},
-        {"hiddenSidebarSections", ValueType::String, QString()},
+        {"sidebarSectionOrder", ValueType::String, QStringLiteral("views,projects,labels,priorities,progress,status,secrecy,location")},
+        {"hiddenSidebarSections", ValueType::String, QStringLiteral("progress||status||secrecy||location")},
         {"sidebarViewOrder", ValueType::String, QString()},
         {"hiddenViews", ValueType::String, QString()},
         {"searchCaseSensitive", ValueType::Bool, false},
-        {"relativeDates", ValueType::Bool, false},
+        {"relativeDates", ValueType::Bool, true},
         {"showTimeOnRow", ValueType::Bool, true},
         {"completeNeedsModifier", ValueType::Bool, false},
         {"quietHoursEnabled", ValueType::Bool, false},
@@ -77,6 +90,20 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"quietHoursEnd", ValueType::Int, 7},
         {"suppressRemindersDuringEvents", ValueType::Bool, false},
         {"busyCalendarIds", ValueType::String, QString()},
+        {"mainPaneMode", ValueType::String, QStringLiteral("list")},
+        {"smartViews", ValueType::String, QStringLiteral("[]")},
+        {"kanbanColumnSource", ValueType::String, QStringLiteral("status")},
+        {"kanbanWriteMode", ValueType::String, QStringLiteral("fields")},
+        {"kanbanHideCanceled", ValueType::Bool, false},
+        {"kanbanManualOrder", ValueType::String, QStringLiteral("{}")},
+        {"kanbanSortModeByViewColumn", ValueType::String, QStringLiteral("{}")},
+        {"rebuildPerfProfile", ValueType::String, QString()},
+        {"swimlaneLaneAxis", ValueType::String, QStringLiteral("project")},
+        {"swimlaneTimeBucket", ValueType::String, QStringLiteral("week")},
+        {"swimlaneHorizon", ValueType::Int, 0},
+        {"multiSelectEnabled", ValueType::Bool, false},
+        {"verboseJournalLogging", ValueType::Bool, false},
+        {"infoJournalLogging", ValueType::Bool, true},
         {nullptr, ValueType::String, {}},
     };
     return keys;
@@ -363,4 +390,23 @@ void SharedSettings::applyTo(QObject *configuration)
         writeConfigProperty(configuration, name, stored);
     }
     m_syncing = false;
+}
+
+void SharedSettings::storeString(const QString &key, const QString &value)
+{
+    const KeySpec *keySpecs = specs();
+    const int count = specCount();
+    for (int i = 0; i < count; ++i) {
+        if (QLatin1String(keySpecs[i].name) != key) {
+            continue;
+        }
+        if (m_cache.value(key).toString() == value) {
+            return;
+        }
+        m_cache.insert(key, value);
+        writeStored(keySpecs[i], value);
+        m_config->sync();
+        Q_EMIT changed();
+        return;
+    }
 }

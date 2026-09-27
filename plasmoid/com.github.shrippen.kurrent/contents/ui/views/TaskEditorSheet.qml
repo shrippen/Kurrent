@@ -8,6 +8,7 @@ import "../colors.js" as Colors
 import "../datetime.js" as DateTime
 import ".."
 import "."
+import "../Kante"
 
 FocusScope {
     id: root
@@ -29,6 +30,9 @@ FocusScope {
 
     // Date pickers stay inside this item, not a separate overlay window.
     readonly property Item popupAnchor: root
+    readonly property alias deleteButton: deleteButton
+    readonly property alias saveButton: saveButton
+    readonly property alias cancelButton: cancelButton
 
     property bool clearDueRequested: false
     property bool clearStartRequested: false
@@ -55,8 +59,9 @@ FocusScope {
         clearDueRequested = false
         clearStartRequested = false
         summaryField.text = task.summary || ""
+        summaryField.cursorPosition = 0
         descriptionField.text = task.description || ""
-        locationField.text = task.location || ""
+        locationPicker.selectedLocation = task.location || ""
         sectionField.text = task.section || ""
         allDayCheck.checked = task.allDay === true
         dueDateField.text = DateTime.formatDate(task.dueDate)
@@ -65,7 +70,6 @@ FocusScope {
         startTimeField.text = DateTime.formatTime(task.startDate)
         priorityPicker.priority = Colors.normalizePriority(task.priority || 0)
         labelPicker.selectedLabels = (task.categories || []).slice()
-        completedCheck.checked = task.completed === true
         percentSlider.value = task.percentComplete !== undefined ? task.percentComplete : (task.completed ? 100 : 0)
         statusValue = normalizeStatus(task.status || 0)
         secrecyValue = Math.max(0, Math.min(2, task.secrecy || 0))
@@ -149,12 +153,12 @@ FocusScope {
         var fields = {
             "summary": summaryField.text,
             "description": descriptionField.text,
-            "location": locationField.text,
+            "location": locationPicker.selectedLocation,
             "section": sectionField.text,
             "allDay": allDayCheck.checked,
             "priority": Colors.normalizePriority(priorityPicker.priority),
             "categories": labelPicker.selectedLabels.slice(),
-            "completed": completedCheck.checked,
+            "completed": statusValue === 3,
             "percentComplete": Math.round(percentSlider.value),
             "status": statusValue,
             "secrecy": secrecyValue,
@@ -172,13 +176,18 @@ FocusScope {
             fields.startDate = startResult.date
         }
 
-        controller.updateTaskFull(task.itemId, fields)
+        if (task.itemId > 0) {
+            controller.updateTaskFull(task.itemId, fields)
+        } else {
+            controller.createTaskFull(fields)
+        }
         close()
     }
 
     component FieldLabel: QQC2.Label {
         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
         horizontalAlignment: Text.AlignRight
+        verticalAlignment: Text.AlignVCenter
         wrapMode: Text.WordWrap
         Layout.maximumWidth: Kirigami.Units.gridUnit * 8
     }
@@ -186,6 +195,9 @@ FocusScope {
     readonly property int overlayInset: Math.min(Design.overlayInset,
             Math.max(Design.spaceSmall, Math.round(Math.min(width, height) / 18)))
     readonly property int cardLeftInset: (coverSidebar ? 0 : sidebarReserve) + overlayInset + hostPadLeft
+
+    // Reparented onto the applet container, i.e. outside FullView's KanteScope.
+    KanteScope { target: root }
 
     Item {
         id: windowFrame
@@ -200,7 +212,7 @@ FocusScope {
             anchors.fill: parent
             anchors.topMargin: 2
             anchors.leftMargin: 1
-            radius: Design.windowRadius
+            radius: KanteStyle.active ? 0 : Design.windowRadius
             color: Qt.rgba(0, 0, 0, 0.18)
             z: 0
         }
@@ -208,6 +220,7 @@ FocusScope {
         Rectangle {
             id: windowChrome
             anchors.fill: parent
+            visible: !KanteStyle.active
             radius: Design.windowRadius
             color: Kirigami.Theme.backgroundColor
             border.width: 1
@@ -215,12 +228,20 @@ FocusScope {
             z: 1
         }
 
-        MouseArea {
+        // Kante and Kante Light: dialog card with the cut corner and the accent bar.
+        KanteCard {
             anchors.fill: parent
+            visible: KanteStyle.active
+            color: KanteStyle.dialogColor
+            borderColor: KanteStyle.frameColor
+            // Accent bar in the task's priority band; plain accent without a priority.
+            barColor: priorityPicker.priority > 0 ? Design.priorityColor(priorityPicker.priority) : KanteStyle.accentColor
             z: 1
-            acceptedButtons: Qt.LeftButton
-            onClicked: {}
         }
+
+        // The card itself needs no click-capturing MouseArea: the dim is a lower-z
+        // sibling, so pointer events cannot fall through it. A full-card MouseArea
+        // can otherwise win the gesture grab from footer buttons after reparenting.
 
         // Hovering the card: never let the wheel reach the task list or sidebar.
         WheelHandler {
@@ -240,6 +261,59 @@ FocusScope {
 
         readonly property int contentPad: Design.padEditor
         readonly property int footerPad: Design.padEditor
+
+        // Header: dialog title and the task status as a segmented switch (e2, e5).
+        Flow {
+            Layout.fillWidth: true
+            Layout.leftMargin: editorBody.footerPad
+            Layout.rightMargin: editorBody.footerPad
+            Layout.topMargin: editorBody.footerPad
+            Layout.bottomMargin: Design.spaceSmall
+            spacing: Design.spaceMedium
+
+            Kirigami.Heading {
+                level: 3
+                text: task && task.itemId > 0 ? i18n("Edit task") : i18n("New task")
+                height: statusSegments.height
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Row {
+                id: statusSegments
+                spacing: 0
+                Accessible.name: i18n("Status")
+
+                Repeater {
+                    model: [
+                        { label: i18n("Needs action"), value: 4 },
+                        { label: i18n("In process"), value: 6 },
+                        { label: i18n("Completed"), value: 3 },
+                        { label: i18n("Canceled"), value: 5 }
+                    ]
+                    delegate: KanteToolButton {
+                        required property var modelData
+                        text: modelData.label
+                        checkable: true
+                        checked: root.statusValue === modelData.value
+                        onClicked: {
+                            // Click on the active segment clears the status.
+                            var next = root.statusValue === modelData.value ? 0 : modelData.value
+                            if (next === 3 && percentSlider.value < 100) {
+                                percentSlider.value = 100
+                            } else if (next !== 3 && root.statusValue === 3 && percentSlider.value === 100) {
+                                percentSlider.value = 0
+                            }
+                            root.statusValue = next
+                            checked = Qt.binding(function() { return root.statusValue === modelData.value })
+                        }
+                    }
+                }
+            }
+        }
+
+        Kirigami.Separator {
+            Layout.fillWidth: true
+        }
 
         Flickable {
             id: scrollView
@@ -280,15 +354,15 @@ FocusScope {
                 text: i18n("Basics")
             }
 
-            FieldLabel { text: i18n("Title:") }
-            QQC2.TextField {
+            FieldLabel { text: i18n("Title") }
+            KanteTextField {
                 id: summaryField
                 Layout.fillWidth: true
                 placeholderText: i18n("Title")
             }
 
             FieldLabel {
-                text: i18n("Description:")
+                text: i18n("Description")
                 Layout.alignment: Qt.AlignRight | Qt.AlignTop
             }
             ScrollableTextArea {
@@ -307,13 +381,14 @@ FocusScope {
                 text: i18n("Schedule")
             }
 
-            FieldLabel { text: i18n("All day:") }
+            Item { implicitWidth: 1 }
             QQC2.CheckBox {
                 id: allDayCheck
-                text: i18n("All-day task")
+                KanteCheckSkin { control: parent }
+                text: i18n("All day")
             }
 
-            FieldLabel { text: i18n("Start:") }
+            FieldLabel { text: i18n("Start") }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
@@ -324,16 +399,22 @@ FocusScope {
                     mode: "date"
                     popupParent: root.popupAnchor
                     onTextEdited: root.clearStartRequested = false
+                    onTextChanged: {
+                        // Auto-check allDay when a date is entered but no time is set
+                        if (text.length > 0 && startTimeField.text.length === 0 && !allDayCheck.checked) {
+                            allDayCheck.checked = true
+                        }
+                    }
                 }
                 DateTimeInput {
                     id: startTimeField
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 6
                     Layout.maximumWidth: Kirigami.Units.gridUnit * 7
                     mode: "time"
-                    enabled: !allDayCheck.checked
+                    visible: !allDayCheck.checked
                     onTextEdited: root.clearStartRequested = false
                 }
-                QQC2.ToolButton {
+                KanteToolButton {
                     icon.name: "edit-clear"
                     onClicked: {
                         startDateField.clear()
@@ -345,7 +426,7 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Due:") }
+            FieldLabel { text: i18n("Due") }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
@@ -356,16 +437,22 @@ FocusScope {
                     mode: "date"
                     popupParent: root.popupAnchor
                     onTextEdited: root.clearDueRequested = false
+                    onTextChanged: {
+                        // Auto-check allDay when a date is entered but no time is set
+                        if (text.length > 0 && dueTimeField.text.length === 0 && !allDayCheck.checked) {
+                            allDayCheck.checked = true
+                        }
+                    }
                 }
                 DateTimeInput {
                     id: dueTimeField
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 6
                     Layout.maximumWidth: Kirigami.Units.gridUnit * 7
                     mode: "time"
-                    enabled: !allDayCheck.checked
+                    visible: !allDayCheck.checked
                     onTextEdited: root.clearDueRequested = false
                 }
-                QQC2.ToolButton {
+                KanteToolButton {
                     icon.name: "edit-clear"
                     onClicked: {
                         dueDateField.clear()
@@ -377,9 +464,10 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Repeat:") }
+            FieldLabel { text: i18n("Repeat") }
             QQC2.ComboBox {
                 id: recurrenceBox
+                KanteFieldSkin { control: parent }
                 Layout.fillWidth: true
                 model: [
                     i18n("None"),
@@ -390,9 +478,10 @@ FocusScope {
                 ]
             }
 
-            FieldLabel { text: i18n("Reminder:") }
+            FieldLabel { text: i18n("Reminder") }
             QQC2.ComboBox {
                 id: reminderBox
+                KanteFieldSkin { control: parent }
                 Layout.fillWidth: true
                 model: [
                     i18n("Off"),
@@ -408,132 +497,49 @@ FocusScope {
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
                 level: 3
-                text: i18n("Status")
-            }
-
-            FieldLabel { text: i18n("Completed:") }
-            QQC2.CheckBox {
-                id: completedCheck
-                text: i18n("Mark as done")
-                onToggled: {
-                    if (checked && percentSlider.value < 100) {
-                        percentSlider.value = 100
-                    } else if (!checked && percentSlider.value === 100) {
-                        percentSlider.value = 0
-                    }
-                }
-            }
-
-            FieldLabel { text: i18n("Progress:") }
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing / 2
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.smallSpacing
-
-                    QQC2.Slider {
-                        id: percentSlider
-                        Layout.fillWidth: true
-                        from: 0
-                        to: 100
-                        live: true
-                        // Match visible ticks; stepSize 1 makes Breeze draw ~100 groove ticks.
-                        stepSize: availableWidth >= Kirigami.Units.gridUnit * 14 ? 10 : 25
-
-                        readonly property var tickValues: availableWidth >= Kirigami.Units.gridUnit * 14
-                            ? [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-                            : [0, 25, 50, 75, 100]
-                    }
-
-                    QQC2.Label {
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 3
-                        horizontalAlignment: Text.AlignRight
-                        text: Math.round(percentSlider.value) + "%"
-                    }
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                    Layout.rightMargin: Kirigami.Units.gridUnit * 3 + Kirigami.Units.smallSpacing
-                    Layout.preferredHeight: Kirigami.Theme.smallFont.pixelSize + 2
-
-                    Repeater {
-                        model: percentSlider.tickValues
-                        delegate: QQC2.Label {
-                            required property int modelData
-                            text: String(modelData)
-                            font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                            opacity: 0.6
-                            x: {
-                                var groove = Math.max(1, parent.width)
-                                return (modelData / 100) * groove - width / 2
-                            }
-                        }
-                    }
-                }
-            }
-
-            FieldLabel {
-                text: i18n("Status:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
-            }
-            Flow {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.largeSpacing
-
-                QQC2.ButtonGroup {
-                    id: statusGroup
-                }
-
-                Repeater {
-                    model: [
-                        { label: i18n("None"), value: 0 },
-                        { label: i18n("Needs action"), value: 4 },
-                        { label: i18n("In process"), value: 6 },
-                        { label: i18n("Completed"), value: 3 },
-                        { label: i18n("Canceled"), value: 5 }
-                    ]
-                    delegate: QQC2.RadioButton {
-                        required property var modelData
-                        text: modelData.label
-                        checked: root.statusValue === modelData.value
-                        QQC2.ButtonGroup.group: statusGroup
-                        onClicked: root.statusValue = modelData.value
-                    }
-                }
-            }
-
-            Kirigami.Heading {
-                Layout.columnSpan: 2
-                Layout.fillWidth: true
-                Layout.topMargin: Kirigami.Units.smallSpacing
-                level: 3
                 text: i18n("Classification")
             }
 
-            FieldLabel { text: i18n("Priority:") }
+            // Slider plus figure; status lives in the header (e5, e6).
+            FieldLabel { text: i18n("Progress") }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Slider {
+                    id: percentSlider
+                    KanteSliderSkin { control: parent }
+                    Layout.fillWidth: true
+                    from: 0
+                    to: 100
+                    live: true
+                    stepSize: 5
+                    snapMode: QQC2.Slider.SnapAlways
+                }
+
+                QQC2.Label {
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 3
+                    horizontalAlignment: Text.AlignRight
+                    text: Math.round(percentSlider.value) + " %"
+                    font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.defaultFont.pointSize) : Kirigami.Theme.defaultFont
+                }
+            }
+
+            FieldLabel { text: i18n("Priority") }
             PriorityPicker {
                 id: priorityPicker
                 Layout.fillWidth: true
                 showLabel: false
             }
 
-            FieldLabel {
-                text: i18n("Labels:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
-            }
+            FieldLabel { text: i18n("Labels") }
             LabelPicker {
                 id: labelPicker
                 Layout.fillWidth: true
                 availableLabels: controller.availableLabels
             }
 
-            FieldLabel {
-                text: i18n("Secrecy:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
-            }
+            FieldLabel { text: i18n("Secrecy") }
             Flow {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.largeSpacing
@@ -549,6 +555,7 @@ FocusScope {
                         { label: i18n("Confidential"), value: 2 }
                     ]
                     delegate: QQC2.RadioButton {
+                        KanteCheckSkin { control: parent; shape: KanteCheckSkin.Shape.Radio }
                         required property var modelData
                         text: modelData.label
                         checked: root.secrecyValue === modelData.value
@@ -558,24 +565,44 @@ FocusScope {
                 }
             }
 
-            FieldLabel { text: i18n("Location:") }
-            QQC2.TextField {
-                id: locationField
+            FieldLabel { text: i18n("Location") }
+            LocationPicker {
+                id: locationPicker
                 Layout.fillWidth: true
-                placeholderText: i18n("Location")
+                availableLocations: controller.availableLocations
+                boundsItem: root.popupAnchor
             }
 
-            FieldLabel { text: i18n("Section:") }
-            QQC2.TextField {
-                id: sectionField
+            KanteButton {
+                visible: !!(task.geoUrl && String(task.geoUrl).length > 0)
                 Layout.fillWidth: true
-                placeholderText: i18n("Heading on the list")
+                icon.name: "internet-services"
+                text: i18n("Open map")
+                onClicked: Qt.openUrlExternally(task.geoUrl)
             }
 
             FieldLabel {
-                text: i18n("Project:")
-                Layout.alignment: Qt.AlignRight | Qt.AlignTop
+                visible: !!(task.attendees && task.attendees.length > 0)
+                text: i18n("Assignees")
             }
+            QQC2.Label {
+                visible: !!(task.attendees && task.attendees.length > 0)
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: (task.attendees || []).join(", ")
+                opacity: 0.85
+            }
+
+            FieldLabel { text: i18n("Section") }
+            KanteTextField {
+                id: sectionField
+                Layout.fillWidth: true
+                placeholderText: i18n("Day section (morning / afternoon / …)")
+                QQC2.ToolTip.text: i18n("Stores KURRENT/LIST for Today-view day sections (Morning, Afternoon, Evening). Also used as the Kanban “Day section” column source.")
+                QQC2.ToolTip.visible: hovered
+            }
+
+            FieldLabel { text: i18n("Project") }
             ProjectPicker {
                 id: projectPicker
                 Layout.fillWidth: true
@@ -595,15 +622,9 @@ FocusScope {
             Layout.bottomMargin: editorBody.footerPad
             spacing: Design.spaceSmall
 
-            Kirigami.Heading {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                level: 3
-                text: i18n("Edit task")
-                elide: Text.ElideRight
-            }
-
-            QQC2.Button {
+            KanteButton {
+                id: deleteButton
+                visible: !!(task && task.itemId > 0)
                 text: i18n("Delete task")
                 icon.name: "edit-delete"
                 onClicked: {
@@ -614,14 +635,18 @@ FocusScope {
                 }
             }
 
-            QQC2.Button {
+            Item { Layout.fillWidth: true }
+
+            KanteButton {
+                id: saveButton
                 text: i18n("Save")
                 icon.name: "document-save"
                 highlighted: true
                 onClicked: root.accept()
             }
 
-            QQC2.Button {
+            KanteButton {
+                id: cancelButton
                 text: i18n("Cancel")
                 icon.name: "dialog-cancel"
                 onClicked: root.reject()

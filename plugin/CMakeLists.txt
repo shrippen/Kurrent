@@ -1,6 +1,6 @@
 set(QT_DEFAULT_MAJOR_VERSION 6)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml DBus)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml DBus Concurrent)
 find_package(KF6 REQUIRED COMPONENTS CalendarCore I18n Config)
 find_package(KF6 QUIET COMPONENTS Notifications GlobalAccel)
 find_package(KPim6Akonadi REQUIRED)
@@ -22,12 +22,21 @@ add_library(kurrentplugin SHARED
     sharedsettings.h
     kurrentdbus.cpp
     kurrentdbus.h
+    kurrentlogging.h
+    kurrentlogging.cpp
     taskstore.h
     akonaditaskstore.cpp
     akonaditaskstore.h
     memorytaskstore.cpp
     memorytaskstore.h
 )
+
+# Internal demo mode for the landing-page screenshots (demo/). Never on in releases.
+option(KURRENT_DEMO "Internal demo mode for screenshots; never enable for releases" OFF)
+if(KURRENT_DEMO)
+    target_sources(kurrentplugin PRIVATE demodata.cpp demodata.h)
+    target_compile_definitions(kurrentplugin PRIVATE KURRENT_WITH_DEMO)
+endif()
 
 set_target_properties(kurrentplugin PROPERTIES
     AUTOMOC ON
@@ -39,6 +48,7 @@ target_link_libraries(kurrentplugin PRIVATE
     Qt6::Gui
     Qt6::Qml
     Qt6::DBus
+    Qt6::Concurrent
     KF6::CalendarCore
     KF6::I18n
     KF6::ConfigCore

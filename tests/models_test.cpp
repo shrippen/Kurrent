@@ -5,6 +5,7 @@
 
 #include <QDate>
 #include <QDateTime>
+#include <QDeadlineTimer>
 #include <QSignalSpy>
 #include <QTime>
 #include <QtTest>
@@ -30,6 +31,7 @@ private Q_SLOTS:
     void collectionWritableHelpers();
     void taskListRapidCollapseExpand();
     void taskListDeepNestedCollapseExpand();
+    void taskListChunkedApply();
 };
 
 void ModelsTest::taskListExposesRolesAndCount()
@@ -529,6 +531,59 @@ void ModelsTest::taskListDeepNestedCollapseExpand()
     model.setTasks(allExpanded);
     QCOMPARE(model.count(), 4);
     QCOMPARE(model.rowForUid(QStringLiteral("c")), 2);
+}
+
+void ModelsTest::taskListChunkedApply()
+{
+    // Build a list of 100 tasks (unique UIDs).
+    QList<TaskEntry> oldTasks;
+    for (int i = 0; i < 100; ++i) {
+        TaskEntry t;
+        t.itemId = i + 1;
+        t.uid = QStringLiteral("chunk-old-%1").arg(i);
+        t.summary = QStringLiteral("old %1").arg(i);
+        oldTasks.append(t);
+    }
+
+    TaskListModel model;
+    QSignalSpy countSpy(&model, &TaskListModel::countChanged);
+    model.setTasks(oldTasks);
+    QCOMPARE(model.count(), 100);
+    countSpy.clear();
+
+    // Build a completely different list of 120 tasks (>48 changed rows →
+    // chunked path).  All UIDs differ from oldTasks, so prefix==0,
+    // no suffix overlap.
+    QList<TaskEntry> newTasks;
+    for (int i = 0; i < 120; ++i) {
+        TaskEntry t;
+        t.itemId = 200 + i;
+        t.uid = QStringLiteral("chunk-new-%1").arg(i);
+        t.summary = QStringLiteral("new %1").arg(i);
+        newTasks.append(t);
+    }
+
+    model.setTasks(newTasks);
+
+    // With the sync path (< 48 rows) count would be immediate.
+    // With chunking, the count may still be 100 or 120 at this point
+    // depending on how fast the event loop runs.
+    // Pump events until chunks finish (max 5 seconds).
+    const QDeadlineTimer deadline(5000);
+    while (model.chunksActive() && !deadline.hasExpired()) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
+    }
+    QVERIFY(!model.chunksActive());
+
+    // Final state must match the target list.
+    QCOMPARE(model.count(), 120);
+    for (int i = 0; i < 120; ++i) {
+        QCOMPARE(model.taskAt(i).uid, QStringLiteral("chunk-new-%1").arg(i));
+        QCOMPARE(model.taskAt(i).summary, QStringLiteral("new %1").arg(i));
+    }
+
+    // countChanged must have been emitted at least once.
+    QVERIFY(countSpy.count() >= 1);
 }
 
 QTEST_GUILESS_MAIN(ModelsTest)

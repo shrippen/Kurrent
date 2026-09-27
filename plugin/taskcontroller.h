@@ -11,10 +11,13 @@
 
 #include <KCalendarCore/Todo>
 
+#include <QElapsedTimer>
+#include <QFutureWatcher>
 #include <QHash>
 #include <QObject>
 #include <QPointF>
 #include <QSet>
+#include <QStringList>
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
@@ -35,12 +38,18 @@ class TaskController : public QObject
     Q_PROPERTY(QString pluginVersion READ pluginVersion CONSTANT)
     Q_PROPERTY(bool devBuild READ devBuild CONSTANT)
     Q_PROPERTY(bool smokeTest READ smokeTest CONSTANT)
+    // Screenshot mode (tests/screenshot.sh): KURRENT_SCREENSHOT_DIR = output folder,
+    // KURRENT_SCREENSHOT_PLAN = "styles=…;modes=…;widths=…;editor=0|1" (empty = everything).
+    Q_PROPERTY(QString screenshotDir READ screenshotDir CONSTANT)
+    Q_PROPERTY(QString screenshotPlan READ screenshotPlan CONSTANT)
     // Process-wide smoke progress so a recreated FullView continues instead of restarting.
     Q_PROPERTY(int smokeStep READ smokeStep WRITE setSmokeStep NOTIFY smokeStepChanged)
     Q_PROPERTY(bool smokeFinished READ smokeFinished NOTIFY smokeFinishedChanged)
     Q_PROPERTY(bool smokeLeader READ smokeLeader NOTIFY smokeLeaderChanged)
     Q_PROPERTY(bool akonadiAvailable READ akonadiAvailable NOTIFY akonadiAvailableChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
+    Q_PROPERTY(bool listReorganizing READ listReorganizing NOTIFY listReorganizingChanged)
+    Q_PROPERTY(int estimatedRebuildMs READ estimatedRebuildMs NOTIFY rebuildPerfChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(QString emptyKind READ emptyKind NOTIFY emptyKindChanged)
     Q_PROPERTY(QString currentView READ currentView WRITE setCurrentView NOTIFY currentViewChanged)
@@ -50,7 +59,33 @@ class TaskController : public QObject
     Q_PROPERTY(qint64 selectedCollectionId READ selectedCollectionId WRITE setSelectedCollectionId NOTIFY selectedCollectionIdChanged)
     Q_PROPERTY(QString selectedLabel READ selectedLabel WRITE setSelectedLabel NOTIFY selectedLabelChanged)
     Q_PROPERTY(int selectedPriority READ selectedPriority WRITE setSelectedPriority NOTIFY selectedPriorityChanged)
+    Q_PROPERTY(QString selectedProgressBand READ selectedProgressBand WRITE setSelectedProgressBand NOTIFY selectedProgressBandChanged)
+    Q_PROPERTY(int selectedStatus READ selectedStatus WRITE setSelectedStatus NOTIFY selectedStatusChanged)
+    Q_PROPERTY(int selectedSecrecy READ selectedSecrecy WRITE setSelectedSecrecy NOTIFY selectedSecrecyChanged)
+    Q_PROPERTY(QString selectedLocation READ selectedLocation WRITE setSelectedLocation NOTIFY selectedLocationChanged)
     Q_PROPERTY(QString sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
+    Q_PROPERTY(QString listGroupMode READ listGroupMode WRITE setListGroupMode NOTIFY listGroupModeChanged)
+    Q_PROPERTY(QString mainPaneMode READ mainPaneMode WRITE setMainPaneMode NOTIFY mainPaneModeChanged)
+    Q_PROPERTY(QString kanbanColumnSource READ kanbanColumnSource WRITE setKanbanColumnSource NOTIFY kanbanColumnSourceChanged)
+    Q_PROPERTY(QString kanbanWriteMode READ kanbanWriteMode WRITE setKanbanWriteMode NOTIFY kanbanWriteModeChanged)
+    Q_PROPERTY(QString kanbanManualOrderJson READ kanbanManualOrderJson WRITE setKanbanManualOrderJson NOTIFY kanbanManualOrderJsonChanged)
+    Q_PROPERTY(QStringList kanbanColumnKeys READ kanbanColumnKeys NOTIFY kanbanLayoutChanged)
+    Q_PROPERTY(int kanbanRevision READ kanbanRevision NOTIFY kanbanLayoutChanged)
+    Q_PROPERTY(QString swimlaneLaneAxis READ swimlaneLaneAxis WRITE setSwimlaneLaneAxis NOTIFY swimlaneSettingsChanged)
+    Q_PROPERTY(QString swimlaneTimeBucket READ swimlaneTimeBucket WRITE setSwimlaneTimeBucket NOTIFY swimlaneSettingsChanged)
+    Q_PROPERTY(QString planTimeBucket READ planTimeBucket WRITE setPlanTimeBucket NOTIFY planSettingsChanged)
+    Q_PROPERTY(int swimlaneHorizon READ swimlaneHorizon WRITE setSwimlaneHorizon NOTIFY swimlaneSettingsChanged)
+    Q_PROPERTY(int planHorizon READ planHorizon WRITE setPlanHorizon NOTIFY planSettingsChanged)
+    Q_PROPERTY(int matrixRevision READ matrixRevision NOTIFY kanbanLayoutChanged)
+    Q_PROPERTY(bool matrixDrillActive READ matrixDrillActive NOTIFY matrixDrillChanged)
+    Q_PROPERTY(QString matrixDrillLabel READ matrixDrillLabel NOTIFY matrixDrillChanged)
+    Q_PROPERTY(QString matrixDrillSource READ matrixDrillSource NOTIFY matrixDrillChanged)
+    Q_PROPERTY(bool planShowUndated READ planShowUndated WRITE setPlanShowUndated NOTIFY planSettingsChanged)
+    Q_PROPERTY(bool planShowCompleted READ planShowCompleted WRITE setPlanShowCompleted NOTIFY planSettingsChanged)
+    Q_PROPERTY(bool multiSelectEnabled READ multiSelectEnabled WRITE setMultiSelectEnabled NOTIFY multiSelectEnabledChanged)
+    Q_PROPERTY(QStringList selectedTaskIds READ selectedTaskIds NOTIFY selectedTaskIdsChanged)
+    Q_PROPERTY(QString smartViewsJson READ smartViewsJson WRITE setSmartViewsJson NOTIFY smartViewsJsonChanged)
+    Q_PROPERTY(qint64 conflictItemId READ conflictItemId NOTIFY conflictItemIdChanged)
     Q_PROPERTY(bool catchUpEnabled READ catchUpEnabled WRITE setCatchUpEnabled NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int catchUpDays READ catchUpDays WRITE setCatchUpDays NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int morningHour READ morningHour WRITE setMorningHour NOTIFY catchUpSettingsChanged)
@@ -68,15 +103,24 @@ class TaskController : public QObject
     Q_PROPERTY(int quietHoursEnd READ quietHoursEnd WRITE setQuietHoursEnd NOTIFY quietHoursChanged)
     Q_PROPERTY(bool suppressRemindersDuringEvents READ suppressRemindersDuringEvents WRITE setSuppressRemindersDuringEvents NOTIFY eventBusySettingsChanged)
     Q_PROPERTY(QString busyCalendarIds READ busyCalendarIds WRITE setBusyCalendarIds NOTIFY eventBusySettingsChanged)
+    Q_PROPERTY(QVariantList eventCalendars READ eventCalendars NOTIFY eventBusySettingsChanged)
+    Q_PROPERTY(QDate agendaSelectedDate READ agendaSelectedDate WRITE setAgendaSelectedDate NOTIFY agendaSelectedDateChanged)
     Q_PROPERTY(bool canUndo READ canUndo NOTIFY undoChanged)
     Q_PROPERTY(QString undoKind READ undoKind NOTIFY undoChanged)
+    Q_PROPERTY(QString undoLabel READ undoLabel NOTIFY undoChanged)
     Q_PROPERTY(int pendingCount READ pendingCount NOTIFY pendingCountChanged)
+    Q_PROPERTY(int syncingCount READ syncingCount NOTIFY syncingCountChanged)
     Q_PROPERTY(QStringList availableLabels READ availableLabels NOTIFY availableLabelsChanged)
     Q_PROPERTY(QVariantMap labelTaskCounts READ labelTaskCounts NOTIFY labelTaskCountsChanged)
     Q_PROPERTY(QVariantMap viewTaskCounts READ viewTaskCounts NOTIFY sidebarCountsChanged)
     Q_PROPERTY(QVariantMap sidebarProjectCounts READ sidebarProjectCounts NOTIFY sidebarCountsChanged)
     Q_PROPERTY(QVariantMap sidebarLabelCounts READ sidebarLabelCounts NOTIFY sidebarCountsChanged)
     Q_PROPERTY(QVariantMap sidebarPriorityCounts READ sidebarPriorityCounts NOTIFY sidebarCountsChanged)
+    Q_PROPERTY(QVariantMap sidebarProgressCounts READ sidebarProgressCounts NOTIFY sidebarCountsChanged)
+    Q_PROPERTY(QVariantMap sidebarStatusCounts READ sidebarStatusCounts NOTIFY sidebarCountsChanged)
+    Q_PROPERTY(QVariantMap sidebarSecrecyCounts READ sidebarSecrecyCounts NOTIFY sidebarCountsChanged)
+    Q_PROPERTY(QVariantMap sidebarLocationCounts READ sidebarLocationCounts NOTIFY sidebarCountsChanged)
+    Q_PROPERTY(QStringList availableLocations READ availableLocations NOTIFY availableLocationsChanged)
     Q_PROPERTY(TaskListModel *taskModel READ taskModel CONSTANT)
     Q_PROPERTY(CollectionListModel *collectionModel READ collectionModel CONSTANT)
     Q_PROPERTY(CollectionListModel *eventCalendarModel READ eventCalendarModel CONSTANT)
@@ -90,6 +134,8 @@ public:
     QString pluginVersion() const;
     bool devBuild() const;
     bool smokeTest() const;
+    QString screenshotDir() const;
+    QString screenshotPlan() const;
     int smokeStep() const;
     void setSmokeStep(int step);
     bool smokeFinished() const;
@@ -97,6 +143,9 @@ public:
 
     bool akonadiAvailable() const { return m_akonadiAvailable; }
     bool loading() const { return m_loading; }
+    bool listReorganizing() const { return m_listReorganizing; }
+    int estimatedRebuildMs() const;
+    Q_INVOKABLE int estimatedViewSwitchMs(bool coldLoader) const;
     QString errorMessage() const { return m_errorMessage; }
     QString emptyKind() const { return m_emptyKind; }
     QString currentView() const { return m_currentView; }
@@ -106,7 +155,33 @@ public:
     qint64 selectedCollectionId() const { return m_selectedCollectionId; }
     QString selectedLabel() const { return m_selectedLabel; }
     int selectedPriority() const { return m_selectedPriority; }
+    QString selectedProgressBand() const { return m_selectedProgressBand; }
+    int selectedStatus() const { return m_selectedStatus; }
+    int selectedSecrecy() const { return m_selectedSecrecy; }
+    QString selectedLocation() const { return m_selectedLocation; }
     QString sortMode() const { return m_sortMode; }
+    QString listGroupMode() const { return m_listGroupMode; }
+    QString mainPaneMode() const { return m_mainPaneMode; }
+    QString kanbanColumnSource() const { return m_kanbanColumnSource; }
+    QString kanbanWriteMode() const { return m_kanbanWriteMode; }
+    QString kanbanManualOrderJson() const { return m_kanbanManualOrderJson; }
+    QStringList kanbanColumnKeys() const { return m_kanbanColumnKeys; }
+    int kanbanRevision() const { return m_kanbanRevision; }
+    QString swimlaneLaneAxis() const { return m_swimlaneLaneAxis; }
+    QString swimlaneTimeBucket() const { return m_swimlaneTimeBucket; }
+    int swimlaneHorizon() const { return m_swimlaneHorizon; }
+    int matrixRevision() const { return m_kanbanRevision; }
+    bool matrixDrillActive() const { return m_matrixDrillActive; }
+    QString matrixDrillLabel() const { return m_matrixDrillLabel; }
+    QString matrixDrillSource() const { return m_matrixDrillSource; }
+    QString planTimeBucket() const { return m_planTimeBucket; }
+    int planHorizon() const { return m_planHorizon; }
+    bool planShowUndated() const { return m_planShowUndated; }
+    bool planShowCompleted() const { return m_planShowCompleted; }
+    bool multiSelectEnabled() const { return m_multiSelectEnabled; }
+    QStringList selectedTaskIds() const { return m_selectedTaskIds; }
+    QString smartViewsJson() const { return m_smartViewsJson; }
+    qint64 conflictItemId() const { return m_conflictItemId; }
     bool catchUpEnabled() const { return m_catchUpEnabled; }
     int catchUpDays() const { return m_catchUpDays; }
     int morningHour() const { return m_morningHour; }
@@ -124,15 +199,25 @@ public:
     int quietHoursEnd() const { return m_quietHoursEnd; }
     bool suppressRemindersDuringEvents() const { return m_suppressRemindersDuringEvents; }
     QString busyCalendarIds() const { return m_busyCalendarIds; }
+    QVariantList eventCalendars() const;
+    QDate agendaSelectedDate() const { return m_agendaSelectedDate; }
+    void setAgendaSelectedDate(const QDate &date);
     bool canUndo() const { return m_undo.canUndo(); }
     QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
+    QString undoLabel() const;
     int pendingCount() const { return m_pendingCount; }
+    int syncingCount() const { return m_syncingCount; }
     QStringList availableLabels() const { return m_availableLabels; }
     QVariantMap labelTaskCounts() const { return m_labelTaskCounts; }
     QVariantMap viewTaskCounts() const { return m_viewTaskCounts; }
     QVariantMap sidebarProjectCounts() const { return m_sidebarProjectCounts; }
     QVariantMap sidebarLabelCounts() const { return m_sidebarLabelCounts; }
     QVariantMap sidebarPriorityCounts() const { return m_sidebarPriorityCounts; }
+    QVariantMap sidebarProgressCounts() const { return m_sidebarProgressCounts; }
+    QVariantMap sidebarStatusCounts() const { return m_sidebarStatusCounts; }
+    QVariantMap sidebarSecrecyCounts() const { return m_sidebarSecrecyCounts; }
+    QVariantMap sidebarLocationCounts() const { return m_sidebarLocationCounts; }
+    QStringList availableLocations() const { return m_availableLocations; }
     TaskListModel *taskModel() { return &m_taskModel; }
     CollectionListModel *collectionModel() { return &m_collectionModel; }
     CollectionListModel *eventCalendarModel() { return &m_eventCalendarModel; }
@@ -159,7 +244,80 @@ public:
     void setSelectedCollectionId(qint64 id);
     void setSelectedLabel(const QString &label);
     void setSelectedPriority(int priority);
+    void setSelectedProgressBand(const QString &band);
+    void setSelectedStatus(int status);
+    void setSelectedSecrecy(int secrecy);
+    void setSelectedLocation(const QString &location);
     void setSortMode(const QString &mode);
+    void setListGroupMode(const QString &mode);
+    void setMainPaneMode(const QString &mode);
+    void setKanbanColumnSource(const QString &source);
+    void setKanbanWriteMode(const QString &mode);
+    void setKanbanManualOrderJson(const QString &json);
+    void setSwimlaneLaneAxis(const QString &axis);
+    void setSwimlaneTimeBucket(const QString &bucket);
+    void setSwimlaneHorizon(int horizon);
+    void setPlanTimeBucket(const QString &bucket);
+    void setPlanHorizon(int horizon);
+    void setPlanShowUndated(bool show);
+    void setPlanShowCompleted(bool show);
+    void setMultiSelectEnabled(bool enabled);
+    void setSmartViewsJson(const QString &json);
+    Q_INVOKABLE void setSelectedTaskIds(const QStringList &ids);
+    Q_INVOKABLE void toggleTaskSelection(qint64 itemId, bool ctrl, bool shift);
+    Q_INVOKABLE void clearTaskSelection();
+    Q_INVOKABLE QString kanbanColumnKeyForTask(qint64 itemId) const;
+    Q_INVOKABLE QString kanbanColumnLabelForKey(const QString &key) const;
+    Q_INVOKABLE QString listGroupLabelForKey(const QString &key) const;
+    Q_INVOKABLE QStringList kanbanColumnKeysForVisibleTasks() const;
+    Q_INVOKABLE QVariantList kanbanTaskIndicesForColumn(const QString &columnKey) const;
+    Q_INVOKABLE QVariantList kanbanTasksForColumn(const QString &columnKey) const;
+    Q_INVOKABLE QVariantMap taskRowSnapshot(int row) const;
+    // Inspector: current state of one task by item id (empty if unknown / being deleted).
+    Q_INVOKABLE QVariantMap taskSnapshotById(qint64 itemId) const;
+    // Inspector: direct subtasks (RELATED-TO == uid), sorted by summary.
+    Q_INVOKABLE QVariantList childTasks(const QString &uid) const;
+    Q_INVOKABLE void moveTaskToKanbanColumn(qint64 itemId, const QString &columnKey);
+    Q_INVOKABLE void finishKanbanDrop(qint64 itemId, const QString &columnKey, int targetGap,
+                                        const QString &sourceColumnKey, int sourceIndex);
+    Q_INVOKABLE void reorderKanbanCard(qint64 itemId, const QString &columnKey, int targetIndex);
+    Q_INVOKABLE QVariantMap swimlaneMatrixForVisibleTasks() const;
+    Q_INVOKABLE QVariantMap planMatrixGridForVisibleTasks() const;
+    /** Drop a task card onto a swimlane cell: writes the lane field and/or due date in one undo step. */
+    Q_INVOKABLE void moveTaskToMatrixCell(qint64 itemId, const QString &laneKey, const QString &timeKey);
+    /** Cell click / header click → list filtered to lane (axis) and/or time key. `source` is
+     *  "swimlane" or "plan"; empty laneKey/timeKey act as wildcards. */
+    Q_INVOKABLE void setMatrixDrilldown(const QString &source, const QString &laneKey,
+                                        const QString &timeKey, const QString &label);
+    Q_INVOKABLE void clearMatrixDrilldown();
+    /** Ask the shell to switch the main-pane mode (persists like the toolbar does). */
+    Q_INVOKABLE void requestMainPaneMode(const QString &mode);
+    Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
+    Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
+    Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
+    Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
+    Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
+    Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
+    /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
+    Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
+    /** Installed task app for the settings ("KOrganizer" / "Merkuro"); empty if none. */
+    Q_INVOKABLE QString taskAppName() const;
+    Q_INVOKABLE bool launchTaskApp() const;
+    /** Settings "Send test notification"; false without KNotifications support. */
+    Q_INVOKABLE bool sendTestNotification(const QString &title, const QString &text);
+    Q_INVOKABLE void bulkCompleteTasks(const QVariantList &itemIds, bool completed);
+    Q_INVOKABLE void bulkDeleteTasks(const QVariantList &itemIds);
+    Q_INVOKABLE void bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId);
+    Q_INVOKABLE void bulkAddLabel(const QVariantList &itemIds, const QString &label);
+    Q_INVOKABLE void bulkRemoveLabel(const QVariantList &itemIds, const QString &label);
+    Q_INVOKABLE void bulkSetPriority(const QVariantList &itemIds, int priority);
+    Q_INVOKABLE void bulkRescheduleTasks(const QVariantList &itemIds, const QString &preset);
+    // Moves every open overdue task of the enabled collections to today (keeps the time of day).
+    Q_INVOKABLE void rescheduleOverdueToToday();
+    Q_INVOKABLE QString bulkExportUids(const QVariantList &itemIds) const;
+    Q_INVOKABLE void reloadTask(qint64 itemId);
+    Q_INVOKABLE void dismissConflict();
+    Q_INVOKABLE QVariantList smartViewsList() const;
     void setCatchUpEnabled(bool enabled);
     void setCatchUpDays(int days);
     void setMorningHour(int hour);
@@ -198,10 +356,12 @@ public:
                                 int priority,
                                 const QStringList &categories);
     Q_INVOKABLE void updateTaskFull(qint64 itemId, const QVariantMap &fields);
+    Q_INVOKABLE void createTaskFull(const QVariantMap &fields);
     Q_INVOKABLE void setTaskParent(qint64 itemId, const QString &parentUid);
     /** Same-project parent options for the full editor (excludes self and descendants). */
     Q_INVOKABLE QVariantList parentCandidates(qint64 itemId, qint64 collectionId) const;
     Q_INVOKABLE void addTaskCategory(qint64 itemId, const QString &category);
+    Q_INVOKABLE void removeTaskCategory(qint64 itemId, const QString &category);
     Q_INVOKABLE void setTaskPriority(qint64 itemId, int priority);
     Q_INVOKABLE void moveTaskToCollection(qint64 itemId, qint64 collectionId);
     Q_INVOKABLE void setTaskCompleted(qint64 itemId, bool completed);
@@ -211,6 +371,9 @@ public:
     Q_INVOKABLE void createLabel(const QString &name);
     Q_INVOKABLE void deleteLabel(const QString &name);
     Q_INVOKABLE void renameLabel(const QString &from, const QString &to);
+    Q_INVOKABLE void createLocation(const QString &name);
+    Q_INVOKABLE void deleteLocation(const QString &name);
+    Q_INVOKABLE void renameLocation(const QString &from, const QString &to);
     Q_INVOKABLE void snoozeTask(qint64 itemId, const QString &preset);
     Q_INVOKABLE QString renameSeparatedList(const QString &raw, const QString &from, const QString &to, const QString &separator) const;
     Q_INVOKABLE QString setColorOverride(const QString &raw, const QString &key, const QString &color) const;
@@ -220,6 +383,12 @@ public:
     Q_INVOKABLE QString moveOrderedKey(const QString &raw, const QString &key, int delta, const QString &defaultsCsv, const QString &separator) const;
     Q_INVOKABLE QString toggleToken(const QString &raw, const QString &token, const QString &separator) const;
     Q_INVOKABLE bool hydrateFromCache();
+
+    // Merge conflict resolution
+    Q_PROPERTY(QVariantList mergeFields READ mergeFields NOTIFY mergeConflictAvailable)
+    QVariantList mergeFields() const { return m_pendingMergeFields; }
+    Q_INVOKABLE void resolveMergeConflict(const QVariantMap &resolution);
+    Q_INVOKABLE void testMergeConflict(); // Debug: simulate a conflict
 
     // Test hooks: swap MemoryTaskStore and seed cache without Akonadi server.
     void setTaskStore(AbstractTaskStore *store);
@@ -232,16 +401,32 @@ public:
     bool testTaskPendingDelete(qint64 id) const;
     bool testTaskCompleted(qint64 id) const;
     QString testTaskSummary(qint64 id) const;
+    QStringList testTaskCategories(qint64 id) const;
+    int testTaskPriority(qint64 id) const;
+    int testTaskStatus(qint64 id) const;
+    int testTaskSecrecy(qint64 id) const;
+    // Demo mode (KURRENT_DEMO): the shared shrippen demo tasks in memory, no Akonadi.
+    Q_PROPERTY(bool demoMode READ demoMode CONSTANT)
+    bool demoMode() const;
+    void loadDemoData();
+    QString testTaskLocation(qint64 id) const;
+    QDateTime testTaskDue(qint64 id) const;
+    QString testKanbanColumnKey(qint64 id) const;
+    int testTaskRevision(qint64 id) const;
     qint64 testTaskCollectionId(qint64 id) const;
     int testInflight(qint64 id) const;
+    void testApplyExternalItem(const Akonadi::Item &item);
 
     static void broadcastDbusShow();
     static void broadcastDbusAddTask(const QString &summary);
     static void broadcastDbusOpenView(const QString &view);
+    static void broadcastDbusSearchAndShow(const QString &query);
 
 signals:
     void akonadiAvailableChanged();
     void loadingChanged();
+    void listReorganizingChanged();
+    void rebuildPerfChanged();
     void errorMessageChanged();
     void emptyKindChanged();
     void smokeStepChanged();
@@ -250,11 +435,31 @@ signals:
     void currentViewChanged();
     void managementViewChanged();
     void searchQueryChanged();
+    void agendaSelectedDateChanged();
     void showCompletedChanged();
     void selectedCollectionIdChanged();
     void selectedLabelChanged();
     void selectedPriorityChanged();
+    void selectedProgressBandChanged();
+    void selectedStatusChanged();
+    void selectedSecrecyChanged();
+    void selectedLocationChanged();
     void sortModeChanged();
+    void listGroupModeChanged();
+    void mainPaneModeChanged();
+    void kanbanColumnSourceChanged();
+    void kanbanWriteModeChanged();
+    void kanbanManualOrderJsonChanged();
+    void kanbanLayoutChanged();
+    void swimlaneSettingsChanged();
+    void matrixDrillChanged();
+    void mainPaneModeRequested(const QString &mode);
+    void planSettingsChanged();
+    void multiSelectEnabledChanged();
+    void selectedTaskIdsChanged();
+    void smartViewsJsonChanged();
+    void conflictItemIdChanged();
+    void mergeConflictAvailable(QVariantList fields, qint64 itemId);
     void catchUpSettingsChanged();
     void defaultDueModeChanged();
     void searchSettingsChanged();
@@ -266,7 +471,9 @@ signals:
     void eventBusySettingsChanged();
     void undoChanged();
     void pendingCountChanged();
+    void syncingCountChanged();
     void availableLabelsChanged();
+    void availableLocationsChanged();
     void labelTaskCountsChanged();
     void sidebarCountsChanged();
     void debugInfoChanged();
@@ -274,6 +481,7 @@ signals:
     void dbusShowRequested();
     void dbusAddTaskRequested(const QString &summary);
     void dbusOpenViewRequested(const QString &view);
+    void dbusSearchRequested(const QString &query);
 
 private:
 enum class SyncResult { Error, Ok };
@@ -284,7 +492,10 @@ enum class SyncResult { Error, Ok };
         bool syncing = false;
         bool pendingDelete = false;
         int inflight = 0;
+        bool persistQueued = false;
+        qint64 persistQueuedMoveId = -1;
         KCalendarCore::Todo::Ptr revertTodo;
+        KCalendarCore::Todo::Ptr submittedTodo;
         qint64 revertCollectionId = -1;
     };
 
@@ -295,6 +506,7 @@ enum class SyncResult { Error, Ok };
     void updateEmptyKind();
     TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
     void pushUndo(TaskLogic::UndoRecord record);
+    void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
     void checkReminders();
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
@@ -314,10 +526,25 @@ enum class SyncResult { Error, Ok };
     void loadTasks();
     void scheduleRebuild();
     void rebuildTaskList();
+    void onRebuildFinished();
+    void setListReorganizing(bool reorganizing);
+    TaskLogic::TaskRebuildInput buildRebuildInput(const QList<TaskEntry> &allTasks) const;
+    TaskLogic::ListGroupOrderContext buildListGroupOrderContext() const;
+    void applyRebuildOutput(const TaskLogic::TaskRebuildOutput &output);
+    void applyDeferredRebuildTail();
+    void startAsyncRebuild(const TaskLogic::TaskRebuildInput &input);
+    void maybeShowReorganizing();
+    void loadRebuildPerfProfile();
+    void persistRebuildPerfProfile();
+    void recordRebuildTiming(qint64 elapsedMs, int taskCount);
+    void maybePersistRebuildPerfWeekly();
+    void initRebuildPerfDefaults();
+    QList<TaskEntry> snapshotAllTasks() const;
     bool wouldCreateParentCycle(qint64 itemId, const QString &parentUid) const;
     /** Validate and apply RELATED-TO; returns false if rejected (error already emitted). */
     bool applyParentUid(CachedTask *cache, const QString &parentUid, qint64 collectionId);
     bool taskMatchesView(const TaskEntry &task) const;
+    TaskLogic::FilterState filterState() const;
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
     bool taskMatchesSearch(const TaskEntry &task) const;
@@ -332,14 +559,24 @@ enum class SyncResult { Error, Ok };
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
     static void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset);
     CachedTask *prepareEdit(qint64 itemId);
-    void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {});
+    void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {}, const Akonadi::Item &ackedItem = {});
     void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
+    void submitModify(CachedTask &cached, qint64 moveToCollectionId);
+    void autoResolveConflict(qint64 itemId);
+    QVariantList computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
+                                   const KCalendarCore::Todo::Ptr &user,
+                                   const KCalendarCore::Todo::Ptr &server) const;
     void submitCreate(const Akonadi::Item &jobItem, const Akonadi::Collection &collection, qint64 tempId);
     Akonadi::Collection collectionById(qint64 collectionId) const;
     Akonadi::Collection firstWritableCollection() const;
     void updatePendingCount(const QList<TaskEntry> &tasks);
+    void updateSyncingCount();
+    void updateKanbanLayout();
+    QStringList projectLaneOrder() const;
+    QVariantMap taskEntryToVariantMap(const TaskEntry &task) const;
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
+    void updateAvailableLocations(const QList<TaskEntry> &tasks);
     void updateCounts(const QList<TaskEntry> &tasks);
     void publishSharedCache();
     void scheduleRebuildAll();
@@ -348,7 +585,32 @@ enum class SyncResult { Error, Ok };
     void updateDebugInfo(int builtTasks, int filteredTasks, int filteredOutCompleted, int filteredOutView, int filteredOutSearch);
 
     bool m_akonadiAvailable = false;
+    bool m_demo = false;
     bool m_loading = false;
+    bool m_listReorganizing = false;
+    double m_rebuildMsPerTask = 0.08;
+    int m_rebuildBaseMs = 12;
+    int m_viewColdLoadMs = 90;
+    qint64 m_rebuildPerfUpdatedAt = 0;
+    double m_rebuildSampleSumPerTask = 0.0;
+    int m_rebuildSampleCount = 0;
+    int m_lastRebuildTaskCount = 0;
+    QElapsedTimer m_rebuildTiming;
+    bool m_rebuildAgainPending = false;
+    // Deferred rebuild tail (counts, labels/locations, kanban layout, ...)
+    // applied one event-loop iteration after setTasks so the model update
+    // renders first and animations stay uninterrupted.
+    bool m_deferredTailPending = false;
+    QList<TaskEntry> m_deferredCountSource;
+    QList<TaskEntry> m_deferredAllTasks;
+    int m_deferredFlatCount = 0;
+    int m_deferredVisibleCount = 0;
+    int m_deferredOutCompleted = 0;
+    int m_deferredOutView = 0;
+    int m_deferredOutSearch = 0;
+    quint64 m_rebuildGeneration = 0;
+    quint64 m_pendingRebuildGeneration = 0;
+    QFutureWatcher<TaskLogic::TaskRebuildOutput> m_rebuildWatcher;
     QString m_errorMessage;
     QString m_debugInfo;
     QString m_currentView = QStringLiteral("inbox");
@@ -358,7 +620,40 @@ enum class SyncResult { Error, Ok };
     qint64 m_selectedCollectionId = -1;
     QString m_selectedLabel;
     int m_selectedPriority = -1;
+    QString m_selectedProgressBand;
+    int m_selectedStatus = -1;
+    int m_selectedSecrecy = -1;
+    QString m_selectedLocation;
     QString m_sortMode = QStringLiteral("priority,due,title");
+    QString m_listGroupMode;
+    QString m_mainPaneMode = TaskLogic::MainPaneMode::List;
+    QString m_kanbanColumnSource = TaskLogic::KanbanSource::Status;
+    QString m_kanbanWriteMode = QStringLiteral("fields");
+    QString m_kanbanManualOrderJson = QStringLiteral("{}");
+    QVariantMap m_kanbanManualOrder;
+    QStringList m_kanbanColumnKeys;
+    int m_kanbanRevision = 0;
+    QString m_swimlaneLaneAxis = QStringLiteral("project");
+    QString m_swimlaneTimeBucket = QStringLiteral("week");
+    int m_swimlaneHorizon = 0;
+    QString m_planTimeBucket = QStringLiteral("week");
+    int m_planHorizon = 8;
+    bool m_planShowUndated = true;
+    bool m_planShowCompleted = false;
+    bool m_multiSelectEnabled = false;
+    QStringList m_selectedTaskIds;
+    QString m_smartViewsJson = QStringLiteral("[]");
+    QList<TaskLogic::SmartViewDef> m_smartViews;
+    qint64 m_conflictItemId = -1;
+    bool m_matrixDrillActive = false;
+    QString m_matrixDrillSource;
+    QString m_matrixDrillLane;
+    QString m_matrixDrillTime;
+    QString m_matrixDrillLabel;
+    QString m_matrixDrillAxis;
+    QString m_matrixDrillBucket;
+    int m_matrixDrillHorizon = 0;
+    bool m_matrixDrillIncludeCompleted = true;
     bool m_catchUpEnabled = true;
     int m_catchUpDays = 14;
     int m_morningHour = 6;
@@ -381,17 +676,28 @@ enum class SyncResult { Error, Ok };
     QString m_emptyKind;
     TaskLogic::UndoStack m_undo;
     bool m_applyingUndo = false;
+    bool m_batchUndo = false;
     QSet<QString> m_collapsedUids;
     QHash<qint64, TaskLogic::UndoRecord> m_recreateAfterDelete;
     int m_pendingCount = 0;
+    int m_syncingCount = 0;
     QStringList m_availableLabels;
+    QStringList m_availableLocations;
     QVariantMap m_labelTaskCounts;
     QVariantMap m_viewTaskCounts;
     QVariantMap m_sidebarProjectCounts;
     QVariantMap m_sidebarLabelCounts;
     QVariantMap m_sidebarPriorityCounts;
+    QVariantMap m_sidebarProgressCounts;
+    QVariantMap m_sidebarStatusCounts;
+    QVariantMap m_sidebarSecrecyCounts;
+    QVariantMap m_sidebarLocationCounts;
 
     Akonadi::Monitor *m_monitor = nullptr;
+    // Merge conflict state
+    qint64 m_pendingMergeItemId = -1;
+    QVariantList m_pendingMergeFields;
+    KCalendarCore::Todo::Ptr m_pendingMergeFreshTodo;
     bool m_serverWatchConnected = false;
     Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
     bool m_collectionsReloadPending = false;
@@ -421,12 +727,14 @@ enum class SyncResult { Error, Ok };
     QTimer m_busyEventTimer;
     int m_pendingBusyFetchJobs = 0;
     QVector<TaskCalendar::BusyInterval> m_busyFetchIntervals;
+    QDate m_agendaSelectedDate = QDate::currentDate();
 
     static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
     static QList<Akonadi::Collection> s_collections;
     static QList<Akonadi::Collection> s_eventCollections;
     static QHash<qint64, QString> s_collectionNames;
     static QStringList s_extraLabels;
+    static QStringList s_extraLocations;
     static QList<TaskController *> s_instances;
     static qint64 s_nextTempId;
     static int s_smokeStep;

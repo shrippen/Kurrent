@@ -1,6 +1,6 @@
 set(QT_DEFAULT_MAJOR_VERSION 6)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Test Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Test Qml Concurrent)
 find_package(KF6 REQUIRED COMPONENTS CalendarCore Config)
 find_package(KPim6Akonadi REQUIRED)
 
@@ -76,9 +76,45 @@ set_tests_properties(kurrent-taskstore PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
 
-# controller-store-test needs TaskController symbols from the QML plugin .so;
-# those stay hidden (-fvisibility=hidden). Covered via MemoryTaskStore unit tests
-# until a static test helper or explicit export is added.
+# TaskController + MemoryTaskStore: compile sources into the test binary because
+# kurrentplugin hides symbols (-fvisibility=hidden).
+find_package(KF6 REQUIRED COMPONENTS I18n)
+add_executable(kurrent-taskcontroller-store-test
+    taskcontroller_store_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/tasklistmodel.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/kurrentdbus.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonaditaskstore.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
+)
+target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-store-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-store-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-store COMMAND kurrent-taskcontroller-store-test)
+set_tests_properties(kurrent-taskcontroller-store PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
 
 set(_kurrent_test_targets
     kurrent-tasklogic-test
@@ -86,6 +122,7 @@ set(_kurrent_test_targets
     kurrent-models-test
     kurrent-calendar-test
     kurrent-taskstore-test
+    kurrent-taskcontroller-store-test
 )
 
 find_package(Qt6 COMPONENTS QuickTest Qml Quick)

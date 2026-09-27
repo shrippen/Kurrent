@@ -1,5 +1,6 @@
 dist/
 build/
+Testing/
 *.user
 *.autosave
 .cursor/*
@@ -12,3 +13,4 @@ test_import.qml
 *~
 .DS_Store
 .kurrent_build_counter
+build-demo/

@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
 
 Item {
     id: root
@@ -55,7 +56,7 @@ Item {
             return hexColor(Kirigami.Theme.textColor)
         }
         if (span.kind === "priority") {
-            return hexColor(Colors.colorForPriority(Number(span.value)))
+            return hexColor(Design.priorityColor(Number(span.value)))
         }
         if (span.kind === "label") {
             return hexColor(Design.colorForKey(span.value, "label"))
@@ -82,7 +83,11 @@ Item {
             if (start > i) {
                 parts.push(esc(value.substring(i, start)))
             }
-            parts.push('<font color="' + colorForSpan(span) + '"><b>' + esc(value.substring(start, end)) + '</b></font>')
+            // Tokens read as tinted pills: the same hue as text, ~20 % behind it. Only colour
+            // changes here — no padding — so the overlay stays glyph-aligned with the field.
+            var tokenColor = colorForSpan(span)
+            parts.push('<span style="background-color:#33' + tokenColor.substring(1) + ';">'
+                       + '<font color="' + tokenColor + '"><b>' + esc(value.substring(start, end)) + '</b></font></span>')
             i = end
         }
         if (i < value.length) {
@@ -144,7 +149,7 @@ Item {
             return Kirigami.Theme.textColor
         }
         if (item.kind === "priority") {
-            return Colors.colorForPriority(Number(item.priority))
+            return Design.priorityColor(Number(item.priority))
         }
         if (item.kind === "label") {
             return Design.colorForKey(item.value, "label")
@@ -236,7 +241,7 @@ Item {
         }
     }
 
-    QQC2.TextField {
+    KanteTextField {
         id: field
         width: root.width
         height: implicitHeight
@@ -244,6 +249,12 @@ Item {
         color: (highlightLabel.visible && !hasSelection) ? "transparent" : Kirigami.Theme.textColor
         selectedTextColor: Kirigami.Theme.highlightedTextColor
         selectionColor: Kirigami.Theme.highlightColor
+        cursorDelegate: Rectangle {
+            width: 2
+            color: Kirigami.Theme.textColor
+            visible: field.activeFocus
+            Behavior on y { NumberAnimation { duration: 100 } }
+        }
         Keys.priority: Keys.BeforeItem
 
         onTextChanged: root.refresh()
@@ -310,6 +321,7 @@ Item {
 
     QQC2.Popup {
         id: suggestPopup
+        KantePopupSkin { popup: suggestPopup }
         parent: root.popupHost || root
         popupType: QQC2.Popup.Item
         modal: false

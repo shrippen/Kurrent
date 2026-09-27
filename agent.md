@@ -36,4 +36,12 @@ Rule 6: Wrap the body text manually at 72 characters to prevent Git formatting i
 Rule 7: Use the body to explain what and why vs. how. Assume the code explains the how;
         the message must explain the context and reasoning. 
 
-- If the prompt indicates that a bug is being fixed, don't write the fix right away. First write the test. Observe it failing. Then write the fix. And observe the test passing.        
+- If the prompt indicates that a bug is being fixed, don't write the fix right away. First write the test. Observe it failing. Then write the fix. And observe the test passing.
+
+- After every code change, run `bash install.sh` (full build, unit tests, plasmoidviewer smoke tests, install, plasmashell restart). Do not proceed until all tests pass. The script takes ~2 minutes end-to-end; set command timeout accordingly.
+
+- UI changes: check them visually with `tests/screenshot.sh [OUT_DIR]` (offscreen PNGs of every style × view × width, plus the editor; `KURRENT_SCREENSHOT_PLAN` narrows it). Never screenshot the desktop.
+
+- Never push automatically. Always ask for permission before pushing to remote.
+
+- Changelogs and GitHub release notes are always written in English, regardless of the conversation language.

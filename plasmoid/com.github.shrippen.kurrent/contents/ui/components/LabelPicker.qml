@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -11,6 +12,9 @@ ColumnLayout {
     property var availableLabels: []
     property var selectedLabels: []
     property bool _ignoreMenuOpen: false
+    /** Widget/overlay item used to clamp the upward popup to available height. */
+    property Item boundsItem: null
+    property int selectedIndex: 0
 
     spacing: Design.spaceSmall
 
@@ -44,13 +48,45 @@ ColumnLayout {
         selectedLabels = out
     }
 
+    function availableAbove() {
+        var host = boundsItem
+        if (!host) {
+            var p = root.parent
+            while (p) {
+                if (p.width > 0 && p.height > 0 && p !== root) {
+                    host = p
+                }
+                p = p.parent
+            }
+        }
+        if (!host) {
+            return Kirigami.Units.gridUnit * 12
+        }
+        var top = searchField.mapToItem(host, 0, 0).y
+        return Math.max(Kirigami.Units.gridUnit * 3, top - Design.spaceSmall)
+    }
+
+    function placePopup() {
+        var maxH = availableAbove()
+        var contentH = Math.max(Kirigami.Units.gridUnit * 3,
+                                listView.contentHeight + Design.spaceMedium)
+        labelPopup.height = Math.min(maxH, contentH)
+        labelPopup.width = root.width
+        labelPopup.x = 0
+        labelPopup.y = -labelPopup.height - Design.spaceSmall
+    }
+
     function openMenu() {
         if (_ignoreMenuOpen) {
             return
         }
-        labelPopup.open()
-        labelPopup.forceActiveFocus()
-        listView.forceActiveFocus()
+        placePopup()
+        if (!labelPopup.visible) {
+            labelPopup.open()
+        } else {
+            placePopup()
+        }
+        selectedIndex = 0
     }
 
     function closeMenu() {
@@ -85,23 +121,44 @@ ColumnLayout {
         return entries
     }
 
-    QQC2.TextField {
+    onMenuEntriesChanged: {
+        if (selectedIndex >= menuEntries.length) {
+            selectedIndex = Math.max(0, menuEntries.length - 1)
+        }
+        if (labelPopup.visible) {
+            placePopup()
+        }
+    }
+
+    KanteTextField {
         id: searchField
         Layout.fillWidth: true
-        placeholderText: i18n("Search or create label…")
+        placeholderText: i18n("Search or create label\u2026")
+        Keys.priority: Keys.BeforeItem
 
         onAccepted: {
             if (menuEntries.length > 0) {
-                pickEntry(menuEntries[0])
+                pickEntry(menuEntries[Math.max(0, Math.min(selectedIndex, menuEntries.length - 1))])
             }
         }
 
-        Keys.onEscapePressed: {
-            if (labelPopup.visible) {
+        Keys.onPressed: function (event) {
+            if (!labelPopup.visible || menuEntries.length === 0) {
+                return
+            }
+            if (event.key === Qt.Key_Down) {
+                selectedIndex = Math.min(menuEntries.length - 1, selectedIndex + 1)
+                event.accepted = true
+                return
+            }
+            if (event.key === Qt.Key_Up) {
+                selectedIndex = Math.max(0, selectedIndex - 1)
+                event.accepted = true
+                return
+            }
+            if (event.key === Qt.Key_Escape) {
                 root.closeMenu()
                 event.accepted = true
-            } else {
-                event.accepted = false
             }
         }
 
@@ -119,7 +176,7 @@ ColumnLayout {
 
         Repeater {
             model: selectedLabels
-            delegate: QQC2.Button {
+            delegate: KanteButton {
                 text: modelData
                 icon.name: "tag"
                 icon.color: Design.colorForKey(String(modelData), "label")
@@ -132,14 +189,15 @@ ColumnLayout {
 
     QQC2.Popup {
         id: labelPopup
-        x: 0
-        y: searchField.height + Design.spaceSmall
-        width: root.width
-        height: Math.min(Kirigami.Units.gridUnit * 12, Math.max(Kirigami.Units.gridUnit * 4, listView.contentHeight + Design.spaceMedium))
+        KantePopupSkin { popup: labelPopup }
+        popupType: QQC2.Popup.Item
+        modal: false
+        dim: false
+        // Keep typing focus on the search field (do not steal ActiveFocus).
+        focus: false
         padding: Design.spaceSmall
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
         parent: root
-        focus: true
 
         background: Rectangle {
             color: Kirigami.Theme.backgroundColor
@@ -152,17 +210,27 @@ ColumnLayout {
             id: listView
             clip: true
             model: root.menuEntries
+            currentIndex: root.selectedIndex
             boundsBehavior: Flickable.StopAtBounds
-            keyNavigationEnabled: true
-            focus: true
+            keyNavigationEnabled: false
+            focus: false
+            rightMargin: Design.spaceSmall
 
-            Keys.onEscapePressed: root.closeMenu()
+            QQC2.ScrollBar.vertical: ThinScrollBar {
+                view: listView
+            }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+                policy: QQC2.ScrollBar.AlwaysOff
+            }
 
             delegate: QQC2.ItemDelegate {
                 id: delegate
-                width: listView.width
+                required property var modelData
+                required property int index
+                width: Math.max(1, listView.width - listView.rightMargin)
+                highlighted: index === root.selectedIndex
                 text: modelData.kind === "create"
-                      ? i18n("Create label “%1”", modelData.name)
+                      ? i18n("Create label \u201c%1\u201d", modelData.name)
                       : modelData.name
                 onClicked: root.pickEntry(modelData)
 
@@ -196,14 +264,17 @@ ColumnLayout {
             }
         }
 
-        onOpened: listView.forceActiveFocus()
+        onAboutToShow: placePopup()
     }
 
     Connections {
         target: searchField
         function onTextChanged() {
-            if (!labelPopup.visible) {
+            selectedIndex = 0
+            if (searchField.activeFocus && !labelPopup.visible) {
                 root.openMenu()
+            } else if (labelPopup.visible) {
+                root.placePopup()
             }
         }
         function onActiveFocusChanged() {

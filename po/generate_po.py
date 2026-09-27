@@ -9,9 +9,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extra_translations import EXTRA
+from strings_style import PLURAL_OVERDUE
+from strings_review import PLURAL_REVIEW
 
 DOMAIN = "plasma_applet_com.github.shrippen.kurrent"
-VERSION = "0.3.1"
+VERSION = "1.0.0"
 YEAR = datetime.date.today().year
 QML_ROOT = Path(__file__).resolve().parent.parent / "plasmoid"
 
@@ -34,7 +36,50 @@ PLURALS = {
         "ja": ["%1 件のタスク"],
         "zh_CN": ["%1 个任务", "%1 个任务"],
     },
+    "+%1 more task": {
+        "msgid_plural": "+%1 more tasks",
+        "de": ["+%1 weitere Aufgabe", "+%1 weitere Aufgaben"],
+        "es": ["+%1 tarea más", "+%1 tareas más"],
+        "fr": ["+%1 tâche de plus", "+%1 tâches de plus"],
+        "ja": ["他 %1 件"],
+        "zh_CN": ["另有 %1 个任务", "另有 %1 个任务"],
+    },
+    "Show %1 task in the list": {
+        "msgid_plural": "Show %1 tasks in the list",
+        "de": ["%1 Aufgabe in der Liste anzeigen", "%1 Aufgaben in der Liste anzeigen"],
+        "es": ["Mostrar %1 tarea en la lista", "Mostrar %1 tareas en la lista"],
+        "fr": ["Afficher %1 tâche dans la liste", "Afficher %1 tâches dans la liste"],
+        "ja": ["%1 件のタスクをリストで表示"],
+        "zh_CN": ["在列表中显示 %1 个任务", "在列表中显示 %1 个任务"],
+    },
+    "%1 day": {
+        "msgid_plural": "%1 days",
+        "de": ["%1 Tag", "%1 Tage"],
+        "es": ["%1 día", "%1 días"],
+        "fr": ["%1 jour", "%1 jours"],
+        "ja": ["%1 日"],
+        "zh_CN": ["%1 天", "%1 天"],
+    },
+    "%1 week": {
+        "msgid_plural": "%1 weeks",
+        "de": ["%1 Woche", "%1 Wochen"],
+        "es": ["%1 semana", "%1 semanas"],
+        "fr": ["%1 semaine", "%1 semaines"],
+        "ja": ["%1 週間"],
+        "zh_CN": ["%1 周", "%1 周"],
+    },
+    "%1 month": {
+        "msgid_plural": "%1 months",
+        "de": ["%1 Monat", "%1 Monate"],
+        "es": ["%1 mes", "%1 meses"],
+        "fr": ["%1 mois", "%1 mois"],
+        "ja": ["%1 か月"],
+        "zh_CN": ["%1 个月", "%1 个月"],
+    },
 }
+
+PLURALS.update(PLURAL_OVERDUE)
+PLURALS.update(PLURAL_REVIEW)
 
 LANGS = {
     "de": ("de", "nplurals=2; plural=(n != 1);"),
@@ -59,6 +104,12 @@ def extract_qml_strings() -> list[str]:
         for match in QML_I18N.finditer(qml.read_text(encoding="utf-8")):
             found.add(match.group(1))
     return sorted(found)
+
+
+def qml_unescape(s: str) -> str:
+    """msgid as QML sees it at runtime: \\u201c -> “, \\" -> "."""
+    s = re.sub(r"\\u([0-9a-fA-F]{4})", lambda m: chr(int(m.group(1), 16)), s)
+    return re.sub(r'\\(["\\])', r"\1", s)
 
 
 def po_escape(s: str) -> str:
@@ -128,7 +179,7 @@ def main() -> int:
         extra = EXTRA[lang]
         body = [header(lang, plural), ""]
         for msgid in msgids:
-            body.append(f'msgid "{po_escape(msgid)}"')
+            body.append(f'msgid "{po_escape(qml_unescape(msgid))}"')
             body.append(f'msgstr "{po_escape(extra[msgid])}"')
             body.append("")
         for msgid, data in PLURALS.items():

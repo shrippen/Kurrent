@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
 
 Item {
     id: root
@@ -119,6 +120,7 @@ Item {
 
                 QQC2.RadioButton {
                     id: projectRadio
+                    KanteCheckSkin { control: parent }
                     Layout.alignment: Qt.AlignVCenter
                     checked: root.collectionId === modelData.collectionId
                     QQC2.ButtonGroup.group: projectGroup
@@ -166,6 +168,7 @@ Item {
 
     QQC2.ComboBox {
         id: combo
+        KanteFieldSkin { control: parent }
         anchors.left: parent.left
         anchors.right: parent.right
         visible: root.useCombo

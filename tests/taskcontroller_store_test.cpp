@@ -24,6 +24,16 @@ private Q_SLOTS:
     void moveFailRollsBackCollection();
     void inflightTwoEdits();
     void undoAfterComplete();
+    void labelAddRemoveRepeatIgnoresStaleMonitor();
+    void coalescedAddThenRemove();
+    void kanbanPriorityRoundTrip();
+    void kanbanStatusAndSecrecyDrop();
+    void kanbanLabelColumnDrop();
+    void sidebarPriorityAndLocationMutations();
+    void matrixDropWritesLaneAndDue();
+    void inspectorSnapshotAndChildren();
+    void heatmapTasksForDay();
+    void demoModeLoadsWorldTasks();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -160,7 +170,7 @@ void TaskControllerStoreTest::inflightTwoEdits()
 
     m_controller->setTaskPriority(5, 1);
     m_controller->setTaskPriority(5, 9);
-    QCOMPARE(m_controller->testInflight(5), 2);
+    QCOMPARE(m_controller->testInflight(5), 1);
     QVERIFY(m_controller->testTaskSyncing(5));
 
     waitStore(spy, 2);
@@ -177,10 +187,307 @@ void TaskControllerStoreTest::undoAfterComplete()
     waitStore(spy);
     QVERIFY(m_controller->testTaskCompleted(6));
     QVERIFY(m_controller->canUndo());
+    QVERIFY(m_controller->undoLabel().contains(QStringLiteral("undo-me")));
 
     m_controller->undo();
     waitStore(spy, 2);
     QVERIFY(!m_controller->testTaskCompleted(6));
+}
+
+void TaskControllerStoreTest::labelAddRemoveRepeatIgnoresStaleMonitor()
+{
+    m_controller->installTestTask(7, QStringLiteral("tagged"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    m_controller->addTaskCategory(7, QStringLiteral("work"));
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskCategories(7), QStringList({QStringLiteral("work")}));
+
+    m_controller->removeTaskCategory(7, QStringLiteral("work"));
+    waitStore(spy, 2);
+    QVERIFY(m_controller->testTaskCategories(7).isEmpty());
+
+    m_controller->addTaskCategory(7, QStringLiteral("work"));
+    waitStore(spy, 3);
+    QCOMPARE(m_controller->testTaskCategories(7), QStringList({QStringLiteral("work")}));
+    const int secondAddRevision = m_controller->testTaskRevision(7);
+    QVERIFY(secondAddRevision > 0);
+
+    m_controller->removeTaskCategory(7, QStringLiteral("work"));
+    waitStore(spy, 4);
+    QVERIFY(m_controller->testTaskCategories(7).isEmpty());
+    QVERIFY(m_controller->testTaskRevision(7) > secondAddRevision);
+
+    Akonadi::Item stale(7);
+    stale.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+    stale.setRevision(secondAddRevision);
+    stale.setParentCollection(Akonadi::Collection(10));
+    KCalendarCore::Todo::Ptr echo(new KCalendarCore::Todo);
+    echo->setUid(QStringLiteral("test-uid-7"));
+    echo->setSummary(QStringLiteral("tagged"));
+    echo->setCategories({QStringLiteral("work")});
+    stale.setPayload(echo);
+
+    m_controller->testApplyExternalItem(stale);
+    QVERIFY(m_controller->testTaskCategories(7).isEmpty());
+
+    m_controller->removeTaskCategory(7, QStringLiteral("work"));
+    QVERIFY(m_controller->testTaskCategories(7).isEmpty());
+}
+
+void TaskControllerStoreTest::coalescedAddThenRemove()
+{
+    m_controller->installTestTask(8, QStringLiteral("burst"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    m_controller->addTaskCategory(8, QStringLiteral("home"));
+    m_controller->removeTaskCategory(8, QStringLiteral("home"));
+    QCOMPARE(m_controller->testInflight(8), 1);
+    QVERIFY(m_controller->testTaskCategories(8).isEmpty());
+
+    waitStore(spy, 2);
+    QVERIFY(m_controller->testTaskCategories(8).isEmpty());
+    QVERIFY(!m_controller->testTaskSyncing(8));
+}
+
+void TaskControllerStoreTest::kanbanPriorityRoundTrip()
+{
+    m_controller->installTestTask(20, QStringLiteral("prio"), 10);
+    m_controller->setKanbanColumnSource(QStringLiteral("priority"));
+    m_controller->setTaskPriority(20, 9);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskPriority(20), 9);
+    QCOMPARE(m_controller->testKanbanColumnKey(20), QStringLiteral("low"));
+
+    // Low → None
+    m_controller->finishKanbanDrop(20, QStringLiteral("none"), 0, QStringLiteral("low"), 0);
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->testTaskPriority(20), 0);
+    QCOMPARE(m_controller->testKanbanColumnKey(20), QStringLiteral("none"));
+
+    // None → Low (previously snapped back)
+    m_controller->finishKanbanDrop(20, QStringLiteral("low"), 0, QStringLiteral("none"), 0);
+    waitStore(spy, 3);
+    QCOMPARE(m_controller->testTaskPriority(20), 9);
+    QCOMPARE(m_controller->testKanbanColumnKey(20), QStringLiteral("low"));
+
+    // High → Medium → High
+    m_controller->finishKanbanDrop(20, QStringLiteral("high"), 0, QStringLiteral("low"), 0);
+    waitStore(spy, 4);
+    QCOMPARE(m_controller->testTaskPriority(20), 1);
+    m_controller->finishKanbanDrop(20, QStringLiteral("medium"), 0, QStringLiteral("high"), 0);
+    waitStore(spy, 5);
+    QCOMPARE(m_controller->testTaskPriority(20), 5);
+    m_controller->finishKanbanDrop(20, QStringLiteral("high"), 0, QStringLiteral("medium"), 0);
+    waitStore(spy, 6);
+    QCOMPARE(m_controller->testTaskPriority(20), 1);
+}
+
+void TaskControllerStoreTest::kanbanStatusAndSecrecyDrop()
+{
+    m_controller->installTestTask(21, QStringLiteral("stat"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    m_controller->setKanbanColumnSource(QStringLiteral("status"));
+    m_controller->finishKanbanDrop(21, QStringLiteral("6"), 0, QStringLiteral("4"), 0);
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskStatus(21), 6);
+    QCOMPARE(m_controller->testKanbanColumnKey(21), QStringLiteral("6"));
+
+    m_controller->finishKanbanDrop(21, QStringLiteral("4"), 0, QStringLiteral("6"), 0);
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->testTaskStatus(21), 4);
+    QCOMPARE(m_controller->testKanbanColumnKey(21), QStringLiteral("4"));
+
+    m_controller->finishKanbanDrop(21, QStringLiteral("in-process"), 0, QStringLiteral("4"), 0);
+    waitStore(spy, 3);
+    QCOMPARE(m_controller->testTaskStatus(21), 6);
+    QCOMPARE(m_controller->testKanbanColumnKey(21), QStringLiteral("6"));
+
+    m_controller->setKanbanColumnSource(QStringLiteral("secrecy"));
+    m_controller->finishKanbanDrop(21, QStringLiteral("private"), 0, QStringLiteral("public"), 0);
+    waitStore(spy, 4);
+    QCOMPARE(m_controller->testTaskSecrecy(21), 1);
+    QCOMPARE(m_controller->testKanbanColumnKey(21), QStringLiteral("private"));
+
+    m_controller->finishKanbanDrop(21, QStringLiteral("confidential"), 0, QStringLiteral("private"), 0);
+    waitStore(spy, 5);
+    QCOMPARE(m_controller->testTaskSecrecy(21), 2);
+    m_controller->finishKanbanDrop(21, QStringLiteral("public"), 0, QStringLiteral("confidential"), 0);
+    waitStore(spy, 6);
+    QCOMPARE(m_controller->testTaskSecrecy(21), 0);
+}
+
+void TaskControllerStoreTest::kanbanLabelColumnDrop()
+{
+    m_controller->installTestTask(22, QStringLiteral("labs"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    m_controller->setKanbanColumnSource(QStringLiteral("label"));
+    m_controller->finishKanbanDrop(22, QStringLiteral("work"), 0, QStringLiteral("none"), 0);
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskCategories(22), QStringList({QStringLiteral("work")}));
+    QCOMPARE(m_controller->testKanbanColumnKey(22), QStringLiteral("work"));
+
+    m_controller->finishKanbanDrop(22, QStringLiteral("home"), 0, QStringLiteral("work"), 0);
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->testTaskCategories(22).first(), QStringLiteral("home"));
+    QCOMPARE(m_controller->testKanbanColumnKey(22), QStringLiteral("home"));
+
+    m_controller->finishKanbanDrop(22, QStringLiteral("none"), 0, QStringLiteral("home"), 0);
+    waitStore(spy, 3);
+    QVERIFY(m_controller->testTaskCategories(22).isEmpty());
+    QCOMPARE(m_controller->testKanbanColumnKey(22), QStringLiteral("none"));
+}
+
+void TaskControllerStoreTest::matrixDropWritesLaneAndDue()
+{
+    m_controller->setSwimlaneTimeBucket(QStringLiteral("week"));
+    m_controller->setSwimlaneLaneAxis(QStringLiteral("priority"));
+    m_controller->installTestTask(31, QStringLiteral("swim"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    const QDate today = QDate::currentDate();
+    const QString nextWeek = TaskLogic::matrixBucketKey(today.addDays(7), QStringLiteral("week"));
+
+    // Priority lane + next week in one drop: both fields change, no due date before.
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::High), nextWeek);
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskPriority(31), TaskLogic::PriorityBand::High);
+    QVERIFY(m_controller->testTaskDue(31).isValid());
+    QCOMPARE(TaskLogic::matrixBucketKey(m_controller->testTaskDue(31).date(), QStringLiteral("week")), nextWeek);
+
+    // One undo step restores both.
+    m_controller->undo();
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->testTaskPriority(31), 0);
+    QVERIFY(!m_controller->testTaskDue(31).isValid());
+
+    // "unscheduled" clears an existing due date.
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::None), nextWeek);
+    waitStore(spy, 3);
+    QVERIFY(m_controller->testTaskDue(31).isValid());
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::None), QStringLiteral("unscheduled"));
+    waitStore(spy, 4);
+    QVERIFY(!m_controller->testTaskDue(31).isValid());
+
+    // Overdue / Later are not drop targets.
+    m_controller->moveTaskToMatrixCell(31, QString::number(TaskLogic::PriorityBand::None), QStringLiteral("overdue"));
+    QVERIFY(!m_controller->testTaskDue(31).isValid());
+
+    // Label axis: the target lane becomes the first label.
+    m_controller->setSwimlaneLaneAxis(QStringLiteral("label"));
+    m_controller->moveTaskToMatrixCell(31, QStringLiteral("work"), QStringLiteral("unscheduled"));
+    waitStore(spy, 5);
+    QCOMPARE(m_controller->testTaskCategories(31), QStringList({QStringLiteral("work")}));
+}
+
+void TaskControllerStoreTest::sidebarPriorityAndLocationMutations()
+{
+    m_controller->installTestTask(23, QStringLiteral("side"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    m_controller->setTaskPriority(23, 1);
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->testTaskPriority(23), 1);
+
+    m_controller->setTaskPriority(23, 0);
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->testTaskPriority(23), 0);
+
+    m_controller->setTaskPriority(23, 9);
+    waitStore(spy, 3);
+    QCOMPARE(m_controller->testTaskPriority(23), 9);
+
+    m_controller->updateTaskFull(23, {{QStringLiteral("location"), QStringLiteral("Office")}});
+    waitStore(spy, 4);
+    QCOMPARE(m_controller->testTaskLocation(23), QStringLiteral("Office"));
+
+    m_controller->updateTaskFull(23, {{QStringLiteral("location"), QString()}});
+    waitStore(spy, 5);
+    QVERIFY(m_controller->testTaskLocation(23).isEmpty());
+
+    m_controller->updateTaskFull(23, {
+        {QStringLiteral("secrecy"), 2},
+        {QStringLiteral("status"), 6},
+        {QStringLiteral("percentComplete"), 40},
+    });
+    waitStore(spy, 6);
+    QCOMPARE(m_controller->testTaskSecrecy(23), 2);
+    QCOMPARE(m_controller->testTaskStatus(23), 6);
+}
+
+void TaskControllerStoreTest::inspectorSnapshotAndChildren()
+{
+    m_controller->installTestTask(1, QStringLiteral("parent"), 10);
+    m_controller->installTestTask(2, QStringLiteral("child"), 10);
+    m_controller->installTestTask(3, QStringLiteral("other"), 10);
+
+    // Snapshot by item id: current cache state, empty for unknown ids.
+    const QVariantMap parent = m_controller->taskSnapshotById(1);
+    QCOMPARE(parent.value(QStringLiteral("summary")).toString(), QStringLiteral("parent"));
+    QVERIFY(m_controller->taskSnapshotById(999).isEmpty());
+    // Same fields as a list row snapshot, so the full editor can open from it.
+    for (const QString &key : {QStringLiteral("allDay"), QStringLiteral("recurrencePreset"),
+                               QStringLiteral("reminderMinutes"), QStringLiteral("hasChildren")}) {
+        QVERIFY2(parent.contains(key), qPrintable(key));
+    }
+
+    // Direct children only.
+    const QString parentUid = parent.value(QStringLiteral("uid")).toString();
+    QVERIFY(!parentUid.isEmpty());
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->setTaskParent(2, parentUid);
+    waitStore(spy);
+
+    const QVariantList children = m_controller->childTasks(parentUid);
+    QCOMPARE(children.size(), 1);
+    QCOMPARE(children.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("child"));
+    QVERIFY(m_controller->childTasks(QString()).isEmpty());
+}
+
+void TaskControllerStoreTest::heatmapTasksForDay()
+{
+    m_controller->installTestTask(1, QStringLiteral("b done"), 10);
+    m_controller->installTestTask(2, QStringLiteral("a done"), 20);
+    m_controller->installTestTask(3, QStringLiteral("open"), 10);
+
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->setTaskCompleted(1, true);
+    m_controller->setTaskCompleted(2, true);
+    waitStore(spy, 2);
+
+    // Completions today, across projects, sorted by summary; open tasks stay out.
+    const QVariantList done = m_controller->heatmapTasksForDay(QDate::currentDate(), QStringLiteral("completed"));
+    QCOMPARE(done.size(), 2);
+    QCOMPARE(done.at(0).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("a done"));
+    QCOMPARE(done.at(1).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("b done"));
+    QVERIFY(m_controller->heatmapTasksForDay(QDate::currentDate().addDays(-1), QStringLiteral("completed")).isEmpty());
+    QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
+}
+
+void TaskControllerStoreTest::demoModeLoadsWorldTasks()
+{
+    qputenv("KURRENT_DEMO", "en");
+    qputenv("KURRENT_DEMO_WORLD", KURRENT_TEST_DEMO_WORLD);
+    qputenv("DEMO_TODAY", "2026-09-16");
+    auto *demo = new TaskController;
+
+    QVERIFY(demo->demoMode());
+    QVERIFY(demo->testTaskExists(20));
+    QCOMPARE(demo->testTaskSummary(2), QStringLiteral("Send episode 4 rough cut to Northlight"));
+    QVERIFY(demo->testTaskCompleted(5));
+    QVERIFY(demo->testTaskCategories(10).contains(QStringLiteral("Calls")));
+    // Monday 2026-09-14 is the anchor; the planning call is on the Monday.
+    const QVariantList events = demo->agendaEventsForDay(QDate(2026, 9, 14));
+    QCOMPARE(events.size(), 2);
+    QCOMPARE(events.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Weekly planning"));
+    demo->resetSharedStateForTest();
+    delete demo;
+    qunsetenv("KURRENT_DEMO");
+    qunsetenv("KURRENT_DEMO_WORLD");
+    qunsetenv("DEMO_TODAY");
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

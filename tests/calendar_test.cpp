@@ -18,6 +18,8 @@ private Q_SLOTS:
     void clearPresetRemovesRecurrence();
     void sectionPrefersKurrentThenVCalendar();
     void setSectionWritesKurrentList();
+    void columnRoundTrip();
+    void kanbanSortOrderRoundTrip();
     void completeNonRecurringMarksDone();
     void completeDailyAdvancesDatesAndKeepsRrule();
     void otherPresetDoesNotClearCustomRrule();
@@ -84,6 +86,26 @@ void CalendarTest::setSectionWritesKurrentList()
     QCOMPARE(TaskCalendar::sectionFromTodo(todo), QStringLiteral("Morning"));
     TaskCalendar::setSection(todo, QString());
     QCOMPARE(TaskCalendar::sectionFromTodo(todo), QString());
+}
+
+void CalendarTest::columnRoundTrip()
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    QCOMPARE(TaskCalendar::columnFromTodo(todo), QString());
+    TaskCalendar::setColumn(todo, QStringLiteral("doing"));
+    QCOMPARE(TaskCalendar::columnFromTodo(todo), QStringLiteral("doing"));
+    TaskCalendar::setColumn(todo, QString());
+    QCOMPARE(TaskCalendar::columnFromTodo(todo), QString());
+}
+
+void CalendarTest::kanbanSortOrderRoundTrip()
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    QCOMPARE(TaskCalendar::kanbanSortOrderFromTodo(todo), 0);
+    TaskCalendar::setKanbanSortOrder(todo, 42);
+    QCOMPARE(TaskCalendar::appleSortOrderFromTodo(todo), 42);
+    QCOMPARE(TaskCalendar::columnOrderFromTodo(todo), 42);
+    QCOMPARE(TaskCalendar::kanbanSortOrderFromTodo(todo), 42);
 }
 
 void CalendarTest::completeNonRecurringMarksDone()

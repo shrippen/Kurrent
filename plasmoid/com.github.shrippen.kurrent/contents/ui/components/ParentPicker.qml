@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -164,7 +165,7 @@ ColumnLayout {
     }
     Component.onCompleted: rebuild()
 
-    QQC2.TextField {
+    KanteTextField {
         id: searchField
         Layout.fillWidth: true
         placeholderText: i18n("Search parent task…")
@@ -205,7 +206,7 @@ ColumnLayout {
         spacing: Design.spaceSmall
         visible: !!(root.parentUid && root.parentUid.length)
 
-        QQC2.Button {
+        KanteButton {
             text: root.selectedSummary.length ? root.selectedSummary : i18n("(Untitled)")
             icon.name: "go-up"
             onClicked: root.clearParent()
@@ -216,6 +217,7 @@ ColumnLayout {
 
     QQC2.Popup {
         id: parentPopup
+        KantePopupSkin { popup: parentPopup }
         parent: root
         popupType: QQC2.Popup.Item
         modal: false
@@ -256,7 +258,7 @@ ColumnLayout {
                     Kirigami.Icon {
                         visible: Number(delegate.entry.priority || 0) > 0
                         source: "flag"
-                        color: Colors.colorForPriority(delegate.entry.priority)
+                        color: Design.priorityColor(delegate.entry.priority)
                         Layout.alignment: Qt.AlignVCenter
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small

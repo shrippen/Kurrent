@@ -5,7 +5,9 @@ import org.kde.kirigami 2.20 as Kirigami
 import org.kde.plasma.plasmoid 2.0
 import "../colors.js" as Colors
 import "../datetime.js" as DateTime
+import "../taskmeta.js" as TaskMeta
 import ".."
+import "../Kante"
 
 Item {
     id: root
@@ -20,6 +22,8 @@ Item {
     property real editorReserveHeight: 0
     property Item dragHost: null
     property var taskListRoot: null
+    // Full-editor / reduced-motion / scroll: suppress row hover flash.
+    property bool interactionsSuspended: false
 
     signal requestExpand(var itemId)
     signal requestCollapse
@@ -43,19 +47,14 @@ Item {
     readonly property bool showDueChip: Plasmoid.configuration.showDateChip !== false
             && DateTime.isValidDate(task.dueDate)
 
-    readonly property var visibleCategories: {
-        var cats = task.categories || []
-        var selected = controller.selectedLabel || ""
-        if (!selected) {
-            return cats
+    readonly property var taskCategories: task.categories || []
+
+    function completeToggleAllowed() {
+        if (Plasmoid.configuration.completeNeedsModifier !== true) {
+            return true
         }
-        var out = []
-        for (var i = 0; i < cats.length; ++i) {
-            if (cats[i] !== selected) {
-                out.push(cats[i])
-            }
-        }
-        return out
+        var mods = Qt.keyboardModifiers()
+        return (mods & Qt.ShiftModifier) || (mods & Qt.ControlModifier)
     }
 
     function taskSnapshot() {
@@ -189,16 +188,30 @@ Item {
         anchors.right: parent.right
         anchors.top: parent.top
         height: root.expanded ? Math.round(root.collapsedHeight) : parent.height
-        radius: Design.inputRadius
+        radius: Design.radius
         color: dropHighlight ? Kirigami.Theme.positiveTextColor : Kirigami.Theme.highlightColor
-        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && root.reveal >= 1 && hoverHandler.hovered && !Design.reducedMotion)) ? 0.12 : 0)
+        opacity: dropHighlight ? 0.22 : ((root.expanded || (!root.listMoving && root.reveal >= 1 && hoverHandler.hovered && !Design.reducedMotion && !root.interactionsSuspended)) ? 0.12 : 0)
         visible: opacity > 0
+        z: 0
+    }
+
+    // Row shown in the inspector: Plasma selection tint / Kante sunken box with accent frame.
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        height: parent.height
+        visible: !!(dragHost && dragHost.inspectorActive && dragHost.inspectedItemId === task.itemId)
+        radius: Design.radius
+        color: KanteStyle.themed ? KanteStyle.sunkenColor : KanteStyle.tint(Kirigami.Theme.highlightColor, 0.18)
+        border.width: 1
+        border.color: KanteStyle.themed ? KanteStyle.accentColor : Kirigami.Theme.highlightColor
         z: 0
     }
 
     HoverHandler {
         id: hoverHandler
-        enabled: !root.listMoving && root.reveal >= 1 && !root.treeHidden
+        enabled: !root.listMoving && root.reveal >= 1 && !root.treeHidden && !root.interactionsSuspended
     }
 
     DragHandler {
@@ -303,7 +316,7 @@ Item {
                 Layout.preferredHeight: Design.taskCollapseCol
                 Layout.alignment: Qt.AlignVCenter
 
-                QQC2.ToolButton {
+                KanteToolButton {
                     anchors.centerIn: parent
                     width: Design.taskCollapseCol
                     height: Design.taskCollapseCol
@@ -324,14 +337,27 @@ Item {
                 checked: task.completed === true
                 enabled: !root.awaitingAkonadi
                 onToggled: {
-                    if (Plasmoid.configuration.completeNeedsModifier === true) {
-                        var mods = Qt.keyboardModifiers()
-                        if (!(mods & Qt.ShiftModifier) && !(mods & Qt.ControlModifier)) {
-                            checked = task.completed === true
-                            return
-                        }
+                    if (!root.completeToggleAllowed()) {
+                        checked = task.completed === true
+                        return
                     }
                     controller.setTaskCompleted(task.itemId, checked)
+                }
+
+                // Kante: square box, accent when checked.
+                KanteCheckSkin { control: completedCheck }
+
+                // Kante: the open box carries the priority band in its frame (red / yellow / blue).
+                Rectangle {
+                    visible: KanteStyle.themed && !completedCheck.checked && task.priority > 0
+                             && completedCheck.indicator !== null
+                    x: completedCheck.indicator ? completedCheck.indicator.x : 0
+                    width: Math.round(Kirigami.Units.gridUnit * 0.9)
+                    height: width
+                    anchors.verticalCenter: parent.verticalCenter
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Design.priorityColor(task.priority)
                 }
             }
 
@@ -354,6 +380,11 @@ Item {
                 TapHandler {
                     acceptedButtons: Qt.LeftButton
                     onTapped: {
+                        if (taskListRoot && taskListRoot.multiSelectEnabled
+                                && (pointingDevice.modifiers & Qt.ControlModifier)) {
+                            controller.toggleTaskSelection(task.itemId, true, false)
+                            return
+                        }
                         var action = Plasmoid.configuration.clickAction || "inline"
                         if (taskListRoot) {
                             taskListRoot.selectedItemId = task.itemId
@@ -364,6 +395,11 @@ Item {
                             } else {
                                 root.requestOpenFullEditor(root.taskSnapshot())
                             }
+                            return
+                        }
+                        // Inspector (wide layout): a single click shows the task beside the list.
+                        if (dragHost && dragHost.inspectorActive) {
+                            dragHost.inspectTask(task.itemId)
                             return
                         }
                         if (action === "full") {
@@ -409,14 +445,25 @@ Item {
                 RowLayout {
                     id: statusRow
                     Layout.fillWidth: true
+                    Layout.preferredHeight: root.labelIconSize
+                    Layout.maximumHeight: root.labelIconSize
+                    implicitHeight: root.labelIconSize
                     spacing: 2
+                    clip: true
                     visible: root.showDueChip
-                             || (Plasmoid.configuration.showLabelChips !== false && (root.visibleCategories ? root.visibleCategories.length > 0 : false))
+                             || (Plasmoid.configuration.showLabelChips !== false && root.taskCategories.length > 0)
                              || (Plasmoid.configuration.showPriorityChip !== false && task.priority > 0)
                              || (Plasmoid.configuration.showRecurringIcon !== false && task.recurring)
+                             || (Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0)
+                             || (Plasmoid.configuration.showStatusChip !== false && (task.status || 0) !== 0)
+                             || (Plasmoid.configuration.showSecrecyChip !== false && (task.secrecy || 0) > 0)
+                             || (Plasmoid.configuration.showLocationChip !== false && !!(task.location && String(task.location).trim().length))
                              || (Plasmoid.configuration.showJoinButton !== false && (task.joinUrl ? task.joinUrl.length > 0 : false))
+                             || (Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && task.collectionId > 0)
 
-                    QQC2.ToolButton {
+                    KanteToolButton {
                         visible: Plasmoid.configuration.showJoinButton !== false && !!(task.joinUrl && task.joinUrl.length)
                         icon.name: "internet-services"
                         display: QQC2.AbstractButton.IconOnly
@@ -429,32 +476,177 @@ Item {
                         HoverHandler { id: joinHover }
                     }
 
-                    Repeater {
-                        model: Plasmoid.configuration.showLabelChips !== false ? root.visibleCategories : []
-                        delegate: Kirigami.Icon {
-                            Layout.alignment: Qt.AlignVCenter
-                            Layout.preferredWidth: root.labelIconSize
-                            Layout.preferredHeight: root.labelIconSize
-                            source: "tag"
-                            color: Design.colorForKey(String(modelData), "label")
-                            width: root.labelIconSize
-                            height: root.labelIconSize
+                    // Project chip: visible only when no project filter is active
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && task.collectionId > 0
+                        source: "folder"
+                        color: Design.colorForKey(String(task.collectionId))
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: task.collectionName
+                        QQC2.ToolTip.visible: projectHover.hovered && !root.listMoving
+                        QQC2.ToolTip.delay: 400
+                        HoverHandler {
+                            id: projectHover
+                            enabled: !root.listMoving
+                        }
+                    }
 
-                            QQC2.ToolTip.text: modelData
-                            QQC2.ToolTip.visible: tagHover.hovered && !root.listMoving
-                            QQC2.ToolTip.delay: 400
+                    QQC2.Label {
+                        visible: Plasmoid.configuration.showProjectChip !== false
+                                 && root.controller && root.controller.selectedCollectionId <= 0
+                                 && task.collectionId > 0 && !!task.collectionName
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.rightMargin: Design.spaceTiny
+                        text: task.collectionName || ""
+                        color: KanteStyle.mutedTextColor
+                        font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                                                : Kirigami.Theme.smallFont
+                    }
+
+                    // Labels as text: Plasma a tinted pill, Kante / Kante Light "#name" in mono.
+                    Repeater {
+                        model: Plasmoid.configuration.showLabelChips !== false ? root.taskCategories : []
+                        delegate: Rectangle {
+                            id: labelChip
+                            required property var modelData
+                            readonly property color tone: Design.colorForKey(String(modelData), "label")
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredHeight: root.labelIconSize
+                            Layout.preferredWidth: labelText.implicitWidth + (KanteStyle.active ? 0 : Design.spaceSmall * 2)
+                            radius: height / 2
+                            color: KanteStyle.active ? "transparent" : KanteStyle.tint(tone, 0.18)
+
+                            QQC2.Label {
+                                id: labelText
+                                anchors.centerIn: parent
+                                text: (KanteStyle.active ? "#" : "") + labelChip.modelData
+                                color: labelChip.tone
+                                font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                                                        : Kirigami.Theme.smallFont
+                            }
 
                             HoverHandler {
                                 id: tagHover
                                 enabled: !root.listMoving
                             }
+                            QQC2.ToolTip.text: modelData
+                            QQC2.ToolTip.visible: tagHover.hovered && !root.listMoving
+                            QQC2.ToolTip.delay: 400
                         }
                     }
 
                     Kirigami.Icon {
+                        visible: Plasmoid.configuration.showRecurringIcon !== false && task.recurring === true
+                        source: "media-playlist-repeat"
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: i18n("Recurring")
+                        QQC2.ToolTip.visible: recurHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: recurHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0
+                        source: TaskMeta.progressIconForPercent(task.percentComplete)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: i18n("Progress %1%", task.percentComplete)
+                        QQC2.ToolTip.visible: progressHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: progressHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showStatusChip !== false && (task.status || 0) !== 0
+                        source: TaskMeta.statusIconForValue(task.status)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: {
+                            switch (Number(task.status)) {
+                            case 4: return i18n("Needs action")
+                            case 6: return i18n("In process")
+                            case 3: return i18n("Completed")
+                            case 5: return i18n("Canceled")
+                            default: return i18n("Status")
+                            }
+                        }
+                        QQC2.ToolTip.visible: statusHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: statusHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showSecrecyChip !== false && (task.secrecy || 0) > 0
+                        source: TaskMeta.secrecyIconForValue(task.secrecy)
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: {
+                            switch (Number(task.secrecy)) {
+                            case 1: return i18n("Private")
+                            case 2: return i18n("Confidential")
+                            default: return i18n("Public")
+                            }
+                        }
+                        QQC2.ToolTip.visible: secrecyHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: secrecyHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Kirigami.Icon {
+                        visible: Plasmoid.configuration.showLocationChip !== false
+                                 && !!(task.location && String(task.location).trim().length)
+                        source: "mark-location"
+                        color: Design.colorForKey(String(task.location), "location")
+                        Layout.alignment: Qt.AlignVCenter
+                        Layout.preferredWidth: root.labelIconSize
+                        Layout.preferredHeight: root.labelIconSize
+                        width: root.labelIconSize
+                        height: root.labelIconSize
+                        QQC2.ToolTip.text: task.location
+                        QQC2.ToolTip.visible: locationHover.hovered && !root.listMoving
+                        HoverHandler {
+                            id: locationHover
+                            enabled: !root.listMoving
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                    }
+
+                    Kirigami.Icon {
+                        // Sits right before the date so the right edge reads "how urgent · when".
                         visible: Plasmoid.configuration.showPriorityChip !== false && task.priority > 0
                         source: "flag"
-                        color: Colors.colorForPriority(task.priority)
+                        color: Design.priorityColor(task.priority)
                         Layout.alignment: Qt.AlignVCenter
                         Layout.preferredWidth: root.labelIconSize
                         Layout.preferredHeight: root.labelIconSize
@@ -483,79 +675,35 @@ Item {
                         }
                     }
 
-                    Kirigami.Icon {
-                        visible: Plasmoid.configuration.showRecurringIcon !== false && task.recurring === true
-                        source: "media-playlist-repeat"
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: root.labelIconSize
-                        Layout.preferredHeight: root.labelIconSize
-                        width: root.labelIconSize
-                        height: root.labelIconSize
-                        QQC2.ToolTip.text: i18n("Recurring")
-                        QQC2.ToolTip.visible: recurHover.hovered && !root.listMoving
-                        HoverHandler {
-                            id: recurHover
-                            enabled: !root.listMoving
-                        }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                    }
-
                     // Due date/time: flush right, accent (overdue stays negative).
                     QQC2.Label {
                         id: dateChip
                         visible: root.showDueChip
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+                        // Use mainColumn.width — statusRow.width here loops with RowLayout.
                         Layout.maximumWidth: Math.max(Kirigami.Units.gridUnit * 6,
-                                                      statusRow.width * 0.45)
+                                                      mainColumn.width * 0.45)
                         elide: Text.ElideLeft
                         horizontalAlignment: Text.AlignRight
-                        font.pixelSize: Kirigami.Theme.smallFont.pixelSize
-                        text: {
-                            if (!root.showDueChip) {
-                                return ""
-                            }
-                            var due = task.dueDate
-                            var dueDay = Qt.formatDate(due, "yyyy-MM-dd")
-                            var todayDate = new Date()
-                            var today = Qt.formatDate(todayDate, "yyyy-MM-dd")
-                            var label = Qt.formatDate(due, Qt.DefaultLocaleShortDate)
-                            if (Plasmoid.configuration.relativeDates === true) {
-                                if (dueDay === today) {
-                                    label = i18n("Today")
-                                } else {
-                                    var tomorrow = new Date(todayDate)
-                                    tomorrow.setDate(tomorrow.getDate() + 1)
-                                    var yesterday = new Date(todayDate)
-                                    yesterday.setDate(yesterday.getDate() - 1)
-                                    if (dueDay === Qt.formatDate(tomorrow, "yyyy-MM-dd")) {
-                                        label = i18n("Tomorrow")
-                                    } else if (dueDay === Qt.formatDate(yesterday, "yyyy-MM-dd")) {
-                                        label = i18n("Yesterday")
-                                    }
-                                }
-                            }
-                            if (Plasmoid.configuration.showTimeOnRow !== false && task.allDay !== true) {
-                                var timeText = Qt.formatTime(due, Qt.DefaultLocaleShortDate)
-                                if (timeText && timeText.length) {
-                                    label += " " + timeText
-                                }
-                            }
-                            return label
-                        }
+                        // Figures in JetBrains Mono in Kante and Kante Light.
+                        font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
+                                                : Kirigami.Theme.smallFont
+                        text: DateTime.formatDueRowLabel(task.dueDate, {
+                            relativeDates: Plasmoid.configuration.relativeDates !== false,
+                            showTime: Plasmoid.configuration.showTimeOnRow !== false,
+                            allDay: task.allDay === true,
+                            today: i18n("Today"),
+                            tomorrow: i18n("Tomorrow"),
+                            yesterday: i18n("Yesterday")
+                        })
                         color: {
                             if (!visible) {
                                 return Kirigami.Theme.textColor
                             }
-                            var dueDay = Qt.formatDate(task.dueDate, "yyyy-MM-dd")
-                            var today = Qt.formatDate(new Date(), "yyyy-MM-dd")
-                            if (dueDay < today) {
+                            if (DateTime.isDueBeforeToday(task.dueDate)) {
                                 return Kirigami.Theme.negativeTextColor
                             }
-                            return Kirigami.Theme.highlightColor
+                            return KanteStyle.themed ? KanteStyle.mutedTextColor : Kirigami.Theme.highlightColor
                         }
                     }
                 }
@@ -570,8 +718,12 @@ Item {
                 }
             }
 
-            QQC2.ToolButton {
+            // Only on hover or focus (keeps its space, so dates do not jump); the inspector has
+            // its own edit buttons, so the column goes away while it is shown (l1).
+            KanteToolButton {
                 id: editButton
+                visible: !(dragHost && dragHost.inspectorActive)
+                opacity: hoverHandler.hovered || hovered || visualFocus || root.expanded ? 1 : 0
                 icon.name: "document-edit"
                 display: QQC2.AbstractButton.IconOnly
                 enabled: !root.awaitingAkonadi
@@ -580,7 +732,7 @@ Item {
                 QQC2.ToolTip.visible: hovered && !root.listMoving
             }
 
-            QQC2.ToolButton {
+            KanteToolButton {
                 visible: root.deleteModeEnabled
                 icon.name: "edit-delete"
                 display: QQC2.AbstractButton.IconOnly
@@ -594,6 +746,7 @@ Item {
 
     QQC2.Menu {
         id: rescheduleMenu
+        KantePopupSkin { popup: rescheduleMenu }
         popupType: QQC2.Popup.Item
         enabled: !root.awaitingAkonadi
         QQC2.MenuItem {

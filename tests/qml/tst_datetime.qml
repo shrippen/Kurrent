@@ -47,4 +47,55 @@ TestCase {
         compare(segs.length, 3)
         compare(DateTime.segmentAtPosition("13.08.2026", tokens, 4).kind, "month")
     }
+
+    function test_isValidDate_rejectsInvalid() {
+        verify(!DateTime.isValidDate(null))
+        verify(!DateTime.isValidDate(undefined))
+        verify(!DateTime.isValidDate(""))
+        verify(!DateTime.isValidDate(new Date(Number.NaN)))
+        var bad = new Date("not-a-date")
+        verify(!DateTime.isValidDate(bad))
+    }
+
+    function test_isValidDate_acceptsValid() {
+        var d = new Date(2026, 7, 13, 9, 30)
+        verify(DateTime.isValidDate(d))
+        compare(DateTime.isoDateKey(d), "2026-08-13")
+    }
+
+    function test_safeFormatDate_neverThrows() {
+        compare(DateTime.safeFormatDate(null, "yyyy-MM-dd"), "")
+        compare(DateTime.safeFormatDate(new Date(Number.NaN), "yyyy-MM-dd"), "")
+        var d = new Date(2026, 7, 13)
+        verify(DateTime.safeFormatDate(d, Qt.DefaultLocaleShortDate).length > 0)
+    }
+
+    function test_formatDueRowLabel_relativeToday() {
+        var today = new Date()
+        today.setHours(12, 0, 0, 0)
+        var label = DateTime.formatDueRowLabel(today, {
+            relativeDates: true,
+            showTime: false,
+            allDay: true,
+            today: "TODAY",
+            tomorrow: "TOMORROW",
+            yesterday: "YESTERDAY"
+        })
+        compare(label, "TODAY")
+    }
+
+    function test_formatDueRowLabel_invalidDue() {
+        compare(DateTime.formatDueRowLabel(null, {}), "")
+        compare(DateTime.formatDueRowLabel(new Date(Number.NaN), {}), "")
+    }
+
+    function test_isDueBeforeToday() {
+        var past = new Date()
+        past.setDate(past.getDate() - 2)
+        verify(DateTime.isDueBeforeToday(past))
+        var future = new Date()
+        future.setDate(future.getDate() + 2)
+        verify(!DateTime.isDueBeforeToday(future))
+        verify(!DateTime.isDueBeforeToday(null))
+    }
 }

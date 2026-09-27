@@ -50,6 +50,7 @@ void MemoryTaskStore::submit(const Request &request)
     case Kind::Create: {
         Akonadi::Item stored = request.item;
         stored.setId(m_nextId++);
+        stored.setRevision(1);
         stored.setParentCollection(request.collection);
         m_items.insert(stored.id(), stored);
         result.ok = true;
@@ -66,6 +67,7 @@ void MemoryTaskStore::submit(const Request &request)
         }
         Akonadi::Item stored = request.item;
         stored.setId(id);
+        stored.setRevision(m_items.value(id).revision() + 1);
         if (request.moveAfterModifyId > 0) {
             stored.setParentCollection(Akonadi::Collection(request.moveAfterModifyId));
         } else {

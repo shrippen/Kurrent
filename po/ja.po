@@ -4,7 +4,7 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: kurrent 0.3.1\n"
+"Project-Id-Version: kurrent 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-01-01 00:00+0000\n"
 "PO-Revision-Date: 2026-01-01 00:00+0000\n"
@@ -17,14 +17,38 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 
-msgid "%1 grid units"
-msgstr "%1 グリッド単位"
+msgid "%1 %2 on %3"
+msgstr "%3: %1 %2"
+
+msgid "%1 completed"
+msgstr "%1 件完了"
+
+msgid "%1 high priority"
+msgstr "優先度高 %1 件"
+
+msgid "%1 open"
+msgstr "未完了 %1"
+
+msgid "%1 overdue"
+msgstr "期限切れ %1"
+
+msgid "%1 px"
+msgstr "%1 px"
 
 msgid "%1:00"
 msgstr "%1:00"
 
 msgid "(Untitled)"
 msgstr "(無題)"
+
+msgid "+1 day"
+msgstr "+1 日"
+
+msgid "0 = show all time periods"
+msgstr "0 = すべての期間を表示"
+
+msgid "0–25%"
+msgstr "0–25%"
 
 msgid "1 day before"
 msgstr "1日前"
@@ -41,8 +65,26 @@ msgstr "15分前"
 msgid "2 lines"
 msgstr "2行"
 
+msgid "26–50%"
+msgstr "26–50%"
+
+msgid "51–75%"
+msgstr "51–75%"
+
+msgid "76–100%"
+msgstr "76–100%"
+
 msgid "Accent (highlight)"
 msgstr "アクセント（ハイライト）"
+
+msgid "Accent colours"
+msgstr "アクセントカラー"
+
+msgid "Add CalDAV or Nextcloud calendars in %1 (DAV groupware resource)."
+msgstr "CalDAV や Nextcloud のカレンダーは %1 で追加します (DAV グループウェアリソース)。"
+
+msgid "Add CalDAV or Nextcloud calendars in KOrganizer or Merkuro (DAV groupware resource)."
+msgstr "CalDAV や Nextcloud のカレンダーは KOrganizer か Merkuro で追加します (DAV グループウェアリソース)。"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "タスクを追加…  tomorrow 18:00 !high #tag @project"
@@ -53,14 +95,20 @@ msgstr "ラベルを追加"
 msgid "Add label “%1”"
 msgstr "ラベル「%1」を追加"
 
-msgid "Add task"
-msgstr "タスクを追加"
+msgid "Add location"
+msgstr "場所を追加"
+
+msgid "Add task for this day"
+msgstr "この日にタスクを追加"
+
+msgid "Advanced"
+msgstr "詳細"
 
 msgid "Afternoon"
 msgstr "午後"
 
-msgid "Afternoon starts"
-msgstr "午後の開始"
+msgid "Agenda"
+msgstr "アジェンダ"
 
 msgid "Akonadi"
 msgstr "Akonadi"
@@ -77,14 +125,8 @@ msgstr "すべて"
 msgid "All day"
 msgstr "終日"
 
-msgid "All day:"
-msgstr "終日:"
-
 msgid "All views"
 msgstr "すべてのビュー"
-
-msgid "All-day task"
-msgstr "終日のタスク"
 
 msgid "Already has no priority"
 msgstr "すでに優先度なし"
@@ -95,11 +137,35 @@ msgstr "すでにプロジェクト「%1」にあります"
 msgid "Already priority “%1”"
 msgstr "すでに優先度「%1」"
 
+msgid "Also complete subtasks"
+msgstr "サブタスクも完了にする"
+
+msgid "Any due date"
+msgstr "期限日を問わない"
+
+msgid "Any label"
+msgstr "すべてのラベル"
+
+msgid "Any priority"
+msgstr "優先度を問わない"
+
+msgid "Any project"
+msgstr "すべてのプロジェクト"
+
+msgid "Any section"
+msgstr "すべてのセクション"
+
+msgid "Any status"
+msgstr "状態を問わない"
+
 msgid "Anytime"
 msgstr "いつでも"
 
 msgid "Appearance"
 msgstr "外観"
+
+msgid "Applies to every style and the panel flyout: Kurrent never paints its own background, Kante surfaces are tints on top. On the desktop the widget stays translucent either way; the flyout turns opaque when this is off."
+msgstr "すべてのスタイルとパネルのポップアップに適用されます。Kurrent は独自の背景を描かず、Kante の面は上に重ねた色調だけです。デスクトップでは常に半透明で、オフにするとポップアップは不透明になります。"
 
 msgid "Applies when the badge shows the overdue count."
 msgstr "バッジが期限超過の件数を表示するときに適用されます。"
@@ -113,11 +179,26 @@ msgstr "タスク削除前に確認する"
 msgid "Ask which project to use"
 msgstr "どのプロジェクトか尋ねる"
 
+msgid "Assignees"
+msgstr "担当者"
+
 msgid "At due time"
 msgstr "期限時刻"
 
 msgid "Auto (compact, larger with touch)"
 msgstr "自動（コンパクト、タッチ時は大きく）"
+
+msgid "Automatic"
+msgstr "自動"
+
+msgid "Automatic colour"
+msgstr "自動の色"
+
+msgid "Back"
+msgstr "戻る"
+
+msgid "Back to the matrix"
+msgstr "マトリクスに戻る"
 
 msgid "Backend not installed"
 msgstr "バックエンドが未インストール"
@@ -134,14 +215,35 @@ msgstr "バッジ表示"
 msgid "Basics"
 msgstr "基本"
 
-msgid "Blurred wallpaper behind the widget"
-msgstr "ウィジェット背面の壁紙ぼかし"
+msgid "Behaviour"
+msgstr "動作"
+
+msgid "Best day"
+msgstr "最多の日"
+
+msgid "Best day · %1"
+msgstr "最多の日 · %1"
+
+msgid "Both"
+msgstr "両方"
+
+msgid "Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
+msgstr "どちらも com.github.shrippen.kurrent.akonadi を使用します。情報は書き込みと同期 (Qt Info)、詳細は取得・監視の行 (Qt Debug) を追加します。"
+
+msgid "Briefcase"
+msgstr "ブリーフケース"
 
 msgid "Build"
 msgstr "ビルド"
 
+msgid "Calendar"
+msgstr "カレンダー"
+
 msgid "Calendars for event suppression"
 msgstr "イベント抑制用カレンダー"
+
+msgid "Call the plumber"
+msgstr "配管工に電話"
 
 msgid "Cancel"
 msgstr "キャンセル"
@@ -149,20 +251,32 @@ msgstr "キャンセル"
 msgid "Canceled"
 msgstr "キャンセル済み"
 
+msgid "Cancelled"
+msgstr "キャンセル"
+
 msgid "Case sensitive"
 msgstr "大文字と小文字を区別"
 
-msgid "Catch-up"
-msgstr "キャッチアップ"
+msgid "Category"
+msgstr "カテゴリ"
 
-msgid "Checkbox"
-msgstr "チェックボックス"
+msgid "Checkmark"
+msgstr "チェックマーク"
 
 msgid "Choose a project"
 msgstr "プロジェクトを選ぶ"
 
 msgid "Choose a project for “%1”"
 msgstr "「%1」のプロジェクトを選ぶ"
+
+msgid "Choose calendars"
+msgstr "カレンダーを選択"
+
+msgid "Choose colour…"
+msgstr "色を選択…"
+
+msgid "Choose how this Smart View looks and sorts tasks."
+msgstr "このスマートビューの表示と並べ替えを選択します。"
 
 msgid "Choose which Akonadi event calendars block reminders. Disabled entries are ignored when checking for ongoing events."
 msgstr "どの Akonadi イベントカレンダーがリマインダーをブロックするか選びます。無効な項目は進行中イベントの確認時に無視されます。"
@@ -173,8 +287,17 @@ msgstr "分類"
 msgid "Clear due date"
 msgstr "期限を消去"
 
+msgid "Clear filter"
+msgstr "フィルターを解除"
+
 msgid "Clear label filter"
 msgstr "ラベルフィルターを解除"
+
+msgid "Clear location"
+msgstr "場所をクリア"
+
+msgid "Clear location “%1”"
+msgstr "場所「%1」をクリア"
 
 msgid "Clear parent"
 msgstr "親タスクを解除"
@@ -188,14 +311,32 @@ msgstr "プロジェクトフィルターを解除"
 msgid "Clear search"
 msgstr "検索をクリア"
 
+msgid "Clear selection"
+msgstr "選択を解除"
+
 msgid "Clear start"
 msgstr "開始日時を消去"
 
 msgid "Click a task"
 msgstr "タスクをクリック"
 
+msgid "Clock"
+msgstr "時計"
+
+msgid "Close inspector"
+msgstr "インスペクターを閉じる"
+
 msgid "Collapse subtasks"
 msgstr "サブタスクを折りたたむ"
+
+msgid "Colour %1"
+msgstr "色 %1"
+
+msgid "Column axis"
+msgstr "列の軸"
+
+msgid "Columns"
+msgstr "列"
 
 msgid "Comfortable"
 msgstr "ゆったり"
@@ -206,32 +347,50 @@ msgstr "ゆったり（タッチ向け）"
 msgid "Compact"
 msgstr "コンパクト"
 
-msgid "Complete only with Shift or Ctrl held"
-msgstr "Shift または Ctrl を押したときのみ完了"
+msgid "Complete"
+msgstr "完了"
 
 msgid "Completed"
 msgstr "完了"
 
+msgid "Completed on %1"
+msgstr "%1 に完了"
+
 msgid "Completed tasks"
 msgstr "完了したタスク"
 
-msgid "Completed:"
-msgstr "完了:"
+msgid "Completion"
+msgstr "完了"
 
-msgid "Completing a parent also completes its children"
-msgstr "親タスクを完了すると子タスクも完了します"
+msgid "Completions"
+msgstr "完了数"
 
 msgid "Confidential"
 msgstr "機密"
 
-msgid "Configure CalDAV/Nextcloud in KOrganizer or Merkuro (DAV groupware resource)."
-msgstr "KOrganizer または Merkuro で CalDAV/Nextcloud を設定してください（DAV グループウェアリソース）。"
+msgid "Connected"
+msgstr "接続済み"
 
 msgid "Connecting to Akonadi…"
 msgstr "Akonadi に接続中…"
 
+msgid "Connecting…"
+msgstr "接続中…"
+
+msgid "Contains…"
+msgstr "含む…"
+
+msgid "Copied"
+msgstr "コピーしました"
+
+msgid "Copy UIDs"
+msgstr "UID をコピー"
+
 msgid "Copy command"
 msgstr "コマンドをコピー"
+
+msgid "Copy debug bundle"
+msgstr "デバッグ情報をコピー"
 
 msgid "Could not load tasks"
 msgstr "タスクを読み込めませんでした"
@@ -242,29 +401,62 @@ msgstr "件数"
 msgid "Create label “%1”"
 msgstr "ラベル「%1」を作成"
 
+msgid "Custom (manual)"
+msgstr "カスタム (手動)"
+
+msgid "Custom column (KURRENT/COLUMN)"
+msgstr "カスタム列 (KURRENT/COLUMN)"
+
+msgid "Custom column:"
+msgstr "カスタム列:"
+
 msgid "Daily"
 msgstr "毎日"
+
+msgid "Date"
+msgstr "日付"
 
 msgid "Dates"
 msgstr "日付"
 
-msgid "Default due date"
-msgstr "デフォルトの期限"
+msgid "Day"
+msgstr "日"
 
-msgid "Default project"
-msgstr "デフォルトのプロジェクト"
+msgid "Day section"
+msgstr "日の区分"
 
-msgid "Default reminder"
-msgstr "デフォルトのリマインダー"
+msgid "Day section (morning / afternoon / …)"
+msgstr "時間帯 (朝 / 午後 / …)"
+
+msgid "Day section:"
+msgstr "時間帯:"
+
+msgid "Day sections"
+msgstr "時間帯"
+
+msgid "Days side by side"
+msgstr "日を横に並べる"
+
+msgid "Days stacked"
+msgstr "日を縦に並べる"
+
+msgid "Debug info"
+msgstr "デバッグ情報"
+
+msgid "Default (Priority → Due → Title)"
+msgstr "既定 (優先度 → 期限 → タイトル)"
+
+msgid "Default column source"
+msgstr "デフォルトの列ソース"
+
+msgid "Default project for new tasks"
+msgstr "新しいタスクの既定のプロジェクト"
 
 msgid "Default view"
 msgstr "デフォルトのビュー"
 
 msgid "Delete"
 msgstr "削除"
-
-msgid "Delete label"
-msgstr "ラベルを削除"
 
 msgid "Delete mode"
 msgstr "削除モード"
@@ -278,6 +470,12 @@ msgstr "タスクを削除しますか？"
 msgid "Delete this task?"
 msgstr "このタスクを削除しますか？"
 
+msgid "Delete “%1”?"
+msgstr "「%1」を削除しますか?"
+
+msgid "Delete…"
+msgstr "削除…"
+
 msgid "Density"
 msgstr "密度"
 
@@ -287,14 +485,26 @@ msgstr "説明"
 msgid "Description preview"
 msgstr "説明のプレビュー"
 
-msgid "Description:"
-msgstr "説明:"
-
 msgid "Desktop notifications"
 msgstr "デスクトップ通知"
 
+msgid "Diagnostics"
+msgstr "診断"
+
+msgid "Dismiss"
+msgstr "閉じる"
+
+msgid "Done"
+msgstr "完了"
+
 msgid "Dot"
 msgstr "ドット"
+
+msgid "Drag to reorder, switch to show or hide."
+msgstr "ドラッグで並べ替え、スイッチで表示/非表示。"
+
+msgid "Drop here"
+msgstr "ここにドロップ"
 
 msgid "Drop here to make a top-level task"
 msgstr "ここにドロップして最上位タスクにします"
@@ -308,8 +518,20 @@ msgstr "期限"
 msgid "Due date (latest first)"
 msgstr "期限（新しい順）"
 
-msgid "Due:"
+msgid "Due date buckets"
+msgstr "期限バケット"
+
+msgid "Due date:"
 msgstr "期限:"
+
+msgid "Due dates"
+msgstr "期限"
+
+msgid "Due on %1"
+msgstr "%1 が期限"
+
+msgid "Duplicate built-in view…"
+msgstr "組み込みビューを複製…"
 
 msgid "During events"
 msgstr "イベント中"
@@ -317,11 +539,14 @@ msgstr "イベント中"
 msgid "Each sidebar view keeps its own sort. Views you have not changed start with Priority › Due › Title A–Z."
 msgstr "各サイドバービューは独自の並べ替えを保持します。変更していないビューは優先度 › 期限 › タイトル A–Z から始まります。"
 
+msgid "Edit Smart View"
+msgstr "スマートビューを編集"
+
+msgid "Edit here"
+msgstr "ここで編集"
+
 msgid "Edit task"
 msgstr "タスクを編集"
-
-msgid "Editor"
-msgstr "エディター"
 
 msgid "Editor dim"
 msgstr "エディターの暗転"
@@ -332,17 +557,20 @@ msgstr "すべて有効"
 msgid "Enable a calendar in Configure Kurrent → Projects, or add a CalDAV resource in Merkuro or KOrganizer."
 msgstr "Kurrent の設定 → プロジェクトでカレンダーを有効にするか、Merkuro または KOrganizer で CalDAV リソースを追加してください。"
 
-msgid "Enabled"
-msgstr "有効"
-
-msgid "Ends"
-msgstr "終了"
+msgid "Errands"
+msgstr "用事"
 
 msgid "Evening"
 msgstr "夕方"
 
-msgid "Evening starts"
-msgstr "夕方の開始"
+msgid "Events"
+msgstr "予定"
+
+msgid "Events this week"
+msgstr "今週の予定"
+
+msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
+msgstr "面、文字、選択、ボタンなどそれ以外はすべて Plasma のカラースキームに従います。"
 
 msgid "Exclude collapsed subtasks from counts"
 msgstr "折りたたんだサブタスクを件数から除外"
@@ -353,17 +581,89 @@ msgstr "削除モードを終了"
 msgid "Expand subtasks"
 msgstr "サブタスクを展開"
 
+msgid "Fetch, monitor and collection details"
+msgstr "取得・監視・コレクションの詳細"
+
+msgid "Few"
+msgstr "少"
+
+msgid "Filter"
+msgstr "フィルター"
+
+msgid "Filter Rules"
+msgstr "フィルタールール"
+
+msgid "Filter by KURRENT/LIST day section. Used by the Today view to group tasks into Morning, Afternoon, and Evening buckets."
+msgstr "時間帯 (KURRENT/LIST) で絞り込みます。今日ビューで朝・午後・夜に分けるのに使います。"
+
+msgid "Filter by a custom KURRENT/COLUMN value. Only needed when using Kanban with \"Custom column\" as source. Leave empty to ignore."
+msgstr "独自の KURRENT/COLUMN 値で絞り込みます。カンバンのソースが「カスタム列」の場合のみ必要です。空欄で無視します。"
+
+msgid "Filter by priority level. \"Any priority\" shows all tasks."
+msgstr "優先度で絞り込みます。「すべての優先度」ですべて表示します。"
+
+msgid "Filter by task status. \"Any status\" shows tasks regardless of status."
+msgstr "状態で絞り込みます。「すべての状態」で状態に関係なく表示します。"
+
+msgid "Filter tasks by when they are due. \"Any due date\" shows all regardless of due date."
+msgstr "期限で絞り込みます。「すべての期限」で期限に関係なく表示します。"
+
+msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
+msgstr "タイトルか説明にこの文字列を含むタスクに絞り込みます。空欄ですべて表示します。"
+
 msgid "First sort"
 msgstr "第1ソート"
+
+msgid "Flag"
+msgstr "旗"
+
+msgid "Folder"
+msgstr "フォルダー"
+
+msgid "Follows your colour scheme, light or dark. Feels like any other KDE app."
+msgstr "ライト／ダークを問わずカラースキームに従います。ほかの KDE アプリと同じ見た目です。"
+
+msgid "Fr"
+msgstr "金"
+
+msgid "From"
+msgstr "開始"
 
 msgid "General"
 msgstr "一般"
 
-msgid "Heading on the list"
-msgstr "リストの見出し"
+msgid "Give tasks a due or start date to see them planned by project and period."
+msgstr "期限日または開始日を設定すると、プロジェクトと期間ごとの計画に表示されます。"
+
+msgid "Group tasks"
+msgstr "タスクをグループ化"
+
+msgid "Group: %1"
+msgstr "グループ: %1"
+
+msgid "Gruvbox, or Leinen on a light colour scheme. Condensed titles, cut corners, square controls. Uses its own palette."
+msgstr "Gruvbox（明るいカラースキームではリネン）。細身のタイトル、切り欠いた角、四角いコントロール。独自のパレットを使います。"
+
+msgid "Has no location"
+msgstr "場所なし"
+
+msgid "Has reminder"
+msgstr "リマインダーあり"
+
+msgid "Heart"
+msgstr "ハート"
+
+msgid "Heatmap"
+msgstr "ヒートマップ"
 
 msgid "Hidden"
 msgstr "非表示"
+
+msgid "Hide sidebar"
+msgstr "サイドバーを隠す"
+
+msgid "Hide the Canceled column"
+msgstr "「キャンセル」列を隠す"
 
 msgid "High"
 msgstr "高"
@@ -373,6 +673,18 @@ msgstr "優先度高"
 
 msgid "High priority (%1)"
 msgstr "優先度高 (%1)"
+
+msgid "Home"
+msgstr "家"
+
+msgid "How tasks are ordered in this view. Leave at Default to use Priority → Due → Title."
+msgstr "このビューでの並び順です。「既定」では優先度 → 期限 → タイトルの順です。"
+
+msgid "Icon displayed next to the Smart View in the sidebar."
+msgstr "サイドバーでスマートビューの横に表示するアイコン。"
+
+msgid "Icon:"
+msgstr "アイコン:"
 
 msgid "In 1 hour"
 msgstr "1時間後"
@@ -386,6 +698,9 @@ msgstr "4時間後"
 msgid "In process"
 msgstr "進行中"
 
+msgid "In the wide layout with the inspector on, a click shows the task in the inspector. Double-click always opens the full editor."
+msgstr "ワイドレイアウトでインスペクターが有効なら、クリックでタスクをインスペクターに表示します。ダブルクリックは常にフルエディターを開きます。"
+
 msgid "Inbox"
 msgstr "受信箱"
 
@@ -395,26 +710,83 @@ msgstr "すべて含める"
 msgid "Include this calendar when checking for ongoing events"
 msgstr "進行中イベントの確認時にこのカレンダーを含める"
 
-msgid "Include this calendar when fetching tasks"
-msgstr "タスク取得時にこのカレンダーを含める"
+msgid "Include weekend"
+msgstr "週末を含める"
+
+msgid "Info journal"
+msgstr "情報ジャーナル"
+
+msgid "Inspector beside the list"
+msgstr "リストの横にインスペクター"
+
+msgid "Jump to current period"
+msgstr "現在の期間へ移動"
+
+msgid "KURRENT/COLUMN value…"
+msgstr "KURRENT/COLUMN の値…"
+
+msgid "Kanban"
+msgstr "カンバン"
+
+msgid "Kanban columns"
+msgstr "カンバンの列"
+
+msgid "Kanban columns: %1"
+msgstr "カンバンの列: %1"
+
+msgid "Kante"
+msgstr "Kante"
+
+msgid "Kante Light"
+msgstr "Kante Light"
+
+msgid "Kante shapes and type on your colour scheme. Controls and colours stay Plasma's."
+msgstr "カラースキームの上に Kante の形と書体を適用します。コントロールと色は Plasma のままです。"
+
+msgid "Kante uses its own palette for the whole widget; priorities use its red, yellow and blue."
+msgstr "Kante はウィジェット全体に独自のパレットを使い、優先度はその赤・黄・青で表します。"
 
 msgid "Kurrent"
 msgstr "Kurrent"
 
+msgid "Label"
+msgstr "ラベル"
+
+msgid "Label (Z–A)"
+msgstr "ラベル (Z–A)"
+
+msgid "Label:"
+msgstr "ラベル:"
+
 msgid "Labels"
 msgstr "ラベル"
 
-msgid "Labels (Categories)"
-msgstr "ラベル（カテゴリ）"
+msgid "Labels are already Kanban columns."
+msgstr "ラベルはすでにカンバンの列です。"
 
-msgid "Labels are extracted from Akonadi task categories. Hidden labels will not appear in the sidebar filter list but remain on tasks."
-msgstr "ラベルは Akonadi のタスクカテゴリから取得されます。非表示のラベルはサイドバーのフィルターに出ませんが、タスクには残ります。"
+msgid "Labels are already swimlane rows."
+msgstr "ラベルはすでにスイムレーンの行です。"
 
-msgid "Labels:"
-msgstr "ラベル:"
+msgid "Labels are task categories in Akonadi. Hidden labels stay on the tasks but are not listed in the sidebar."
+msgstr "ラベルは Akonadi のタスクカテゴリです。非表示のラベルはタスクに残りますが、サイドバーには出ません。"
+
+msgid "Later"
+msgstr "それ以降"
+
+msgid "Leaking tap in the kitchen, ask for Thursday morning."
+msgstr "台所の蛇口の水漏れ、木曜の午前を頼む。"
 
 msgid "Light"
 msgstr "ライト"
+
+msgid "Lightbulb"
+msgstr "電球"
+
+msgid "List"
+msgstr "リスト"
+
+msgid "Load"
+msgstr "読み込む"
 
 msgid "Loading tasks…"
 msgstr "タスクを読み込み中…"
@@ -425,8 +797,20 @@ msgstr "読み込み中…"
 msgid "Location"
 msgstr "場所"
 
-msgid "Location:"
-msgstr "場所:"
+msgid "Location (Z–A)"
+msgstr "場所 (Z–A)"
+
+msgid "Locations"
+msgstr "場所"
+
+msgid "Locations come from the task’s location field. Hidden locations stay on the tasks but are not listed in the sidebar."
+msgstr "場所はタスクの場所フィールドから取得します。非表示の場所はタスクに残りますが、サイドバーには出ません。"
+
+msgid "Logging"
+msgstr "ログ"
+
+msgid "Look ahead"
+msgstr "先読み期間"
 
 msgid "Low"
 msgstr "低"
@@ -434,17 +818,20 @@ msgstr "低"
 msgid "Low priority (%1)"
 msgstr "優先度低 (%1)"
 
+msgid "Maintenance"
+msgstr "メンテナンス"
+
 msgid "Make subtask of “%1”"
 msgstr "「%1」のサブタスクにする"
 
 msgid "Make top-level task"
 msgstr "最上位タスクにする"
 
-msgid "Manage which writable Akonadi calendars are used as projects. Disabled calendars are excluded from task fetching entirely. Hidden calendars are still fetched but not shown in the sidebar."
-msgstr "プロジェクトとして使う書き込み可能な Akonadi カレンダーを管理します。無効なカレンダーはタスク取得から除外されます。非表示のカレンダーは取得されますが、サイドバーには表示されません。"
+msgid "Managed under Views › Smart Views."
+msgstr "ビュー › スマートビューで管理します。"
 
-msgid "Mark as done"
-msgstr "完了にする"
+msgid "Many"
+msgstr "多"
 
 msgid "Medium"
 msgstr "中"
@@ -455,8 +842,20 @@ msgstr "優先度中 (%1)"
 msgid "Meetings"
 msgstr "会議"
 
+msgid "Mo"
+msgstr "月"
+
+msgid "Mode:"
+msgstr "モード:"
+
+msgid "Month"
+msgstr "月"
+
 msgid "Monthly"
 msgstr "毎月"
+
+msgid "More"
+msgstr "その他"
 
 msgid "More…"
 msgstr "詳細…"
@@ -464,38 +863,86 @@ msgstr "詳細…"
 msgid "Morning"
 msgstr "朝"
 
-msgid "Morning starts"
-msgstr "朝の開始"
-
 msgid "Motion"
 msgstr "モーション"
+
+msgid "Move all to today"
+msgstr "すべて今日に移動"
+
+msgid "Move to project"
+msgstr "プロジェクトへ移動"
 
 msgid "Move to project “%1”"
 msgstr "プロジェクト「%1」へ移動"
 
+msgid "Moving a card changes"
+msgstr "カードの移動で変更するもの"
+
+msgid "Multi-select with Ctrl+click"
+msgstr "Ctrl+クリックで複数選択"
+
+msgid "Name:"
+msgstr "名前:"
+
 msgid "Needs action"
 msgstr "要対応"
+
+msgid "New Smart View"
+msgstr "新しいスマートビュー"
 
 msgid "New label"
 msgstr "新しいラベル"
 
+msgid "New location"
+msgstr "新しい場所"
+
+msgid "New task"
+msgstr "新しいタスク"
+
 msgid "New tasks"
 msgstr "新しいタスク"
+
+msgid "Next"
+msgstr "次へ"
+
+msgid "Next event"
+msgstr "次の予定"
+
+msgid "Next event · %1"
+msgstr "次の予定 · %1"
 
 msgid "Next week"
 msgstr "来週"
 
+msgid "No Smart Views yet. Create one or copy a built-in view."
+msgstr "スマートビューはまだありません。作成するか組み込みビューをコピーしてください。"
+
+msgid "No date"
+msgstr "日付なし"
+
+msgid "No dated open tasks in this view."
+msgstr "このビューに日付付きの未完了タスクはありません。"
+
+msgid "No due date"
+msgstr "期限なし"
+
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "イベントカレンダーが見つかりません。Akonadi が起動していることと CalDAV カレンダーが設定されていることを確認してください。"
+
+msgid "No events or tasks."
+msgstr "予定もタスクもありません。"
 
 msgid "No high priority tasks"
 msgstr "優先度の高いタスクはありません"
 
-msgid "No labels found. Labels are automatically discovered from task categories in Akonadi."
-msgstr "ラベルが見つかりません。ラベルは Akonadi のタスクカテゴリから自動検出されます。"
+msgid "No label"
+msgstr "ラベルなし"
 
 msgid "No matching labels"
 msgstr "一致するラベルがありません"
+
+msgid "No matching locations"
+msgstr "一致する場所はありません"
 
 msgid "No matching tasks"
 msgstr "一致するタスクはありません"
@@ -506,11 +953,23 @@ msgstr "未完了のタスクはありません"
 msgid "No overdue tasks"
 msgstr "期限超過のタスクはありません"
 
+msgid "No parent"
+msgstr "親タスクなし"
+
 msgid "No priority"
 msgstr "優先度なし"
 
 msgid "No projects available"
 msgstr "利用できるプロジェクトがありません"
+
+msgid "No reminders during busy events"
+msgstr "予定のある時間は通知しない"
+
+msgid "No reminders during these hours"
+msgstr "この時間帯は通知しない"
+
+msgid "No status"
+msgstr "状態なし"
 
 msgid "No task lists"
 msgstr "タスクリストがありません"
@@ -518,17 +977,29 @@ msgstr "タスクリストがありません"
 msgid "No tasks in this view."
 msgstr "このビューにタスクはありません。"
 
-msgid "No writable Akonadi calendars found. Make sure Akonadi is running and your CalDAV resource allows task edits."
-msgstr "書き込み可能な Akonadi カレンダーが見つかりません。Akonadi が起動していることと CalDAV リソースがタスク編集を許可していることを確認してください。"
-
 msgid "None"
 msgstr "なし"
+
+msgid "None yet. Create them under Views › Smart Views."
+msgstr "まだありません。ビュー › スマートビューで作成します。"
+
+msgid "Not available in the current view."
+msgstr "現在のビューでは使用できません。"
+
+msgid "Not loaded"
+msgstr "未読み込み"
 
 msgid "Nothing due today"
 msgstr "今日は期限なし"
 
+msgid "Nothing on this day."
+msgstr "この日は何もありません。"
+
 msgid "Notifications"
 msgstr "通知"
+
+msgid "Notifications work."
+msgstr "通知は正常に動作しています。"
 
 msgid "Notify when a task reminder is due"
 msgstr "タスクリマインダーの期限時に通知"
@@ -536,14 +1007,41 @@ msgstr "タスクリマインダーの期限時に通知"
 msgid "Number"
 msgstr "数字"
 
+msgid "Number of tasks per period"
+msgstr "期間ごとのタスク数"
+
 msgid "Off"
 msgstr "オフ"
+
+msgid "Off under “Load”: the calendar is not read at all. Off under “Sidebar”: its tasks load but the project is not listed."
+msgstr "「読み込む」がオフ: カレンダーを読みません。「サイドバー」がオフ: タスクは読み込みますが、プロジェクトは表示しません。"
+
+msgid "Offline"
+msgstr "オフライン"
 
 msgid "One sort order for every view. The default is Priority › Due › Title A–Z until you change it in the task list."
 msgstr "すべてのビューで同じ並べ替えです。タスクリストで変更するまで、デフォルトは優先度 › 期限 › タイトル A–Z です。"
 
+msgid "Online"
+msgstr "オンライン"
+
 msgid "Only opaque (busy) events count. Transparent events are ignored."
 msgstr "不透明（予定あり）のイベントのみ対象です。透明なイベントは無視されます。"
+
+msgid "Only tasks matching ALL active rules are shown. Leave a filter on \"Any\" to disable it."
+msgstr "有効なすべてのルールに一致するタスクのみ表示します。「すべて」のままのフィルターは無効です。"
+
+msgid "Only the custom column"
+msgstr "カスタム列のみ"
+
+msgid "Only with Shift or Ctrl held"
+msgstr "Shift か Ctrl を押しているときのみ"
+
+msgid "Open"
+msgstr "未完了"
+
+msgid "Open %1"
+msgstr "%1 を開く"
 
 msgid "Open / Join"
 msgstr "開く / 参加"
@@ -553,6 +1051,15 @@ msgstr "GitHub を開く"
 
 msgid "Open first"
 msgstr "未完了優先"
+
+msgid "Open full editor"
+msgstr "フルエディターを開く"
+
+msgid "Open in calendar"
+msgstr "カレンダーで開く"
+
+msgid "Open map"
+msgstr "地図を開く"
 
 msgid "Open root tasks"
 msgstr "未完了のルートタスク"
@@ -566,8 +1073,8 @@ msgstr "フルエディターを開く"
 msgid "Open the inline editor"
 msgstr "インラインエディターを開く"
 
-msgid "Order and visibility"
-msgstr "順序と表示"
+msgid "Organize"
+msgstr "整理"
 
 msgid "Overdue"
 msgstr "期限超過"
@@ -584,17 +1091,50 @@ msgstr "期限超過のみ"
 msgid "Panel"
 msgstr "パネル"
 
+msgid "Panel & notifications"
+msgstr "パネルと通知"
+
 msgid "Panel badge"
 msgstr "パネルバッジ"
 
 msgid "Panel tooltip"
 msgstr "パネルのツールチップ"
 
+msgid "Parent task"
+msgstr "親タスク"
+
+msgid "Pending jobs"
+msgstr "保留中のジョブ"
+
+msgid "Per day"
+msgstr "1 日あたり"
+
+msgid "Periods shown ahead of the current one. 0 = automatic (14 days, 8 weeks or 6 months). Later tasks are collected in one column."
+msgstr "現在の期間より先に表示する期間数。0 = 自動（14日、8週間、または6か月）。それ以降のタスクは1つの列にまとめられます。"
+
 msgid "Pick date"
 msgstr "日付を選択"
 
+msgid "Planning horizon"
+msgstr "計画期間"
+
+msgid "Plasma (default)"
+msgstr "Plasma（既定）"
+
+msgid "Preview"
+msgstr "プレビュー"
+
+msgid "Previous"
+msgstr "前へ"
+
 msgid "Priorities"
 msgstr "優先度"
+
+msgid "Priorities are already Kanban columns."
+msgstr "優先度はすでにカンバンの列です。"
+
+msgid "Priorities are already swimlane rows."
+msgstr "優先度はすでにスイムレーンの行です。"
 
 msgid "Priority"
 msgstr "優先度"
@@ -602,11 +1142,20 @@ msgstr "優先度"
 msgid "Priority %1"
 msgstr "優先度 %1"
 
+msgid "Priority %1 (%2)"
+msgstr "優先度 %1 (%2)"
+
+msgid "Priority colours (red · yellow · blue)"
+msgstr "優先度の色（赤・黄・青）"
+
 msgid "Priority:"
 msgstr "優先度:"
 
 msgid "Private"
 msgstr "非公開"
+
+msgid "Progress"
+msgstr "進捗"
 
 msgid "Progress %"
 msgstr "進捗 %"
@@ -614,8 +1163,26 @@ msgstr "進捗 %"
 msgid "Progress % (high first)"
 msgstr "進捗 %（高い順）"
 
-msgid "Progress:"
-msgstr "進捗:"
+msgid "Progress %1%"
+msgstr "進捗 %1%"
+
+msgid "Progress is already used for Kanban columns."
+msgstr "進捗はすでにカンバンの列に使われています。"
+
+msgid "Project"
+msgstr "プロジェクト"
+
+msgid "Project (Z–A)"
+msgstr "プロジェクト (Z–A)"
+
+msgid "Project and label colours"
+msgstr "プロジェクトとラベルの色"
+
+msgid "Project plan"
+msgstr "プロジェクト計画"
+
+msgid "Project plan options"
+msgstr "プロジェクト計画のオプション"
 
 msgid "Project:"
 msgstr "プロジェクト:"
@@ -623,14 +1190,23 @@ msgstr "プロジェクト:"
 msgid "Projects"
 msgstr "プロジェクト"
 
-msgid "Projects (Akonadi Calendars)"
-msgstr "プロジェクト (Akonadi カレンダー)"
+msgid "Projects are already Kanban columns."
+msgstr "プロジェクトはすでにカンバンの列です。"
+
+msgid "Projects are already plan rows."
+msgstr "プロジェクトはすでに計画の行です。"
+
+msgid "Projects are already swimlane rows."
+msgstr "プロジェクトはすでにスイムレーンの行です。"
 
 msgid "Public"
 msgstr "公開"
 
 msgid "Quiet hours"
 msgstr "おやすみ時間"
+
+msgid "Read this calendar when loading tasks"
+msgstr "タスクの読み込み時にこのカレンダーを読む"
 
 msgid "Recurring"
 msgstr "繰り返し"
@@ -644,6 +1220,9 @@ msgstr "繰り返しアイコン"
 msgid "Recurring last"
 msgstr "繰り返し最後"
 
+msgid "Recurring tasks only"
+msgstr "繰り返しタスクのみ"
+
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "モーション低減（スピナーなし、控えめなホバー）"
 
@@ -652,6 +1231,12 @@ msgstr "更新"
 
 msgid "Relative dates (Today, Tomorrow)"
 msgstr "相対日付（今日、明日）"
+
+msgid "Release"
+msgstr "リリース"
+
+msgid "Reload"
+msgstr "再読み込み"
 
 msgid "Remember globally (all views)"
 msgstr "全体で記憶（すべてのビュー）"
@@ -662,32 +1247,44 @@ msgstr "ビューごとに記憶"
 msgid "Remember the last view instead"
 msgstr "代わりに最後のビューを記憶"
 
+msgid "Reminder"
+msgstr "リマインダー"
+
 msgid "Reminder first"
 msgstr "リマインダー優先"
 
 msgid "Reminder last"
 msgstr "リマインダー最後"
 
-msgid "Reminder:"
-msgstr "リマインダー:"
+msgid "Remove filter"
+msgstr "フィルターを解除"
 
 msgid "Remove label"
 msgstr "ラベルを削除"
 
+msgid "Remove label “%1”"
+msgstr "ラベル「%1」を外す"
+
+msgid "Remove label “%1” from this task?"
+msgstr "このタスクからラベル「%1」を外しますか?"
+
+msgid "Remove label?"
+msgstr "ラベルを外しますか?"
+
 msgid "Rename"
 msgstr "名前を変更"
 
-msgid "Rename from"
-msgstr "変更前"
+msgid "Reopen"
+msgstr "再開"
 
-msgid "Rename to"
-msgstr "変更後"
-
-msgid "Repeat:"
-msgstr "繰り返し:"
+msgid "Repeat"
+msgstr "繰り返し"
 
 msgid "Reset this page"
 msgstr "このページをリセット"
+
+msgid "Row axis"
+msgstr "行の軸"
 
 msgid "Row chips"
 msgstr "行チップ"
@@ -695,8 +1292,17 @@ msgstr "行チップ"
 msgid "Row size"
 msgstr "行の高さ"
 
+msgid "Rows"
+msgstr "行"
+
+msgid "Sa"
+msgstr "土"
+
 msgid "Save"
 msgstr "保存"
+
+msgid "Saved filters appear in the sidebar. Each can set filter rules and a default main-pane mode."
+msgstr "保存したフィルターはサイドバーに表示されます。各ビューでルールと既定のメインモードを設定できます。"
 
 msgid "Schedule"
 msgstr "スケジュール"
@@ -710,11 +1316,17 @@ msgstr "検索"
 msgid "Search or create label…"
 msgstr "ラベルを検索または作成…"
 
+msgid "Search or set location…"
+msgstr "場所を検索または設定…"
+
 msgid "Search parent task…"
 msgstr "親タスクを検索…"
 
 msgid "Search tasks…"
 msgstr "タスクを検索…"
+
+msgid "Search text:"
+msgstr "検索文字列:"
 
 msgid "Search titles only"
 msgstr "タイトルのみ検索"
@@ -722,11 +1334,17 @@ msgstr "タイトルのみ検索"
 msgid "Second sort"
 msgstr "第2ソート"
 
-msgid "Secrecy:"
-msgstr "機密:"
+msgid "Secrecy"
+msgstr "機密性"
 
-msgid "Section:"
-msgstr "セクション:"
+msgid "Secrecy (reverse)"
+msgstr "機密性 (逆順)"
+
+msgid "Secrecy is already used for Kanban columns."
+msgstr "機密性はすでにカンバンの列に使われています。"
+
+msgid "Section"
+msgstr "セクション"
 
 msgid "Sections"
 msgstr "セクション"
@@ -737,14 +1355,38 @@ msgstr "ラベルを選んでタスクを絞り込みます。"
 msgid "Select a project to filter tasks."
 msgstr "プロジェクトを選んでタスクを絞り込みます。"
 
-msgid "Select only (double-click opens the full editor)"
-msgstr "選択のみ（ダブルクリックでフルエディター）"
+msgid "Select only"
+msgstr "選択のみ"
+
+msgid "Selection"
+msgstr "選択"
+
+msgid "Send test notification"
+msgstr "テスト通知を送る"
+
+msgid "Sent."
+msgstr "送信しました。"
+
+msgid "Set KURRENT_SMOKE=1 and check ~/.cache/kurrent-smoke/ for logs."
+msgstr "KURRENT_SMOKE=1 を設定し、ログは ~/.cache/kurrent-smoke/ を確認してください。"
+
+msgid "Set location “%1”"
+msgstr "場所「%1」を設定"
+
+msgid "Set priority"
+msgstr "優先度を設定"
 
 msgid "Set priority “%1”"
 msgstr "優先度を「%1」に設定"
 
-msgid "Setup"
-msgstr "セットアップ"
+msgid "Set progress to %1"
+msgstr "進捗を %1 に設定"
+
+msgid "Set secrecy “%1”"
+msgstr "機密性「%1」を設定"
+
+msgid "Set status “%1”"
+msgstr "状態「%1」を設定"
 
 msgid "Show All"
 msgstr "すべて表示"
@@ -761,8 +1403,20 @@ msgstr "空のプロジェクトを表示"
 msgid "Show in the sidebar"
 msgstr "サイドバーに表示"
 
-msgid "Show overdue tasks at the top of Today"
-msgstr "今日の先頭に期限超過タスクを表示"
+msgid "Show only tasks from a specific project (Akonadi collection). \"Any project\" disables this filter."
+msgstr "特定のプロジェクト (Akonadi コレクション) のタスクのみ表示します。「すべてのプロジェクト」で無効になります。"
+
+msgid "Show only tasks with a specific label (Akonadi category). \"Any label\" disables this filter."
+msgstr "特定のラベル (Akonadi カテゴリ) を持つタスクのみ表示します。「すべてのラベル」で無効になります。"
+
+msgid "Show overdue"
+msgstr "期限切れを表示"
+
+msgid "Show overdue tasks (tile, chip or notice)"
+msgstr "期限切れを表示 (タイル・チップ・通知)"
+
+msgid "Show sidebar"
+msgstr "サイドバーを表示"
 
 msgid "Show task counts"
 msgstr "タスク件数を表示"
@@ -770,17 +1424,35 @@ msgstr "タスク件数を表示"
 msgid "Show this label in the sidebar filter"
 msgstr "このラベルをサイドバーのフィルターに表示"
 
+msgid "Show this location in the sidebar filter"
+msgstr "この場所をサイドバーのフィルターに表示"
+
 msgid "Show this project in the sidebar"
 msgstr "このプロジェクトをサイドバーに表示"
 
 msgid "Show time on the due chip"
 msgstr "期限チップに時刻を表示"
 
+msgid "Show undated tasks"
+msgstr "日付なしのタスクを表示"
+
 msgid "Sidebar"
 msgstr "サイドバー"
 
-msgid "Snooze from the notification (15 minutes, 1 hour, tomorrow) rewrites the VALARM. Due date is unchanged; use Reschedule for that."
-msgstr "通知からのスヌーズ（15分、1時間、明日）は VALARM を書き換えます。期限は変わりません。期限変更には再スケジュールを使ってください。"
+msgid "Smart View name"
+msgstr "スマートビューの名前"
+
+msgid "Smart Views"
+msgstr "スマートビュー"
+
+msgid "Smoke test"
+msgstr "スモークテスト"
+
+msgid "Snoozing only moves the reminder, not the due date."
+msgstr "スヌーズで動くのはリマインダーだけで、期限は変わりません。"
+
+msgid "Sort by:"
+msgstr "並べ替え:"
 
 msgid "Sort order"
 msgstr "並べ替え順"
@@ -791,20 +1463,26 @@ msgstr "タスクを並べ替え"
 msgid "Sort: %1"
 msgstr "並べ替え: %1"
 
+msgid "Star"
+msgstr "星"
+
+msgid "Start"
+msgstr "開始"
+
 msgid "Start date"
 msgstr "開始日"
 
 msgid "Start it with akonadictl start, then add a CalDAV resource in Merkuro or KOrganizer."
 msgstr "akonadictl start で起動し、Merkuro または KOrganizer で CalDAV リソースを追加してください。"
 
-msgid "Start:"
-msgstr "開始:"
-
-msgid "Starts"
-msgstr "開始"
-
 msgid "Status"
 msgstr "状態"
+
+msgid "Status (reverse)"
+msgstr "状態 (逆順)"
+
+msgid "Status is already used for Kanban columns."
+msgstr "状態はすでにカンバンの列に使われています。"
 
 msgid "Status:"
 msgstr "状態:"
@@ -812,41 +1490,95 @@ msgstr "状態:"
 msgid "Still open"
 msgstr "まだ未完了"
 
+msgid "Stores KURRENT/LIST for Today-view day sections (Morning, Afternoon, Evening). Also used as the Kanban “Day section” column source."
+msgstr "今日ビューの時間帯 (朝・午後・夜) 用に KURRENT/LIST を保存します。カンバンの「時間帯」列のソースにもなります。"
+
 msgid "Strong"
 msgstr "強調"
+
+msgid "Style"
+msgstr "スタイル"
+
+msgid "Su"
+msgstr "日"
 
 msgid "Subtasks"
 msgstr "サブタスク"
 
-msgid "Suppress reminder notifications in this window"
-msgstr "この時間帯のリマインダー通知を抑制"
+msgid "Swimlane options"
+msgstr "スイムレーンのオプション"
 
-msgid "Suppress reminders while a calendar event is in progress"
-msgstr "カレンダーイベント進行中はリマインダーを抑制"
+msgid "Swimlanes"
+msgstr "スイムレーン"
 
 msgid "Sync now"
 msgstr "今すぐ同期"
 
+msgid "Synced"
+msgstr "同期済み"
+
+msgid "Syncing…"
+msgstr "同期中…"
+
+msgid "Tag"
+msgstr "タグ"
+
 msgid "Tasks"
 msgstr "タスク"
 
-msgid "Tasks are loaded from your existing Akonadi setup."
-msgstr "タスクは既存の Akonadi 設定から読み込まれます。"
+msgid "Tasks appear here by row and period once they match the current view."
+msgstr "現在のビューに一致するタスクが、行と期間ごとにここに表示されます。"
+
+msgid "Tasks due"
+msgstr "期限のタスク"
+
+msgid "Tasks this week"
+msgstr "今週のタスク"
+
+msgid "Th"
+msgstr "木"
 
 msgid "The KDE Store package is only the widget. Run this in a terminal to install the plugin:"
 msgstr "KDE Store のパッケージはウィジェットのみです。プラグインを入れるには、次のコマンドを端末で実行してください:"
 
+msgid "The display name shown in the sidebar."
+msgstr "サイドバーに表示する名前。"
+
+msgid "The field of the column (default)"
+msgstr "列のフィールド (既定)"
+
 msgid "The flyout is ready; tasks appear when the server answers."
 msgstr "フライアウトの準備完了。サーバー応答後にタスクが表示されます。"
 
-msgid "The full editor stays an overlay inside the widget. Day section (LIST) is in the full editor."
-msgstr "フルエディターはウィジェット内のオーバーレイのままです。日セクション（LIST）はフルエディター内にあります。"
+msgid "The main-pane view mode used when this Smart View is active."
+msgstr "このスマートビューが有効なときのメイン領域の表示モード。"
 
 msgid "Third sort"
 msgstr "第3ソート"
 
+msgid "This build has no notification support."
+msgstr "このビルドは通知に対応していません。"
+
+msgid "This task was changed on the server. Reload to discard your edit."
+msgstr "サーバー側でこのタスクが変更されました。再読み込みすると編集内容は破棄されます。"
+
+msgid "This week"
+msgstr "今週"
+
 msgid "This widget is version %1 but the installed backend is %2. Reinstall the backend to match."
 msgstr "ウィジェットは %1 ですが、インストール済みバックエンドは %2 です。一致するようバックエンドを再インストールしてください。"
+
+msgid "Tick off"
+msgstr "チェック"
+
+msgid "Tiles with the key views above the tasks"
+msgstr "タスクの上に主要ビューのタイルを表示"
+
+msgid "Time"
+msgstr "時刻"
+
+msgid "Time grouping"
+msgstr "時間のまとまり"
 
 msgid "Title"
 msgstr "タイトル"
@@ -857,14 +1589,14 @@ msgstr "タイトル A–Z"
 msgid "Title Z–A"
 msgstr "タイトル Z–A"
 
-msgid "Title:"
-msgstr "タイトル:"
-
 msgid "Today"
 msgstr "今日"
 
 msgid "Today and overdue"
 msgstr "今日と期限超過"
+
+msgid "Today groups its tasks into morning, afternoon and evening from these times."
+msgstr "今日ビューはこの時刻でタスクを朝・午後・夜に分けます。"
 
 msgid "Today: %1 · Overdue: %2"
 msgstr "今日: %1 · 期限超過: %2"
@@ -875,29 +1607,23 @@ msgstr "明日"
 msgid "Tonight"
 msgstr "今夜"
 
+msgid "Translucent with blurred wallpaper"
+msgstr "壁紙をぼかした半透明の背景"
+
 msgid "Try again"
 msgstr "再試行"
 
-msgid "Undo"
-msgstr "元に戻す"
-
-msgid "Undo complete"
-msgstr "完了を元に戻す"
-
-msgid "Undo delete"
-msgstr "削除を元に戻す"
-
-msgid "Undo move"
-msgstr "移動を元に戻す"
-
-msgid "Undo reschedule"
-msgstr "再スケジュールを元に戻す"
+msgid "Tu"
+msgstr "火"
 
 msgid "Unlabeled"
 msgstr "ラベルなし"
 
-msgid "Use Plasma’s translucent background so KWin blurs the wallpaper. Also applies to the panel flyout."
-msgstr "Plasma の半透明背景を使い、KWin が壁紙をぼかします。パネルのフライアウトにも適用されます。"
+msgid "Unlabeled view does not apply when Kanban uses labels as columns."
+msgstr "カンバンがラベルを列にしている場合、「ラベルなし」ビューは適用されません。"
+
+msgid "Unscheduled"
+msgstr "未スケジュール"
 
 msgid "Use a specific project"
 msgstr "特定のプロジェクト"
@@ -905,20 +1631,71 @@ msgstr "特定のプロジェクト"
 msgid "Use the top project in the sidebar"
 msgstr "サイドバーの一番上のプロジェクト"
 
+msgid "Use “%1”"
+msgstr "「%1」を使用"
+
+msgid "Verbose journal"
+msgstr "詳細ジャーナル"
+
+msgid "Version"
+msgstr "バージョン"
+
+msgid "View mode"
+msgstr "表示モード"
+
+msgid "View mode:"
+msgstr "表示モード:"
+
+msgid "View mode: %1"
+msgstr "表示モード: %1"
+
 msgid "Views"
 msgstr "ビュー"
-
-msgid "Visible"
-msgstr "表示"
 
 msgid "Waiting for Akonadi…"
 msgstr "Akonadi を待っています…"
 
+msgid "Warning"
+msgstr "警告"
+
+msgid "We"
+msgstr "水"
+
+msgid "Week"
+msgstr "週"
+
+msgid "Week %1"
+msgstr "第%1週"
+
 msgid "Weekly"
 msgstr "毎週"
 
+msgid "When checked, only recurring tasks are shown."
+msgstr "オンにすると繰り返しタスクのみ表示します。"
+
+msgid "Wide layout"
+msgstr "ワイドレイアウト"
+
+msgid "Widget %1 · Plugin %2"
+msgstr "ウィジェット %1 · プラグイン %2"
+
+msgid "Widget and plugin versions differ. Reinstall Kurrent so both match."
+msgstr "ウィジェットとプラグインのバージョンが違います。Kurrent を再インストールしてください。"
+
 msgid "Width"
 msgstr "幅"
+
+msgid "With tiles the overdue tile offers “Move all to today”; the narrow layout shows a chip in the header; otherwise a notice above the tasks."
+msgstr "タイルがあれば期限切れタイルに「すべて今日へ」、狭いレイアウトではヘッダーにチップ、それ以外はタスクの上に通知を表示します。"
+
+msgid "Work"
+msgstr "仕事"
+
+msgid "Writes and sync state"
+msgstr "書き込みと同期状態"
+
+msgid "Year"
+msgstr "年"
 
 msgid "Yearly"
 msgstr "毎年"
@@ -926,8 +1703,41 @@ msgstr "毎年"
 msgid "Yesterday"
 msgstr "昨日"
 
+msgid "You can also drag the edge of the sidebar."
+msgstr "サイドバーの端をドラッグしても変えられます。"
+
+msgid "high priority"
+msgstr "優先度高"
+
+msgid "overdue"
+msgstr "期限超過"
+
+msgid "task completed"
+msgstr "件完了"
+
+msgid "task due"
+msgstr "件期限"
+
+msgid "tasks completed"
+msgstr "件完了"
+
+msgid "tasks due"
+msgstr "件期限"
+
+msgid "to"
+msgstr "から"
+
+msgid "today"
+msgstr "今日"
+
+msgid "tomorrow"
+msgstr "明日"
+
 msgid "unknown"
 msgstr "不明"
+
+msgid "yesterday"
+msgstr "昨日"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
@@ -936,3 +1746,55 @@ msgstr[0] "%1 件の未完了タスク"
 msgid "%1 task"
 msgid_plural "%1 tasks"
 msgstr[0] "%1 件のタスク"
+
+msgid "+%1 more task"
+msgid_plural "+%1 more tasks"
+msgstr[0] "他 %1 件"
+
+msgid "Show %1 task in the list"
+msgid_plural "Show %1 tasks in the list"
+msgstr[0] "%1 件のタスクをリストで表示"
+
+msgid "%1 day"
+msgid_plural "%1 days"
+msgstr[0] "%1 日"
+
+msgid "%1 week"
+msgid_plural "%1 weeks"
+msgstr[0] "%1 週間"
+
+msgid "%1 month"
+msgid_plural "%1 months"
+msgstr[0] "%1 か月"
+
+msgid "%1 task is overdue."
+msgid_plural "%1 tasks are overdue."
+msgstr[0] "%1 件のタスクが期限切れです。"
+
+msgid "%1 day before"
+msgid_plural "%1 days before"
+msgstr[0] "%1 日前"
+
+msgid "%1 hour before"
+msgid_plural "%1 hours before"
+msgstr[0] "%1 時間前"
+
+msgid "%1 minute before"
+msgid_plural "%1 minutes before"
+msgstr[0] "%1 分前"
+
+msgid "%1 calendar"
+msgid_plural "%1 calendars"
+msgstr[0] "%1 個のカレンダー"
+
+msgid "It is removed from %1 task."
+msgid_plural "It is removed from %1 tasks."
+msgstr[0] "%1 件のタスクから外されます。"
+
+msgid "in %1 day"
+msgid_plural "in %1 days"
+msgstr[0] "%1 日後"
+
+msgid "%1 day ago"
+msgid_plural "%1 days ago"
+msgstr[0] "%1 日前"

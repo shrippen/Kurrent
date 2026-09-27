@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kirigamiaddons.dateandtime as KDateTime
 import "../datetime.js" as DateTime
+import "../Kante"
 
 RowLayout {
     id: root
@@ -66,10 +67,14 @@ RowLayout {
         })
     }
 
-    QQC2.TextField {
+    KanteTextField {
         id: field
         Layout.fillWidth: true
-        placeholderText: root.mode === "time" ? DateTime.timePlaceholder() : DateTime.datePlaceholder()
+        // Plain words; the expected format is in the tooltip (e7).
+        placeholderText: root.mode === "time" ? i18n("Time") : i18n("Date")
+        QQC2.ToolTip.text: root.mode === "time" ? DateTime.timePlaceholder() : DateTime.datePlaceholder()
+        QQC2.ToolTip.visible: hovered && text.length === 0
+        QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         inputMethodHints: Qt.ImhDigitsOnly
 
         onTextChanged: {
@@ -136,7 +141,7 @@ RowLayout {
         }
     }
 
-    QQC2.ToolButton {
+    KanteToolButton {
         id: pickerButton
         visible: root.mode === "date"
         enabled: root.enabled

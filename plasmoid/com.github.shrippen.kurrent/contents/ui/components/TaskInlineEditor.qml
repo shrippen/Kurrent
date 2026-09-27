@@ -6,6 +6,7 @@ import "../colors.js" as Colors
 import "../datetime.js" as DateTime
 import ".."
 import "."
+import "../Kante"
 
 Item {
     id: root
@@ -89,7 +90,7 @@ Item {
         width: Math.max(0, root.width - root.innerPad * 2)
         spacing: Design.spaceSmall
 
-        QQC2.TextField {
+        KanteTextField {
             id: summaryField
             Layout.fillWidth: true
             placeholderText: i18n("Title")
@@ -121,6 +122,11 @@ Item {
                 mode: "date"
                 popupParent: root.popupParent
                 onTextEdited: root.clearDueRequested = false
+                onTextChanged: {
+                    if (text.length > 0 && dueTimeField.text.length === 0 && !allDayCheck.checked) {
+                        allDayCheck.checked = true
+                    }
+                }
             }
 
             DateTimeInput {
@@ -133,10 +139,11 @@ Item {
 
             QQC2.CheckBox {
                 id: allDayCheck
+                KanteCheckSkin { control: parent }
                 text: i18n("All day")
             }
 
-            QQC2.ToolButton {
+            KanteToolButton {
                 icon.name: "edit-clear"
                 onClicked: {
                     dueDateField.clear()
@@ -163,7 +170,7 @@ Item {
         RowLayout {
             Layout.fillWidth: true
 
-            QQC2.Button {
+            KanteButton {
                 text: i18n("More…")
                 flat: true
                 onClicked: root.openFullEditor()
@@ -171,14 +178,14 @@ Item {
 
             Item { Layout.fillWidth: true }
 
-            QQC2.Button {
+            KanteButton {
                 text: i18n("Save")
                 icon.name: "document-save"
                 highlighted: true
                 onClicked: root.save()
             }
 
-            QQC2.Button {
+            KanteButton {
                 text: i18n("Cancel")
                 icon.name: "dialog-cancel"
                 onClicked: root.cancelled()

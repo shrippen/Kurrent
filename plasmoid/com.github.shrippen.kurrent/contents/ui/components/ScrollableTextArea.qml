@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import ".."
+import "../Kante"
 
 // Fixed-height wrapped text field. Flickable + right-edge scrollbar (not ScrollView):
 // ScrollView reserves width on the right but can paint the bar on the left at implicit height.
@@ -52,7 +53,11 @@ Item {
 
         QQC2.TextArea {
             id: area
+            KanteFieldSkin { control: parent }
             width: flick.contentWidth
+            // Fill the visible frame so empty space below the text is still
+            // clickable/focusable (TextArea defaults to content height only).
+            height: Math.max(implicitHeight, flick.height)
             wrapMode: TextEdit.Wrap
             selectByMouse: true
             background: Item {}

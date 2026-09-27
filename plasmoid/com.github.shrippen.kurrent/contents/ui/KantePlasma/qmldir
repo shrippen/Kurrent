@@ -1,0 +1,4 @@
+module KantePlasma
+KantePlasmaButton 1.0 KantePlasmaButton.qml
+KantePlasmaToolButton 1.0 KantePlasmaToolButton.qml
+KantePlasmaHeading 1.0 KantePlasmaHeading.qml

@@ -67,7 +67,7 @@ The **large area right of the sidebar** is one **main pane**. Built-in sidebar e
 
 - In `FullView`, the header row (view title, filters, **Sort**, build label) gains a **View mode** control (`view-mode` icon or segmented control): List · Kanban · Swimlanes · Plan · Heatmap · Calendar.
 - **Sort** applies where meaningful (List; optionally card order inside Kanban columns). Kanban/Swimlanes/Plan/Heatmap use their own layout rules but respect the same **filter** as the active sidebar selection (built-in view or Smart View).
-- Persist last mode **per sidebar view id** in `kurrentrc` (`viewModeByView`), default List.
+- Persist last mode **globally** in `kurrentrc` (`mainPaneMode`), default List; sidebar view switches do not change it.
 
 ### Kanban (1.0)
 
@@ -289,6 +289,8 @@ curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-
 11. **Tests:** recurrence complete, alarm round-trip, quick-add parser, catch-up/overdue, reschedule undo, `SharedSettings` round-trip, Smart View filter JSON, Kanban column mapping unit tests (no manual Nextcloud round-trip gate).
 
 **Removed from 1.0 gate:** manual Nextcloud/Merkuro round-trip checklist as release blocker (replace with automated tests + documented interop limits).
+
+**To check before release:** repo root has both `install.sh` and a plain `install` file with identical content — confirm which is canonical and remove the duplicate.
 
 ---
 

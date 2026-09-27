@@ -12,7 +12,7 @@ Item {
     readonly property bool wideLayout: width >= Kirigami.Units.gridUnit * 28
     readonly property int contentWidth: Math.min(
         Math.max(width - Design.spaceMedium * 2, Kirigami.Units.gridUnit * 12),
-        Kirigami.Units.gridUnit * 32)
+        Kirigami.Units.gridUnit * 36)
 
     implicitWidth: contentWidth
     implicitHeight: column.implicitHeight

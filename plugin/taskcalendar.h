@@ -17,6 +17,16 @@ QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
 void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDate &today);
 QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo);
 void setSection(const KCalendarCore::Todo::Ptr &todo, const QString &section);
+QString columnFromTodo(const KCalendarCore::Todo::Ptr &todo);
+void setColumn(const KCalendarCore::Todo::Ptr &todo, const QString &column);
+int columnOrderFromTodo(const KCalendarCore::Todo::Ptr &todo);
+void setColumnOrder(const KCalendarCore::Todo::Ptr &todo, int order);
+int appleSortOrderFromTodo(const KCalendarCore::Todo::Ptr &todo);
+void setAppleSortOrder(const KCalendarCore::Todo::Ptr &todo, int order);
+int kanbanSortOrderFromTodo(const KCalendarCore::Todo::Ptr &todo);
+void setKanbanSortOrder(const KCalendarCore::Todo::Ptr &todo, int order);
+QStringList attendeesFromTodo(const KCalendarCore::Todo::Ptr &todo);
+QString geoMapUrlFromTodo(const KCalendarCore::Todo::Ptr &todo);
 bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, const QDateTime &now);
 
 // -1 = no reminder, 0 = at due, N = N minutes before due.
@@ -32,6 +42,8 @@ QDateTime startDateFromTodo(const KCalendarCore::Todo::Ptr &todo);
 struct BusyInterval {
     QDateTime start;
     QDateTime end;
+    QString summary;
+    qint64 collectionId = 0;
 };
 
 /** Expand opaque (busy) occurrences of an incidence into [start, end) intervals. */

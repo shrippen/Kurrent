@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import "." as KurrentUi
+import "Kante"
 
 Item {
     id: root
@@ -12,13 +13,39 @@ Item {
     implicitWidth: Kirigami.Units.gridUnit * 22
     implicitHeight: column.implicitHeight + KurrentUi.Design.spaceLarge * 2
 
+    // Kante / Kante Light: install card with the cut corner and the accent bar.
+    KanteCard {
+        visible: KanteStyle.active
+        anchors.fill: column
+        anchors.margins: -KurrentUi.Design.spaceLarge
+        color: KanteStyle.cardColor
+        barColor: KanteStyle.accentColor
+    }
+
     ColumnLayout {
         id: column
         anchors.centerIn: parent
         width: Math.max(0, Math.min(parent.width - KurrentUi.Design.spaceLarge * 2, Kirigami.Units.gridUnit * 28))
         spacing: KurrentUi.Design.spaceSmall
 
+        // Kante / Kante Light: title in Rajdhani instead of the placeholder icon.
+        QQC2.Label {
+            visible: KanteStyle.active
+            Layout.fillWidth: true
+            text: "Kurrent"
+            font: KanteStyle.titleFont(Kirigami.Theme.defaultFont.pointSize * 2.4)
+            color: KanteStyle.strongTextColor
+        }
+        QQC2.Label {
+            visible: KanteStyle.active
+            Layout.fillWidth: true
+            text: i18n("Backend not installed") + " — " + i18n("The KDE Store package is only the widget. Run this in a terminal to install the plugin:")
+            wrapMode: Text.WordWrap
+            color: KanteStyle.mutedTextColor
+        }
+
         Kirigami.PlaceholderMessage {
+            visible: !KanteStyle.active
             Layout.fillWidth: true
             icon.name: "dialog-information"
             text: i18n("Backend not installed")
@@ -28,10 +55,10 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: commandEdit.implicitHeight + KurrentUi.Design.padInner * 2
-            radius: KurrentUi.Design.inputRadius
-            color: Kirigami.Theme.backgroundColor
+            radius: KanteStyle.active ? 0 : KurrentUi.Design.inputRadius
+            color: KanteStyle.themed ? KanteStyle.sunkenColor : Kirigami.Theme.backgroundColor
             border.width: 1
-            border.color: KurrentUi.Design.windowBorderColor()
+            border.color: KanteStyle.active ? KanteStyle.accentColor : KurrentUi.Design.windowBorderColor()
 
             TextEdit {
                 id: commandEdit
@@ -43,11 +70,10 @@ Item {
                 wrapMode: TextEdit.Wrap
                 selectByMouse: true
                 text: root.installCommand
-                color: Kirigami.Theme.textColor
+                color: KanteStyle.themed ? KanteStyle.accentTextColor : Kirigami.Theme.textColor
                 selectedTextColor: Kirigami.Theme.highlightedTextColor
                 selectionColor: Kirigami.Theme.highlightColor
-                font.family: "monospace"
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize
+                font: KanteStyle.monoFont(Kirigami.Theme.defaultFont.pointSize)
             }
         }
 
@@ -55,16 +81,17 @@ Item {
             Layout.fillWidth: true
             spacing: KurrentUi.Design.spaceSmall
 
-            QQC2.Button {
+            KanteButton {
                 icon.name: "edit-copy"
                 text: i18n("Copy command")
+                emphasis: KanteButton.Emphasis.Primary
                 onClicked: {
                     commandEdit.selectAll()
                     commandEdit.copy()
                     commandEdit.deselect()
                 }
             }
-            QQC2.Button {
+            KanteButton {
                 icon.name: "internet-services"
                 text: i18n("Open GitHub")
                 onClicked: Qt.openUrlExternally("https://github.com/shrippen/Kurrent")
