@@ -1841,6 +1841,139 @@
    "state": "ignored"
   }
  ],
+ "vendors": [
+  {
+   "id": "elbnetz",
+   "name": "Elbnetz Mobilfunk",
+   "kind": {
+    "de": "Mobilfunk",
+    "en": "Mobile network"
+   },
+   "domain": "elbnetz.example.test",
+   "contract": {
+    "de": "Mobilfunkvertrag",
+    "en": "Mobile contract"
+   },
+   "monthly": 39.95
+  },
+  {
+   "id": "nordhost",
+   "name": "Nordhost Server",
+   "kind": {
+    "de": "Hosting",
+    "en": "Hosting"
+   },
+   "domain": "nordhost.example.test",
+   "contract": {
+    "de": "Server-Miete",
+    "en": "Server rental"
+   },
+   "monthly": 41.65
+  },
+  {
+   "id": "farbraum",
+   "name": "Farbraum Software",
+   "kind": {
+    "de": "Software",
+    "en": "Software"
+   },
+   "domain": "farbraum.example.test",
+   "contract": {
+    "de": "Farbraum Grade, Abo",
+    "en": "Farbraum Grade subscription"
+   },
+   "monthly": 66.45
+  },
+  {
+   "id": "elbstrom",
+   "name": "Elbstrom",
+   "kind": {
+    "de": "Energie",
+    "en": "Energy"
+   },
+   "domain": "elbstrom.example.test",
+   "contract": {
+    "de": "Ökostrom Studio",
+    "en": "Green power for the studio"
+   },
+   "monthly": 72.0
+  },
+  {
+   "id": "wellenklang",
+   "name": "Wellenklang",
+   "kind": {
+    "de": "Unterhaltung",
+    "en": "Entertainment"
+   },
+   "domain": "wellenklang.example.test",
+   "contract": {
+    "de": "Musik-Streaming",
+    "en": "Music streaming"
+   },
+   "monthly": 10.99
+  }
+ ],
+ "inventory": {
+  "assets": [
+   {
+    "tag": "NB-001",
+    "name": "Schnitt-Laptop",
+    "model": "Framework Laptop 13",
+    "category": {
+     "de": "Notebook",
+     "en": "Notebook"
+    },
+    "cost": 1200
+   },
+   {
+    "tag": "SRV-002",
+    "name": "NAS",
+    "model": "Speicherwerk NS-4",
+    "category": {
+     "de": "Server",
+     "en": "Server"
+    },
+    "cost": 650
+   },
+   {
+    "tag": "PH-003",
+    "name": "Möwe 7",
+    "model": "Möwe 7",
+    "category": {
+     "de": "Smartphone",
+     "en": "Smartphone"
+    },
+    "cost": 599
+   },
+   {
+    "tag": "MO-004",
+    "name": "Monitor 27\"",
+    "model": "Lichtblick 27Q",
+    "category": {
+     "de": "Monitor",
+     "en": "Monitor"
+    },
+    "cost": 890
+   }
+  ],
+  "licenses": [
+   {
+    "name": "Farbraum Grade Studio",
+    "vendor": "farbraum",
+    "seats": 1
+   },
+   {
+    "name": "Wolkenbüro Office",
+    "vendor": "",
+    "seats": 5
+   }
+  ],
+  "disks": [
+   "Speicherwerk HD4 4TB",
+   "Tiefgang NAS 4TB",
+   "Blitz 980 NVMe"
+  ]
+ },
  "tasks": {
   "collections": [
    {
