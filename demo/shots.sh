@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Landing-page screenshots from the demo tasks, for shrippen.github.io/tools/screenshots.py
+# Landing-page screenshots from the demo tasks, for shrippen.github.io/demo/tools/screenshots.py
 # (demo/shots.json). Writes <name>.png into $SHOT_DIR (default build/demo-shots).
 # Language: $DEMO_LANG (de|en). Renders offscreen through tests/screenshot.sh.
 set -euo pipefail

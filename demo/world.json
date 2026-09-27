@@ -1,6 +1,6 @@
 {
  "version": 1,
- "about": "Shared demo data of all shrippen projects: Studio Weber, a small film and media studio in Hamburg. Everything is made up. Dates are day offsets from the anchor (Monday of the week that contains 'today', DEMO_TODAY=YYYY-MM-DD fixes 'today'). Texts are {de, en}. Edit this file, then run tools/sync-demo.py. See demo/README.md.",
+ "about": "Shared demo data of all shrippen projects: Studio Weber, a small film and media studio in Hamburg. Everything is made up. Dates are day offsets from the anchor (Monday of the week that contains 'today', DEMO_TODAY=YYYY-MM-DD fixes 'today'). Texts are {de, en}. Edit this file, then run demo/tools/sync-demo.py. See demo/README.md.",
  "screenshot_today": "2026-09-16",
  "timezone": "Europe/Berlin",
  "currency": "EUR",
