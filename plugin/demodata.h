@@ -5,6 +5,8 @@
 // DEMO_TODAY=YYYY-MM-DD fixes "today".
 #pragma once
 
+#include "taskcalendar.h"
+
 #include <Akonadi/Collection>
 #include <KCalendarCore/Todo>
 #include <QList>
@@ -21,6 +23,10 @@ struct Task {
 struct Data {
     QList<Akonadi::Collection> collections;
     QList<Task> tasks;
+    // Calendar events for the agenda ("Calendar + tasks" view).
+    QVector<TaskCalendar::BusyInterval> events;
+    // Monday of the demo week: the agenda opens there, where the demo events are.
+    QDate monday;
 };
 
 // Language from KURRENT_DEMO, or an empty string when demo mode is off.

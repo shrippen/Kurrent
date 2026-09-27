@@ -316,6 +316,8 @@ void TaskController::loadDemoData()
             memory->seedItem(item);
         }
     }
+    m_busyIntervals = data.events;
+    m_agendaSelectedDate = data.monday;
     m_akonadiAvailable = true;
     Q_EMIT akonadiAvailableChanged();
     scheduleRebuildAll();

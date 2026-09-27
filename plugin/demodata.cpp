@@ -75,6 +75,7 @@ Data load()
     const QJsonObject tasks = world().value(QStringLiteral("tasks")).toObject();
     const QDate monday = anchor();
     Data data;
+    data.monday = monday;
 
     QHash<QString, qint64> collectionIds;
     const QJsonArray collections = tasks.value(QStringLiteral("collections")).toArray();
@@ -124,6 +125,17 @@ Data load()
             todo->setCompleted(QDateTime(monday.addDays(t.value(QStringLiteral("completed")).toInt()), QTime(17, 0), zone));
         }
         data.tasks.append({i + 1, collectionIds.value(t.value(QStringLiteral("collection")).toString()), todo});
+    }
+
+    for (const QJsonValue &value : tasks.value(QStringLiteral("events")).toArray()) {
+        const QJsonObject e = value.toObject();
+        const QDate day = monday.addDays(e.value(QStringLiteral("day")).toInt());
+        TaskCalendar::BusyInterval interval;
+        interval.start = QDateTime(day, QTime::fromString(e.value(QStringLiteral("start")).toString(), QStringLiteral("HH:mm")), zone);
+        interval.end = QDateTime(day, QTime::fromString(e.value(QStringLiteral("end")).toString(), QStringLiteral("HH:mm")), zone);
+        interval.summary = text(e.value(QStringLiteral("summary")), lang);
+        interval.collectionId = collectionIds.value(e.value(QStringLiteral("collection")).toString());
+        data.events.append(interval);
     }
     return data;
 }

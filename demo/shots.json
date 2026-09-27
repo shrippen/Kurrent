@@ -22,11 +22,27 @@
     },
     {
       "name": "inspector"
+    },
+    {
+      "name": "agenda"
+    },
+    {
+      "name": "detail-sidebar"
+    },
+    {
+      "name": "detail-views"
+    },
+    {
+      "name": "detail-quickadd"
     }
   ],
   "page": {
     "tasks.jpg": "tasks",
     "kanban.jpg": "kanban",
-    "heatmap.jpg": "heatmap"
+    "heatmap.jpg": "heatmap",
+    "agenda.jpg": "agenda",
+    "detail-sidebar.jpg": "detail-sidebar",
+    "detail-views.jpg": "detail-views",
+    "detail-quickadd.jpg": "detail-quickadd"
   }
 }

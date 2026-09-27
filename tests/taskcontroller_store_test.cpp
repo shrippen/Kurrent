@@ -481,6 +481,10 @@ void TaskControllerStoreTest::demoModeLoadsWorldTasks()
     QVERIFY(demo->testTaskCompleted(5));
     QVERIFY(demo->testTaskCategories(10).contains(QStringLiteral("Calls")));
     QVERIFY(demo->demoProjectColors().contains(QStringLiteral("#fe8019")));
+    // Monday 2026-09-14 is the anchor; the planning call is on the Monday.
+    const QVariantList events = demo->agendaEventsForDay(QDate(2026, 9, 14));
+    QCOMPARE(events.size(), 2);
+    QCOMPARE(events.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Weekly planning"));
     demo->resetSharedStateForTest();
     delete demo;
 }
