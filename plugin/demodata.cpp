@@ -14,7 +14,7 @@ constexpr qint64 kCollectionBase = 9001;
 
 QJsonObject world()
 {
-    QFile file(QStringLiteral(":/kurrent/demo/world.json"));
+    QFile file(QString::fromLocal8Bit(qgetenv("KURRENT_DEMO_WORLD")));
     if (!file.open(QIODevice::ReadOnly)) {
         return {};
     }

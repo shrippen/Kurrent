@@ -19,6 +19,6 @@ printf 'module com.github.shrippen.kurrent\nplugin kurrentplugin\nclassname Kurr
 cp -p "${XDG_CONFIG_HOME:-${HOME}/.config}/kdeglobals" "${WORK}/config/" 2>/dev/null || true
 
 LANG_="${1:-${DEMO_LANG:-de}}"
-XDG_CONFIG_HOME="${WORK}/config" KURRENT_DEMO="${LANG_}" LANGUAGE="${LANG_}" \
+XDG_CONFIG_HOME="${WORK}/config" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
 QML_IMPORT_PATH="${WORK}/qml" QML2_IMPORT_PATH="${WORK}/qml" \
     plasmoidviewer -a "${ROOT}/plasmoid/${APPLET_ID}" -f horizontal -l bottomedge -s 900x60

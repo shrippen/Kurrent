@@ -1,8 +1,9 @@
 // Demo data for Kurrent: the tasks of Studio Weber, the demo world shared by all
 // shrippen projects (demo/world.json, copied from shrippen.github.io/demo; do not edit).
 // KURRENT_DEMO=de|en (or 1: language from the locale) starts Kurrent with these tasks in
-// memory instead of Akonadi. Dates are day offsets from Monday of the current week;
-// DEMO_TODAY=YYYY-MM-DD fixes "today".
+// memory instead of Akonadi. The data is read at runtime from KURRENT_DEMO_WORLD (a path;
+// demo/start.sh and demo/shots.sh set it), so releases carry no demo data. Dates are day
+// offsets from Monday of the current week; DEMO_TODAY=YYYY-MM-DD fixes "today".
 #pragma once
 
 #include "taskcalendar.h"

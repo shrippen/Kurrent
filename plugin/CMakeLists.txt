@@ -33,13 +33,6 @@ add_library(kurrentplugin SHARED
     demodata.h
 )
 
-# Demo tasks (KURRENT_DEMO): the shared shrippen demo world, see demo/world.json
-qt_add_resources(kurrentplugin "kurrent_demo"
-    PREFIX "/kurrent"
-    BASE ".."
-    FILES ../demo/world.json
-)
-
 set_target_properties(kurrentplugin PROPERTIES
     AUTOMOC ON
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml/com/github/shrippen/kurrent"

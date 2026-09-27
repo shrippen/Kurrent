@@ -11,7 +11,7 @@ CONFIG="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-demo-config-XXXXXX")"
 trap 'rm -rf "${RAW}" "${CONFIG}"' EXIT
 cp -p "${XDG_CONFIG_HOME:-${HOME}/.config}/kdeglobals" "${CONFIG}/" 2>/dev/null || true
 
-XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" LANGUAGE="${LANG_}" \
+XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
 KURRENT_SCREENSHOT_PLAN="styles=kante;modes=list,kanban,plan,heatmap,calendar;widths=60;editor=1;inspector=1" \
     "${ROOT}/tests/screenshot.sh" "${RAW}"
 

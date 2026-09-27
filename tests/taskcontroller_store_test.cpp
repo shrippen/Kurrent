@@ -470,10 +470,9 @@ void TaskControllerStoreTest::heatmapTasksForDay()
 void TaskControllerStoreTest::demoModeLoadsWorldTasks()
 {
     qputenv("KURRENT_DEMO", "en");
+    qputenv("KURRENT_DEMO_WORLD", KURRENT_TEST_DEMO_WORLD);
     qputenv("DEMO_TODAY", "2026-09-16");
     auto *demo = new TaskController;
-    qunsetenv("KURRENT_DEMO");
-    qunsetenv("DEMO_TODAY");
 
     QVERIFY(demo->demoMode());
     QVERIFY(demo->testTaskExists(20));
@@ -487,6 +486,9 @@ void TaskControllerStoreTest::demoModeLoadsWorldTasks()
     QCOMPARE(events.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Weekly planning"));
     demo->resetSharedStateForTest();
     delete demo;
+    qunsetenv("KURRENT_DEMO");
+    qunsetenv("KURRENT_DEMO_WORLD");
+    qunsetenv("DEMO_TODAY");
 }
 
 QTEST_MAIN(TaskControllerStoreTest)
