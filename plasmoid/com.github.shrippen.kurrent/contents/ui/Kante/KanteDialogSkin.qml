@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls as QQC2
+import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "."
 
@@ -56,7 +57,7 @@ QtObject {
         }
     }
 
-    // Title strip: without it the platform's light strip stays on the dark card.
+    // Title strip (a Kirigami.PromptDialog has none: it shows the title in its content): without it the platform's light strip stays on the dark card.
     readonly property Item kanteHeader: QQC2.Label {
         visible: !!skin.dialog && skin.dialog.title.length > 0
         text: skin.dialog ? skin.dialog.title : ""
@@ -72,20 +73,50 @@ QtObject {
         target: skin.dialog
         property: "header"
         value: skin.kanteHeader
-        when: KanteStyle.themed && skin.dialog !== null
+        when: KanteStyle.themed && skin.dialog !== null && !skin.dialog.hasOwnProperty("subtitle")
         restoreMode: Binding.RestoreBindingOrValue
     }
 
-    readonly property Item kanteFooter: QQC2.DialogButtonBox {
-        visible: count > 0
-        standardButtons: skin.dialog ? skin.dialog.standardButtons : 0
-        alignment: Qt.AlignRight
-        spacing: Kirigami.Units.smallSpacing
+    // Standard buttons and, for a Kirigami.Dialog, its customFooterActions as Kante buttons.
+    readonly property Item kanteFooter: QQC2.Control {
+        visible: box.count > 0 || actions.count > 0
         padding: skin.dialog ? skin.dialog.padding : 0
-        background: null
-        delegate: KanteButton {
-            emphasis: QQC2.DialogButtonBox.buttonRole === QQC2.DialogButtonBox.AcceptRole
-                      ? KanteButton.Emphasis.Primary : KanteButton.Emphasis.Normal
+        leftPadding: Kirigami.Units.largeSpacing
+        rightPadding: Kirigami.Units.largeSpacing
+        bottomPadding: Kirigami.Units.largeSpacing
+
+        contentItem: RowLayout {
+            spacing: Kirigami.Units.smallSpacing
+
+            Item { Layout.fillWidth: true }
+
+            QQC2.DialogButtonBox {
+                id: box
+                visible: count > 0
+                standardButtons: skin.dialog ? skin.dialog.standardButtons : 0
+                alignment: Qt.AlignRight
+                spacing: Kirigami.Units.smallSpacing
+                padding: 0
+                background: null
+                delegate: KanteButton {
+                    Layout.alignment: Qt.AlignVCenter
+                    emphasis: QQC2.DialogButtonBox.buttonRole === QQC2.DialogButtonBox.AcceptRole
+                              ? KanteButton.Emphasis.Primary : KanteButton.Emphasis.Normal
+                }
+            }
+
+            Repeater {
+                id: actions
+                model: skin.dialog && skin.dialog.customFooterActions ? skin.dialog.customFooterActions : []
+                delegate: KanteButton {
+                    required property var modelData
+                    Layout.alignment: Qt.AlignVCenter
+                    text: modelData.text
+                    visible: modelData.visible
+                    enabled: modelData.enabled
+                    onClicked: modelData.trigger()
+                }
+            }
         }
     }
 
