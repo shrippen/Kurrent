@@ -9,6 +9,7 @@
 - Built on the **Kante** QML module from shrippen.github.io (vendored under `contents/ui/Kante` and `contents/ui/KantePlasma`, fonts under SIL OFL): `KanteScope` for the widget, skins for menus, popups, dialogs, inline messages and check boxes, `KanteHeading` for view titles and Kanban columns, `KanteCard` for cards and the full editor.
 - Kante 1.6: narrow-layout tabs (`KanteTabBar`), multi-select bar (`KanteBulkBar`), date picker (`KanteCalendarGrid`) and colour override swatches (`KanteSwatch`) come from the module.
 - Kante 1.7: labels in task rows and picked labels in the editor (removable) are `KanteChip` in Kante and Kante Light.
+- Kante 1.8: header filter chips are `KanteChip` with the filter icon (the name elides, then drops); Kanban cards and the agenda show labels as compact chips; label suggestions in the editor are `KanteListRow`s.
 - **Translucency in every style**: Kurrent never paints its own background, so a translucent / blurred Plasma background always shows through; Kante surfaces are tints on top. Only the panel flyout with blur off is opaque.
 - **Accent switches** for project/label colours and priority colours.
 - **Narrow layout**: below sidebar width + 24 grid units, views become tabs above the task pane with counters, and the sidebar opens on demand. The panel flyout now opens narrow by default (30 × 36 grid units).
