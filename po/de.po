@@ -1259,6 +1259,9 @@ msgstr "Erinnerung zuletzt"
 msgid "Remove filter"
 msgstr "Filter entfernen"
 
+msgid "Remove filter %1"
+msgstr "Filter %1 entfernen"
+
 msgid "Remove label"
 msgstr "Label entfernen"
 

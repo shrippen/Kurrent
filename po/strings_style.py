@@ -87,6 +87,9 @@ STYLE = {
         # Kante bulk bar: "2 selected" (count shown before it).
         'selected':
             'ausgewählt',
+        # Kante filter chip: accessible name of the × (%1 = filter name).
+        'Remove filter %1':
+            'Filter %1 entfernen',
     },
     'es': {
         'Style':
@@ -174,6 +177,9 @@ STYLE = {
         # Kante bulk bar: "2 selected" (count shown before it).
         'selected':
             'seleccionadas',
+        # Kante filter chip: accessible name of the × (%1 = filter name).
+        'Remove filter %1':
+            'Quitar filtro %1',
     },
     'fr': {
         'Style':
@@ -261,6 +267,9 @@ STYLE = {
         # Kante bulk bar: "2 selected" (count shown before it).
         'selected':
             'sélectionnées',
+        # Kante filter chip: accessible name of the × (%1 = filter name).
+        'Remove filter %1':
+            'Retirer le filtre %1',
     },
     'ja': {
         'Style':
@@ -348,6 +357,9 @@ STYLE = {
         # Kante bulk bar: "2 selected" (count shown before it).
         'selected':
             '件選択中',
+        # Kante filter chip: accessible name of the × (%1 = filter name).
+        'Remove filter %1':
+            'フィルター %1 を解除',
     },
     'zh_CN': {
         'Style':
@@ -435,6 +447,9 @@ STYLE = {
         # Kante bulk bar: "2 selected" (count shown before it).
         'selected':
             '项已选',
+        # Kante filter chip: accessible name of the × (%1 = filter name).
+        'Remove filter %1':
+            '移除筛选 %1',
     },
 }
 

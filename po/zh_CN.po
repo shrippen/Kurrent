@@ -1259,6 +1259,9 @@ msgstr "提醒最后"
 msgid "Remove filter"
 msgstr "移除筛选"
 
+msgid "Remove filter %1"
+msgstr "移除筛选 %1"
+
 msgid "Remove label"
 msgstr "移除标签"
 

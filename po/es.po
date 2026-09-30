@@ -1259,6 +1259,9 @@ msgstr "Recordatorio al final"
 msgid "Remove filter"
 msgstr "Quitar filtro"
 
+msgid "Remove filter %1"
+msgstr "Quitar filtro %1"
+
 msgid "Remove label"
 msgstr "Quitar etiqueta"
 

@@ -784,7 +784,38 @@ Item {
     readonly property int filterChipChrome: KurrentUi.Design.spaceTiny * 2 + filterChipIconSize + 2 + filterChipSpacing
     readonly property int filterIconOnlyWidth: {
         var n = plasmoidRoot.activeFilters ? plasmoidRoot.activeFilters.length : 0
+        if (KanteStyle.active) {
+            return n * (filterChipProbe.implicitWidth + filterChipSpacing * 2)
+        }
         return n * (filterChipIconSize + filterChipSpacing * 2 + filterChipChrome)
+    }
+
+    // Kante: a filter chip without its name (square, icon, ×) measures the icon-only width.
+    KanteChip {
+        id: filterChipProbe
+        visible: false
+        iconName: "tag"
+        removable: true
+    }
+
+    // Header filter chip: icon and colour per filter kind.
+    function filterIcon(kind) {
+        switch (kind) {
+        case "project": return "folder"
+        case "priority": return "flag"
+        case "progress": return "view-list-details"
+        case "status": return "view-calendar-tasks"
+        case "secrecy": return "object-unlocked"
+        case "location": return "mark-location"
+        }
+        return "tag"
+    }
+
+    function filterColor(filter) {
+        if (filter.kind === "priority") {
+            return KurrentUi.Design.priorityColor(filter.key)
+        }
+        return KurrentUi.Design.colorForKey(filter.key, filter.kind === "label" ? "label" : "project")
     }
 
     // Clears one sidebar filter kind (the × on a header chip).
@@ -1517,17 +1548,16 @@ Item {
                     }
 
                     Repeater {
-                        model: plasmoidRoot.activeFilters
-                        // Active filter as a removable chip: Plasma a rounded pill, Kante a square
-                        // sunken box. × clears just this filter.
+                        model: KanteStyle.active ? [] : plasmoidRoot.activeFilters
+                        // Active filter as a removable chip: a rounded pill. × clears just this filter.
                         delegate: Rectangle {
                             id: filterChip
                             required property var modelData
                             Layout.alignment: Qt.AlignVCenter
                             implicitWidth: filterChipRow.implicitWidth + KurrentUi.Design.spaceTiny * 2
                             implicitHeight: filterChipRow.implicitHeight + 2
-                            radius: KanteStyle.themed ? 0 : height / 2
-                            color: KanteStyle.themed ? KanteStyle.sunkenColor : KanteStyle.tint(Kirigami.Theme.textColor, 0.07)
+                            radius: height / 2
+                            color: KanteStyle.tint(Kirigami.Theme.textColor, 0.07)
                             border.width: 1
                             border.color: KanteStyle.frameColor
 
@@ -1540,16 +1570,8 @@ Item {
                                     Layout.alignment: Qt.AlignVCenter
                                     Layout.preferredWidth: fullRoot.filterChipIconSize
                                     Layout.preferredHeight: fullRoot.filterChipIconSize
-                                    source: filterChip.modelData.kind === "project" ? "folder"
-                                          : filterChip.modelData.kind === "priority" ? "flag"
-                                          : filterChip.modelData.kind === "progress" ? "view-list-details"
-                                          : filterChip.modelData.kind === "status" ? "view-calendar-tasks"
-                                          : filterChip.modelData.kind === "secrecy" ? "object-unlocked"
-                                          : filterChip.modelData.kind === "location" ? "mark-location"
-                                          : "tag"
-                                    color: filterChip.modelData.kind === "priority"
-                                           ? KurrentUi.Design.priorityColor(filterChip.modelData.key)
-                                           : KurrentUi.Design.colorForKey(filterChip.modelData.key, filterChip.modelData.kind === "label" ? "label" : "project")
+                                    source: fullRoot.filterIcon(filterChip.modelData.kind)
+                                    color: fullRoot.filterColor(filterChip.modelData)
                                     width: fullRoot.filterChipIconSize
                                     height: fullRoot.filterChipIconSize
                                 }
@@ -1578,6 +1600,23 @@ Item {
                                     QQC2.ToolTip.visible: hovered
                                 }
                             }
+                        }
+                    }
+
+                    // Kante / Kante Light: KanteChip; the name elides, then only square, icon and ×.
+                    Repeater {
+                        model: KanteStyle.active ? plasmoidRoot.activeFilters : []
+                        delegate: KanteChip {
+                            required property var modelData
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredWidth: Math.min(implicitWidth,
+                                                            filterChipProbe.implicitWidth + fullRoot.availableFilterTextWidth)
+                            text: modelData.text
+                            iconName: fullRoot.filterIcon(modelData.kind)
+                            chipColor: fullRoot.filterColor(modelData)
+                            removable: true
+                            removeText: i18n("Remove filter %1")
+                            onRemoveRequested: fullRoot.clearFilter(modelData.kind)
                         }
                     }
                 }

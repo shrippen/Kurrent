@@ -1259,6 +1259,9 @@ msgstr "リマインダー最後"
 msgid "Remove filter"
 msgstr "フィルターを解除"
 
+msgid "Remove filter %1"
+msgstr "フィルター %1 を解除"
+
 msgid "Remove label"
 msgstr "ラベルを削除"
 
