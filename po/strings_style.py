@@ -84,6 +84,9 @@ STYLE = {
             'Kacheln mit den wichtigsten Ansichten über den Aufgaben',
         'Wide layout':
             'Breites Layout',
+        # Kante bulk bar: "2 selected" (count shown before it).
+        'selected':
+            'ausgewählt',
     },
     'es': {
         'Style':
@@ -168,6 +171,9 @@ STYLE = {
             'Mosaicos con las vistas principales sobre las tareas',
         'Wide layout':
             'Diseño ancho',
+        # Kante bulk bar: "2 selected" (count shown before it).
+        'selected':
+            'seleccionadas',
     },
     'fr': {
         'Style':
@@ -252,6 +258,9 @@ STYLE = {
             'Tuiles des vues principales au-dessus des tâches',
         'Wide layout':
             'Disposition large',
+        # Kante bulk bar: "2 selected" (count shown before it).
+        'selected':
+            'sélectionnées',
     },
     'ja': {
         'Style':
@@ -336,6 +345,9 @@ STYLE = {
             'タスクの上に主要ビューのタイルを表示',
         'Wide layout':
             'ワイドレイアウト',
+        # Kante bulk bar: "2 selected" (count shown before it).
+        'selected':
+            '件選択中',
     },
     'zh_CN': {
         'Style':
@@ -420,6 +432,9 @@ STYLE = {
             '在任务上方显示主要视图磁贴',
         'Wide layout':
             '宽布局',
+        # Kante bulk bar: "2 selected" (count shown before it).
+        'selected':
+            '项已选',
     },
 }
 

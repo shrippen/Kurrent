@@ -1712,6 +1712,9 @@ msgstr "優先度高"
 msgid "overdue"
 msgstr "期限超過"
 
+msgid "selected"
+msgstr "件選択中"
+
 msgid "task completed"
 msgstr "件完了"
 

@@ -1712,6 +1712,9 @@ msgstr "高优先级"
 msgid "overdue"
 msgstr "已逾期"
 
+msgid "selected"
+msgstr "项已选"
+
 msgid "task completed"
 msgstr "个任务已完成"
 

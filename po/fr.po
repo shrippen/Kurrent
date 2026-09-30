@@ -1712,6 +1712,9 @@ msgstr "priorité haute"
 msgid "overdue"
 msgstr "en retard"
 
+msgid "selected"
+msgstr "sélectionnées"
+
 msgid "task completed"
 msgstr "tâche terminée"
 
