@@ -509,26 +509,26 @@ Item {
                                                 : Kirigami.Theme.smallFont
                     }
 
-                    // Labels as text: Plasma a tinted pill, Kante / Kante Light "#name" in mono.
+                    // Labels: Plasma a tinted pill, Kante / Kante Light a KanteChip.
                     Repeater {
-                        model: Plasmoid.configuration.showLabelChips !== false ? root.taskCategories : []
+                        model: Plasmoid.configuration.showLabelChips !== false && !KanteStyle.active
+                               ? root.taskCategories : []
                         delegate: Rectangle {
                             id: labelChip
                             required property var modelData
                             readonly property color tone: Design.colorForKey(String(modelData), "label")
                             Layout.alignment: Qt.AlignVCenter
                             Layout.preferredHeight: root.labelIconSize
-                            Layout.preferredWidth: labelText.implicitWidth + (KanteStyle.active ? 0 : Design.spaceSmall * 2)
+                            Layout.preferredWidth: labelText.implicitWidth + Design.spaceSmall * 2
                             radius: height / 2
-                            color: KanteStyle.active ? "transparent" : KanteStyle.tint(tone, 0.18)
+                            color: KanteStyle.tint(tone, 0.18)
 
                             QQC2.Label {
                                 id: labelText
                                 anchors.centerIn: parent
-                                text: (KanteStyle.active ? "#" : "") + labelChip.modelData
+                                text: labelChip.modelData
                                 color: labelChip.tone
-                                font: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
-                                                        : Kirigami.Theme.smallFont
+                                font: Kirigami.Theme.smallFont
                             }
 
                             HoverHandler {
@@ -537,6 +537,30 @@ Item {
                             }
                             QQC2.ToolTip.text: modelData
                             QQC2.ToolTip.visible: tagHover.hovered && !root.listMoving
+                            QQC2.ToolTip.delay: 400
+                        }
+                    }
+
+                    // Display only: the row keeps taps (its own TapHandler still fires) and Tab.
+                    Repeater {
+                        model: Plasmoid.configuration.showLabelChips !== false && KanteStyle.active
+                               ? root.taskCategories : []
+                        delegate: KanteChip {
+                            required property var modelData
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredHeight: root.labelIconSize
+                            // Kante's chips-row gap (6 px) on top of the row's 2 px.
+                            Layout.rightMargin: KanteStyle.unit(4)
+                            activeFocusOnTab: false
+                            text: modelData
+                            chipColor: Design.colorForKey(String(modelData), "label")
+
+                            HoverHandler {
+                                id: kanteTagHover
+                                enabled: !root.listMoving
+                            }
+                            QQC2.ToolTip.text: modelData
+                            QQC2.ToolTip.visible: kanteTagHover.hovered && !root.listMoving
                             QQC2.ToolTip.delay: 400
                         }
                     }
