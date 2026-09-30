@@ -175,7 +175,7 @@ ColumnLayout {
         visible: selectedLabels.length > 0
 
         Repeater {
-            model: KanteStyle.active ? [] : selectedLabels
+            model: selectedLabels
             delegate: KanteButton {
                 text: modelData
                 icon.name: "tag"
@@ -183,24 +183,6 @@ ColumnLayout {
                 onClicked: root.removeLabel(modelData)
                 QQC2.ToolTip.text: i18n("Remove label")
                 QQC2.ToolTip.visible: hovered
-            }
-        }
-
-        // Kante / Kante Light: a removable KanteChip; a click anywhere still removes.
-        Repeater {
-            model: KanteStyle.active ? selectedLabels : []
-            delegate: KanteChip {
-                id: kanteLabel
-                required property var modelData
-                text: modelData
-                chipColor: Design.colorForKey(String(modelData), "label")
-                removable: true
-                onClicked: root.removeLabel(modelData)
-                onRemoveRequested: root.removeLabel(modelData)
-
-                HoverHandler { id: kanteLabelHover }
-                QQC2.ToolTip.text: i18n("Remove label")
-                QQC2.ToolTip.visible: kanteLabelHover.hovered
             }
         }
     }
@@ -252,43 +234,7 @@ ColumnLayout {
                       : modelData.name
                 onClicked: root.pickEntry(modelData)
 
-                // Kante / Kante Light: a KanteListRow on top draws the row and takes the click;
-                // the search field keeps the focus (focusOnClick off).
-                height: KanteStyle.active ? kanteEntry.implicitHeight : implicitHeight
-                background.visible: !KanteStyle.active
-
-                KanteListRow {
-                    id: kanteEntry
-                    anchors.fill: parent
-                    z: 1
-                    visible: KanteStyle.active
-                    text: delegate.text
-                    selected: delegate.highlighted
-                    density: KanteListRow.Density.Compact
-                    rule: false
-                    focusOnClick: false
-                    activeFocusOnTab: false
-                    onClicked: root.pickEntry(delegate.modelData)
-
-                    // Marker: the label's colour square, or "+" for a new label.
-                    Row {
-                        Kirigami.Icon {
-                            visible: delegate.modelData.kind === "create"
-                            width: Kirigami.Units.iconSizes.small
-                            height: width
-                            source: "list-add"
-                            color: KanteStyle.textColor
-                        }
-                        KanteSwatch {
-                            visible: delegate.modelData.kind !== "create"
-                            size: KanteSwatch.Size.Dense
-                            swatchColor: Design.colorForKey(String(delegate.modelData.name), "label")
-                        }
-                    }
-                }
-
                 contentItem: RowLayout {
-                    visible: !KanteStyle.active
                     spacing: Design.spaceSmall
 
                     Kirigami.Icon {

@@ -1615,7 +1615,7 @@ Item {
                             iconName: fullRoot.filterIcon(modelData.kind)
                             chipColor: fullRoot.filterColor(modelData)
                             removable: true
-                            removeText: i18n("Remove filter %1")
+                            removeText: i18n("Remove filter %1", "%1")
                             onRemoveRequested: fullRoot.clearFilter(modelData.kind)
                         }
                     }
