@@ -18,6 +18,7 @@ KanteClock 1.0 KanteClock.qml
 KanteCommandBox 1.0 KanteCommandBox.qml
 KanteCounter 1.0 KanteCounter.qml
 KanteCurveEditor 1.0 KanteCurveEditor.qml
+KanteDateField 1.0 KanteDateField.qml
 KanteDayStrip 1.0 KanteDayStrip.qml
 KanteDialog 1.0 KanteDialog.qml
 KanteDialogSkin 1.0 KanteDialogSkin.qml
@@ -47,6 +48,7 @@ KanteReveal 1.0 KanteReveal.qml
 KanteRunner 1.0 KanteRunner.qml
 KanteScope 1.0 KanteScope.qml
 KanteScrollMeter 1.0 KanteScrollMeter.qml
+KanteSearchCombo 1.0 KanteSearchCombo.qml
 KanteSegmented 1.0 KanteSegmented.qml
 KanteSettingRow 1.0 KanteSettingRow.qml
 KanteSettle 1.0 KanteSettle.qml
@@ -59,10 +61,13 @@ KanteSteps 1.0 KanteSteps.qml
 KanteSticker 1.0 KanteSticker.qml
 KanteSwatch 1.0 KanteSwatch.qml
 KanteTabBar 1.0 KanteTabBar.qml
+KanteTagPicker 1.0 KanteTagPicker.qml
 KanteTextField 1.0 KanteTextField.qml
 KanteTick 1.0 KanteTick.qml
 KanteTile 1.0 KanteTile.qml
+KanteTimeField 1.0 KanteTimeField.qml
 KanteToast 1.0 KanteToast.qml
 KanteToolButton 1.0 KanteToolButton.qml
 KanteTube 1.0 KanteTube.qml
+KanteWeekTimeline 1.0 KanteWeekTimeline.qml
 KanteWeekView 1.0 KanteWeekView.qml

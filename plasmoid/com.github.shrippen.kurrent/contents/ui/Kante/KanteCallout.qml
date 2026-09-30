@@ -24,6 +24,8 @@ Item {
     property bool dismissible: false
     property bool autoHide: true
     default property alias actions: actionRow.data
+    /** At least one action is visible (the action row takes room). */
+    readonly property bool hasActions: actionRow.shown
     signal dismissed()
 
     readonly property color tone: {
@@ -76,10 +78,13 @@ Item {
                 font: KanteStyle.defaultFont
                 wrapMode: Text.WordWrap
             }
+            // Stays visible, so each action's own `visible` counts: with no action shown it
+            // takes no room (height 0, the column spacing cancelled).
             RowLayout {
                 id: actionRow
-                visible: children.length > 0
-                Layout.topMargin: KanteStyle.unit(4)
+                readonly property bool shown: implicitHeight > 0
+                Layout.topMargin: shown ? KanteStyle.unit(4) : -parent.spacing
+                Layout.preferredHeight: shown ? implicitHeight : 0
                 spacing: KanteStyle.unit(8)
             }
         }

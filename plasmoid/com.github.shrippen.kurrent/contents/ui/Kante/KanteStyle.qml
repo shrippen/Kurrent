@@ -109,6 +109,18 @@ QtObject {
             : [focusColor, warningColor, tagColor, positiveTextColor, disabledTextColor, accentTextColor]
         return colors[((i % colors.length) + colors.length) % colors.length]
     }
+    // Map and entity roles, as on the web (--map-marker, --map-route, --entity-fallback).
+    /** Pins and markers on a map (cyan). */
+    readonly property color mapMarkerColor: focusColor
+    /** A route or track on a map (yellow; the platform highlight otherwise). */
+    readonly property color mapRouteColor: accentColor
+    /** An entity (customer, project, tag) without a colour of its own. */
+    readonly property color entityFallbackColor: disabledTextColor
+    // Day roles (KanteDayStrip): daylight is a warm tint, the work band a quiet bar.
+    readonly property color daylightColor: tint(accentColor, light ? 0.22 : 0.13)
+    readonly property color sunColor: accentColor
+    readonly property color moonColor: mutedTextColor
+    readonly property color workBandColor: mutedTextColor
     /** Text on a filled state color (danger button, counter). */
     readonly property color onStateColor: themed ? palette.onState : Kirigami.Theme.highlightedTextColor
     readonly property color cardColor: themed ? palette.card : tint(Kirigami.Theme.textColor, 0.04)

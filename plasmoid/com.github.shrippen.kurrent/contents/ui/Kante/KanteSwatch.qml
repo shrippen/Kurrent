@@ -5,7 +5,8 @@ import "."
 /**
  * Colour swatch of an entity: always a square. The ring shows where the colour
  * comes from: solid = set here, dashed = inherited, dotted = generated; a
- * selected swatch gets a light ring.
+ * selected swatch gets a light ring. `size` Dense (10), Small (14) or Normal (18 units),
+ * e.g. a project smaller than its customer.
  */
 Item {
     id: swatch
@@ -17,13 +18,24 @@ Item {
         Generated
     }
 
+    enum Size {
+        Dense,
+        Small,
+        Normal
+    }
+
     property color swatchColor: KanteStyle.focusColor
     property int source: KanteSwatch.Source.None
     property bool selected: false
     signal clicked()
 
-    implicitWidth: KanteStyle.unit(18)
+    property int size: KanteSwatch.Size.Normal
+
+    implicitWidth: KanteStyle.unit(size === KanteSwatch.Size.Dense ? 10 : (size === KanteSwatch.Size.Small ? 14 : 18))
     implicitHeight: implicitWidth
+
+    /** Gap of the source ring around the square (3 px when dense, else 4). */
+    readonly property int ring: size === KanteSwatch.Size.Dense ? 3 : 4
 
     // A ring in the swatch's own colour vanishes when the colour is near the ground
     // (#202020 on dark): then the ring takes the text colour.
@@ -38,7 +50,7 @@ Item {
 
     Shape {
         anchors.fill: parent
-        anchors.margins: -4
+        anchors.margins: -swatch.ring
         visible: swatch.selected || swatch.source !== KanteSwatch.Source.None
         antialiasing: true
         ShapePath {
@@ -50,9 +62,9 @@ Item {
             joinStyle: ShapePath.MiterJoin
             startX: 1
             startY: 1
-            PathLine { x: swatch.width + 8 - 1; y: 1 }
-            PathLine { x: swatch.width + 8 - 1; y: swatch.height + 8 - 1 }
-            PathLine { x: 1; y: swatch.height + 8 - 1 }
+            PathLine { x: swatch.width + 2 * swatch.ring - 1; y: 1 }
+            PathLine { x: swatch.width + 2 * swatch.ring - 1; y: swatch.height + 2 * swatch.ring - 1 }
+            PathLine { x: 1; y: swatch.height + 2 * swatch.ring - 1 }
             PathLine { x: 1; y: 1 }
         }
     }
