@@ -25,142 +25,169 @@ RowLayout {
     }
 
     QQC2.Label {
+        visible: !KanteStyle.themed
         text: i18np("%1 task selected", "%1 tasks selected", controller.selectedTaskIds.length)
     }
 
-    KanteToolButton {
-        icon.name: "checkmark"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: controller.bulkCompleteTasks(root.bulkIds(), true)
-        QQC2.ToolTip.text: i18n("Complete")
-        QQC2.ToolTip.visible: hovered
-    }
+    // Kante: KanteBulkBar carries the count and the clear button; the actions move into it.
+    KanteBulkBar {
+        id: kanteBar
+        visible: KanteStyle.themed
+        Layout.fillWidth: true
+        count: controller.selectedTaskIds.length
+        countLabel: i18n("selected")
+        clearText: i18n("Clear selection")
+        onClearRequested: controller.clearTaskSelection()
 
-    KanteToolButton {
-        icon.name: "edit-delete"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: controller.bulkDeleteTasks(root.bulkIds())
-        QQC2.ToolTip.text: i18n("Delete")
-        QQC2.ToolTip.visible: hovered
-    }
+        RowLayout {
+            id: actions
+            Layout.fillWidth: true
+            spacing: Design.spaceSmall
 
-    KanteToolButton {
-        icon.name: "go-next"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: controller.bulkRescheduleTasks(root.bulkIds(), "tomorrow")
-        QQC2.ToolTip.text: i18n("Tomorrow")
-        QQC2.ToolTip.visible: hovered
-    }
+            KanteToolButton {
+                icon.name: "checkmark"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: controller.bulkCompleteTasks(root.bulkIds(), true)
+                QQC2.ToolTip.text: i18n("Complete")
+                QQC2.ToolTip.visible: hovered
+            }
 
-    KanteToolButton {
-        icon.name: "go-next"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: controller.bulkRescheduleTasks(root.bulkIds(), "1d")
-        QQC2.ToolTip.text: i18n("+1 day")
-        QQC2.ToolTip.visible: hovered
-    }
+            KanteToolButton {
+                icon.name: "edit-delete"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: controller.bulkDeleteTasks(root.bulkIds())
+                QQC2.ToolTip.text: i18n("Delete")
+                QQC2.ToolTip.visible: hovered
+            }
 
-    KanteToolButton {
-        icon.name: "folder"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: moveMenu.open()
-        QQC2.ToolTip.text: i18n("Move to project")
-        QQC2.ToolTip.visible: hovered
+            KanteToolButton {
+                icon.name: "go-next"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: controller.bulkRescheduleTasks(root.bulkIds(), "tomorrow")
+                QQC2.ToolTip.text: i18n("Tomorrow")
+                QQC2.ToolTip.visible: hovered
+            }
 
-        QQC2.Menu {
-            id: moveMenu
-            KantePopupSkin { popup: moveMenu }
-            title: i18n("Move to project")
+            KanteToolButton {
+                icon.name: "go-next"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: controller.bulkRescheduleTasks(root.bulkIds(), "1d")
+                QQC2.ToolTip.text: i18n("+1 day")
+                QQC2.ToolTip.visible: hovered
+            }
 
-            Instantiator {
-                model: controller.collectionModel ? controller.collectionModel.count : 0
-                delegate: QQC2.MenuItem {
-                    required property int index
-                    text: controller.collectionModel.nameAt(index)
-                    onTriggered: controller.bulkMoveTasks(root.bulkIds(), controller.collectionModel.collectionIdAt(index))
+            KanteToolButton {
+                icon.name: "folder"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: moveMenu.open()
+                QQC2.ToolTip.text: i18n("Move to project")
+                QQC2.ToolTip.visible: hovered
+
+                QQC2.Menu {
+                    id: moveMenu
+                    KantePopupSkin { popup: moveMenu }
+                    title: i18n("Move to project")
+
+                    Instantiator {
+                        model: controller.collectionModel ? controller.collectionModel.count : 0
+                        delegate: QQC2.MenuItem {
+                            required property int index
+                            text: controller.collectionModel.nameAt(index)
+                            onTriggered: controller.bulkMoveTasks(root.bulkIds(), controller.collectionModel.collectionIdAt(index))
+                        }
+                        onObjectAdded: function(index, object) { moveMenu.insertItem(index, object) }
+                        onObjectRemoved: function(index, object) { moveMenu.removeItem(object) }
+                    }
                 }
-                onObjectAdded: function(index, object) { moveMenu.insertItem(index, object) }
-                onObjectRemoved: function(index, object) { moveMenu.removeItem(object) }
             }
-        }
-    }
 
-    KanteToolButton {
-        icon.name: "tag"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: labelMenu.open()
-        QQC2.ToolTip.text: i18n("Add label")
-        QQC2.ToolTip.visible: hovered
+            KanteToolButton {
+                icon.name: "tag"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: labelMenu.open()
+                QQC2.ToolTip.text: i18n("Add label")
+                QQC2.ToolTip.visible: hovered
 
-        QQC2.Menu {
-            id: labelMenu
-            KantePopupSkin { popup: labelMenu }
-            title: i18n("Add label")
+                QQC2.Menu {
+                    id: labelMenu
+                    KantePopupSkin { popup: labelMenu }
+                    title: i18n("Add label")
 
-            Instantiator {
-                model: controller.availableLabels
-                delegate: QQC2.MenuItem {
-                    required property int index
-                    required property var modelData
-                    text: modelData
-                    onTriggered: controller.bulkAddLabel(root.bulkIds(), modelData)
+                    Instantiator {
+                        model: controller.availableLabels
+                        delegate: QQC2.MenuItem {
+                            required property int index
+                            required property var modelData
+                            text: modelData
+                            onTriggered: controller.bulkAddLabel(root.bulkIds(), modelData)
+                        }
+                        onObjectAdded: function(index, object) { labelMenu.insertItem(index, object) }
+                        onObjectRemoved: function(index, object) { labelMenu.removeItem(object) }
+                    }
                 }
-                onObjectAdded: function(index, object) { labelMenu.insertItem(index, object) }
-                onObjectRemoved: function(index, object) { labelMenu.removeItem(object) }
             }
+
+            KanteToolButton {
+                icon.name: "flag"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: priorityMenu.open()
+                QQC2.ToolTip.text: i18n("Set priority")
+                QQC2.ToolTip.visible: hovered
+
+                QQC2.Menu {
+                    id: priorityMenu
+                    KantePopupSkin { popup: priorityMenu }
+                    title: i18n("Set priority")
+                    QQC2.MenuItem {
+                        text: i18n("High")
+                        onTriggered: controller.bulkSetPriority(root.bulkIds(), 1)
+                    }
+                    QQC2.MenuItem {
+                        text: i18n("Medium")
+                        onTriggered: controller.bulkSetPriority(root.bulkIds(), 5)
+                    }
+                    QQC2.MenuItem {
+                        text: i18n("Low")
+                        onTriggered: controller.bulkSetPriority(root.bulkIds(), 9)
+                    }
+                    QQC2.MenuItem {
+                        text: i18n("None")
+                        onTriggered: controller.bulkSetPriority(root.bulkIds(), 0)
+                    }
+                }
+            }
+
+            KanteToolButton {
+                icon.name: "edit-copy"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: {
+                    var text = controller.bulkExportUids(root.bulkIds())
+                    if (text.length > 0) {
+                        Plasmoid.copyToClipboard(text)
+                    }
+                }
+                QQC2.ToolTip.text: i18n("Copy UIDs")
+                QQC2.ToolTip.visible: hovered
+            }
+
+            KanteToolButton {
+                visible: !KanteStyle.themed
+                icon.name: "dialog-cancel"
+                display: QQC2.AbstractButton.IconOnly
+                onClicked: controller.clearTaskSelection()
+                QQC2.ToolTip.text: i18n("Clear selection")
+                QQC2.ToolTip.visible: hovered
+            }
+
+            Item { Layout.fillWidth: true }
         }
     }
 
-    KanteToolButton {
-        icon.name: "flag"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: priorityMenu.open()
-        QQC2.ToolTip.text: i18n("Set priority")
-        QQC2.ToolTip.visible: hovered
-
-        QQC2.Menu {
-            id: priorityMenu
-            KantePopupSkin { popup: priorityMenu }
-            title: i18n("Set priority")
-            QQC2.MenuItem {
-                text: i18n("High")
-                onTriggered: controller.bulkSetPriority(root.bulkIds(), 1)
-            }
-            QQC2.MenuItem {
-                text: i18n("Medium")
-                onTriggered: controller.bulkSetPriority(root.bulkIds(), 5)
-            }
-            QQC2.MenuItem {
-                text: i18n("Low")
-                onTriggered: controller.bulkSetPriority(root.bulkIds(), 9)
-            }
-            QQC2.MenuItem {
-                text: i18n("None")
-                onTriggered: controller.bulkSetPriority(root.bulkIds(), 0)
-            }
-        }
+    // Other styles: the actions sit in this row after the label.
+    Binding {
+        target: actions
+        property: "parent"
+        value: root
+        when: !KanteStyle.themed
     }
-
-    KanteToolButton {
-        icon.name: "edit-copy"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: {
-            var text = controller.bulkExportUids(root.bulkIds())
-            if (text.length > 0) {
-                Plasmoid.copyToClipboard(text)
-            }
-        }
-        QQC2.ToolTip.text: i18n("Copy UIDs")
-        QQC2.ToolTip.visible: hovered
-    }
-
-    KanteToolButton {
-        icon.name: "dialog-cancel"
-        display: QQC2.AbstractButton.IconOnly
-        onClicked: controller.clearTaskSelection()
-        QQC2.ToolTip.text: i18n("Clear selection")
-        QQC2.ToolTip.visible: hovered
-    }
-
-    Item { Layout.fillWidth: true }
 }
