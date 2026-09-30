@@ -2,8 +2,10 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Dialogs as Dialogs
 import org.kde.kirigami 2.20 as Kirigami
+import "../Kante"
 
 // Colour override for a project, label or location: a swatch that opens a colour picker.
+// Kante: square swatch (round markers are only for icons).
 // Empty `value` = automatic colour (`autoColor`, shown dimmed). Emits the new "#rrggbb" or "".
 QQC2.ToolButton {
     id: swatch
@@ -26,7 +28,7 @@ QQC2.ToolButton {
             anchors.centerIn: parent
             width: Kirigami.Units.iconSizes.small
             height: width
-            radius: width / 2
+            radius: KanteStyle.active ? 0 : width / 2
             color: swatch.value.length > 0 ? swatch.value : swatch.autoColor
             border.width: swatch.value.length > 0 ? 0 : 1
             border.color: Kirigami.Theme.textColor
