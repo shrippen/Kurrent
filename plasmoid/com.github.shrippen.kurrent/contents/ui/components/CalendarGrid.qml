@@ -112,9 +112,10 @@ ColumnLayout {
                 color: modelData.selected
                        ? Kirigami.Theme.highlightColor
                        : modelData.today
-                         ? Qt.rgba(Kirigami.Theme.highlightColor.r,
-                                   Kirigami.Theme.highlightColor.g,
-                                   Kirigami.Theme.highlightColor.b, 0.15)
+                         ? (KanteStyle.themed ? KanteStyle.selectionColor
+                                              : Qt.rgba(Kirigami.Theme.highlightColor.r,
+                                                        Kirigami.Theme.highlightColor.g,
+                                                        Kirigami.Theme.highlightColor.b, 0.15))
                          : "transparent"
                 border.color: modelData.today ? Kirigami.Theme.highlightColor : "transparent"
 

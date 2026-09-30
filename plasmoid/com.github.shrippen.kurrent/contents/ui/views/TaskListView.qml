@@ -263,8 +263,9 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.preferredHeight: root.canUnparentDrag ? Kirigami.Units.gridUnit * 2.2 : 0
         visible: root.canUnparentDrag
-        radius: 4
-        color: unparentDrop.containsDrag ? Qt.rgba(Kirigami.Theme.highlightColor.r,
+        radius: KanteStyle.themed ? 0 : 4
+        color: KanteStyle.themed ? (unparentDrop.containsDrag ? KanteStyle.selectionColor : KanteStyle.sunkenColor)
+             : unparentDrop.containsDrag ? Qt.rgba(Kirigami.Theme.highlightColor.r,
                                                    Kirigami.Theme.highlightColor.g,
                                                    Kirigami.Theme.highlightColor.b,
                                                    0.25)
@@ -273,7 +274,8 @@ ColumnLayout {
                                                    Kirigami.Theme.textColor.b,
                                                    0.08)
         border.width: 1
-        border.color: unparentDrop.containsDrag ? Kirigami.Theme.highlightColor
+        border.color: KanteStyle.themed ? (unparentDrop.containsDrag ? KanteStyle.focusColor : KanteStyle.frameColor)
+                    : unparentDrop.containsDrag ? Kirigami.Theme.highlightColor
                                                 : Qt.rgba(Kirigami.Theme.textColor.r,
                                                           Kirigami.Theme.textColor.g,
                                                           Kirigami.Theme.textColor.b,
