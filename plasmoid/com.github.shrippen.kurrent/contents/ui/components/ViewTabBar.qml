@@ -65,6 +65,7 @@ RowLayout {
     KanteTabBar {
         id: kanteTabs
         visible: KanteStyle.themed
+        clip: true
         Layout.fillWidth: true
         model: bar._tabLabels
         counts: bar._tabCounts
