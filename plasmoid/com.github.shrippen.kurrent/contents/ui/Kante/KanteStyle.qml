@@ -102,7 +102,11 @@ QtObject {
     readonly property color tintWarnColor: tint(warningColor, 0.14)
     /** Series colours of charts, in this order (cyan, yellow, purple, aqua, orange, grey); red stays danger. */
     function dataColor(i) {
-        var colors = [focusColor, accentColor, tagColor, positiveTextColor, warningColor, disabledTextColor]
+        // Second series: the text-safe yellow (Leinen: ochre); off Kante the highlight is
+        // the first colour, so yellow would repeat it.
+        var colors = themed
+            ? [focusColor, accentTextColor, tagColor, positiveTextColor, warningColor, disabledTextColor]
+            : [focusColor, warningColor, tagColor, positiveTextColor, disabledTextColor, accentTextColor]
         return colors[((i % colors.length) + colors.length) % colors.length]
     }
     /** Text on a filled state color (danger button, counter). */

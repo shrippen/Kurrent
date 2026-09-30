@@ -11,6 +11,7 @@ import "."
  */
 ColumnLayout {
     id: ed
+    implicitWidth: KanteStyle.unit(260)
 
     property var bands: []
     property var colors: [KanteStyle.dataColor(3), KanteStyle.dataColor(1), KanteStyle.dataColor(4), KanteStyle.negativeTextColor]
@@ -88,6 +89,7 @@ ColumnLayout {
             }
             KanteTextField {
                 Layout.preferredWidth: KanteStyle.unit(90)
+                Layout.minimumWidth: KanteStyle.unit(60)
                 text: String(ed.bands[row.index].value)
                 horizontalAlignment: Text.AlignRight
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -102,7 +104,8 @@ ColumnLayout {
             KanteButton {
                 text: "×"
                 emphasis: KanteButton.Emphasis.Quiet
-                size: KanteButton.Size.Small
+                Layout.minimumWidth: KanteStyle.unit(32)
+                Layout.preferredWidth: KanteStyle.unit(32)
                 enabled: ed.bands.length > ed.minBands
                 onClicked: ed.removeBand(row.index)
             }

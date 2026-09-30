@@ -25,7 +25,16 @@ Item {
     implicitWidth: KanteStyle.unit(18)
     implicitHeight: implicitWidth
 
-    Rectangle { anchors.fill: parent; color: swatch.swatchColor }
+    // A ring in the swatch's own colour vanishes when the colour is near the ground
+    // (#202020 on dark): then the ring takes the text colour.
+    readonly property bool nearGround: Math.abs(swatchColor.hslLightness - KanteStyle.backgroundColor.hslLightness) < 0.15
+
+    Rectangle {
+        anchors.fill: parent
+        color: swatch.swatchColor
+        border.width: 1
+        border.color: KanteStyle.frameColor
+    }
 
     Shape {
         anchors.fill: parent
@@ -34,7 +43,7 @@ Item {
         antialiasing: true
         ShapePath {
             fillColor: "transparent"
-            strokeColor: swatch.selected ? KanteStyle.strongTextColor : swatch.swatchColor
+            strokeColor: (swatch.selected || swatch.nearGround) ? KanteStyle.strongTextColor : swatch.swatchColor
             strokeWidth: 2
             strokeStyle: (swatch.selected || swatch.source === KanteSwatch.Source.Own) ? ShapePath.SolidLine : ShapePath.DashLine
             dashPattern: swatch.source === KanteSwatch.Source.Generated ? [1, 1.5] : [3, 2]

@@ -157,7 +157,7 @@ Item {
             y: KanteStyle.unit(4)
             width: col.implicitWidth + KanteStyle.unit(16)
             height: col.implicitHeight + KanteStyle.unit(10)
-            color: KanteStyle.dialogColor
+            color: Qt.alpha(KanteStyle.dialogColor, 0.92)
             border.width: 1
             border.color: KanteStyle.frameColor
             Column {
