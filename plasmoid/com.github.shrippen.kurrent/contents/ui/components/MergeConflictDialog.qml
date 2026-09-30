@@ -246,7 +246,7 @@ Item {
                                 text: "Kurrent"
                                 font.bold: true
                                 font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
-                                color: Kirigami.Theme.highlightColor
+                                color: KanteStyle.themed ? KanteStyle.accentTextColor : Kirigami.Theme.highlightColor
                             }
                             Loader {
                                 Layout.fillWidth: true
