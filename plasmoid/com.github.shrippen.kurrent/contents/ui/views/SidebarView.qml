@@ -151,7 +151,10 @@ Item {
     readonly property int separatorStrip: Design.spaceSmall + 1
     readonly property int scrollBarExtent: Design.scrollBarExtent
     readonly property int scrollGutter: Design.scrollGutter
-    readonly property int sectionRowHeight: rowIconSize + rowVPad * 2 + 4
+    // Kante: the KanteListRow density height plus the list spacing.
+    readonly property int sectionRowHeight: KanteStyle.active
+        ? (comfortableRows ? KanteStyle.heightLarge : KanteStyle.heightSmall) + 1
+        : rowIconSize + rowVPad * 2 + 4
 
     // Not yet allocated — sections share space equally so they can measure.
     property bool sectionsAllocated: false
@@ -984,6 +987,21 @@ Item {
         }
     }
 
+    // Kante / Kante Light: a KanteListRow over the row draws it (selection, hover, drop target,
+    // count); the ItemDelegate below keeps click, drop and tooltip. System's content, hover
+    // and ListView highlight are hidden then.
+    component KanteSidebarRow: KanteListRow {
+        required property Item control
+        anchors.fill: parent
+        z: 1
+        visible: KanteStyle.active
+        selected: control.highlighted
+        rule: false
+        focusOnClick: false
+        activeFocusOnTab: false
+        density: root.comfortableRows ? KanteListRow.Density.Comfortable : KanteListRow.Density.Compact
+    }
+
     component SidebarScrollBar: ThinScrollBar {
         required property Flickable view
         parent: view
@@ -1047,7 +1065,7 @@ Item {
             }
         }
 
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
 
         QQC2.ScrollBar.vertical: SidebarScrollBar { view: viewsList }
@@ -1067,12 +1085,14 @@ Item {
             width: root.listContentWidth(viewsList)
             hoverEnabled: root.rowHoverEnabled
             highlighted: ListView.isCurrentItem
+            height: KanteStyle.active ? viewDelegateKante.implicitHeight : implicitHeight
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
             background: SidebarHoverBackground {
+                visible: !Kirigami.Settings.isMobile && !KanteStyle.active
                 control: viewDelegate
             }
 
@@ -1094,7 +1114,32 @@ Item {
                 root.clearFilterSelections()
             }
 
+            KanteSidebarRow {
+                id: viewDelegateKante
+                control: viewDelegate
+                text: modelData.label
+                count: root.showSidebarCounts ? viewDelegateCount.text : ""
+                countKind: viewDelegateCount.negative ? KanteListRow.CountKind.Error : KanteListRow.CountKind.Quiet
+                // Folder rows (Maintenance, Smart views) open a sub-list: a chevron at the end.
+                trailing: Kirigami.Icon {
+                    readonly property bool folder: modelData.viewId === root.maintenanceFolderId
+                                                   || modelData.viewId === root.smartViewsFolderId
+                    visible: folder
+                    width: folder ? Kirigami.Units.iconSizes.small : 0
+                    height: Kirigami.Units.iconSizes.small
+                    source: "go-next"
+                    color: KanteStyle.mutedTextColor
+                }
+
+                Kirigami.Icon {
+                    source: modelData.icon
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+            }
+
             contentItem: RowLayout {
+                visible: !KanteStyle.active
                 spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
@@ -1126,6 +1171,7 @@ Item {
                 }
 
                 CountBadge {
+                    id: viewDelegateCount
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.viewTaskCounts[modelData.viewId]
@@ -1166,7 +1212,7 @@ Item {
         spacing: 1
         model: root.visibleProjects
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
         leftMargin: 0
         rightMargin: root.scrollMarginFor(projectsList)
@@ -1254,14 +1300,16 @@ Item {
                 hoverEnabled: root.rowHoverEnabled
                 readonly property bool filterUsable: root.filterEnabled("project")
                 highlighted: ListView.isCurrentItem
+                height: KanteStyle.active ? projectDelegateKante.implicitHeight : implicitHeight
                 enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
+                opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
                 leftPadding: 0
                 rightPadding: Design.spaceSmall
                 topPadding: root.rowVPad
                 bottomPadding: root.rowVPad
 
                 background: Item {
+                    visible: !KanteStyle.active
                     anchors.fill: parent
 
                     SidebarHoverBackground {
@@ -1326,7 +1374,24 @@ Item {
                     text: root.filterDisabledReason("project")
                 }
 
+                KanteSidebarRow {
+                    id: projectDelegateKante
+                    control: projectDelegate
+                    text: modelData.name
+                    count: root.showSidebarCounts ? projectDelegateCount.text : ""
+                    dropTarget: projectDrop.containsDrag
+                    disabledReason: projectDelegate.filterUsable ? "" : root.filterDisabledReason("project")
+
+                    Kirigami.Icon {
+                        source: "folder"
+                        color: Design.colorForKey(String(modelData.collectionId))
+                        width: root.rowIconSize
+                        height: root.rowIconSize
+                    }
+                }
+
                 contentItem: RowLayout {
+                    visible: !KanteStyle.active
                     spacing: Design.spaceSmall
 
                     Item { width: root.rowLeftInset }
@@ -1350,6 +1415,7 @@ Item {
                     }
 
                     CountBadge {
+                        id: projectDelegateCount
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                         text: {
                             var n = controller.sidebarProjectCounts[String(modelData.collectionId)]
@@ -1388,7 +1454,7 @@ Item {
         spacing: 1
         model: root.visibleLabelItems
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
         leftMargin: 0
         rightMargin: root.scrollMarginFor(labelsList)
@@ -1475,14 +1541,16 @@ Item {
                 hoverEnabled: root.rowHoverEnabled
                 readonly property bool filterUsable: root.filterEnabled("label")
                 highlighted: ListView.isCurrentItem
+                height: KanteStyle.active ? labelDelegateKante.implicitHeight : implicitHeight
                 enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
+                opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
                 leftPadding: 0
                 rightPadding: Design.spaceSmall
                 topPadding: root.rowVPad
                 bottomPadding: root.rowVPad
 
                 background: Item {
+                    visible: !KanteStyle.active
                     anchors.fill: parent
 
                     SidebarHoverBackground {
@@ -1540,7 +1608,24 @@ Item {
                     text: root.filterDisabledReason("label")
                 }
 
+                KanteSidebarRow {
+                    id: labelDelegateKante
+                    control: labelDelegate
+                    text: modelData
+                    count: root.showSidebarCounts ? labelDelegateCount.text : ""
+                    dropTarget: labelDrop.containsDrag
+                    disabledReason: labelDelegate.filterUsable ? "" : root.filterDisabledReason("label")
+
+                    Kirigami.Icon {
+                        source: "tag"
+                        color: Design.colorForKey(String(modelData), "label")
+                        width: root.rowIconSize
+                        height: root.rowIconSize
+                    }
+                }
+
                 contentItem: RowLayout {
+                    visible: !KanteStyle.active
                     spacing: Design.spaceSmall
 
                     Item { width: root.rowLeftInset }
@@ -1564,6 +1649,7 @@ Item {
                     }
 
                     CountBadge {
+                        id: labelDelegateCount
                         Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                         text: {
                             var n = controller.sidebarLabelCounts[modelData]
@@ -1604,7 +1690,7 @@ Item {
         rightMargin: root.scrollMarginFor(prioritiesList)
         model: root.priorityItems
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -1688,14 +1774,16 @@ Item {
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("priority")
             highlighted: ListView.isCurrentItem
+                height: KanteStyle.active ? priorityDelegateKante.implicitHeight : implicitHeight
             enabled: filterUsable
-            opacity: filterUsable ? 1.0 : 0.45
+            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
             background: Item {
+                    visible: !KanteStyle.active
                 anchors.fill: parent
 
                 SidebarHoverBackground {
@@ -1766,7 +1854,25 @@ Item {
                 text: root.filterDisabledReason("priority")
             }
 
+                KanteSidebarRow {
+                    id: priorityDelegateKante
+                    control: priorityDelegate
+                    text: modelData.label
+                    count: root.showSidebarCounts ? priorityDelegateCount.text : ""
+                    dropTarget: priorityDrop.containsDrag
+                    disabledReason: priorityDelegate.filterUsable ? "" : root.filterDisabledReason("priority")
+
+                    Kirigami.Icon {
+                    source: "flag"
+                    color: Design.priorityColor(modelData.value)
+                    opacity: modelData.value > 0 ? 1 : 0.55
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+                }
+
             contentItem: RowLayout {
+                    visible: !KanteStyle.active
                 spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
@@ -1791,6 +1897,7 @@ Item {
                 }
 
                 CountBadge {
+                        id: priorityDelegateCount
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarPriorityCounts[String(modelData.value)]
@@ -1831,7 +1938,7 @@ Item {
         rightMargin: root.scrollMarginFor(progressList)
         model: root.progressItems
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -1915,14 +2022,16 @@ Item {
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("progress")
             highlighted: ListView.isCurrentItem
+            height: KanteStyle.active ? progressDelegateKante.implicitHeight : implicitHeight
             enabled: filterUsable
-            opacity: filterUsable ? 1.0 : 0.45
+            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
             background: Item {
+                visible: !KanteStyle.active
                 anchors.fill: parent
 
                 SidebarHoverBackground {
@@ -1980,7 +2089,23 @@ Item {
                 text: root.filterDisabledReason("progress")
             }
 
+            KanteSidebarRow {
+                id: progressDelegateKante
+                control: progressDelegate
+                text: modelData.label
+                count: root.showSidebarCounts ? progressDelegateCount.text : ""
+                dropTarget: progressDrop.containsDrag
+                disabledReason: progressDelegate.filterUsable ? "" : root.filterDisabledReason("progress")
+
+                Kirigami.Icon {
+                    source: root.progressIconForBand(modelData.value)
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+            }
+
             contentItem: RowLayout {
+                visible: !KanteStyle.active
                 spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
@@ -2003,6 +2128,7 @@ Item {
                 }
 
                 CountBadge {
+                    id: progressDelegateCount
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarProgressCounts[modelData.value]
@@ -2043,7 +2169,7 @@ Item {
         rightMargin: root.scrollMarginFor(statusList)
         model: root.statusItems
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -2127,14 +2253,16 @@ Item {
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("status")
             highlighted: ListView.isCurrentItem
+            height: KanteStyle.active ? statusDelegateKante.implicitHeight : implicitHeight
             enabled: filterUsable
-            opacity: filterUsable ? 1.0 : 0.45
+            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
             background: Item {
+                visible: !KanteStyle.active
                 anchors.fill: parent
 
                 SidebarHoverBackground {
@@ -2192,7 +2320,23 @@ Item {
                 text: root.filterDisabledReason("status")
             }
 
+            KanteSidebarRow {
+                id: statusDelegateKante
+                control: statusDelegate
+                text: modelData.label
+                count: root.showSidebarCounts ? statusDelegateCount.text : ""
+                dropTarget: statusDrop.containsDrag
+                disabledReason: statusDelegate.filterUsable ? "" : root.filterDisabledReason("status")
+
+                Kirigami.Icon {
+                    source: root.statusIconForValue(modelData.value)
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+            }
+
             contentItem: RowLayout {
+                visible: !KanteStyle.active
                 spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
@@ -2215,6 +2359,7 @@ Item {
                 }
 
                 CountBadge {
+                    id: statusDelegateCount
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarStatusCounts[String(modelData.value)]
@@ -2255,7 +2400,7 @@ Item {
         rightMargin: root.scrollMarginFor(secrecyList)
         model: root.secrecyItems
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -2339,14 +2484,16 @@ Item {
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("secrecy")
             highlighted: ListView.isCurrentItem
+            height: KanteStyle.active ? secrecyDelegateKante.implicitHeight : implicitHeight
             enabled: filterUsable
-            opacity: filterUsable ? 1.0 : 0.45
+            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
             background: Item {
+                visible: !KanteStyle.active
                 anchors.fill: parent
 
                 SidebarHoverBackground {
@@ -2404,7 +2551,23 @@ Item {
                 text: root.filterDisabledReason("secrecy")
             }
 
+            KanteSidebarRow {
+                id: secrecyDelegateKante
+                control: secrecyDelegate
+                text: modelData.label
+                count: root.showSidebarCounts ? secrecyDelegateCount.text : ""
+                dropTarget: secrecyDrop.containsDrag
+                disabledReason: secrecyDelegate.filterUsable ? "" : root.filterDisabledReason("secrecy")
+
+                Kirigami.Icon {
+                    source: root.secrecyIconForValue(modelData.value)
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+            }
+
             contentItem: RowLayout {
+                visible: !KanteStyle.active
                 spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
@@ -2427,6 +2590,7 @@ Item {
                 }
 
                 CountBadge {
+                    id: secrecyDelegateCount
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarSecrecyCounts[String(modelData.value)]
@@ -2465,7 +2629,7 @@ Item {
         spacing: 1
         model: root.visibleLocationItems
         currentIndex: -1
-        highlight: StyledHighlight {}
+        highlight: StyledHighlight { visible: !KanteStyle.active }
         highlightMoveDuration: Kirigami.Units.longDuration
 
         function syncIndex() {
@@ -2553,14 +2717,16 @@ Item {
             hoverEnabled: root.rowHoverEnabled
             readonly property bool filterUsable: root.filterEnabled("location")
             highlighted: ListView.isCurrentItem
+            height: KanteStyle.active ? locationDelegateKante.implicitHeight : implicitHeight
             enabled: filterUsable
-            opacity: filterUsable ? 1.0 : 0.45
+            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
             leftPadding: 0
             rightPadding: Design.spaceSmall
             topPadding: root.rowVPad
             bottomPadding: root.rowVPad
 
             background: Item {
+                visible: !KanteStyle.active
                 anchors.fill: parent
 
                 SidebarHoverBackground {
@@ -2618,7 +2784,24 @@ Item {
                 text: root.filterDisabledReason("location")
             }
 
+            KanteSidebarRow {
+                id: locationDelegateKante
+                control: locationDelegate
+                text: modelData
+                count: root.showSidebarCounts ? locationDelegateCount.text : ""
+                dropTarget: locationDrop.containsDrag
+                disabledReason: locationDelegate.filterUsable ? "" : root.filterDisabledReason("location")
+
+                Kirigami.Icon {
+                    source: "mark-location"
+                    color: Design.colorForKey(String(modelData), "location")
+                    width: root.rowIconSize
+                    height: root.rowIconSize
+                }
+            }
+
             contentItem: RowLayout {
+                visible: !KanteStyle.active
                 spacing: Design.spaceSmall
 
                 Item { width: root.rowLeftInset }
@@ -2642,6 +2825,7 @@ Item {
                 }
 
                 CountBadge {
+                    id: locationDelegateCount
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                     text: {
                         var n = controller.sidebarLocationCounts[modelData]
