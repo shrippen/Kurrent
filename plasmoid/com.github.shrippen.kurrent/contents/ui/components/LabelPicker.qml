@@ -175,7 +175,7 @@ ColumnLayout {
         visible: selectedLabels.length > 0
 
         Repeater {
-            model: selectedLabels
+            model: KanteStyle.active ? [] : selectedLabels
             delegate: KanteButton {
                 text: modelData
                 icon.name: "tag"
@@ -183,6 +183,24 @@ ColumnLayout {
                 onClicked: root.removeLabel(modelData)
                 QQC2.ToolTip.text: i18n("Remove label")
                 QQC2.ToolTip.visible: hovered
+            }
+        }
+
+        // Kante / Kante Light: a removable KanteChip; a click anywhere still removes.
+        Repeater {
+            model: KanteStyle.active ? selectedLabels : []
+            delegate: KanteChip {
+                id: kanteLabel
+                required property var modelData
+                text: modelData
+                chipColor: Design.colorForKey(String(modelData), "label")
+                removable: true
+                onClicked: root.removeLabel(modelData)
+                onRemoveRequested: root.removeLabel(modelData)
+
+                HoverHandler { id: kanteLabelHover }
+                QQC2.ToolTip.text: i18n("Remove label")
+                QQC2.ToolTip.visible: kanteLabelHover.hovered
             }
         }
     }
