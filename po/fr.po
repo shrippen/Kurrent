@@ -1265,6 +1265,9 @@ msgstr "Retirer le filtre %1"
 msgid "Remove label"
 msgstr "Retirer l’étiquette"
 
+msgid "Remove label %1"
+msgstr "Retirer l'étiquette %1"
+
 msgid "Remove label “%1”"
 msgstr "Retirer l’étiquette « %1 »"
 

@@ -1265,6 +1265,9 @@ msgstr "フィルター %1 を解除"
 msgid "Remove label"
 msgstr "ラベルを削除"
 
+msgid "Remove label %1"
+msgstr "ラベル %1 を削除"
+
 msgid "Remove label “%1”"
 msgstr "ラベル「%1」を外す"
 

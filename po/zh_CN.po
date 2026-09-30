@@ -1265,6 +1265,9 @@ msgstr "移除筛选 %1"
 msgid "Remove label"
 msgstr "移除标签"
 
+msgid "Remove label %1"
+msgstr "移除标签 %1"
+
 msgid "Remove label “%1”"
 msgstr "移除标签“%1”"
 

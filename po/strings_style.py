@@ -88,6 +88,9 @@ STYLE = {
         'selected':
             'ausgewählt',
         # Kante filter chip: accessible name of the × (%1 = filter name).
+        # Kante tag picker: the chip's remove text (%1 = label).
+        'Remove label %1':
+            'Label %1 entfernen',
         'Remove filter %1':
             'Filter %1 entfernen',
     },
@@ -178,6 +181,9 @@ STYLE = {
         'selected':
             'seleccionadas',
         # Kante filter chip: accessible name of the × (%1 = filter name).
+        # Kante tag picker: the chip's remove text (%1 = label).
+        'Remove label %1':
+            'Quitar etiqueta %1',
         'Remove filter %1':
             'Quitar filtro %1',
     },
@@ -268,6 +274,9 @@ STYLE = {
         'selected':
             'sélectionnées',
         # Kante filter chip: accessible name of the × (%1 = filter name).
+        # Kante tag picker: the chip's remove text (%1 = label).
+        'Remove label %1':
+            "Retirer l'étiquette %1",
         'Remove filter %1':
             'Retirer le filtre %1',
     },
@@ -358,6 +367,9 @@ STYLE = {
         'selected':
             '件選択中',
         # Kante filter chip: accessible name of the × (%1 = filter name).
+        # Kante tag picker: the chip's remove text (%1 = label).
+        'Remove label %1':
+            'ラベル %1 を削除',
         'Remove filter %1':
             'フィルター %1 を解除',
     },
@@ -448,6 +460,9 @@ STYLE = {
         'selected':
             '项已选',
         # Kante filter chip: accessible name of the × (%1 = filter name).
+        # Kante tag picker: the chip's remove text (%1 = label).
+        'Remove label %1':
+            '移除标签 %1',
         'Remove filter %1':
             '移除筛选 %1',
     },

@@ -1265,6 +1265,9 @@ msgstr "Quitar filtro %1"
 msgid "Remove label"
 msgstr "Quitar etiqueta"
 
+msgid "Remove label %1"
+msgstr "Quitar etiqueta %1"
+
 msgid "Remove label “%1”"
 msgstr "Quitar etiqueta «%1»"
 

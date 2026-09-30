@@ -38,6 +38,11 @@ ColumnLayout {
         selectedLabels = selectedLabels.concat([trimmed])
     }
 
+    // KanteTagPicker entry: the label with its colour.
+    function tagOf(name) {
+        return { name: String(name), color: Design.colorForKey(String(name), "label") }
+    }
+
     function removeLabel(name) {
         var out = []
         for (var i = 0; i < selectedLabels.length; ++i) {
@@ -77,7 +82,7 @@ ColumnLayout {
     }
 
     function openMenu() {
-        if (_ignoreMenuOpen) {
+        if (_ignoreMenuOpen || KanteStyle.active) {
             return
         }
         placePopup()
@@ -130,8 +135,27 @@ ColumnLayout {
         }
     }
 
+    // Kante / Kante Light: Kante's tag picker (chips, then the search field; the list opens
+    // above and stays in the window). The field, chips and popup below are System's.
+    KanteTagPicker {
+        visible: KanteStyle.active
+        Layout.fillWidth: true
+        tags: root.selectedLabels.map(root.tagOf)
+        suggestions: (root.availableLabels || []).map(root.tagOf)
+        popupAbove: true
+        placeholderText: i18n("Search or create label\u2026")
+        removeText: i18n("Remove label %1", "%1")
+        search.newText: i18n("Create label \u201c%1\u201d", "%1")
+        onEdited: function (tags) {
+            root.selectedLabels = tags.map(function (t) {
+                return String(typeof t === "object" ? t.name : t).trim()
+            })
+        }
+    }
+
     KanteTextField {
         id: searchField
+        visible: !KanteStyle.active
         Layout.fillWidth: true
         placeholderText: i18n("Search or create label\u2026")
         Keys.priority: Keys.BeforeItem
@@ -172,7 +196,7 @@ ColumnLayout {
     Flow {
         Layout.fillWidth: true
         spacing: Design.spaceSmall
-        visible: selectedLabels.length > 0
+        visible: selectedLabels.length > 0 && !KanteStyle.active
 
         Repeater {
             model: selectedLabels
