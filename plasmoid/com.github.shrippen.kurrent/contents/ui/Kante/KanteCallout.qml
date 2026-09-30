@@ -5,6 +5,8 @@ import "."
 /**
  * Callout: a note with a 4 px bar in its kind's color, the cut corner and a
  * sign in front (i, tick, !, cross). Sizes to its width; `title` is optional.
+ * `actions` takes buttons under the text; `dismissible` adds a cross, `dismissed`
+ * fires and the callout hides itself (`autoHide`).
  */
 Item {
     id: callout
@@ -19,6 +21,10 @@ Item {
     property int kind: KanteCallout.Kind.Info
     property string title: ""
     property string text: ""
+    property bool dismissible: false
+    property bool autoHide: true
+    default property alias actions: actionRow.data
+    signal dismissed()
 
     readonly property color tone: {
         switch (kind) {
@@ -70,6 +76,30 @@ Item {
                 font: KanteStyle.defaultFont
                 wrapMode: Text.WordWrap
             }
+            RowLayout {
+                id: actionRow
+                visible: children.length > 0
+                Layout.topMargin: KanteStyle.unit(4)
+                spacing: KanteStyle.unit(8)
+            }
+        }
+        Text {
+            visible: callout.dismissible
+            Layout.alignment: Qt.AlignTop
+            text: "×"
+            color: closeHover.hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
+            font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 1.2, true)
+            HoverHandler { id: closeHover }
+            TapHandler {
+                onTapped: {
+                    callout.dismissed()
+                    if (callout.autoHide) {
+                        callout.visible = false
+                    }
+                }
+            }
+            Accessible.role: Accessible.Button
+            Accessible.name: "×"
         }
     }
 }

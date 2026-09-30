@@ -49,6 +49,16 @@ QQC2.Dialog {
         }
     }
 
+    // The dim behind the dialog is Kante's scrim role (best effort: only when the style
+    // provides the overlay attached object).
+    Binding {
+        target: control.QQC2.Overlay
+        property: "modal"
+        value: control.kanteScrim
+        when: KanteStyle.themed && control.QQC2.Overlay !== null
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+    readonly property Component kanteScrim: Component { Rectangle { color: KanteStyle.scrimColor } }
     Binding {
         target: control
         property: "background"

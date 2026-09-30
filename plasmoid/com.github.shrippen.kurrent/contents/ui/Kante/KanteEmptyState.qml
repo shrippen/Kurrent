@@ -8,6 +8,8 @@ Item {
 
     property string title: ""
     property string text: ""
+    /** Not "transparent": the state is a card with this bar on top instead of a thin frame. */
+    property color barColor: "transparent"
     /** An action (a KanteButton) placed under the text. */
     default property alias action: actionSlot.data
 
@@ -16,9 +18,15 @@ Item {
 
     Rectangle {
         anchors.fill: parent
+        visible: empty.barColor.a === 0
         color: "transparent"
         border.width: 1
         border.color: KanteStyle.frameColor
+    }
+    KanteCard {
+        anchors.fill: parent
+        visible: empty.barColor.a > 0
+        barColor: empty.barColor
     }
 
     ColumnLayout {

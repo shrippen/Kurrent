@@ -8,7 +8,7 @@ import QtQuick
  * translucent or blurred platform ground shows through.
  */
 QtObject {
-    readonly property string version: "1.4.0"
+    readonly property string version: "1.6.0"
 
     readonly property QtObject dark: QtObject {
         readonly property color text: "#ebdbb2"
@@ -35,6 +35,7 @@ QtObject {
         readonly property color accentHover: "#fdc94a"
         readonly property color accentPressed: "#e5a823"
         readonly property color onState: "#141312"
+        readonly property color scrim: "#9e141312"
     }
 
     readonly property QtObject light: QtObject {
@@ -62,6 +63,7 @@ QtObject {
         readonly property color accentHover: "#fcc845"
         readonly property color accentPressed: "#e5a823"
         readonly property color onState: "#fbf8ee"
+        readonly property color scrim: "#80282828"
     }
 
     // Brand mark fill (icon, badges); not for controls.

@@ -1,11 +1,20 @@
 import QtQuick
+import QtQuick.Controls as QQC2
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
 import "."
 
-/** Segmented control: one row, the chosen segment filled with the accent. `model` is a list of labels. */
+/**
+ * Segmented control: one row, the chosen segment filled with the accent. `model` is a
+ * list of labels (an empty label makes the segment icon only), `icons` an optional list of
+ * icon names and `tooltips` an optional list of hints (needed for icon-only segments).
+ */
 FocusScope {
     id: seg
 
     property var model: []
+    property var icons: []
+    property var tooltips: []
     property int currentIndex: 0
     signal activated(int index)
 
@@ -42,22 +51,40 @@ FocusScope {
                 required property int index
                 required property var modelData
                 readonly property bool current: seg.currentIndex === index
-                width: label.implicitWidth + KanteStyle.unit(28)
+                readonly property string iconName: seg.icons && seg.icons.length > index ? String(seg.icons[index]) : ""
+                readonly property string tip: seg.tooltips && seg.tooltips.length > index ? String(seg.tooltips[index]) : ""
+                readonly property color ink: current ? KanteStyle.accentForegroundColor : (hover.hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor)
+                width: content.implicitWidth + KanteStyle.unit(String(modelData).length === 0 ? 20 : 28)
                 height: parent.height
                 color: current ? KanteStyle.accentColor : (hover.hovered ? KanteStyle.cardColor : "transparent")
                 Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
 
-                Text {
-                    id: label
+                RowLayout {
+                    id: content
                     anchors.centerIn: parent
-                    text: item.modelData
-                    font: KanteStyle.labelFont()
-                    color: item.current ? KanteStyle.accentForegroundColor : (hover.hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor)
+                    spacing: KanteStyle.unit(6)
+                    Kirigami.Icon {
+                        visible: item.iconName.length > 0
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        source: item.iconName
+                        isMask: true
+                        color: item.ink
+                    }
+                    Text {
+                        visible: String(item.modelData).length > 0
+                        text: item.modelData
+                        font: KanteStyle.labelFont()
+                        color: item.ink
+                    }
                 }
                 HoverHandler { id: hover }
+                QQC2.ToolTip.text: item.tip
+                QQC2.ToolTip.visible: hover.hovered && item.tip.length > 0
+                QQC2.ToolTip.delay: 500
                 TapHandler { onTapped: seg.select(item.index) }
                 Accessible.role: Accessible.RadioButton
-                Accessible.name: item.modelData
+                Accessible.name: String(item.modelData).length > 0 ? item.modelData : item.tip
                 Accessible.checked: item.current
             }
         }

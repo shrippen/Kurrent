@@ -1,14 +1,24 @@
 module Kante
 singleton KanteStyle 1.0 KanteStyle.qml
 singleton KantePalette 1.0 KantePalette.qml
+KanteAgenda 1.0 KanteAgenda.qml
 KanteAppear 1.0 KanteAppear.qml
+KanteBandEditor 1.0 KanteBandEditor.qml
 KanteBanner 1.0 KanteBanner.qml
+KanteBarChart 1.0 KanteBarChart.qml
 KanteBrackets 1.0 KanteBrackets.qml
+KanteBulkBar 1.0 KanteBulkBar.qml
 KanteButton 1.0 KanteButton.qml
+KanteCalendarGrid 1.0 KanteCalendarGrid.qml
 KanteCallout 1.0 KanteCallout.qml
 KanteCard 1.0 KanteCard.qml
 KanteCheckSkin 1.0 KanteCheckSkin.qml
+KanteChip 1.0 KanteChip.qml
+KanteClock 1.0 KanteClock.qml
+KanteCommandBox 1.0 KanteCommandBox.qml
 KanteCounter 1.0 KanteCounter.qml
+KanteCurveEditor 1.0 KanteCurveEditor.qml
+KanteDayStrip 1.0 KanteDayStrip.qml
 KanteDialog 1.0 KanteDialog.qml
 KanteDialogSkin 1.0 KanteDialogSkin.qml
 KanteDropZone 1.0 KanteDropZone.qml
@@ -16,8 +26,12 @@ KanteEmptyState 1.0 KanteEmptyState.qml
 KanteFieldSkin 1.0 KanteFieldSkin.qml
 KanteHazard 1.0 KanteHazard.qml
 KanteHeading 1.0 KanteHeading.qml
+KanteHeatmap 1.0 KanteHeatmap.qml
 KanteHud 1.0 KanteHud.qml
+KanteKpi 1.0 KanteKpi.qml
 KanteLamp 1.0 KanteLamp.qml
+KanteLineChart 1.0 KanteLineChart.qml
+KanteListRow 1.0 KanteListRow.qml
 KanteLiveLine 1.0 KanteLiveLine.qml
 KanteLiveText 1.0 KanteLiveText.qml
 KanteLoader 1.0 KanteLoader.qml
@@ -34,11 +48,16 @@ KanteRunner 1.0 KanteRunner.qml
 KanteScope 1.0 KanteScope.qml
 KanteScrollMeter 1.0 KanteScrollMeter.qml
 KanteSegmented 1.0 KanteSegmented.qml
+KanteSettingRow 1.0 KanteSettingRow.qml
 KanteSettle 1.0 KanteSettle.qml
+KanteSheetSkin 1.0 KanteSheetSkin.qml
 KanteSkeleton 1.0 KanteSkeleton.qml
 KanteSliderSkin 1.0 KanteSliderSkin.qml
+KanteSparkline 1.0 KanteSparkline.qml
+KanteStatusLight 1.0 KanteStatusLight.qml
 KanteSteps 1.0 KanteSteps.qml
 KanteSticker 1.0 KanteSticker.qml
+KanteSwatch 1.0 KanteSwatch.qml
 KanteTabBar 1.0 KanteTabBar.qml
 KanteTextField 1.0 KanteTextField.qml
 KanteTick 1.0 KanteTick.qml
@@ -46,3 +65,4 @@ KanteTile 1.0 KanteTile.qml
 KanteToast 1.0 KanteToast.qml
 KanteToolButton 1.0 KanteToolButton.qml
 KanteTube 1.0 KanteTube.qml
+KanteWeekView 1.0 KanteWeekView.qml

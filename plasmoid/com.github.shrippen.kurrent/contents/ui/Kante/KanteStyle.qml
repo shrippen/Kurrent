@@ -92,6 +92,19 @@ QtObject {
     /** Primary fill on hover (one step lighter) and pressed. */
     readonly property color accentHoverColor: themed ? palette.accentHover : Qt.lighter(Kirigami.Theme.highlightColor, 1.12)
     readonly property color accentPressedColor: themed ? palette.accentPressed : Qt.darker(Kirigami.Theme.highlightColor, 1.12)
+    /** The dim behind a modal dialog. */
+    readonly property color scrimColor: themed ? palette.scrim : tint(Kirigami.Theme.textColor, 0.5)
+    // Tint steps for hover, drop targets, selection and outlines: translucent, so any ground shows through.
+    readonly property color tint1Color: tint(textColor, 0.08)
+    readonly property color tint2Color: tint(textColor, 0.16)
+    readonly property color tintHighlightColor: tint(focusColor, 0.12)
+    readonly property color tintHighlight2Color: tint(focusColor, 0.25)
+    readonly property color tintWarnColor: tint(warningColor, 0.14)
+    /** Series colours of charts, in this order (cyan, yellow, purple, aqua, orange, grey); red stays danger. */
+    function dataColor(i) {
+        var colors = [focusColor, accentColor, tagColor, positiveTextColor, warningColor, disabledTextColor]
+        return colors[((i % colors.length) + colors.length) % colors.length]
+    }
     /** Text on a filled state color (danger button, counter). */
     readonly property color onStateColor: themed ? palette.onState : Kirigami.Theme.highlightedTextColor
     readonly property color cardColor: themed ? palette.card : tint(Kirigami.Theme.textColor, 0.04)

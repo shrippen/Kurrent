@@ -103,4 +103,48 @@ Item {
         when: KanteStyle.themed && skin.comboBox && skin.control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
+    // A combo box that is not editable must not offer a text cursor: Android shows a
+    // "pasted from clipboard" toast on every release of an editable-looking field.
+    readonly property bool plainCombo: comboBox && !skin.control.editable && skin.control.contentItem !== null
+        && skin.control.contentItem.readOnly !== undefined
+    Binding {
+        target: skin.plainCombo ? skin.control.contentItem : null
+        property: "readOnly"
+        value: true
+        when: KanteStyle.themed && skin.plainCombo
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+    // Spin boxes: hide the style's arrows and draw + and − in mono.
+    readonly property bool spinBox: control !== null && control.up !== undefined && control.down !== undefined
+        && control.up.indicator !== undefined && control.down.indicator !== undefined
+    Binding {
+        target: skin.spinBox ? skin.control.up.indicator : null
+        property: "opacity"
+        value: 0
+        when: KanteStyle.themed && skin.spinBox && skin.control.up.indicator !== null
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+    Binding {
+        target: skin.spinBox ? skin.control.down.indicator : null
+        property: "opacity"
+        value: 0
+        when: KanteStyle.themed && skin.spinBox && skin.control.down.indicator !== null
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+    Text {
+        visible: KanteStyle.themed && skin.spinBox && skin.control.up.indicator !== null
+        x: skin.spinBox && skin.control.up.indicator ? skin.control.up.indicator.x + (skin.control.up.indicator.width - width) / 2 : 0
+        y: skin.spinBox && skin.control.up.indicator ? skin.control.up.indicator.y + (skin.control.up.indicator.height - height) / 2 : 0
+        text: "+"
+        font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize, true)
+        color: skin.spinBox && skin.control.up.pressed ? KanteStyle.accentTextColor : KanteStyle.mutedTextColor
+    }
+    Text {
+        visible: KanteStyle.themed && skin.spinBox && skin.control.down.indicator !== null
+        x: skin.spinBox && skin.control.down.indicator ? skin.control.down.indicator.x + (skin.control.down.indicator.width - width) / 2 : 0
+        y: skin.spinBox && skin.control.down.indicator ? skin.control.down.indicator.y + (skin.control.down.indicator.height - height) / 2 : 0
+        text: "−"
+        font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize, true)
+        color: skin.spinBox && skin.control.down.pressed ? KanteStyle.accentTextColor : KanteStyle.mutedTextColor
+    }
 }
