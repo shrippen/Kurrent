@@ -125,7 +125,6 @@ Kirigami.AbstractCard {
             visible: KanteStyle.active
             color: root.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor
             borderColor: root.hovered || root.inspected ? KanteStyle.accentColor : "transparent"
-            barHeight: root.compact ? 2 : 3
             barColor: root.task && root.task.priority > 0
                       ? Design.priorityColor(root.task.priority) : "transparent"
             chamfer: root.compact ? KanteStyle.chamferSmall : KanteStyle.chamfer

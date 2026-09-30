@@ -149,7 +149,6 @@ ConfigPageBase {
                                     borderColor: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
                                                          Kirigami.Theme.textColor.b, 0.15)
                                     barColor: styleCard.modelData.active
-                                    barHeight: 2
                                 }
 
                                 RowLayout {
