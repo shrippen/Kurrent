@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import ".." as KurrentUi
+import "../Kante"
 
 ColumnLayout {
     id: root
@@ -16,11 +17,15 @@ ColumnLayout {
     spacing: KurrentUi.Design.spaceSmall
 
     Kirigami.InlineMessage {
+        id: mismatchMessage
         Layout.fillWidth: true
         type: Kirigami.MessageType.Warning
         text: i18n("Backend version mismatch") + "\n"
               + i18n("This widget is version %1 but the installed backend is %2. Reinstall the backend to match.",
                      widgetVersion, displayBackendVersion)
+        // Kante: square callout tinted with the warning colour.
+        KanteMessageSkin { message: mismatchMessage }
+
         actions: [
             Kirigami.Action {
                 text: i18n("Copy command")

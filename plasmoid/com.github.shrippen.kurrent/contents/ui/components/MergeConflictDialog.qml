@@ -5,6 +5,8 @@ import org.kde.plasma.extras as PlasmaExtras
 import org.kde.plasma.components as PC3
 import "../colors.js" as Colors
 import ".."
+import "../Kante"
+import "../KantePlasma"
 
 Item {
     id: root
@@ -70,11 +72,20 @@ Item {
         anchors.centerIn: parent
         width: Math.min(parent.width * 0.9, 550)
         height: Math.min(parent.height * 0.9, cardCol.implicitHeight + 40)
-        radius: 12
-        color: Kirigami.Theme.backgroundColor
+        radius: KanteStyle.themed ? 0 : 12
+        color: KanteStyle.themed ? "transparent" : Kirigami.Theme.backgroundColor
         border.color: Qt.alpha(Kirigami.Theme.textColor, 0.15)
-        border.width: 1
+        border.width: KanteStyle.themed ? 0 : 1
         z: 1
+
+        // Kante: the dialog surface (cut top-right and bottom-left, accent bar), as KanteDialogSkin.
+        KanteCard {
+            visible: KanteStyle.themed
+            anchors.fill: parent
+            color: KanteStyle.dialogColor
+            barColor: KanteStyle.accentColor
+            chamferBottom: KanteStyle.chamfer
+        }
 
         ColumnLayout {
             id: cardCol
@@ -90,14 +101,14 @@ Item {
                     source: "dialog-warning"
                     Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                     Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-                    color: Qt.rgba(1, 0.8, 0, 1)
+                    color: KanteStyle.active ? KanteStyle.warningColor : Qt.rgba(1, 0.8, 0, 1)
                 }
-                PlasmaExtras.Heading {
+                KantePlasmaHeading {
                     level: 2
                     text: "Merge Conflict"
                     Layout.fillWidth: true
                 }
-                PC3.ToolButton {
+                KantePlasmaToolButton {
                     icon.name: "dialog-close"
                     onClicked: root.closeDialog()
                 }
@@ -113,7 +124,14 @@ Item {
             }
 
             // Progress bar
+            KanteProgressBar {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 16
+                visible: KanteStyle.active
+                value: (root.currentIndex + 1) / Math.max(1, root.totalFields)
+            }
             Rectangle {
+                visible: !KanteStyle.active
                 Layout.fillWidth: true
                 Layout.preferredHeight: 4
                 Layout.bottomMargin: 16
@@ -148,9 +166,9 @@ Item {
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: origCol.implicitHeight + 20
-                    radius: 8
-                    color: Qt.alpha(Kirigami.Theme.textColor, 0.06)
-                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
+                    radius: KanteStyle.themed ? 0 : 8
+                    color: KanteStyle.themed ? KanteStyle.sunkenColor : Qt.alpha(Kirigami.Theme.textColor, 0.06)
+                    border.color: KanteStyle.themed ? KanteStyle.frameColor : Qt.alpha(Kirigami.Theme.textColor, 0.12)
                     border.width: 1
 
                     ColumnLayout {
@@ -210,13 +228,13 @@ Item {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: Math.max(60, leftCol.implicitHeight + 20)
-                        radius: 8
+                        radius: KanteStyle.themed ? 0 : 8
                         color: root.resolution[(root.currentField || {}).key || ""] === "user"
-                               ? Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
+                               ? (KanteStyle.themed ? KanteStyle.selectionColor : Qt.alpha(Kirigami.Theme.highlightColor, 0.12))
                                : "transparent"
                         border.color: root.resolution[(root.currentField || {}).key || ""] === "user"
                                       ? Kirigami.Theme.highlightColor
-                                      : Qt.alpha(Kirigami.Theme.textColor, 0.15)
+                                      : (KanteStyle.themed ? KanteStyle.frameColor : Qt.alpha(Kirigami.Theme.textColor, 0.15))
                         border.width: 1
 
                         ColumnLayout {
@@ -228,7 +246,7 @@ Item {
                                 text: "Kurrent"
                                 font.bold: true
                                 font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
-                                color: Kirigami.Theme.highlightColor
+                                color: KanteStyle.themed ? KanteStyle.accentTextColor : Kirigami.Theme.highlightColor
                             }
                             Loader {
                                 Layout.fillWidth: true
@@ -244,13 +262,13 @@ Item {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: Math.max(60, rightCol.implicitHeight + 20)
-                        radius: 8
+                        radius: KanteStyle.themed ? 0 : 8
                         color: root.resolution[(root.currentField || {}).key || ""] === "server"
-                               ? Qt.alpha(Kirigami.Theme.highlightColor, 0.12)
+                               ? (KanteStyle.themed ? KanteStyle.selectionColor : Qt.alpha(Kirigami.Theme.highlightColor, 0.12))
                                : "transparent"
                         border.color: root.resolution[(root.currentField || {}).key || ""] === "server"
                                       ? Kirigami.Theme.highlightColor
-                                      : Qt.alpha(Kirigami.Theme.textColor, 0.15)
+                                      : (KanteStyle.themed ? KanteStyle.frameColor : Qt.alpha(Kirigami.Theme.textColor, 0.15))
                         border.width: 1
 
                         ColumnLayout {
@@ -262,7 +280,7 @@ Item {
                                 text: "Akonadi"
                                 font.bold: true
                                 font.pixelSize: Kirigami.Theme.defaultFont.pixelSize * 0.85
-                                color: Qt.rgba(0.6, 0.8, 1, 1)
+                                color: KanteStyle.active ? KanteStyle.infoColor : Qt.rgba(0.6, 0.8, 1, 1)
                             }
                             Loader {
                                 Layout.fillWidth: true
@@ -289,8 +307,10 @@ Item {
                     Layout.fillWidth: true
                     Layout.topMargin: 8
                     spacing: 8
-                    PC3.Button {
+                    KantePlasmaButton {
                         text: "Mine"
+                        emphasis: root.resolution[(root.currentField || {}).key || ""] === "user"
+                                  ? KantePlasmaButton.Emphasis.Primary : KantePlasmaButton.Emphasis.Normal
                         icon.name: "edit-undo"
                         highlighted: root.currentField && root.resolution[(root.currentField || {}).key || ""] === "user"
                         onClicked: {
@@ -301,8 +321,10 @@ Item {
                         }
                         Layout.fillWidth: true
                     }
-                    PC3.Button {
+                    KantePlasmaButton {
                         text: "Akonadi"
+                        emphasis: root.resolution[(root.currentField || {}).key || ""] === "server"
+                                  ? KantePlasmaButton.Emphasis.Primary : KantePlasmaButton.Emphasis.Normal
                         icon.name: "view-refresh"
                         highlighted: root.currentField && root.resolution[(root.currentField || {}).key || ""] === "server"
                         onClicked: {
@@ -313,8 +335,10 @@ Item {
                         }
                         Layout.fillWidth: true
                     }
-                    PC3.Button {
+                    KantePlasmaButton {
                         text: "New"
+                        emphasis: root.resolution[(root.currentField || {}).key || ""] === "edit"
+                                  ? KantePlasmaButton.Emphasis.Primary : KantePlasmaButton.Emphasis.Normal
                         icon.name: "document-edit"
                         highlighted: root.currentField && root.resolution[(root.currentField || {}).key || ""] === "edit"
                         onClicked: {

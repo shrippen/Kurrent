@@ -503,8 +503,9 @@ ColumnLayout {
                 Layout.fillWidth: true
                 radius: Design.inputRadius
                 color: taskHover.hovered
-                       ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
-                                 Kirigami.Theme.highlightColor.b, 0.08)
+                       ? (KanteStyle.themed ? KanteStyle.selectionColor
+                                            : Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
+                                                      Kirigami.Theme.highlightColor.b, 0.08))
                        : Kirigami.Theme.alternateBackgroundColor
                 implicitHeight: taskBody.implicitHeight + Design.padInner * 2
 

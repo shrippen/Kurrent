@@ -25,6 +25,8 @@ Item {
         implicitHeight: Kirigami.Units.gridUnit * 2.5
         color: KanteStyle.dialogColor
         borderColor: KanteStyle.frameColor
+        barColor: KanteStyle.focusColor
+        barHeight: KanteStyle.unit(3)
         chamfer: KanteStyle.chamferSmall
     }
 

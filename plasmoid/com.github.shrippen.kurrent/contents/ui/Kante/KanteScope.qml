@@ -27,7 +27,7 @@ Item {
         alternateBackgroundColor: "cardColor",
         highlightColor: "accentColor",
         highlightedTextColor: "accentForegroundColor",
-        focusColor: "accentColor",
+        focusColor: "focusColor",
         hoverColor: "accentColor",
         linkColor: "infoColor",
         positiveTextColor: "positiveTextColor",

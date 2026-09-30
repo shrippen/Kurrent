@@ -21,8 +21,8 @@ QQC2.ToolButton {
         anchors.fill: parent
         visible: KanteStyle.themed && (control.hovered || control.down || control.checked || control.visualFocus)
         color: control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
-        border.width: control.visualFocus && !control.checked ? 1 : 0
-        border.color: KanteStyle.accentColor
+        border.width: control.visualFocus && !control.checked ? 2 : 0
+        border.color: KanteStyle.focusColor
     }
 
     RowLayout {

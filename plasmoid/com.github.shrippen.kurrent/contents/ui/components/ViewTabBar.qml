@@ -7,7 +7,7 @@ import "../Kante"
 
 // Narrow layout (panel flyout, small desktop widget): the everyday views as tabs, the sidebar
 // behind a toggle. System and Kante Light: text tabs with a highlight underline like Plasma's
-// TabBar. Kante: the active tab gets the accent fill, labels in uppercase Rajdhani.
+// TabBar. Kante: KanteTabBar (notched tabs, sliding accent tab, counter badges).
 RowLayout {
     id: bar
 
@@ -20,6 +20,24 @@ RowLayout {
     signal viewPicked(string viewId)
 
     spacing: Design.spaceTiny
+
+    // Kante: the view labels and counters as KanteTabBar input.
+    readonly property var _tabLabels: views.map(function(v) { return v.label })
+    readonly property var _tabCounts: views.map(function(v) {
+        var n = controller ? controller.viewTaskCounts[v.viewId] : 0
+        return n === undefined || n === 0 ? "" : String(n)
+    })
+    readonly property var _tabKinds: views.map(function(v) {
+        return v.viewId === "overdue" ? KanteCounter.Kind.Error : KanteCounter.Kind.Normal
+    })
+    readonly property int _tabIndex: {
+        for (var i = 0; i < views.length; ++i) {
+            if (controller && controller.currentView === views[i].viewId) {
+                return i
+            }
+        }
+        return -1
+    }
 
     KanteToolButton {
         Layout.alignment: Qt.AlignVCenter
@@ -37,15 +55,36 @@ RowLayout {
     // Overflow: arrows at the edges say there are more tabs and scroll by one page (n1).
     KanteToolButton {
         Layout.alignment: Qt.AlignVCenter
-        visible: strip.contentX > 1
+        visible: !KanteStyle.themed && strip.contentX > 1
         icon.name: "go-previous"
         display: QQC2.AbstractButton.IconOnly
         text: i18n("Previous")
         onClicked: strip.scrollBy(-strip.width * 0.8)
     }
 
+    KanteTabBar {
+        id: kanteTabs
+        visible: KanteStyle.themed
+        clip: true
+        Layout.fillWidth: true
+        model: bar._tabLabels
+        counts: bar._tabCounts
+        countKinds: bar._tabKinds
+        badges: true
+        onActivated: function(index) { bar.viewPicked(bar.views[index].viewId) }
+    }
+
+    // A binding on currentIndex would break at the first click.
+    Binding {
+        target: kanteTabs
+        property: "currentIndex"
+        value: bar._tabIndex
+        when: bar._tabIndex !== undefined
+    }
+
     Flickable {
         id: strip
+        visible: !KanteStyle.themed
 
         function scrollBy(dx) {
             contentX = Math.max(0, Math.min(contentWidth - width, contentX + dx))
@@ -109,11 +148,6 @@ RowLayout {
                     }
 
                     background: Item {
-                        StyledHighlight {
-                            anchors.fill: parent
-                            visible: KanteStyle.themed && tab.current
-                            pressed: tab.down
-                        }
                         Rectangle {
                             anchors.fill: parent
                             visible: tab.hovered && !tab.current
@@ -125,7 +159,7 @@ RowLayout {
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
                             height: 2
-                            visible: !KanteStyle.themed && tab.current
+                            visible: tab.current
                             color: Kirigami.Theme.highlightColor
                         }
                     }
@@ -135,18 +169,13 @@ RowLayout {
 
                         QQC2.Label {
                             text: tab.modelData.label
-                            color: KanteStyle.themed && tab.current
-                                   ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
                             opacity: tab.current ? 1 : 0.8
-                            font: KanteStyle.themed ? KanteStyle.headingFont(Kirigami.Theme.defaultFont.pointSize)
-                                                    : Kirigami.Theme.defaultFont
                         }
 
                         CountBadge {
                             visible: tab.countText.length > 0
                             text: tab.countText
-                            selected: KanteStyle.themed && tab.current
-                            negative: tab.modelData.viewId === "overdue" && !(KanteStyle.themed && tab.current)
+                            negative: tab.modelData.viewId === "overdue"
                         }
                     }
                 }
@@ -156,7 +185,7 @@ RowLayout {
 
     KanteToolButton {
         Layout.alignment: Qt.AlignVCenter
-        visible: strip.contentX < strip.contentWidth - strip.width - 1
+        visible: !KanteStyle.themed && strip.contentX < strip.contentWidth - strip.width - 1
         icon.name: "go-next"
         display: QQC2.AbstractButton.IconOnly
         text: i18n("Next")

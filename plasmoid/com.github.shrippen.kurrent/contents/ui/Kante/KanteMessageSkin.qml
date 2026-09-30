@@ -3,8 +3,8 @@ import org.kde.kirigami as Kirigami
 import "."
 
 /**
- * Kante look for a Kirigami.InlineMessage: place inside it. Square callout
- * tinted with the message type's color (shrippen .callout). Nothing in the
+ * Kante look for a Kirigami.InlineMessage: place inside it. Callout
+ * tinted with the message type's color, a 4 px bar on top and the cut corner (Kante .callout). Nothing in the
  * System style.
  */
 Item {
@@ -22,7 +22,7 @@ Item {
         case Kirigami.MessageType.Error:
             return KanteStyle.negativeTextColor
         case Kirigami.MessageType.Warning:
-            return KanteStyle.neutralTextColor
+            return KanteStyle.warningColor
         case Kirigami.MessageType.Positive:
             return KanteStyle.positiveTextColor
         default:
@@ -31,10 +31,10 @@ Item {
     }
 
     // Not a child: only handed to `background` while Kante is on.
-    readonly property Item kanteBackground: Rectangle {
-        color: KanteStyle.tint(skin.tone, 0.14)
-        border.width: 1
-        border.color: KanteStyle.tint(skin.tone, 0.55)
+    readonly property Item kanteBackground: KanteCard {
+        color: KanteStyle.tint(skin.tone, 0.12)
+        barColor: skin.tone
+        chamfer: KanteStyle.chamferSmall
     }
 
     Binding {

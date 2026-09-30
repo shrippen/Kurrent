@@ -56,6 +56,6 @@ Item {
         x: skin.trackX + (skin.control ? skin.control.visualPosition : 0) * (skin.trackWidth - width)
         color: KanteStyle.accentColor
         border.width: skin.control && skin.control.visualFocus ? 2 : 0
-        border.color: KanteStyle.strongTextColor
+        border.color: KanteStyle.focusColor
     }
 }

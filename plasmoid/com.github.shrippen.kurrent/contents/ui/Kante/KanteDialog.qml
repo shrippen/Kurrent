@@ -6,7 +6,7 @@ import "."
 /**
  * Dialog.
  *   System  a plain dialog (unchanged).
- *   Kante   nearly opaque panel with a cut top-right corner, an accent bar
+ *   Kante   nearly opaque panel with cut top-right and bottom-left corners, an accent bar
  *           on top, an uppercase title, Kante colors inside and Kante
  *           buttons in the footer (the accept button filled).
  */
@@ -22,6 +22,7 @@ QQC2.Dialog {
     readonly property Item kanteBackground: KanteCard {
         color: KanteStyle.dialogColor
         barColor: control.kanteBarColor
+        chamferBottom: KanteStyle.chamfer
     }
 
     readonly property Item kanteHeader: QQC2.Label {
@@ -48,6 +49,16 @@ QQC2.Dialog {
         }
     }
 
+    // The dim behind the dialog is Kante's scrim role (best effort: only when the style
+    // provides the overlay attached object).
+    Binding {
+        target: control.QQC2.Overlay
+        property: "modal"
+        value: control.kanteScrim
+        when: KanteStyle.themed && control.QQC2.Overlay !== null
+        restoreMode: Binding.RestoreBindingOrValue
+    }
+    readonly property Component kanteScrim: Component { Rectangle { color: KanteStyle.scrimColor } }
     Binding {
         target: control
         property: "background"

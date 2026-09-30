@@ -54,6 +54,12 @@ PlasmoidItem {
         property: "kind"
         value: KurrentUi.Design.kanteKind(KurrentUi.Design.uiStyle)
     }
+    // Kante motion follows the widget's "reduced motion" setting.
+    Binding {
+        target: KanteStyle
+        property: "motion"
+        value: !KurrentUi.Design.reducedMotion
+    }
 
     readonly property bool inPanel: [
         PlasmaCore.Types.TopEdge,
