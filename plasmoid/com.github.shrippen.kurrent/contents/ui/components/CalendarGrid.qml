@@ -56,8 +56,22 @@ ColumnLayout {
         }
     }
 
+    // Kante: month grid from the design system, same navigation above.
+    KanteCalendarGrid {
+        visible: KanteStyle.active
+        Layout.fillWidth: true
+        year: root._monthStart.getFullYear()
+        month: root._monthStart.getMonth() + 1
+        selectedDay: root.selectedDate.getFullYear() === year && root.selectedDate.getMonth() + 1 === month
+                     ? root.selectedDate.getDate() : 0
+        dayNames: [i18n("Mo"), i18n("Tu"), i18n("We"), i18n("Th"), i18n("Fr"), i18n("Sa"), i18n("Su")]
+                  .map(function(n) { return n.toUpperCase() })
+        onDayClicked: function(day) { root.dateSelected(new Date(year, month - 1, day)) }
+    }
+
     // Weekday headers
     Grid {
+        visible: !KanteStyle.active
         columns: 7
         Layout.alignment: Qt.AlignHCenter
         spacing: 1
@@ -76,6 +90,7 @@ ColumnLayout {
 
     // Day grid
     Grid {
+        visible: !KanteStyle.active
         columns: 7
         Layout.alignment: Qt.AlignHCenter
         spacing: 1
