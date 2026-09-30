@@ -13,7 +13,11 @@ import "."
  * whole list. `activated(index)` gives the index in `model`.
  * `allowNew` adds an "add" row when nothing matches exactly: Enter or a tap emits
  * `newEntered(text)`. `keepText: false` clears the field after a pick (see KanteTagPicker);
- * `exclude` hides entries by text.
+ * `exclude` hides entries by text. `sectionRole` groups the rows under headings (entries of
+ * one section next to each other, as in a ListView section).
+ * The popup stays inside the window: above the field when there is no room below (`popupAbove`
+ * true / false forces a side), shifted left at the right edge, capped to the free height.
+ * `openList()` / `close()` drive it.
  *   System  a plain text field, platform popup, rows in the roles.
  *   Kante   sunken Kante field, the popup as a Kante card, the current row cyan.
  */
@@ -23,6 +27,12 @@ FocusScope {
     property var model: []
     property string textRole: ""
     property string colorRole: ""
+    /** Role of the section heading of an entry (e.g. "customer"); "" = no headings. */
+    property string sectionRole: ""
+    /** Side of the popup: undefined = below, above when there is no room (true / false force it). */
+    property var popupAbove: undefined
+    /** The list opens above or below this item (default the field; a tag picker hands its box). */
+    property Item popupAnchor: null
     property int currentIndex: -1
     readonly property string currentText: textAt(currentIndex)
     property string placeholderText: ""
@@ -63,6 +73,31 @@ FocusScope {
         return c === undefined || c === null || c === "" ? KanteStyle.entityFallbackColor : c
     }
 
+    function sectionAt(i) {
+        var e = model && i >= 0 && i < model.length ? model[i] : null
+        if (sectionRole === "" || e === null || typeof e !== "object") {
+            return ""
+        }
+        var v = e[sectionRole]
+        return v === undefined || v === null ? "" : String(v)
+    }
+    /** List row `row` starts a section: it gets a heading above it. */
+    function startsSection(row) {
+        if (sectionRole === "" || row >= matches.length) {
+            return false
+        }
+        var here = sectionAt(matches[row])
+        return here !== "" && (row === 0 || sectionAt(matches[row - 1]) !== here)
+    }
+    /** Height of the first `rows` list rows with their headings. */
+    function listHeight(rows) {
+        var h = 0
+        for (var r = 0; r < rows; r++) {
+            h += rowHeight + (startsSection(r) ? headingHeight : 0)
+        }
+        return h
+    }
+
     readonly property string query: filtering ? input.text.trim() : ""
     /** Indices into `model` that match the query and are not excluded. */
     readonly property var matches: {
@@ -96,6 +131,19 @@ FocusScope {
     function openList() {
         highlighted = 0
         popup.open()
+    }
+    /** The list's place: x from the field, the side from `popupAnchor` (in the field's coordinates). */
+    function placeList(w, h) {
+        var side = popupAnchor || root
+        var across = KanteStyle.popupPlace(root, w, h, popupAbove)
+        var along = KanteStyle.popupPlace(side, w, h, popupAbove)
+        var top = side.mapToItem(root, 0, 0).y
+        return { x: across.x, y: top + along.y, above: along.above, room: along.room, top: top }
+    }
+    /** Closes the list and ends the filter (the field shows the current entry again). */
+    function close() {
+        popup.close()
+        reset()
     }
     function move(delta) {
         if (!popup.visible) {
@@ -253,12 +301,20 @@ FocusScope {
 
     QQC2.Popup {
         id: popup
-        y: root.height + KanteStyle.unit(2)
+        objectName: "popup"
         width: root.width
         padding: KanteStyle.unit(4)
         topPadding: KanteStyle.unit(6)
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutsideParent
-        implicitHeight: Math.min(root.maxRows, Math.max(1, root.rowCount)) * root.rowHeight + topPadding + bottomPadding
+        implicitHeight: (root.rowCount > 0 ? root.listHeight(Math.min(root.maxRows, root.rowCount)) : root.rowHeight)
+                        + topPadding + bottomPadding
+        // Inside the window: above the field when there is no room below, capped to the free height.
+        readonly property var place: visible ? root.placeList(width, implicitHeight)
+                                             : ({ x: 0, y: root.height + KanteStyle.unit(2), above: false, room: implicitHeight, top: 0 })
+        readonly property real minHeight: root.rowHeight + topPadding + bottomPadding
+        x: place.x
+        y: place.above ? place.top - height - KanteStyle.unit(2) : place.y
+        height: Math.max(minHeight, Math.min(implicitHeight, place.room))
 
         KantePopupSkin { popup: popup }
 
@@ -270,53 +326,74 @@ FocusScope {
             boundsBehavior: Flickable.StopAtBounds
             QQC2.ScrollBar.vertical: QQC2.ScrollBar { policy: list.contentHeight > list.height ? QQC2.ScrollBar.AsNeeded : QQC2.ScrollBar.AlwaysOff }
 
-            delegate: Rectangle {
+            delegate: Item {
                 id: row
                 required property int index
                 readonly property bool isNew: index >= root.matches.length
                 readonly property int modelIndex: isNew ? -1 : root.matches[index]
                 readonly property bool current: index === root.highlighted
+                readonly property real headHeight: root.startsSection(index) ? root.headingHeight : 0
                 width: ListView.view.width
-                height: root.rowHeight
-                color: current ? KanteStyle.selectionColor : (rowHover.hovered ? KanteStyle.tint1Color : "transparent")
+                height: headHeight + root.rowHeight
 
-                // Cyan edge on the keyboard row, as on selected rows elsewhere.
+                // Section heading: a small label over the first row of its section.
+                Text {
+                    visible: row.headHeight > 0
+                    x: KanteStyle.unit(10)
+                    width: parent.width - 2 * x
+                    height: row.headHeight
+                    verticalAlignment: Text.AlignBottom
+                    bottomPadding: KanteStyle.unit(3)
+                    elide: Text.ElideRight
+                    text: visible ? root.sectionAt(row.modelIndex) : ""
+                    color: KanteStyle.mutedTextColor
+                    font: KanteStyle.labelFont()
+                }
                 Rectangle {
-                    visible: row.current && KanteStyle.active
-                    width: KanteStyle.unit(3)
-                    height: parent.height
-                    color: KanteStyle.focusColor
-                }
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: KanteStyle.unit(10)
-                    anchors.rightMargin: KanteStyle.unit(10)
-                    spacing: KanteStyle.unit(8)
+                    y: row.headHeight
+                    width: parent.width
+                    height: root.rowHeight
+                    color: row.current ? KanteStyle.selectionColor : (rowHover.hovered ? KanteStyle.tint1Color : "transparent")
+
+                    // Cyan edge on the keyboard row, as on selected rows elsewhere.
                     Rectangle {
-                        visible: root.colorRole !== "" && !row.isNew
-                        Layout.preferredWidth: KanteStyle.unit(10)
-                        Layout.preferredHeight: KanteStyle.unit(10)
-                        color: row.isNew ? "transparent" : root.colorAt(row.modelIndex)
-                    }
-                    Text {
-                        visible: row.isNew
-                        text: "+"
+                        visible: row.current && KanteStyle.active
+                        width: KanteStyle.unit(3)
+                        height: parent.height
                         color: KanteStyle.focusColor
-                        font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize, true)
                     }
-                    Text {
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        text: row.isNew ? root.newText.arg(root.query) : root.textAt(row.modelIndex)
-                        color: row.isNew ? KanteStyle.focusColor : (row.current ? KanteStyle.strongTextColor : KanteStyle.textColor)
-                        font: KanteStyle.defaultFont
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: KanteStyle.unit(10)
+                        anchors.rightMargin: KanteStyle.unit(10)
+                        spacing: KanteStyle.unit(8)
+                        Rectangle {
+                            visible: root.colorRole !== "" && !row.isNew
+                            Layout.preferredWidth: KanteStyle.unit(10)
+                            Layout.preferredHeight: KanteStyle.unit(10)
+                            color: row.isNew ? "transparent" : root.colorAt(row.modelIndex)
+                        }
+                        Text {
+                            visible: row.isNew
+                            text: "+"
+                            color: KanteStyle.focusColor
+                            font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize, true)
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                            text: row.isNew ? root.newText.arg(root.query) : root.textAt(row.modelIndex)
+                            color: row.isNew ? KanteStyle.focusColor : (row.current ? KanteStyle.strongTextColor : KanteStyle.textColor)
+                            font: KanteStyle.defaultFont
+                        }
                     }
+                    HoverHandler { id: rowHover }
+                    TapHandler { onTapped: root.choose(row.index) }
                 }
-                HoverHandler { id: rowHover }
-                TapHandler { onTapped: root.choose(row.index) }
             }
         }
     }
 
     readonly property real rowHeight: KanteStyle.unit(32)
+    readonly property real headingHeight: KanteStyle.unit(24)
 }

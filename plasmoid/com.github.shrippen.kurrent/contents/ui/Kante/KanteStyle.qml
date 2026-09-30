@@ -137,6 +137,32 @@ QtObject {
     function unit(px) {
         return Math.round(px * Kirigami.Units.gridUnit / 18)
     }
+    /**
+     * Where a popup of `w` × `h` next to `anchor` fits in the window, in `anchor`'s
+     * coordinates: {x, y, above, room}. It opens below, or above when there is no room
+     * below and more above; `above` true or false forces the side (undefined: choose).
+     * x shifts so the popup stays inside the window; `room` is the height free on the
+     * chosen side (a list popup caps its height to it), y already uses min(h, room).
+     *   field at the right edge   popup shifted left, right edges flush with the window
+     *   field at the bottom       popup above the field
+     */
+    function popupPlace(anchor, w, h, above) {
+        var gap = unit(2)
+        var margin = unit(4)
+        var top = anchor
+        while (top.parent) {
+            top = top.parent
+        }
+        var p = anchor.mapToItem(top, 0, 0)
+        var roomBelow = top.height - p.y - anchor.height - gap - margin
+        var roomAbove = p.y - gap - margin
+        var up = above === true || above === false ? above : (h > roomBelow && roomAbove > roomBelow)
+        var room = Math.max(0, up ? roomAbove : roomBelow)
+        var x = Math.max(margin - p.x, Math.min(0, top.width - margin - w - p.x))
+        var y = up ? -Math.min(h, room) - gap : anchor.height + gap
+        return { x: x, y: y, above: up, room: room }
+    }
+
     /** Control heights: 32 / 40 / 48 px at a grid unit of 18. */
     readonly property int heightSmall: unit(KantePalette.heightSmall)
     readonly property int heightMedium: unit(KantePalette.heightMedium)

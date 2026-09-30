@@ -48,6 +48,14 @@ Kirigami.Heading {
         color: KanteStyle.ruleColor
     }
 
+    // The hidden original takes Kante's font too, so the heading is as wide as the Kante
+    // text (a layout sizes it from its own text; the wider Rajdhani title was elided).
+    Binding { target: control; property: "font.family"; value: kanteText.font.family; when: control.kanteDrawn; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: control; property: "font.pointSize"; value: kanteText.font.pointSize; when: control.kanteDrawn; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: control; property: "font.weight"; value: kanteText.font.weight; when: control.kanteDrawn; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: control; property: "font.capitalization"; value: kanteText.font.capitalization; when: control.kanteDrawn; restoreMode: Binding.RestoreBindingOrValue }
+    Binding { target: control; property: "font.letterSpacing"; value: kanteText.font.letterSpacing; when: control.kanteDrawn; restoreMode: Binding.RestoreBindingOrValue }
+
     Binding {
         target: control
         property: "color"

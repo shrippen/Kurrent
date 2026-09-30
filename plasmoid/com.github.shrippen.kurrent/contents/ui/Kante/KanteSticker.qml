@@ -12,7 +12,10 @@ Item {
     property string text: ""
     property color dot: ink
     readonly property color paper: KanteStyle.light ? KanteStyle.textColor : KantePalette.brand
-    readonly property color ink: KanteStyle.light ? KanteStyle.backgroundColor : KanteStyle.accentForegroundColor
+    // Cream paper takes dark ink: off Kante the platform's highlighted text is white on a
+    // dark scheme, so the Leinen text colour.
+    readonly property color ink: KanteStyle.light ? KanteStyle.backgroundColor
+                               : (KanteStyle.themed ? KanteStyle.accentForegroundColor : KantePalette.light.text)
 
     implicitHeight: KanteStyle.unit(28)
     implicitWidth: row.implicitWidth + KanteStyle.unit(24)

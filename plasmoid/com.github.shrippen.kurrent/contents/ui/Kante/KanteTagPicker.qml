@@ -10,6 +10,8 @@ import "."
  * of a chip removes it, Backspace in the empty field the last one.
  * The picker does not change `tags` itself: `edited(tags)` hands the new list to the app
  * (`onEdited: function (t) { tags = t }`).
+ * The suggestions show their colour square; the list opens above the field when there is no
+ * room below (`popupAbove` forces a side) and stays inside the window.
  *   System  the platform text field inside, chips in the roles.
  *   Kante   one sunken box around chips and field with the 2 px edge, cyan on focus.
  */
@@ -21,6 +23,8 @@ Item {
     property bool allowNew: true
     property string placeholderText: ""
     property string removeText: qsTr("Remove %1")
+    /** Side of the suggestion list: undefined = below, above when there is no room. */
+    property alias popupAbove: combo.popupAbove
     signal edited(var tags)
 
     implicitWidth: KanteStyle.unit(320)
@@ -75,6 +79,7 @@ Item {
         spacing: KanteStyle.unit(4)
 
         Repeater {
+            id: chips
             model: root.tags
             delegate: KanteChip {
                 required property var modelData
@@ -91,12 +96,21 @@ Item {
         }
         KanteSearchCombo {
             id: combo
-            width: Math.max(KanteStyle.unit(140), Math.min(KanteStyle.unit(220), flow.width))
+            // The rest of the last chip's line when it has room, else a line of its own.
+            width: {
+                var least = KanteStyle.unit(140)
+                var last = chips.count > 0 ? chips.itemAt(chips.count - 1) : null
+                var rest = last ? flow.width - last.x - last.width - flow.spacing : flow.width
+                return rest >= least ? rest : Math.max(least, Math.min(KanteStyle.unit(220), flow.width))
+            }
             kanteFrame: false
+            popupAnchor: root
             keepText: false
             allowNew: root.allowNew
             placeholderText: root.placeholderText
-            model: root.suggestions.map(root.nameOf)
+            textRole: "name"
+            colorRole: "color"
+            model: root.suggestions.map(function (s) { return { name: root.nameOf(s), color: root.colorOf(s) } })
             exclude: root.tagNames
             onActivated: function (index) { root.add(root.suggestions[index]) }
             onNewEntered: function (text) { root.add(text) }

@@ -8,7 +8,9 @@ import "."
  * as a stroke (check box), a diamond with a core that snaps in (radio button, so
  * single choice never reads as a check box) or a square track with a square knob
  * that snaps to its end with a small overshoot (switch); checked uses the accent.
- * Focus is a cyan ring with a gap. Nothing in the System style.
+ * Focus is a cyan ring with a gap. The label takes the Kante text colour, so Kante dark stays
+ * readable on a light platform scheme (and Leinen on a dark one) even outside a KanteScope.
+ * Nothing in the System style.
  */
 Item {
     id: skin
@@ -34,6 +36,17 @@ Item {
     height: Math.round(Kirigami.Units.gridUnit * 0.9)
     anchors.verticalCenter: control ? control.verticalCenter : undefined
     opacity: control && control.enabled ? 1 : 0.5
+
+    // The platform label draws in the platform's text colour (Breeze Light: near black on
+    // Kante dark); Kante's own colour instead.
+    readonly property Item label: control && control.contentItem instanceof Text ? control.contentItem : null
+    Binding {
+        target: skin.label
+        property: "color"
+        value: KanteStyle.textColor
+        when: KanteStyle.themed && skin.label !== null
+        restoreMode: Binding.RestoreBindingOrValue
+    }
 
     Binding {
         target: skin.indicator

@@ -9,6 +9,7 @@ import "."
  *   typed   "1.10.2026", "1.10.26", "1.10." (this year), "2026-10-01"; Enter or leaving
  *           the field takes it, an unreadable date marks the field `invalid`
  *   popup   the button opens the month; ‹ › change it, a tap picks the day and closes
+ * `open()` / `close()` drive the popup; it stays inside the window (`popupAbove` forces a side).
  * `date` is a JS Date or null (empty). `dateEdited(date)` fires on every change by the user
  * (typed or picked), never when `date` is set from outside.
  *   System  a plain text field and tool button of the platform; the grid draws in the roles.
@@ -25,6 +26,8 @@ FocusScope {
     property string todayText: qsTr("Today")
     readonly property bool invalid: input.invalid
     readonly property alias popupOpen: popup.visible
+    /** Side of the popup: undefined = below, above when there is no room (true / false force it). */
+    property var popupAbove: undefined
     signal dateEdited(var date)
 
     implicitWidth: KanteStyle.unit(170)
@@ -60,6 +63,14 @@ FocusScope {
             return undefined
         }
         return out
+    }
+
+    /** Opens the month popup (e.g. from a shortcut); `close()` closes it. */
+    function open() {
+        popup.open()
+    }
+    function close() {
+        popup.close()
     }
 
     function textOf(date) {
@@ -156,7 +167,12 @@ FocusScope {
 
     QQC2.Popup {
         id: popup
-        y: root.height + KanteStyle.unit(2)
+        objectName: "popup"
+        // Inside the window: shifted left at the right edge, above the field at the bottom.
+        readonly property var place: visible ? KanteStyle.popupPlace(root, width, implicitHeight, root.popupAbove)
+                                             : ({ x: 0, y: root.height + KanteStyle.unit(2), above: false })
+        x: place.x
+        y: place.y
         width: KanteStyle.unit(292)
         padding: KanteStyle.unit(12)
         topPadding: KanteStyle.unit(14)
