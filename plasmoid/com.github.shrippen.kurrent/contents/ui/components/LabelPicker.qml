@@ -252,7 +252,43 @@ ColumnLayout {
                       : modelData.name
                 onClicked: root.pickEntry(modelData)
 
+                // Kante / Kante Light: a KanteListRow on top draws the row and takes the click;
+                // the search field keeps the focus (focusOnClick off).
+                height: KanteStyle.active ? kanteEntry.implicitHeight : implicitHeight
+                background.visible: !KanteStyle.active
+
+                KanteListRow {
+                    id: kanteEntry
+                    anchors.fill: parent
+                    z: 1
+                    visible: KanteStyle.active
+                    text: delegate.text
+                    selected: delegate.highlighted
+                    density: KanteListRow.Density.Compact
+                    rule: false
+                    focusOnClick: false
+                    activeFocusOnTab: false
+                    onClicked: root.pickEntry(delegate.modelData)
+
+                    // Marker: the label's colour square, or "+" for a new label.
+                    Row {
+                        Kirigami.Icon {
+                            visible: delegate.modelData.kind === "create"
+                            width: Kirigami.Units.iconSizes.small
+                            height: width
+                            source: "list-add"
+                            color: KanteStyle.textColor
+                        }
+                        KanteSwatch {
+                            visible: delegate.modelData.kind !== "create"
+                            size: KanteSwatch.Size.Dense
+                            swatchColor: Design.colorForKey(String(delegate.modelData.name), "label")
+                        }
+                    }
+                }
+
                 contentItem: RowLayout {
+                    visible: !KanteStyle.active
                     spacing: Design.spaceSmall
 
                     Kirigami.Icon {
