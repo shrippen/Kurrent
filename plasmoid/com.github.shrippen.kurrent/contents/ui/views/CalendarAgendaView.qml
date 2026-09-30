@@ -439,7 +439,7 @@ ColumnLayout {
             font.pointSize: dayRoot.compact ? Kirigami.Theme.smallFont.pointSize
                                             : Kirigami.Theme.defaultFont.pointSize
             opacity: dayRoot.isToday ? 1.0 : 0.8
-            color: dayRoot.isToday ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+            color: dayRoot.isToday ? KanteStyle.accentTextColor : Kirigami.Theme.textColor
         }
 
         // ── Event chips (Flow layout, max 2 lines) ────────────────
