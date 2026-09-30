@@ -5,7 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import "../Kante"
 
 // Colour override for a project, label or location: a swatch that opens a colour picker.
-// Kante: square swatch (round markers are only for icons).
+// Kante: KanteSwatch, ring = origin (own = set here, generated = automatic).
 // Empty `value` = automatic colour (`autoColor`, shown dimmed). Emits the new "#rrggbb" or "".
 QQC2.ToolButton {
     id: swatch
@@ -25,14 +25,22 @@ QQC2.ToolButton {
         implicitWidth: Kirigami.Units.iconSizes.small
         implicitHeight: Kirigami.Units.iconSizes.small
         Rectangle {
+            visible: !KanteStyle.active
             anchors.centerIn: parent
             width: Kirigami.Units.iconSizes.small
             height: width
-            radius: KanteStyle.active ? 0 : width / 2
+            radius: width / 2
             color: swatch.value.length > 0 ? swatch.value : swatch.autoColor
             border.width: swatch.value.length > 0 ? 0 : 1
             border.color: Kirigami.Theme.textColor
             opacity: swatch.value.length > 0 ? 1 : 0.55
+        }
+        KanteSwatch {
+            visible: KanteStyle.active
+            anchors.centerIn: parent
+            implicitWidth: Kirigami.Units.iconSizes.small
+            swatchColor: swatch.value.length > 0 ? swatch.value : swatch.autoColor
+            source: swatch.value.length > 0 ? KanteSwatch.Source.Own : KanteSwatch.Source.Generated
         }
     }
 
