@@ -6,13 +6,16 @@ import "."
 /**
  * Text field.
  *   System  a plain text field (unchanged, including custom backgrounds).
- *   Kante   square sunken box with a thin frame; the frame turns accent on focus.
+ *   Kante   square sunken box with a thin frame and a 2 px bottom edge; on focus the edge
+ *           turns cyan and the box gets the cyan tint (red edge when `invalid`).
  */
 QQC2.TextField {
     id: control
 
     /** Kante: draw the sunken box (false inside an already framed container). */
     property bool kanteFrame: true
+    /** Kante: mark the field as invalid (red bottom edge). */
+    property bool invalid: false
 
     // The Item below the text (z < 0) stays visible, only its content hides:
     // org.kde.desktop does not draw the text over a hidden item with z < 0.
@@ -23,10 +26,21 @@ QQC2.TextField {
         Rectangle {
             anchors.fill: parent
             visible: KanteStyle.themed && control.kanteFrame
-            color: KanteStyle.sunkenColor
+            color: control.activeFocus ? KanteStyle.selectionColor : KanteStyle.sunkenColor
             opacity: control.enabled ? 1 : 0.5
             border.width: 1
-            border.color: control.activeFocus ? KanteStyle.accentColor : KanteStyle.frameColor
+            border.color: control.activeFocus ? KanteStyle.tint(KanteStyle.focusColor, 0.55) : KanteStyle.frameColor
+            Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
+
+            // 2 px bottom edge: cyan on focus, red when invalid.
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 2
+                color: control.invalid ? KanteStyle.negativeTextColor : (control.activeFocus ? KanteStyle.focusColor : KanteStyle.frameColor)
+                Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
+            }
         }
     }
 

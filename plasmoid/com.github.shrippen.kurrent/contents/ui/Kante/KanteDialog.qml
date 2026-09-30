@@ -6,7 +6,7 @@ import "."
 /**
  * Dialog.
  *   System  a plain dialog (unchanged).
- *   Kante   nearly opaque panel with a cut top-right corner, an accent bar
+ *   Kante   nearly opaque panel with cut top-right and bottom-left corners, an accent bar
  *           on top, an uppercase title, Kante colors inside and Kante
  *           buttons in the footer (the accept button filled).
  */
@@ -22,6 +22,7 @@ QQC2.Dialog {
     readonly property Item kanteBackground: KanteCard {
         color: KanteStyle.dialogColor
         barColor: control.kanteBarColor
+        chamferBottom: KanteStyle.chamfer
     }
 
     readonly property Item kanteHeader: QQC2.Label {

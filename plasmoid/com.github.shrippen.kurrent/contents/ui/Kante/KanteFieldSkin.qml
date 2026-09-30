@@ -5,13 +5,15 @@ import "."
 /**
  * Kante look for input controls that keep their own content (spin box,
  * combo box, text area): place inside the control. Hides the style's
- * background and draws a square sunken box whose frame turns accent on
- * focus. Nothing in the System style.
+ * background and draws a square sunken box with a 2 px bottom edge that
+ * turns cyan on focus. Nothing in the System style.
  */
 Item {
     id: skin
 
     required property Item control
+    /** Mark the field as invalid (red bottom edge). */
+    property bool invalid: false
 
     // Stays visible, only its content hides: org.kde.desktop does not draw the
     // text of a text area over a hidden item with z < 0.
@@ -21,10 +23,22 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: KanteStyle.themed
-        color: KanteStyle.sunkenColor
+        readonly property bool focused: skin.control && (skin.control.activeFocus || skin.control.visualFocus)
+        color: focused ? KanteStyle.selectionColor : KanteStyle.sunkenColor
         opacity: skin.control && skin.control.enabled ? 1 : 0.5
         border.width: 1
-        border.color: skin.control && (skin.control.activeFocus || skin.control.visualFocus) ? KanteStyle.accentColor : KanteStyle.frameColor
+        border.color: focused ? KanteStyle.tint(KanteStyle.focusColor, 0.55) : KanteStyle.frameColor
+        Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
+
+        // 2 px bottom edge: cyan on focus, red when invalid.
+        Rectangle {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: 2
+            color: skin.invalid ? KanteStyle.negativeTextColor : (parent.focused ? KanteStyle.focusColor : KanteStyle.frameColor)
+            Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
+        }
     }
 
     Binding {
