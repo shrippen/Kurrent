@@ -23,7 +23,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: KanteStyle.themed
-        readonly property bool focused: skin.control && (skin.control.activeFocus || skin.control.visualFocus)
+        readonly property bool focused: !!skin.control && !!(skin.control.activeFocus || skin.control.visualFocus)
         color: focused ? KanteStyle.selectionColor : KanteStyle.sunkenColor
         opacity: skin.control && skin.control.enabled ? 1 : 0.5
         border.width: 1

@@ -12,6 +12,8 @@ Item {
 
     property bool stale: false
     property string staleText: ""
+    /** Distance of the age label above the line; a tile lifts it over its caption row. */
+    property real ageLift: KanteStyle.unit(4)
     /** Opacity for the content of a stale tile. */
     readonly property real dim: stale ? 0.55 : 1
 
@@ -58,7 +60,7 @@ Item {
         anchors.right: parent.right
         anchors.rightMargin: KanteStyle.unit(10)
         anchors.bottom: parent.top
-        anchors.bottomMargin: KanteStyle.unit(4)
+        anchors.bottomMargin: line.ageLift
         width: age.implicitWidth + KanteStyle.unit(8)
         height: age.implicitHeight
         color: KanteStyle.dialogColor

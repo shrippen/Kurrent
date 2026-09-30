@@ -104,7 +104,9 @@ FocusScope {
                         anchors.fill: parent
                         fillColor: hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor
                         cutTopRight: KanteStyle.chamferSmall
-                        visible: !tab.current
+                        // Shapes entirely outside the flickable are still painted by the software
+                        // renderer (it ignores the clip for them): draw only tabs in view.
+                        visible: !tab.current && tab.x + tab.width > flick.contentX && tab.x < flick.contentX + flick.width
                     }
 
                     RowLayout {

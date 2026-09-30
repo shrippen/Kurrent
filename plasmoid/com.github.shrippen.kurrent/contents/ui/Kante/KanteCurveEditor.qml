@@ -9,6 +9,9 @@ import "."
  * keyboard: [ and ] pick a point, the arrow keys move it by `step`, + adds a point after
  * it. Points cannot cross their neighbours in x; with `monotonic` y never falls. Every
  * change emits `edited(points)`; `points` is not written back (bind it and update it in the slot).
+ * The axes are labelled at 0, 25, 50, 75 and 100 % of the range. `markers` is a list of
+ * {x, label, color}: live readings (e.g. sensor temperatures) drawn as a rule with a mark on
+ * the curve at that x, captioned at the top of the plot; `valueAt(x)` is the curve's y there (flat outside the points).
  */
 FocusScope {
     id: ed
@@ -25,11 +28,12 @@ FocusScope {
     property string xUnit: ""
     property string yUnit: ""
     property int current: -1
+    property var markers: []
     signal edited(var points)
 
     readonly property int handle: KanteStyle.unit(14)
-    readonly property real padLeft: KanteStyle.unit(30)
-    readonly property real padBottom: KanteStyle.unit(18)
+    readonly property real padLeft: KanteStyle.unit(40)
+    readonly property real padBottom: KanteStyle.unit(22)
     readonly property real plotW: width - padLeft - handle / 2
     readonly property real plotH: height - padBottom - handle / 2
 
@@ -43,6 +47,25 @@ FocusScope {
     function dataY(pyv) { return yMin + (handle / 2 + plotH - pyv) / plotH * (yMax - yMin) }
     function snap(v) { return step > 0 ? Math.round(v / step) * step : v }
     function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)) }
+    /** The curve's y at x: linear between the points, flat before the first and after the last. */
+    function valueAt(x) {
+        var n = points.length
+        if (n === 0) {
+            return yMin
+        }
+        if (x <= points[0].x) {
+            return points[0].y
+        }
+        for (var i = 1; i < n; i++) {
+            if (x <= points[i].x) {
+                var a = points[i - 1]
+                var b = points[i]
+                return b.x > a.x ? a.y + (x - a.x) / (b.x - a.x) * (b.y - a.y) : b.y
+            }
+        }
+        return points[n - 1].y
+    }
+    function label(v, unit) { return Math.round(v * 10) / 10 + unit }
     function copy() {
         var c = []
         for (var i = 0; i < points.length; i++) {
@@ -159,11 +182,29 @@ FocusScope {
             color: KanteStyle.ruleColor
         }
     }
-    // Axis labels.
-    Text { x: 0; y: ed.py(ed.yMax) - height / 2; text: ed.yMax + ed.yUnit; color: KanteStyle.mutedTextColor; font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.85, false) }
-    Text { x: 0; y: ed.py(ed.yMin) - height / 2; text: ed.yMin + ed.yUnit; color: KanteStyle.mutedTextColor; font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.85, false) }
-    Text { x: ed.px(ed.xMin); y: ed.height - height; text: ed.xMin + ed.xUnit; color: KanteStyle.mutedTextColor; font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.85, false) }
-    Text { x: ed.px(ed.xMax) - width; y: ed.height - height; text: ed.xMax + ed.xUnit; color: KanteStyle.mutedTextColor; font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.85, false) }
+    // Axis labels at every grid line.
+    Repeater {
+        model: 5
+        delegate: Text {
+            required property int index
+            x: ed.padLeft - width - KanteStyle.unit(6)
+            y: ed.handle / 2 + ed.plotH - index * ed.plotH / 4 - height / 2
+            text: ed.label(ed.yMin + index * (ed.yMax - ed.yMin) / 4, ed.yUnit)
+            color: KanteStyle.mutedTextColor
+            font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
+        }
+    }
+    Repeater {
+        model: 5
+        delegate: Text {
+            required property int index
+            x: Math.max(0, Math.min(ed.width - width, ed.padLeft + index * ed.plotW / 4 - width / 2))
+            y: ed.height - height
+            text: ed.label(ed.xMin + index * (ed.xMax - ed.xMin) / 4, ed.xUnit)
+            color: KanteStyle.mutedTextColor
+            font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
+        }
+    }
 
     // The curve: flat before the first and after the last point, miter joins.
     Shape {
@@ -190,6 +231,41 @@ FocusScope {
         }
     }
 
+    // Live readings: a rule at x, a mark on the curve, a caption.
+    Repeater {
+        model: ed.markers
+        delegate: Item {
+            id: mk
+            required property int index
+            required property var modelData
+            readonly property real mx: ed.px(Math.max(ed.xMin, Math.min(ed.xMax, modelData.x)))
+            readonly property real my: ed.py(ed.valueAt(modelData.x))
+            Rectangle {
+                x: mk.mx
+                y: ed.handle / 2
+                width: 1
+                height: ed.plotH
+                color: mk.modelData.color
+                opacity: 0.6
+            }
+            Rectangle {
+                x: mk.mx - width / 2
+                y: mk.my - height / 2
+                width: KanteStyle.unit(8)
+                height: width
+                color: mk.modelData.color
+            }
+            // The caption sits at the top of the plot, one line lower per marker, so it never covers the curve.
+            Text {
+                x: mk.mx + width + KanteStyle.unit(10) > ed.padLeft + ed.plotW ? mk.mx - width - KanteStyle.unit(6) : mk.mx + KanteStyle.unit(6)
+                y: ed.handle / 2 + KanteStyle.unit(4) + mk.index * (height + KanteStyle.unit(2))
+                text: mk.modelData.label ? mk.modelData.label : ""
+                color: mk.modelData.color
+                font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
+            }
+        }
+    }
+
     // Add on double tap.
     TapHandler {
         gesturePolicy: TapHandler.ReleaseWithinBounds
@@ -210,9 +286,10 @@ FocusScope {
             height: ed.handle
             x: ed.px(ed.points[index].x) - width / 2
             y: ed.py(ed.points[index].y) - height / 2
-            color: selected ? KanteStyle.accentColor : KanteStyle.cardColor
+            // Not a data colour: the handles must not read as a series of a chart next to it.
+            color: selected ? KanteStyle.strongTextColor : KanteStyle.cardColor
             border.width: 2
-            border.color: selected ? KanteStyle.focusColor : KanteStyle.accentColor
+            border.color: selected ? KanteStyle.focusColor : KanteStyle.strongTextColor
             z: selected ? 2 : 1
 
             DragHandler {

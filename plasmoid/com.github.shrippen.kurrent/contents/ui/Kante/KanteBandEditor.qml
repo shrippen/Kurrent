@@ -5,7 +5,7 @@ import "."
 /**
  * Band editor: thresholds with a colour each, e.g. sensor ranges. `bands` is a list of
  * {value, color}; band i runs from its value to the next one (the last one to `max`). A
- * swatch cycles through `colors`, the field edits the value, × removes the row, the
+ * swatch cycles through `colors` (with `pick` it opens the choices as a row of swatches under the band instead), the field edits the value, × removes the row, the
  * button adds one. Rows stay sorted by value. A strip below previews the result.
  * Every change emits `edited(bands)`; `bands` is not written back.
  */
@@ -20,6 +20,8 @@ ColumnLayout {
     property string unit: ""
     property string addText: "Bereich hinzufügen"
     property int minBands: 1
+    property bool pick: false
+    property int picking: -1
     signal edited(var bands)
 
     spacing: KanteStyle.unit(8)
@@ -59,6 +61,15 @@ ColumnLayout {
         c[i].color = nextColor(c[i].color)
         edited(c)
     }
+    function setColor(i, color) {
+        if (i < 0 || i >= bands.length) {
+            return
+        }
+        var c = copy()
+        c[i].color = color
+        picking = -1
+        edited(c)
+    }
     function addBand() {
         var c = copy()
         var last = c.length > 0 ? c[c.length - 1].value : min
@@ -76,38 +87,82 @@ ColumnLayout {
 
     Repeater {
         model: ed.bands.length
-        delegate: RowLayout {
+        delegate: ColumnLayout {
             id: row
             required property int index
             Layout.fillWidth: true
-            spacing: KanteStyle.unit(10)
+            spacing: KanteStyle.unit(6)
 
-            KanteSwatch {
-                swatchColor: ed.bands[row.index].color
-                Layout.alignment: Qt.AlignVCenter
-                onClicked: ed.cycleColor(row.index)
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: KanteStyle.unit(10)
+
+                KanteSwatch {
+                    swatchColor: ed.bands[row.index].color
+                    selected: ed.picking === row.index
+                    Layout.alignment: Qt.AlignVCenter
+                    onClicked: {
+                        if (ed.pick) {
+                            ed.picking = ed.picking === row.index ? -1 : row.index
+                        } else {
+                            ed.cycleColor(row.index)
+                        }
+                    }
+                }
+                KanteTextField {
+                    Layout.preferredWidth: KanteStyle.unit(90)
+                    text: String(ed.bands[row.index].value)
+                    horizontalAlignment: Text.AlignRight
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    onEditingFinished: ed.setValue(row.index, parseFloat(text.replace(",", ".")))
+                }
+                Text {
+                    text: ed.unit
+                    color: KanteStyle.mutedTextColor
+                    font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
+                }
+                Item { Layout.fillWidth: true }
+                // A plain square: a KanteButton sets its own font, which kept the glyph tiny.
+                Rectangle {
+                    id: remove
+                    readonly property bool live: ed.bands.length > ed.minBands
+                    Layout.preferredWidth: KanteStyle.unit(32)
+                    Layout.preferredHeight: KanteStyle.unit(32)
+                    color: hover.hovered && live ? KanteStyle.tint1Color : "transparent"
+                    opacity: live ? 1 : 0.4
+                    border.width: activeFocus ? 2 : 0
+                    border.color: KanteStyle.focusColor
+                    activeFocusOnTab: true
+                    Accessible.role: Accessible.Button
+                    Accessible.name: "×"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "×"
+                        color: KanteStyle.mutedTextColor
+                        font.pixelSize: KanteStyle.unit(20)
+                    }
+                    HoverHandler { id: hover }
+                    TapHandler { enabled: remove.live; onTapped: ed.removeBand(row.index) }
+                    Keys.onSpacePressed: if (live) ed.removeBand(row.index)
+                    Keys.onReturnPressed: if (live) ed.removeBand(row.index)
+                }
             }
-            KanteTextField {
-                Layout.preferredWidth: KanteStyle.unit(90)
-                Layout.minimumWidth: KanteStyle.unit(60)
-                text: String(ed.bands[row.index].value)
-                horizontalAlignment: Text.AlignRight
-                inputMethodHints: Qt.ImhFormattedNumbersOnly
-                onEditingFinished: ed.setValue(row.index, parseFloat(text.replace(",", ".")))
-            }
-            Text {
-                text: ed.unit
-                color: KanteStyle.mutedTextColor
-                font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
-            }
-            Item { Layout.fillWidth: true }
-            KanteButton {
-                text: "×"
-                emphasis: KanteButton.Emphasis.Quiet
-                Layout.minimumWidth: KanteStyle.unit(32)
-                Layout.preferredWidth: KanteStyle.unit(32)
-                enabled: ed.bands.length > ed.minBands
-                onClicked: ed.removeBand(row.index)
+
+            // The choices of the swatch (`pick`).
+            Flow {
+                Layout.fillWidth: true
+                Layout.leftMargin: KanteStyle.unit(6)
+                visible: ed.pick && ed.picking === row.index
+                spacing: KanteStyle.unit(12)
+                Repeater {
+                    model: ed.colors
+                    delegate: KanteSwatch {
+                        required property var modelData
+                        swatchColor: modelData
+                        selected: Qt.colorEqual(modelData, ed.bands[row.index].color)
+                        onClicked: ed.setColor(row.index, modelData)
+                    }
+                }
             }
         }
     }

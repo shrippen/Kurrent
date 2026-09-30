@@ -142,6 +142,7 @@ FocusScope {
         id: liveLine
         stale: tile.stale
         staleText: tile.staleText
+        ageLift: KanteStyle.unit(28)
     }
 
     HoverHandler { id: hover }

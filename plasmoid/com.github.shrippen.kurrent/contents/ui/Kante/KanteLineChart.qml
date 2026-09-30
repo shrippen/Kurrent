@@ -9,6 +9,7 @@ import "."
  * a single line (default: the first data colour).
  * Hover (or `hoverIndex` set by the caller) shows a read-out: a rule at the nearest point,
  * a square mark per line and a box with `labels[i]` and the values; `readout: false` turns it off.
+ * `axis` labels the scale on the left (every quarter, in `unit`) and keeps room for it.
  */
 Item {
     id: chart
@@ -21,6 +22,7 @@ Item {
     property int colorIndex: 0
     property real lineWidth: compact ? 1.6 : 2
     property bool readout: !compact
+    property bool axis: false
     /** Captions of the points, e.g. the days; optional. */
     property var labels: []
     property string unit: ""
@@ -40,6 +42,8 @@ Item {
         return m
     }
     readonly property real mark: KanteStyle.unit(compact ? 5 : 6)
+    /** Room for the axis labels on the left. */
+    readonly property real padLeft: axis && !compact ? KanteStyle.unit(44) : 0
 
     implicitWidth: KanteStyle.unit(compact ? 120 : 260)
     implicitHeight: KanteStyle.unit(compact ? 32 : 120)
@@ -47,10 +51,10 @@ Item {
     function pointsOf(values) {
         var pts = []
         var n = values.length
-        var w = width - mark
+        var w = width - padLeft - mark
         var h = height - mark
         for (var i = 0; i < n; i++) {
-            var x = mark / 2 + (n > 1 ? i / (n - 1) * w : w / 2)
+            var x = padLeft + mark / 2 + (n > 1 ? i / (n - 1) * w : w / 2)
             var y = mark / 2 + h - (values[i] - minValue) / (scaleTop - minValue) * h
             pts.push(Qt.point(x, y))
         }
@@ -58,13 +62,25 @@ Item {
     }
 
     Repeater {
-        model: chart.compact ? 0 : 3
+        model: chart.compact ? 0 : (chart.axis ? 5 : 3)
         delegate: Rectangle {
             required property int index
-            width: chart.width
+            x: chart.padLeft
+            width: chart.width - chart.padLeft
             height: 1
-            y: chart.height - 1 - index * (chart.height - 1) / 3
+            y: chart.height - 1 - index * (chart.height - 1) / (chart.axis ? 4 : 3)
             color: index === 0 ? KanteStyle.frameColor : KanteStyle.ruleColor
+        }
+    }
+    Repeater {
+        model: chart.axis && !chart.compact ? 5 : 0
+        delegate: Text {
+            required property int index
+            x: chart.padLeft - width - KanteStyle.unit(6)
+            y: Math.max(0, Math.min(chart.height - height, chart.height - 1 - index * (chart.height - 1) / 4 - height / 2))
+            text: Math.round((chart.minValue + index * (chart.scaleTop - chart.minValue) / 4) * 10) / 10 + chart.unit
+            color: KanteStyle.mutedTextColor
+            font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
         }
     }
 
@@ -110,7 +126,7 @@ Item {
         if (n === 1) {
             return 0
         }
-        var f = (px - mark / 2) / (width - mark) * (n - 1)
+        var f = (px - padLeft - mark / 2) / (width - padLeft - mark) * (n - 1)
         return Math.max(0, Math.min(n - 1, Math.round(f)))
     }
 
