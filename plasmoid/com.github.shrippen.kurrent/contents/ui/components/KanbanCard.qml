@@ -152,7 +152,13 @@ Kirigami.AbstractCard {
     readonly property bool inspected: inspectorOn && task && dragHost.inspectedItemId === task.itemId
 
     contentItem: ColumnLayout {
+        id: cardBody
         spacing: Design.spaceTiny
+
+        // AbstractCard pins the View colour set (inherit off), so FullView's KanteScope stops at
+        // the card: Kante dark on a light desktop drew near-black text. Hand the Kante colours
+        // to the body again; outside Kante it follows the card's own theme.
+        KanteScope { target: cardBody }
 
         RowLayout {
             Layout.fillWidth: true
