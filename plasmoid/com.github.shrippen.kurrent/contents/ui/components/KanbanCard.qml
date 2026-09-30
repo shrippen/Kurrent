@@ -167,7 +167,7 @@ Kirigami.AbstractCard {
                      || (Plasmoid.configuration.showDateChip !== false && DateTime.isValidDate(task.dueDate))
 
             Repeater {
-                model: Plasmoid.configuration.showLabelChips !== false ? (task.categories || []) : []
+                model: Plasmoid.configuration.showLabelChips !== false && !KanteStyle.active ? (task.categories || []) : []
                 delegate: Kirigami.Icon {
                     required property var modelData
                     source: "tag"
@@ -177,6 +177,19 @@ Kirigami.AbstractCard {
                     QQC2.ToolTip.text: modelData
                     QQC2.ToolTip.visible: tagHover.hovered
                     HoverHandler { id: tagHover }
+                }
+            }
+
+            // Kante / Kante Light: compact KanteChip (colour square, name as tooltip); display only.
+            Repeater {
+                model: Plasmoid.configuration.showLabelChips !== false && KanteStyle.active ? (task.categories || []) : []
+                delegate: KanteChip {
+                    required property var modelData
+                    Layout.alignment: Qt.AlignVCenter
+                    compact: true
+                    activeFocusOnTab: false
+                    text: modelData
+                    chipColor: Design.colorForKey(modelData, "label")
                 }
             }
 

@@ -558,7 +558,7 @@ ColumnLayout {
 
                             // Label icons
                             Repeater {
-                                model: modelData.categories || []
+                                model: KanteStyle.active ? [] : (modelData.categories || [])
                                 delegate: Kirigami.Icon {
                                     required property string modelData
                                     source: "tag"
@@ -572,6 +572,19 @@ ColumnLayout {
                                     QQC2.ToolTip.visible: labelHover.hovered
                                     QQC2.ToolTip.delay: 400
                                     HoverHandler { id: labelHover }
+                                }
+                            }
+
+                            // Kante / Kante Light: compact KanteChip (colour square, name as tooltip).
+                            Repeater {
+                                model: KanteStyle.active ? (modelData.categories || []) : []
+                                delegate: KanteChip {
+                                    required property string modelData
+                                    Layout.alignment: Qt.AlignVCenter
+                                    compact: true
+                                    activeFocusOnTab: false
+                                    text: modelData
+                                    chipColor: Design.colorForKey(modelData, "label")
                                 }
                             }
 
