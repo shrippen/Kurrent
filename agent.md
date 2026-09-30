@@ -63,3 +63,4 @@ Rule 7: Use the body to explain what and why vs. how. Assume the code explains t
   Kante spinoff that adapts Kante to Kimai's look. The same rule applies to Knust: use it
   as it is, and add missing elements to Knust.
 - A project without a GUI (library, CLI, scripts) has nothing to do here.
+- Rule text: https://github.com/shrippen/shrippen.github.io/blob/main/kante/AGENT-RULE.md
