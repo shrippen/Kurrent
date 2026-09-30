@@ -47,7 +47,7 @@ Item {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             text: modelData
-            color: week.today === index ? KanteStyle.accentColor : KanteStyle.mutedTextColor
+            color: week.today === index ? KanteStyle.accentTextColor : KanteStyle.mutedTextColor
             font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.85, week.today === index)
         }
     }

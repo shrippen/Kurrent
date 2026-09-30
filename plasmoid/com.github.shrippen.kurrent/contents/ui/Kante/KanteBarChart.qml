@@ -306,6 +306,8 @@ Item {
                     required property int index
                     readonly property int part: box.parts.length - 1 - index
                     readonly property string name: chart.partNames && part < chart.partNames.length ? chart.partNames[part] : ""
+                    // Empty parts of a stack are not listed ("Ops 0:00" says nothing).
+                    visible: !box.stacked || box.parts[part] !== 0
                     text: (name !== "" ? name + "  " : "") + chart.format(box.parts[part])
                     color: box.stacked ? chart.partColor(part)
                          : (chart.hoverIndex === chart.highlight ? KanteStyle.accentTextColor : KanteStyle.dataColor(chart.series))
@@ -313,7 +315,8 @@ Item {
                 }
             }
             Text {
-                visible: box.stacked && box.parts.length > 1
+                // Only with two or more non-empty parts: one part would repeat its own value.
+                visible: box.stacked && box.parts.filter(function (v) { return v !== 0 }).length > 1
                 text: "Σ " + chart.format(chart.totalOf(chart.hoverIndex))
                 color: KanteStyle.strongTextColor
                 font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)

@@ -117,6 +117,16 @@ Item {
     // Spin boxes: hide the style's arrows and draw + and − in mono.
     readonly property bool spinBox: control !== null && control.up !== undefined && control.down !== undefined
         && control.up.indicator !== undefined && control.down.indicator !== undefined
+
+    // The desktop style gives a spin box the View colour set, so its text takes the
+    // platform's text colour (dark on Kante dark under Breeze Light): bind Kante's.
+    Binding {
+        target: skin.spinBox ? skin.control.contentItem : null
+        property: "color"
+        value: skin.control && skin.control.enabled ? KanteStyle.textColor : KanteStyle.disabledTextColor
+        when: KanteStyle.themed && skin.spinBox && skin.control.contentItem !== null && skin.control.contentItem.color !== undefined
+        restoreMode: Binding.RestoreBindingOrValue
+    }
     Binding {
         target: skin.spinBox ? skin.control.up.indicator : null
         property: "opacity"

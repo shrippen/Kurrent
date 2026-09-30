@@ -31,7 +31,7 @@ ColumnLayout {
                 spacing: KanteStyle.unit(10)
                 Text {
                     text: day.d.label
-                    color: day.d.today ? KanteStyle.accentColor : KanteStyle.mutedTextColor
+                    color: day.d.today ? KanteStyle.accentTextColor : KanteStyle.mutedTextColor
                     font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, day.d.today)
                 }
                 Rectangle {

@@ -90,6 +90,7 @@ Item {
                 text: root.nameOf(modelData)
                 chipColor: root.colorOf(modelData)
                 removable: true
+                removeText: root.removeText
                 onRemoveRequested: root.remove(index)
                 Accessible.description: root.removeText.arg(text)
             }
