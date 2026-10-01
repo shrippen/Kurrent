@@ -21,11 +21,11 @@ Item {
         Off
     }
 
-    property int state: KantePill.State.Off
+    property int status: KantePill.State.Off
     property string text: ""
 
     readonly property color tone: {
-        switch (state) {
+        switch (status) {
         case KantePill.State.Running: return KanteStyle.infoColor
         case KantePill.State.Review: return KanteStyle.accentTextColor
         case KantePill.State.Locked: return KanteStyle.warningColor
@@ -57,12 +57,12 @@ Item {
 
             Rectangle {
                 anchors.fill: parent
-                visible: pill.state === KantePill.State.Running || pill.state === KantePill.State.Review || pill.state === KantePill.State.Off
-                color: pill.state === KantePill.State.Running ? pill.tone : "transparent"
-                border.width: pill.state === KantePill.State.Running ? 0 : 2
+                visible: pill.status === KantePill.State.Running || pill.status === KantePill.State.Review || pill.status === KantePill.State.Off
+                color: pill.status === KantePill.State.Running ? pill.tone : "transparent"
+                border.width: pill.status === KantePill.State.Running ? 0 : 2
                 border.color: pill.tone
                 SequentialAnimation on opacity {
-                    running: pill.state === KantePill.State.Running && KanteStyle.animate && pill.visible
+                    running: pill.status === KantePill.State.Running && KanteStyle.animate && pill.visible
                     loops: Animation.Infinite
                     NumberAnimation { from: 1; to: 0.3; duration: 800; easing.type: Easing.InOutSine }
                     NumberAnimation { from: 0.3; to: 1; duration: 800; easing.type: Easing.InOutSine }
@@ -71,7 +71,7 @@ Item {
             Shape {
                 id: triangle
                 anchors.fill: parent
-                visible: pill.state === KantePill.State.Locked
+                visible: pill.status === KantePill.State.Locked
                 ShapePath {
                     fillColor: pill.tone
                     strokeWidth: -1
@@ -83,8 +83,8 @@ Item {
             }
             Text {
                 anchors.centerIn: parent
-                visible: pill.state === KantePill.State.Done || pill.state === KantePill.State.Failed
-                text: pill.state === KantePill.State.Done ? "✓" : "✕"
+                visible: pill.status === KantePill.State.Done || pill.status === KantePill.State.Failed
+                text: pill.status === KantePill.State.Done ? "✓" : "✕"
                 color: pill.tone
                 font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
             }

@@ -124,14 +124,14 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: KanteStyle.unit(8)
-            Rectangle { Layout.fillWidth: true; height: 1; color: KanteStyle.ruleColor }
+            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: KanteStyle.ruleColor }
             Text {
                 text: msg.time
                 visible: msg.time.length > 0
                 color: KanteStyle.mutedTextColor
                 font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
             }
-            Rectangle { Layout.fillWidth: true; height: 1; color: KanteStyle.ruleColor }
+            Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 1; color: KanteStyle.ruleColor }
         }
         Text {
             visible: msg.text.length > 0

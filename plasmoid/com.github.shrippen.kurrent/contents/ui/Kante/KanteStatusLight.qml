@@ -12,12 +12,12 @@ Item {
         Off
     }
 
-    property int state: KanteStatusLight.State.Ok
+    property int status: KanteStatusLight.State.Ok
     property string name: ""
     property string detail: ""
 
     readonly property color tone: {
-        switch (state) {
+        switch (status) {
         case KanteStatusLight.State.Warn: return KanteStyle.warningColor
         case KanteStatusLight.State.Bad: return KanteStyle.negativeTextColor
         case KanteStatusLight.State.Off: return KanteStyle.frameColor
