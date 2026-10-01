@@ -78,7 +78,7 @@ QtObject {
     readonly property color mutedTextColor: themed ? palette.mutedText : tint(Kirigami.Theme.textColor, 0.75)
     /** Fill of primary buttons and accent bars; accent-colored text uses accentTextColor. */
     readonly property color accentColor: themed ? palette.accent : Kirigami.Theme.highlightColor
-    readonly property color accentTextColor: themed ? palette.accentText : Kirigami.Theme.highlightColor
+    readonly property color accentTextColor: themed ? palette.accentText : readable(Kirigami.Theme.highlightColor, Kirigami.Theme.backgroundColor)
     readonly property color accentForegroundColor: themed ? palette.accentForeground : Kirigami.Theme.highlightedTextColor
     readonly property color infoColor: themed ? palette.info : Kirigami.Theme.linkColor
     /** Tags, topics, categories (purple in Kante; the visited-link colour of the platform otherwise). */
@@ -181,6 +181,25 @@ QtObject {
     /** Overshoot of the snap easing (Easing.OutBack), a small mechanical settle. */
     readonly property real snapOvershoot: 1.5
 
+    function relLum(c) {
+        function f(v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4) }
+        return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b)
+    }
+    function contrastOf(a, b) {
+        var x = relLum(a), y = relLum(b)
+        return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
+    }
+    /** c moved in lightness (hue kept) until it reads at 4.5:1 on bg. */
+    function readable(c, bg) {
+        var dark = relLum(bg) < 0.5
+        var h = Math.max(0, c.hslHue), sat = c.hslSaturation, l = c.hslLightness
+        var out = Qt.hsla(h, sat, l, 1)
+        for (var i = 0; i < 40 && contrastOf(out, bg) < 4.5; i++) {
+            l = dark ? Math.min(1, l + 0.025) : Math.max(0, l - 0.025)
+            out = Qt.hsla(h, sat, l, 1)
+        }
+        return out
+    }
     function tint(c, alpha) {
         return Qt.rgba(c.r, c.g, c.b, alpha)
     }

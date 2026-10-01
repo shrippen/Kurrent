@@ -73,7 +73,7 @@ Item {
         visible: skin.shape === KanteCheckSkin.Shape.Box
         color: skin.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: 1
-        border.color: skin.checked ? KanteStyle.accentColor : (skin.hovered ? KanteStyle.mutedTextColor : KanteStyle.frameColor)
+        border.color: skin.checked ? KanteStyle.accentColor : (skin.hovered ? KanteStyle.textColor : KanteStyle.mutedTextColor)
         Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
 
         KanteTick {
@@ -93,7 +93,7 @@ Item {
         rotation: 45
         color: skin.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: 1
-        border.color: skin.checked ? KanteStyle.accentColor : (skin.hovered ? KanteStyle.mutedTextColor : KanteStyle.frameColor)
+        border.color: skin.checked ? KanteStyle.accentColor : (skin.hovered ? KanteStyle.textColor : KanteStyle.mutedTextColor)
         Behavior on color { ColorAnimation { duration: KanteStyle.durationFast } }
 
         Rectangle {
@@ -112,7 +112,7 @@ Item {
         visible: skin.shape === KanteCheckSkin.Shape.Switch
         color: skin.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
         border.width: 1
-        border.color: skin.checked ? KanteStyle.accentColor : KanteStyle.frameColor
+        border.color: skin.checked ? KanteStyle.accentColor : KanteStyle.mutedTextColor
         Behavior on color { ColorAnimation { duration: KanteStyle.duration } }
 
         Rectangle {

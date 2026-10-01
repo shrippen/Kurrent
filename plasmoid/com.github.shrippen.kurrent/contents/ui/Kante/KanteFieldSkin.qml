@@ -124,7 +124,9 @@ Item {
         target: skin.spinBox ? skin.control.contentItem : null
         property: "color"
         value: skin.control && skin.control.enabled ? KanteStyle.textColor : KanteStyle.disabledTextColor
-        when: KanteStyle.themed && skin.spinBox && skin.control.contentItem !== null && skin.control.contentItem.color !== undefined
+        // No check of contentItem.color here: reading it made `when` depend on the value it sets
+        // (binding loop). A spin box's contentItem is a text input in every Qt style.
+        when: KanteStyle.themed && skin.spinBox && skin.control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {

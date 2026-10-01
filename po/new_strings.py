@@ -2,6 +2,7 @@
 
 NEW = {
     "de": {
+        "Dense (more rows)": "Dicht (mehr Zeilen)",
         "%1 grid units": "%1 Raster-Einheiten",
         "%1:00": "%1:00",
         "1 day before": "1 Tag vorher",
@@ -181,6 +182,7 @@ NEW = {
         "Width": "Breite",
     },
     "es": {
+        "Dense (more rows)": "Denso (más filas)",
         "Kurrent": "Kurrent",
         "Add label": "Añadir etiqueta",
         "%1 grid units": "%1 unidades de cuadrícula",
@@ -362,6 +364,7 @@ NEW = {
         "Width": "Ancho",
     },
     "fr": {
+        "Dense (more rows)": "Dense (plus de lignes)",
         "Kurrent": "Kurrent",
         "Add label": "Ajouter une étiquette",
         "%1 grid units": "%1 unités de grille",
@@ -543,6 +546,7 @@ NEW = {
         "Width": "Largeur",
     },
     "ja": {
+        "Dense (more rows)": "高密度（行を多く表示）",
         "%1 grid units": "%1 グリッド単位",
         "%1:00": "%1:00",
         "1 day before": "1日前",
@@ -722,6 +726,7 @@ NEW = {
         "Width": "幅",
     },
     "zh_CN": {
+        "Dense (more rows)": "紧凑（显示更多行）",
         "Kurrent": "Kurrent",
         "Add label": "添加标签",
         "%1 grid units": "%1 格单位",

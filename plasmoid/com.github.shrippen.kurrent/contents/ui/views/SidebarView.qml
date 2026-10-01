@@ -133,13 +133,15 @@ Item {
         if (sidebarRowSize === "comfortable") {
             return true
         }
-        if (sidebarRowSize === "compact") {
+        if (sidebarRowSize === "compact" || sidebarRowSize === "dense") {
             return false
         }
         // auto: roomier rows on touch / tablet
         return root.touchFriendly
     }
 
+    /** Opt-in: Kante's dense list rows (24 px), more entries without scrolling. */
+    readonly property bool denseRows: sidebarRowSize === "dense"
     readonly property int rowVPad: comfortableRows ? Design.spaceSmall : 1
     readonly property int sectionHeaderHeight: comfortableRows
         ? Math.round(Kirigami.Units.gridUnit * 2.4)
@@ -153,7 +155,7 @@ Item {
     readonly property int scrollGutter: Design.scrollGutter
     // Kante: the KanteListRow density height plus the list spacing.
     readonly property int sectionRowHeight: KanteStyle.active
-        ? (comfortableRows ? KanteStyle.heightLarge : KanteStyle.heightSmall) + 1
+        ? (comfortableRows ? KanteStyle.heightLarge : (denseRows ? Math.round(KanteStyle.heightSmall * 0.75) : KanteStyle.heightSmall)) + 1
         : rowIconSize + rowVPad * 2 + 4
 
     // Not yet allocated — sections share space equally so they can measure.
@@ -366,6 +368,7 @@ Item {
             return
         }
 
+        var viewsPinned = false
         var alloc = []
         for (var z = 0; z < sectionCount; ++z) {
             alloc.push(0)
@@ -393,6 +396,14 @@ Item {
                 var floorH = visibleFlags[m] ? root.sectionFloorHeight(hasHeader[m]) : 0
                 mins.push(floorH)
                 sumMins += floorH
+            }
+
+            // The views are a short, fixed list that is always needed: they keep their full
+            // height while the other sections still fit at their floors, and those scroll.
+            if (visibleFlags[0] && sumMins - mins[0] + naturals[0] <= available) {
+                sumMins += naturals[0] - mins[0]
+                mins[0] = naturals[0]
+                viewsPinned = true
             }
 
             if (sumMins >= available) {
@@ -452,7 +463,7 @@ Item {
             }
             var need = shortfall
             for (var donor = 0; donor < sectionCount && need > 0; ++donor) {
-                if (!visibleFlags[donor] || donor === g) {
+                if (!visibleFlags[donor] || donor === g || (donor === 0 && viewsPinned)) {
                     continue
                 }
                 var donorOverflow = naturals[donor] - alloc[donor]
@@ -999,7 +1010,8 @@ Item {
         rule: false
         focusOnClick: false
         activeFocusOnTab: false
-        density: root.comfortableRows ? KanteListRow.Density.Comfortable : KanteListRow.Density.Compact
+        density: root.comfortableRows ? KanteListRow.Density.Comfortable
+               : (root.denseRows ? KanteListRow.Density.Dense : KanteListRow.Density.Compact)
     }
 
     component SidebarScrollBar: ThinScrollBar {

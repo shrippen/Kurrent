@@ -8,7 +8,7 @@ import QtQuick
  * translucent or blurred platform ground shows through.
  */
 QtObject {
-    readonly property string version: "1.9.0"
+    readonly property string version: "1.9.1"
 
     readonly property QtObject dark: QtObject {
         readonly property color text: "#ebdbb2"

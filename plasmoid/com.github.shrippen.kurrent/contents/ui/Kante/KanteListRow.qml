@@ -28,7 +28,8 @@ FocusScope {
     enum Density {
         Compact,
         Normal,
-        Comfortable
+        Comfortable,
+        Dense      // 24 px, below the control heights: opt-in for long navigation lists only
     }
 
     property string text: ""
@@ -52,11 +53,12 @@ FocusScope {
     signal clicked()
 
     readonly property string secondLine: !enabled && disabledReason !== "" ? disabledReason : subtitle
-    readonly property real densityHeight: density === KanteListRow.Density.Compact ? KanteStyle.heightSmall
+    readonly property real densityHeight: density === KanteListRow.Density.Dense ? Math.round(KanteStyle.heightSmall * 0.75)
+                                          : density === KanteListRow.Density.Compact ? KanteStyle.heightSmall
                                           : (density === KanteListRow.Density.Comfortable ? KanteStyle.heightLarge : KanteStyle.heightMedium)
 
     implicitWidth: KanteStyle.unit(320)
-    implicitHeight: Math.max(densityHeight, texts.implicitHeight + KanteStyle.unit(12))
+    implicitHeight: Math.max(densityHeight, texts.implicitHeight + KanteStyle.unit(density === KanteListRow.Density.Dense ? 4 : 12))
     activeFocusOnTab: true
 
     /** A tap: takes the focus (`focusOnClick`) and emits `clicked`. */

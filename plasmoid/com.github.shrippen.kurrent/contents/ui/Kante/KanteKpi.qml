@@ -4,7 +4,8 @@ import "."
 /**
  * A figure with its label and, if wanted, its change: `delta` is the text ("+12 %"),
  * `trend` 1 up, -1 down, 0 flat. The arrow is a shape, so the change never
- * depends on colour alone.
+ * depends on colour alone. `good` says which way is good: 1 up (default,
+ * e.g. revenue), -1 down (costs, errors: rising turns red), 0 none (arrow only).
  */
 Column {
     id: kpi
@@ -13,6 +14,12 @@ Column {
     property string label: ""
     property string delta: ""
     property int trend: 0
+    property int good: 1
+    // trend × good: > 0 good news, < 0 bad news; with good 0 the arrow only names the direction
+    readonly property int sense: trend * good
+    readonly property color deltaColor: sense > 0 ? KanteStyle.positiveTextColor
+        : (sense < 0 ? KanteStyle.negativeTextColor
+                     : (trend !== 0 ? KanteStyle.textColor : KanteStyle.mutedTextColor))
 
     spacing: 2
 
@@ -29,10 +36,11 @@ Column {
     Row {
         visible: kpi.delta.length > 0
         spacing: KanteStyle.unit(6)
-        readonly property color tone: kpi.trend > 0 ? KanteStyle.positiveTextColor
-            : (kpi.trend < 0 ? KanteStyle.negativeTextColor : KanteStyle.mutedTextColor)
+        readonly property color tone: kpi.deltaColor
+        onToneChanged: arrow.requestPaint()
 
         Canvas {
+            id: arrow
             width: KanteStyle.unit(10)
             height: KanteStyle.unit(9)
             anchors.verticalCenter: parent.verticalCenter

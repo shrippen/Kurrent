@@ -39,7 +39,12 @@ Item {
                 m = Math.max(m, series[i][k])
             }
         }
-        return m
+        if (!axis) {
+            return m
+        }
+        var raw = (m - minValue) / 4, p10 = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), f = raw / p10
+        var step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p10
+        return minValue + 4 * step
     }
     readonly property real mark: KanteStyle.unit(compact ? 5 : 6)
     /** Room for the axis labels on the left. */
@@ -78,7 +83,7 @@ Item {
             required property int index
             x: chart.padLeft - width - KanteStyle.unit(6)
             y: Math.max(0, Math.min(chart.height - height, chart.height - 1 - index * (chart.height - 1) / 4 - height / 2))
-            text: Math.round((chart.minValue + index * (chart.scaleTop - chart.minValue) / 4) * 10) / 10 + chart.unit
+            text: { var v = chart.minValue + index * (chart.scaleTop - chart.minValue) / 4; return Number(v).toLocaleString(Qt.locale(), 'f', (chart.scaleTop - chart.minValue) / 4 < 1 ? 1 : 0) + chart.unit }
             color: KanteStyle.mutedTextColor
             font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
         }

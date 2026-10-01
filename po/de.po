@@ -476,6 +476,9 @@ msgstr "„%1“ löschen?"
 msgid "Delete…"
 msgstr "Löschen …"
 
+msgid "Dense (more rows)"
+msgstr "Dicht (mehr Zeilen)"
+
 msgid "Density"
 msgstr "Dichte"
 

@@ -137,6 +137,7 @@ ConfigPageBase {
                 model: [
                     { text: i18n("Auto (compact, larger with touch)"), value: "auto" },
                     { text: i18n("Compact"), value: "compact" },
+                    { text: i18n("Dense (more rows)"), value: "dense" },
                     { text: i18n("Comfortable (touch-friendly)"), value: "comfortable" }
                 ]
                 onActivated: cfg_sidebarRowSize = model[currentIndex].value

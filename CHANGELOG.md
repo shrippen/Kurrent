@@ -4,6 +4,10 @@
 
 ### Added
 
+#### Sidebar
+- The views (Inbox, Today, Overdue, …, Maintenance) always get their full height; projects, labels and the other sections share the rest and scroll. Before, every section got an equal share and the last views were only reachable by scrolling.
+- **Settings › Sidebar › Row size › Dense (more rows)**: Kante's dense list rows (24 px) for long sidebars, opt-in.
+
 #### Styles: Plasma by default, Kante and Kante Light opt-in
 - **Settings › Appearance › Style** with three preview cards: **Plasma (default)** follows the Plasma colour scheme like any KDE app; **Kante** applies the Kante palette (Gruvbox dark, or Leinen on a light colour scheme) with square controls, cut corners, Rajdhani titles and mono figures; **Kante Light** keeps Plasma's colours and controls and adds only Kante shapes and type.
 - Built on the **Kante** QML module from shrippen.github.io (vendored under `contents/ui/Kante` and `contents/ui/KantePlasma`, fonts under SIL OFL): `KanteScope` for the widget, skins for menus, popups, dialogs, inline messages and check boxes, `KanteHeading` for view titles and Kanban columns, `KanteCard` for cards and the full editor.

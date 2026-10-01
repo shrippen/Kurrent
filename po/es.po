@@ -476,6 +476,9 @@ msgstr "¿Eliminar «%1»?"
 msgid "Delete…"
 msgstr "Eliminar…"
 
+msgid "Dense (more rows)"
+msgstr "Denso (más filas)"
+
 msgid "Density"
 msgstr "Densidad"
 

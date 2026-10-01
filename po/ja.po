@@ -476,6 +476,9 @@ msgstr "「%1」を削除しますか?"
 msgid "Delete…"
 msgstr "削除…"
 
+msgid "Dense (more rows)"
+msgstr "高密度（行を多く表示）"
+
 msgid "Density"
 msgstr "密度"
 

@@ -16,25 +16,20 @@ PlasmaComponents3.ToolButton {
         z: -1
         anchors.fill: parent
         visible: KanteStyle.themed && (control.hovered || control.down || control.checked || control.visualFocus)
-        // Checked (segmented filters): accent fill like a primary button.
-        color: control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
-        border.width: control.visualFocus && !control.checked ? 1 : 0
+        // Checked (segmented filters): sunken tint plus an accent bar under the label. A fill
+        // would need dark text, and Plasma's runtime does not pass a theme colour to the label.
+        color: KanteStyle.sunkenColor
+        border.width: control.visualFocus ? 1 : 0
         border.color: KanteStyle.accentColor
-    }
 
-    Binding {
-        target: control.Kirigami.Theme
-        property: "textColor"
-        value: KanteStyle.accentForegroundColor
-        when: KanteStyle.themed && control.checked
-        restoreMode: Binding.RestoreBindingOrValue
-    }
-    Binding {
-        target: control.Kirigami.Theme
-        property: "highlightedTextColor"
-        value: KanteStyle.accentForegroundColor
-        when: KanteStyle.themed && control.checked
-        restoreMode: Binding.RestoreBindingOrValue
+        Rectangle {
+            visible: control.checked
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: KanteStyle.unit(3)
+            color: KanteStyle.accentColor
+        }
     }
 
     Binding {
