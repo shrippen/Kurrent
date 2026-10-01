@@ -11,11 +11,15 @@ import "."
  * squares, never circles.
  *   iconName   an icon after the square, in the chip's ink
  *   compact    only the colour square (dense places: kanban cards); the name is the tooltip
- *   width      a chip narrower than its text elides the name, and below a few letters
- *              shows only square, icon and cross (the name moves to the tooltip)
+ *   width      a chip narrower than its text elides the name, and squeezed below a few
+ *              letters shows only square, icon and cross (the name moves to the tooltip);
+ *              a short name at its natural width always shows ("IT")
  * A colour close to the ground (#202020 on dark Kante) would vanish: frame and ink then take
  * the text colour and the square gets a frame (`nearGround`, as KanteSwatch). The cross has a
  * touch target of 32 units without making the chip bigger.
+ *   interactive  false: a plain label (a state, a topic): no focus, no tap, no hover
+ *   toolTip      shown on hover (a full path behind a short name); without it the name is the
+ *                tooltip only while it is elided
  */
 Item {
     id: chip
@@ -28,6 +32,9 @@ Item {
     property string iconName: ""
     property bool compact: false
     property string removeText: qsTr("Remove %1")
+    property bool interactive: true
+    property string toolTip: ""
+    readonly property bool hovered: hover.hovered
     signal clicked()
     signal removeRequested()
 
@@ -38,7 +45,7 @@ Item {
     readonly property color ink: checked ? KanteStyle.onStateColor : (nearGround ? KanteStyle.textColor : chipColor)
     readonly property color edge: nearGround ? KanteStyle.frameColor : chipColor
     /** The name is shown (false when compact or squeezed below a few letters). */
-    readonly property bool textShown: !compact && textRoom >= KanteStyle.unit(20)
+    readonly property bool textShown: !compact && textRoom >= Math.min(KanteStyle.unit(20), Math.ceil(labelMetrics.advanceWidth))
     readonly property real textRoom: width - KanteStyle.unit(16) - squareSize - row.spacing
                                      - (iconName !== "" ? iconSize + row.spacing : 0)
                                      - (removable ? cross.implicitWidth + row.spacing : 0)
@@ -48,7 +55,7 @@ Item {
                            : KanteStyle.unit(16) + squareSize + row.spacing + Math.ceil(labelMetrics.advanceWidth)
                              + (iconName !== "" ? iconSize + row.spacing : 0)
                              + (removable ? cross.implicitWidth + row.spacing : 0)
-    activeFocusOnTab: true
+    activeFocusOnTab: interactive
 
     // Natural width of the name: the elided label's own implicitWidth follows its width.
     TextMetrics {
@@ -75,7 +82,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: !chip.compact
-        color: chip.checked ? chip.chipColor : (hover.hovered ? KanteStyle.tint1Color : "transparent")
+        color: chip.checked ? chip.chipColor : (hover.hovered && chip.interactive ? KanteStyle.tint1Color : "transparent")
         border.width: 1
         border.color: chip.edge
     }
@@ -154,12 +161,12 @@ Item {
         }
     }
 
-    HoverHandler { id: hover }
-    TapHandler { onTapped: chip.activate() }
-    QQC2.ToolTip.visible: hover.hovered && !chip.textShown && chip.text !== ""
-    QQC2.ToolTip.text: chip.text
+    HoverHandler { id: hover; cursorShape: chip.interactive ? Qt.PointingHandCursor : Qt.ArrowCursor }
+    TapHandler { enabled: chip.interactive; onTapped: chip.activate() }
+    QQC2.ToolTip.visible: hover.hovered && (chip.toolTip !== "" || (!chip.textShown && chip.text !== ""))
+    QQC2.ToolTip.text: chip.toolTip !== "" ? chip.toolTip : chip.text
     QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-    Accessible.role: chip.checkable ? Accessible.CheckBox : Accessible.Button
+    Accessible.role: !chip.interactive ? Accessible.StaticText : (chip.checkable ? Accessible.CheckBox : Accessible.Button)
     Accessible.name: chip.text
     Accessible.checked: chip.checked
 }

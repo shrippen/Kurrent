@@ -5,6 +5,9 @@ import "."
  * Progress: a flat bar (`value` 0..1), a segment display (`segments` > 0: a row
  * of lamps, each one switches on in three hard steps when the value reaches it)
  * or indeterminate warning stripes. 8 px high.
+ * `parts` stacks shares in one bar (web: several `.progress-bar > i`): a list of
+ * {value, color}, values 0..1 of the whole, drawn left to right; the rest stays sunken.
+ * Review progress: accepted, rejected, open.
  */
 Item {
     id: bar
@@ -14,6 +17,8 @@ Item {
     /** 0: continuous bar; n: n segments. */
     property int segments: 0
     property color color: KanteStyle.accentColor
+    /** Shares of one bar: [{value: 0.3, color: …}, …]; replaces `value` when set. */
+    property var parts: []
 
     implicitWidth: KanteStyle.unit(200)
     implicitHeight: KanteStyle.unit(8)
@@ -23,8 +28,23 @@ Item {
         visible: bar.segments === 0
         color: KanteStyle.sunkenColor
 
+        Row {
+            visible: !bar.indeterminate && bar.parts.length > 0
+            height: parent.height
+            Repeater {
+                model: bar.parts
+                delegate: Rectangle {
+                    required property var modelData
+                    width: Math.max(0, Math.min(1, modelData.value || 0)) * bar.width
+                    height: bar.height
+                    color: modelData.color || bar.color
+                    Behavior on width { NumberAnimation { duration: KanteStyle.duration; easing.type: Easing.OutCubic } }
+                }
+            }
+        }
+
         Rectangle {
-            visible: !bar.indeterminate
+            visible: !bar.indeterminate && bar.parts.length === 0
             width: Math.max(0, Math.min(1, bar.value)) * parent.width
             height: parent.height
             color: bar.color

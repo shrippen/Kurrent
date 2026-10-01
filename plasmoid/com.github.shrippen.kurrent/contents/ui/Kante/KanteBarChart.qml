@@ -15,6 +15,8 @@ import "."
  * KanteLineChart: the bar on a tint band, the part under the pointer framed cyan, and a box
  * with `labels[i]`, every part (`partNames[k]`, its value) and the total; `readout: false`
  * turns it off.
+ * `compact` is a bar sparkline: no grid but the base line, no labels under the bars (they
+ * still title the read-out, which then opens above the chart), thinner gaps, small size.
  */
 Item {
     id: chart
@@ -45,6 +47,7 @@ Item {
     property int hoverPart: -1
     /** Names of the stack parts in the read-out (e.g. the projects); optional. */
     property var partNames: []
+    property bool compact: false
 
     /** Largest total (value or goal), before rounding to the axis steps. */
     readonly property real dataMax: {
@@ -71,7 +74,7 @@ Item {
     /** Top of the scale: with an axis, rounded up to a whole step. */
     readonly property real scaleMax: axis && maxValue <= 0 ? Math.ceil(dataMax / axisStep - 1e-9) * axisStep : dataMax
     readonly property int gridLines: axis ? Math.round(scaleMax / axisStep) + 1 : 3
-    readonly property real labelHeight: KanteStyle.unit(16)
+    readonly property real labelHeight: compact ? 0 : KanteStyle.unit(16)
     readonly property real plotHeight: height - labelHeight
     readonly property real padLeft: axis ? axisWidth.width + KanteStyle.unit(8) : 0
     readonly property real plotWidth: width - padLeft
@@ -147,12 +150,12 @@ Item {
         text: chart.format(chart.scaleMax)
     }
 
-    implicitWidth: KanteStyle.unit(260)
-    implicitHeight: KanteStyle.unit(120)
+    implicitWidth: KanteStyle.unit(compact ? 120 : 260)
+    implicitHeight: KanteStyle.unit(compact ? 32 : 120)
 
     // Grid: base line and two more, or one per axis step.
     Repeater {
-        model: chart.gridLines
+        model: chart.compact ? 1 : chart.gridLines
         delegate: Rectangle {
             required property int index
             x: chart.padLeft
@@ -199,7 +202,7 @@ Item {
                 }
                 Column {
                     id: stack
-                    width: col.width * 0.55
+                    width: col.width * (chart.compact ? 0.72 : 0.55)
                     x: (col.width - width) / 2
                     y: chart.plotHeight - height
                     height: {
@@ -229,6 +232,7 @@ Item {
                     }
                 }
                 Text {
+                    visible: !chart.compact
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: chart.plotHeight + KanteStyle.unit(3)
                     text: chart.labels && chart.labels.length > col.index ? chart.labels[col.index] : ""
@@ -283,7 +287,7 @@ Item {
         visible: chart.readout && chart.hoverIndex >= 0 && chart.hoverIndex < chart.values.length
         x: flip ? Math.max(0, cx - chart.columnWidth * 0.3 - width - KanteStyle.unit(6))
                 : Math.min(chart.width - width, cx + chart.columnWidth * 0.3 + KanteStyle.unit(6))
-        y: KanteStyle.unit(4)
+        y: chart.compact ? -height - KanteStyle.unit(4) : KanteStyle.unit(4)
         z: 2
         width: lines.implicitWidth + KanteStyle.unit(16)
         height: lines.implicitHeight + KanteStyle.unit(10)

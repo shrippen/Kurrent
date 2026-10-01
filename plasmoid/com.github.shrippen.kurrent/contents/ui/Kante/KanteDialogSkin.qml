@@ -63,7 +63,10 @@ QtObject {
         text: skin.dialog ? skin.dialog.title : ""
         font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 1.2)
         color: KanteStyle.strongTextColor
-        elide: Text.ElideRight
+        // No elide: the dialog takes its width from the title (implicitHeaderWidth), and an
+        // elided title's size follows the dialog's again, a binding loop with Kirigami 6.24.
+        // A title wider than the dialog's maximum is clipped.
+        clip: true
         leftPadding: skin.dialog ? skin.dialog.leftPadding : 0
         rightPadding: skin.dialog ? skin.dialog.rightPadding : 0
         topPadding: skin.dialog ? skin.dialog.topPadding + 3 : 0

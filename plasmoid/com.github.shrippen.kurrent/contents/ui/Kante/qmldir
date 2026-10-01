@@ -36,6 +36,7 @@ KanteListRow 1.0 KanteListRow.qml
 KanteLiveLine 1.0 KanteLiveLine.qml
 KanteLiveText 1.0 KanteLiveText.qml
 KanteLoader 1.0 KanteLoader.qml
+KanteMessage 1.0 KanteMessage.qml
 KanteMessageSkin 1.0 KanteMessageSkin.qml
 KanteOdometer 1.0 KanteOdometer.qml
 KantePageTitle 1.0 KantePageTitle.qml
@@ -49,6 +50,7 @@ KanteRunner 1.0 KanteRunner.qml
 KanteScope 1.0 KanteScope.qml
 KanteScrollMeter 1.0 KanteScrollMeter.qml
 KanteSearchCombo 1.0 KanteSearchCombo.qml
+KanteSectionLabel 1.0 KanteSectionLabel.qml
 KanteSegmented 1.0 KanteSegmented.qml
 KanteSettingRow 1.0 KanteSettingRow.qml
 KanteSettle 1.0 KanteSettle.qml
