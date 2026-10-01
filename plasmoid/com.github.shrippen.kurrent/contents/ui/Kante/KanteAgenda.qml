@@ -36,7 +36,7 @@ ColumnLayout {
                 }
                 Rectangle {
                     Layout.fillWidth: true
-                    height: 1
+                    Layout.preferredHeight: 1
                     color: day.d.today ? KanteStyle.accentColor : KanteStyle.ruleColor
                 }
             }

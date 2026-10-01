@@ -58,7 +58,7 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            height: 1
+            Layout.preferredHeight: 1
             color: KanteStyle.ruleColor
         }
     }
