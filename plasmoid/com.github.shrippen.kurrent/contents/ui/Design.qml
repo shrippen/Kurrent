@@ -39,7 +39,7 @@ import "Kante"
 //   widget. "kante" = Kante (Gruvbox dark, or "Leinen" when the Plasma theme is light): own
 //   palette and control skins. "kanteLight" = Kante shapes and type on the Plasma colours.
 //   Everything comes from the vendored Kante module (ui/Kante, ui/KantePlasma — copied from
-//   shrippen.github.io/kante/qml, never edited here). Views read KanteStyle roles / wrappers / skins
+//   Kante/qml, github.com/shrippen/Kante, never edited here). Views read KanteStyle roles / wrappers / skins
 //   and branch on KanteStyle.active (shapes, type) or KanteStyle.themed (palette, skins).
 // - Translucency (both Kante kinds, Kante rule "tint, do not paint"): Kurrent never paints the
 //   widget or flyout ground. When Plasma draws a translucent / blurred background it shows
