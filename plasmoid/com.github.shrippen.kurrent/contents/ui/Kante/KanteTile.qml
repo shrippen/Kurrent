@@ -3,7 +3,7 @@ import QtQuick.Layouts
 import "."
 
 /**
- * Image tile: 3:2 stage, a 4 px tier bar (green / yellow / red, never colour
+ * Image tile: 3:2 stage, a 4 px tier bar (green / orange / red, never colour
  * alone: name and figure sit below), selection as a cyan frame and tick, keyboard
  * focus as four cyan brackets that lock on. Put the image in the stage
  * (`content`); `figure` is the number on the right (98 %).
@@ -46,7 +46,7 @@ FocusScope {
     Timer { id: editTimer; interval: tile.editIndex * 70; onTriggered: tile._editShown = true }
 
     readonly property color tone: tier === KanteTile.Tier.Bad ? KanteStyle.negativeTextColor
-        : (tier === KanteTile.Tier.Check ? KanteStyle.accentTextColor : KanteStyle.positiveTextColor)
+        : (tier === KanteTile.Tier.Check ? KanteStyle.warningColor : KanteStyle.positiveTextColor)
 
     implicitWidth: KanteStyle.unit(180)
     implicitHeight: implicitWidth * 2 / 3 + KanteStyle.unit(34)
