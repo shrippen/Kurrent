@@ -28,7 +28,11 @@
    "title": {
     "de": "Inhaberin, Produzentin",
     "en": "Owner, producer"
-   }
+   },
+   "since": "2024-01-01",
+   "holidays_per_year": 30,
+   "hourly_rate": 85,
+   "commute_km": 3.2
   },
   {
    "id": "jonas",
@@ -41,7 +45,11 @@
    "title": {
     "de": "Kamera",
     "en": "Camera"
-   }
+   },
+   "since": "2024-01-01",
+   "holidays_per_year": 30,
+   "hourly_rate": 85,
+   "commute_km": 14.5
   },
   {
    "id": "selin",
@@ -54,7 +62,10 @@
    "title": {
     "de": "Schnitt",
     "en": "Editing"
-   }
+   },
+   "since": "2024-01-01",
+   "holidays_per_year": 30,
+   "hourly_rate": 85
   },
   {
    "id": "theo",
@@ -67,7 +78,10 @@
    "title": {
     "de": "Ton und Musik",
     "en": "Sound and music"
-   }
+   },
+   "since": "2024-01-01",
+   "holidays_per_year": 30,
+   "hourly_rate": 85
   },
   {
    "id": "lena",
@@ -80,7 +94,10 @@
    "title": {
     "de": "Produktionsassistenz",
     "en": "Production assistant"
-   }
+   },
+   "since": "2024-01-01",
+   "holidays_per_year": 30,
+   "hourly_rate": 85
   }
  ],
  "demo_password": "demo-password-1",
@@ -112,6 +129,9 @@
     "theo"
    ]
   }
+ ],
+ "known_but_internal": [
+  "Kintsugi"
  ],
  "customers": [
   {
@@ -344,6 +364,1706 @@
    "color": "#689d6a"
   }
  ],
+ "film_engagement": {
+  "user": "jonas",
+  "project": "harbour",
+  "activity": "shoot",
+  "employer": "northlight",
+  "position": {
+   "de": "1. Kameraassistenz",
+   "en": "1st camera assistant"
+  },
+  "ruleset": "tv-ffs",
+  "weekly_gage": 1850,
+  "from": -21,
+  "to": 25,
+  "days": [
+   {
+    "day": -14,
+    "call": "07:00",
+    "wrap": "18:30",
+    "break_min": 60,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 3, Szenen 12–18",
+     "en": "Episode 3, scenes 12–18"
+    }
+   },
+   {
+    "day": -13,
+    "call": "07:00",
+    "wrap": "17:00",
+    "break_min": 60,
+    "location": "fishmarket",
+    "note": {
+     "de": "Folge 3, Szenen 19–24",
+     "en": "Episode 3, scenes 19–24"
+    }
+   },
+   {
+    "day": -12,
+    "call": "08:00",
+    "wrap": "19:00",
+    "break_min": 60,
+    "location": "beach",
+    "note": {
+     "de": "Folge 3, Strand bei Ebbe",
+     "en": "Episode 3, beach at low tide"
+    }
+   },
+   {
+    "day": -11,
+    "call": "10:00",
+    "wrap": "20:30",
+    "break_min": 45,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 3, Anschlüsse",
+     "en": "Episode 3, pick-ups"
+    }
+   },
+   {
+    "day": -8,
+    "call": "06:00",
+    "wrap": "16:00",
+    "break_min": 60,
+    "location": "ferry",
+    "note": {
+     "de": "Folge 4, Hafenfähre im Nebel",
+     "en": "Episode 4, harbour ferry in fog"
+    }
+   },
+   {
+    "day": -7,
+    "call": "07:00",
+    "wrap": "18:00",
+    "break_min": 60,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 4, Szenen 1–9",
+     "en": "Episode 4, scenes 1–9"
+    }
+   },
+   {
+    "day": -6,
+    "call": "13:00",
+    "wrap": "18:30",
+    "break_min": 30,
+    "location": "hafencity",
+    "note": {
+     "de": "Folge 4, Außen HafenCity",
+     "en": "Episode 4, exterior HafenCity"
+    }
+   },
+   {
+    "day": -5,
+    "call": "15:00",
+    "wrap": "23:30",
+    "break_min": 60,
+    "location": "speicherstadt",
+    "note": {
+     "de": "Nachtdreh Speicherstadt",
+     "en": "Night shoot in Speicherstadt"
+    }
+   },
+   {
+    "day": -2,
+    "call": "09:00",
+    "wrap": "19:30",
+    "break_min": 60,
+    "location": "beach",
+    "note": {
+     "de": "Samstagsdreh Övelgönne",
+     "en": "Saturday shoot at Övelgönne"
+    }
+   },
+   {
+    "day": 0,
+    "call": "07:00",
+    "wrap": "17:30",
+    "break_min": 60,
+    "location": "harbour-pier",
+    "note": {
+     "de": "Folge 5, Leuchtfeuer, Szenen 1–7",
+     "en": "Episode 5, beacon, scenes 1–7"
+    }
+   },
+   {
+    "day": 1,
+    "call": "07:00",
+    "wrap": "18:00",
+    "break_min": 60,
+    "location": "fishmarket",
+    "note": {
+     "de": "Folge 5, Szenen 8–15",
+     "en": "Episode 5, scenes 8–15"
+    }
+   },
+   {
+    "day": 2,
+    "call": "08:00",
+    "wrap": "19:15",
+    "break_min": 60,
+    "location": "beach",
+    "note": {
+     "de": "Folge 5, Strand bei Nebel",
+     "en": "Episode 5, beach in fog"
+    }
+   }
+  ],
+  "pay": {
+   "kind": "weekly",
+   "day_rate": 380,
+   "hourly": 38,
+   "catering_deduction": 9.5,
+   "catering_every": 3,
+   "default_break_min": 45,
+   "ruleset_name": "TV FFS 2024"
+  },
+  "travel": {
+   "leave_min": 40,
+   "arrive_min": 5
+  }
+ },
+ "vendors": [
+  {
+   "id": "elbnetz",
+   "name": "Elbnetz Mobilfunk",
+   "kind": {
+    "de": "Mobilfunk",
+    "en": "Mobile network"
+   },
+   "domain": "elbnetz.example.test",
+   "contract": {
+    "de": "Mobilfunkvertrag",
+    "en": "Mobile contract"
+   },
+   "monthly": 39.95
+  },
+  {
+   "id": "nordhost",
+   "name": "Nordhost Server",
+   "kind": {
+    "de": "Hosting",
+    "en": "Hosting"
+   },
+   "domain": "nordhost.example.test",
+   "contract": {
+    "de": "Server-Miete",
+    "en": "Server rental"
+   },
+   "monthly": 41.65
+  },
+  {
+   "id": "farbraum",
+   "name": "Farbraum Software",
+   "kind": {
+    "de": "Software",
+    "en": "Software"
+   },
+   "domain": "farbraum.example.test",
+   "contract": {
+    "de": "Farbraum Grade, Abo",
+    "en": "Farbraum Grade subscription"
+   },
+   "monthly": 66.45
+  },
+  {
+   "id": "elbstrom",
+   "name": "Elbstrom",
+   "kind": {
+    "de": "Energie",
+    "en": "Energy"
+   },
+   "domain": "elbstrom.example.test",
+   "contract": {
+    "de": "Ökostrom Studio",
+    "en": "Green power for the studio"
+   },
+   "monthly": 72.0
+  },
+  {
+   "id": "wellenklang",
+   "name": "Wellenklang",
+   "kind": {
+    "de": "Unterhaltung",
+    "en": "Entertainment"
+   },
+   "domain": "wellenklang.example.test",
+   "contract": {
+    "de": "Musik-Streaming",
+    "en": "Music streaming"
+   },
+   "monthly": 10.99
+  }
+ ],
+ "receipts": [
+  {
+   "id": 1,
+   "vendor": "Fotohaus Elbe",
+   "day": -18,
+   "amount": 342.0,
+   "number": "FE-2026-0917",
+   "category": {
+    "de": "Filmmaterial",
+    "en": "Film stock"
+   },
+   "project": "showreel",
+   "note": {
+    "de": "10 Rollen Farbnegativfilm 35 mm",
+    "en": "10 rolls of 35 mm colour negative film"
+   },
+   "state": "linked"
+  },
+  {
+   "id": 2,
+   "vendor": "Kabelwerk Studiobedarf",
+   "day": -15,
+   "amount": 89.7,
+   "number": "KW-55821",
+   "category": {
+    "de": "Technik",
+    "en": "Equipment"
+   },
+   "project": "harbour",
+   "note": {
+    "de": "XLR-Kabel, Gaffa, 5 l Nebelfluid",
+    "en": "XLR cables, gaffer tape, 5 l fog fluid"
+   },
+   "state": "linked"
+  },
+  {
+   "id": 3,
+   "vendor": "Kombüse Catering",
+   "day": -14,
+   "amount": 486.5,
+   "number": "2026-114",
+   "category": {
+    "de": "Catering",
+    "en": "Catering"
+   },
+   "project": "harbour",
+   "note": {
+    "de": "Catering Drehtag Landungsbrücken",
+    "en": "Catering for the Landungsbrücken shoot"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 4,
+   "vendor": "Mietwagen Nord",
+   "day": -15,
+   "amount": 164.9,
+   "number": "MN-7710-26",
+   "category": {
+    "de": "Fahrzeug",
+    "en": "Vehicle"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Kombi, 2 Tage",
+    "en": "Estate car, 2 days"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 5,
+   "vendor": "Tankstelle Elbchaussee",
+   "day": -9,
+   "amount": 72.14,
+   "number": "0048812",
+   "category": {
+    "de": "Kraftstoff",
+    "en": "Fuel"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Diesel Transporter",
+    "en": "Diesel for the van"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 6,
+   "vendor": "Druckerei Nordlicht",
+   "day": -7,
+   "amount": 58.0,
+   "number": "DN-3391",
+   "category": {
+    "de": "Druck",
+    "en": "Printing"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Storyboards „Licht an“, A3",
+    "en": "“Lights on” storyboards, A3"
+   },
+   "state": "open"
+  },
+  {
+   "id": 7,
+   "vendor": "Kombüse Catering",
+   "day": -5,
+   "amount": 212.0,
+   "number": "2026-121",
+   "category": {
+    "de": "Catering",
+    "en": "Catering"
+   },
+   "project": "harbour",
+   "note": {
+    "de": "Nachtdreh-Verpflegung",
+    "en": "Night shoot catering"
+   },
+   "state": "open"
+  },
+  {
+   "id": 8,
+   "vendor": "Kabelwerk Studiobedarf",
+   "day": -2,
+   "amount": 129.0,
+   "number": "KW-56107",
+   "category": {
+    "de": "Technik",
+    "en": "Equipment"
+   },
+   "project": "tidenhub",
+   "note": {
+    "de": "Ansteckmikrofon",
+    "en": "Lavalier microphone"
+   },
+   "state": "ignored"
+  },
+  {
+   "id": 9,
+   "vendor": "Moorhof-Rast",
+   "day": -10,
+   "amount": 64.8,
+   "number": "MR-0313",
+   "category": {
+    "de": "Verpflegung",
+    "en": "Meals"
+   },
+   "project": "nachtwache",
+   "note": {
+    "de": "Abendessen und Kaffee, Motivbesichtigung",
+    "en": "Dinner and coffee, location visit"
+   },
+   "state": "suggested"
+  },
+  {
+   "id": 10,
+   "vendor": "Wattfähre Graufeld",
+   "day": -10,
+   "amount": 95.0,
+   "number": "WF-26-118",
+   "category": {
+    "de": "Fahrzeug",
+    "en": "Vehicle"
+   },
+   "project": "nachtwache",
+   "note": {
+    "de": "Boot zum Leuchtturm, Hin und zurück",
+    "en": "Boat to the lighthouse and back"
+   },
+   "state": "open"
+  },
+  {
+   "id": 11,
+   "vendor": "Kabelwerk Studiobedarf",
+   "day": -4,
+   "amount": 146.8,
+   "number": "KW-56244",
+   "category": {
+    "de": "Technik",
+    "en": "Equipment"
+   },
+   "project": "nachtwache",
+   "note": {
+    "de": "Zwei Handscheinwerfer, 40 Batterien",
+    "en": "Two handheld floodlights, 40 batteries"
+   },
+   "state": "open"
+  }
+ ],
+ "tasks": {
+  "collections": [
+   {
+    "id": "harbour",
+    "name": "Harbour Lights",
+    "color": "#fe8019"
+   },
+   {
+    "id": "spring",
+    "name": "Speiche Spot",
+    "color": "#83a598"
+   },
+   {
+    "id": "studio",
+    "name": "Studio",
+    "color": "#d3869b"
+   },
+   {
+    "id": "private",
+    "name": {
+     "de": "Privat",
+     "en": "Personal"
+    },
+    "color": "#b8bb26"
+   },
+   {
+    "id": "nachtwache",
+    "name": "Nachtwache",
+    "color": "#fb4934"
+   }
+  ],
+  "labels": [
+   {
+    "id": "shoot",
+    "name": {
+     "de": "Dreh",
+     "en": "Shoot"
+    }
+   },
+   {
+    "id": "post",
+    "name": "Post"
+   },
+   {
+    "id": "orga",
+    "name": {
+     "de": "Orga",
+     "en": "Admin"
+    }
+   },
+   {
+    "id": "calls",
+    "name": {
+     "de": "Anrufe",
+     "en": "Calls"
+    }
+   }
+  ],
+  "items": [
+   {
+    "uid": "t01",
+    "collection": "harbour",
+    "summary": {
+     "de": "Drehgenehmigung Landungsbrücken beantragen",
+     "en": "Apply for the Landungsbrücken shooting permit"
+    },
+    "due": -2,
+    "priority": 1,
+    "labels": [
+     "orga"
+    ],
+    "percent": 50
+   },
+   {
+    "uid": "t02",
+    "collection": "harbour",
+    "summary": {
+     "de": "Rohschnitt Folge 4 an Northlight schicken",
+     "en": "Send episode 4 rough cut to Northlight"
+    },
+    "due": 0,
+    "priority": 1,
+    "labels": [
+     "post"
+    ],
+    "description": {
+     "de": "Link zur Sichtung mit Timecode-Einblendung.",
+     "en": "Review link with burnt-in timecode."
+    }
+   },
+   {
+    "uid": "t03",
+    "collection": "harbour",
+    "summary": {
+     "de": "Dispo Folge 5 verteilen",
+     "en": "Send out call sheet for episode 5"
+    },
+    "due": 0,
+    "priority": 5,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t04",
+    "collection": "harbour",
+    "summary": {
+     "de": "Nachtdreh Speicherstadt nachbereiten",
+     "en": "Wrap up the Speicherstadt night shoot"
+    },
+    "due": 1,
+    "priority": 5,
+    "labels": [
+     "shoot"
+    ],
+    "children": [
+     "t05",
+     "t06"
+    ]
+   },
+   {
+    "uid": "t05",
+    "collection": "harbour",
+    "parent": "t04",
+    "summary": {
+     "de": "Karten sichern und doppelt backupen",
+     "en": "Offload cards and double back-up"
+    },
+    "due": 1,
+    "priority": 5,
+    "labels": [
+     "post"
+    ],
+    "completed": -4
+   },
+   {
+    "uid": "t06",
+    "collection": "harbour",
+    "parent": "t04",
+    "summary": {
+     "de": "Anwohner-Dankeschön verschicken",
+     "en": "Send thank-you notes to residents"
+    },
+    "due": 1,
+    "priority": 9,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t07",
+    "collection": "spring",
+    "summary": {
+     "de": "Drehbuch „Licht an“ überarbeiten",
+     "en": "Revise the “Lights on” script"
+    },
+    "due": 0,
+    "priority": 1,
+    "labels": [
+     "shoot"
+    ],
+    "start": -1
+   },
+   {
+    "uid": "t08",
+    "collection": "spring",
+    "summary": {
+     "de": "Speiche wegen der Lichtfarbe des Dynamos anrufen",
+     "en": "Call Speiche about the dynamo light's colour"
+    },
+    "due": 1,
+    "priority": 5,
+    "labels": [
+     "calls"
+    ]
+   },
+   {
+    "uid": "t09",
+    "collection": "spring",
+    "summary": {
+     "de": "Schnittfassung 2 exportieren",
+     "en": "Export edit version 2"
+    },
+    "due": 4,
+    "priority": 5,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t10",
+    "collection": "spring",
+    "summary": {
+     "de": "Musikrechte klären",
+     "en": "Clear the music rights"
+    },
+    "due": 8,
+    "priority": 1,
+    "labels": [
+     "orga",
+     "calls"
+    ]
+   },
+   {
+    "uid": "t11",
+    "collection": "studio",
+    "summary": {
+     "de": "Belege September zuordnen",
+     "en": "Match September receipts"
+    },
+    "due": 3,
+    "priority": 5,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t12",
+    "collection": "studio",
+    "summary": {
+     "de": "Showreel: Harbour-Lights-Szenen einbauen",
+     "en": "Showreel: add Harbour Lights scenes"
+    },
+    "due": 11,
+    "priority": 9,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t13",
+    "collection": "studio",
+    "summary": {
+     "de": "Objektive zur Wartung bringen, eins beschlägt immer",
+     "en": "Take the lenses in for service, one keeps fogging up"
+    },
+    "due": -4,
+    "priority": 5,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t14",
+    "collection": "studio",
+    "summary": {
+     "de": "Filmrollen 03 und 04 scannen",
+     "en": "Scan film rolls 03 and 04"
+    },
+    "due": 2,
+    "priority": 5,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t15",
+    "collection": "studio",
+    "summary": {
+     "de": "Server-Backup prüfen",
+     "en": "Check the server backup"
+    },
+    "priority": 9,
+    "labels": [
+     "orga"
+    ],
+    "description": {
+     "de": "Eine gelöschte Datei ist wieder da.",
+     "en": "A deleted file is back."
+    }
+   },
+   {
+    "uid": "t16",
+    "collection": "private",
+    "summary": {
+     "de": "Fahrrad zur Inspektion",
+     "en": "Bike service"
+    },
+    "due": 5,
+    "priority": 9,
+    "labels": []
+   },
+   {
+    "uid": "t17",
+    "collection": "private",
+    "summary": {
+     "de": "Geschenk für Theo",
+     "en": "Present for Theo"
+    },
+    "due": 9,
+    "priority": 5,
+    "labels": []
+   },
+   {
+    "uid": "t18",
+    "collection": "harbour",
+    "summary": {
+     "de": "Kostüme Folge 5 abnehmen",
+     "en": "Approve costumes for episode 5"
+    },
+    "due": -1,
+    "priority": 5,
+    "labels": [
+     "shoot"
+    ],
+    "completed": -1
+   },
+   {
+    "uid": "t19",
+    "collection": "studio",
+    "summary": {
+     "de": "Angebot Elbfeuer Teil 2",
+     "en": "Quote for Elbfeuer part 2"
+    },
+    "due": 6,
+    "priority": 1,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t20",
+    "collection": "harbour",
+    "summary": {
+     "de": "Tonaufnahmen an Theo übergeben",
+     "en": "Hand location sound over to Theo"
+    },
+    "completed": -3,
+    "due": -3,
+    "priority": 5,
+    "labels": [
+     "post"
+    ]
+   },
+   {
+    "uid": "t21",
+    "collection": "nachtwache",
+    "summary": {
+     "de": "Drehgenehmigung Leuchtturm Graufeld",
+     "en": "Graufeld lighthouse shooting permit"
+    },
+    "due": 2,
+    "priority": 1,
+    "labels": [
+     "orga"
+    ]
+   },
+   {
+    "uid": "t22",
+    "collection": "nachtwache",
+    "summary": {
+     "de": "Nachtaufnahmen vom Kolk sichten",
+     "en": "Review the night recordings from the Kolk"
+    },
+    "due": -9,
+    "priority": 5,
+    "labels": [
+     "post"
+    ],
+    "percent": 90,
+    "description": {
+     "de": "Nacht 3 ist länger als die Nacht war. Nochmal prüfen.",
+     "en": "Night 3 runs longer than the night did. Check again."
+    }
+   },
+   {
+    "uid": "t23",
+    "collection": "nachtwache",
+    "summary": {
+     "de": "Gefundene Manuskriptseite einscannen",
+     "en": "Scan the manuscript page we found"
+    },
+    "due": 0,
+    "priority": 5,
+    "labels": [
+     "post"
+    ],
+    "description": {
+     "de": "Lag heute früh auf dem Schnittplatz. Nicht aus unserem Drehbuch.",
+     "en": "Was on the edit desk this morning. Not from our script."
+    }
+   },
+   {
+    "uid": "t24",
+    "collection": "nachtwache",
+    "summary": {
+     "de": "Batterien für die Handscheinwerfer nachkaufen",
+     "en": "Buy more batteries for the floodlights"
+    },
+    "due": 3,
+    "priority": 5,
+    "labels": [
+     "shoot"
+    ]
+   },
+   {
+    "uid": "t25",
+    "collection": "nachtwache",
+    "summary": {
+     "de": "Mitschnitt „Graufeld nach Mitternacht“ anfragen",
+     "en": "Request a recording of “Graufeld after Midnight”"
+    },
+    "due": 5,
+    "priority": 9,
+    "labels": [
+     "calls"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "day": 0,
+    "start": "09:00",
+    "end": "09:45",
+    "summary": {
+     "de": "Wochenplanung",
+     "en": "Weekly planning"
+    },
+    "collection": "studio"
+   },
+   {
+    "day": 0,
+    "start": "14:00",
+    "end": "15:00",
+    "summary": {
+     "de": "Call mit Speiche",
+     "en": "Call with Speiche"
+    },
+    "collection": "spring"
+   },
+   {
+    "day": 1,
+    "start": "07:00",
+    "end": "17:30",
+    "summary": {
+     "de": "Dreh Landungsbrücken, Nebelszenen",
+     "en": "Shoot at Landungsbrücken, fog scenes"
+    },
+    "collection": "harbour"
+   },
+   {
+    "day": 2,
+    "start": "11:00",
+    "end": "12:00",
+    "summary": {
+     "de": "Rohschnitt-Abnahme Elbfeuer",
+     "en": "Rough cut review with Elbfeuer"
+    },
+    "collection": "studio"
+   },
+   {
+    "day": 3,
+    "start": "20:00",
+    "end": "23:59",
+    "summary": {
+     "de": "Nachtdreh Leuchtturm Graufeld",
+     "en": "Night shoot at the Graufeld lighthouse"
+    },
+    "collection": "nachtwache"
+   },
+   {
+    "day": 4,
+    "start": "14:00",
+    "end": "15:00",
+    "summary": {
+     "de": "Call mit dem Sendehaus",
+     "en": "Call with the Sendehaus"
+    },
+    "collection": "nachtwache"
+   }
+  ]
+ },
+ "bookkeeping": {
+  "note": "Time and invoices around three customers, so every check finds something: Northlight (visited on the skip day without a time entry, unbilled hours, an overdue invoice), Speiche (budget at 85 %, a quote without answer), Donaulicht (EU customer, an invoice at 0 % VAT without a VAT id). Days count back over weekdays from today; client_days are the on-site visits.",
+  "seed": 7,
+  "rate": 95,
+  "vat": 0.19,
+  "currency": "EUR",
+  "customers": [
+   "northlight",
+   "speiche",
+   "donaulicht"
+  ],
+  "projects": [
+   "harbour",
+   "spring",
+   "trailer"
+  ],
+  "countries": {
+   "DE": "276",
+   "AT": "40"
+  },
+  "time": {
+   "history_days": 600,
+   "hours": [
+    5,
+    8
+   ],
+   "client_window": 25,
+   "client_days": [
+    1,
+    3,
+    8,
+    10,
+    15
+   ],
+   "skip_day": 3,
+   "unbilled_days": 40,
+   "exported_after_days": 5,
+   "running_hours": 11,
+   "on_site": {
+    "de": "vor Ort",
+    "en": "on site"
+   },
+   "edit": "edit",
+   "visit": "shoot",
+   "meeting": "meeting",
+   "mix": [
+    1,
+    2,
+    2,
+    3
+   ],
+   "running_id": 9999,
+   "running_customer": 2
+  },
+  "contract_minutes": [
+   480,
+   480,
+   480,
+   480,
+   480,
+   0,
+   0
+  ],
+  "budgets": [
+   {},
+   {
+    "budget": 40000,
+    "used_money": 34000,
+    "end": "@date+60"
+   },
+   {
+    "time_budget_min": 2400,
+    "budget_type": "month"
+   }
+  ],
+  "absences": [
+   {
+    "start": "@date+20",
+    "end": "@date+24",
+    "type": "holiday",
+    "status": "approved"
+   }
+  ],
+  "invoices": {
+   "months": 20,
+   "net": [
+    2500,
+    6500
+   ],
+   "issued_day": 3,
+   "due_days": 14,
+   "paid_days": 10,
+   "number": "R-{year}-{n}",
+   "overdue": {
+    "from_end": 3,
+    "due": "@date-21",
+    "reminded": "@date-7",
+    "next_send": "@date+7"
+   },
+   "draft": {
+    "client_id": 2,
+    "status": "draft",
+    "date": "@date-10",
+    "amount": 1190,
+    "balance": 1190,
+    "taxes": 190,
+    "net": 1000
+   },
+   "quote": {
+    "id": 1,
+    "number": "A-{year}-004",
+    "status": "sent",
+    "date": "@date-20",
+    "amount": 8330,
+    "client_id": 2
+   },
+   "recurring": {
+    "id": 1,
+    "number": "W-01",
+    "active": true,
+    "next_send_date": "@date+12",
+    "remaining_cycles": 1,
+    "amount": 595,
+    "client_id": 1
+   },
+   "note": "Each month back from this one, an invoice per customer on issued_day, paid paid_days later; the one from_end places before the last is overdue. {year} is the issue year, {n} the running number."
+  },
+  "live": {
+   "today_min": 312,
+   "week_min": 1590,
+   "running_min": 47,
+   "spans": [
+    {
+     "begin": "@date+0 09:05",
+     "end": "@date+0 11:40"
+    },
+    {
+     "begin": "@date+0 12:15",
+     "end": "@date+0 13:05"
+    }
+   ],
+   "activities": {
+    "edit": 7,
+    "meeting": 2
+   },
+   "timer_id": 901,
+   "sheet_ids": [
+    899,
+    900
+   ],
+   "tags": [
+    {
+     "de": "Schnitt",
+     "en": "Edit"
+    }
+   ]
+  },
+  "urls": {
+   "time": "https://kimai.demo",
+   "invoices": "https://invoice.demo"
+  }
+ },
+ "documents": {
+  "note": "Paperless-ngx: the mobile contract's notice period ends in 20 days, its invoice waits in the inbox.",
+  "url": "https://docs.demo",
+  "total": 1843,
+  "inbox": 7,
+  "oldest_title": {
+   "de": "Rechnung Elbnetz Mobilfunk",
+   "en": "Invoice Elbnetz Mobilfunk"
+  },
+  "oldest_added": "@date-23",
+  "invoices": [
+   {
+    "id": 311,
+    "title": {
+     "de": "Rechnung 09/2026",
+     "en": "Invoice 09/2026"
+    },
+    "correspondent": "Elbnetz Mobilfunk",
+    "created": "@date-23",
+    "amount": 39.95
+   }
+  ],
+  "contracts": [
+   {
+    "id": 88,
+    "title": {
+     "de": "Mobilfunkvertrag",
+     "en": "Mobile contract"
+    },
+    "correspondent": "Elbnetz Mobilfunk",
+    "end": "@+111d",
+    "notice_months": 3,
+    "deadline": "@+20d",
+    "renews_automatic": true
+   }
+  ],
+  "newest": [
+   {
+    "id": 1843,
+    "title": {
+     "de": "Kontoauszug 09/2026",
+     "en": "Bank statement 09/2026"
+    },
+    "added": "@date+0"
+   },
+   {
+    "id": 1842,
+    "title": {
+     "de": "Rechnung Nordhost Server",
+     "en": "Invoice Nordhost Server"
+    },
+    "added": "@date-1"
+   },
+   {
+    "id": 1841,
+    "title": {
+     "de": "Versicherungsschein",
+     "en": "Insurance policy"
+    },
+    "added": "@date-2"
+   }
+  ],
+  "tag_counts": {
+   "steuer 2026": 64,
+   "belege": 212
+  },
+  "receipts": {
+   "note": "Scans of the receipts and how they meet the expenses: invoice number in both (sure match), linked already, amount and vendor only, the Paperless invoice 311, two scans that add up (1:n), no scan yet, a scan tagged Beleg without an expense. {amount} is filled in.",
+   "url": "https://invoices.demo",
+   "tag": "Beleg",
+   "slots": [
+    {
+     "de": "Rechnungsnummer",
+     "en": "Invoice number"
+    },
+    "Paperless"
+   ],
+   "fields": [
+    {
+     "de": "Rechnungsnummer",
+     "en": "Invoice number"
+    },
+    {
+     "de": "Ausgabe",
+     "en": "Expense"
+    },
+    "Invoice Ninja",
+    {
+     "de": "Betrag",
+     "en": "Amount"
+    }
+   ],
+   "cases": [
+    {
+     "receipt": 1,
+     "expense": "demo1",
+     "number": "EX-0041",
+     "invoice": true,
+     "scans": [
+      {
+       "id": 201,
+       "title": {
+        "de": "Rechnung FE-2026-0917",
+        "en": "Invoice FE-2026-0917"
+       },
+       "correspondent": "Fotohaus Elbe GmbH",
+       "text": {
+        "de": "Rechnungsnr. FE-2026-0917 Gesamtbetrag {amount} EUR",
+        "en": "Invoice no. FE-2026-0917 total {amount} EUR"
+       },
+       "amount": true,
+       "day": 1
+      }
+     ]
+    },
+    {
+     "receipt": 2,
+     "expense": "demo2",
+     "number": "EX-0042",
+     "invoice": true,
+     "linked": true,
+     "scans": [
+      {
+       "id": 202,
+       "title": {
+        "de": "Rechnung Kabelwerk Studiobedarf",
+        "en": "Invoice Kabelwerk Studiobedarf"
+       },
+       "correspondent": "Kabelwerk Studiobedarf",
+       "text": {
+        "de": "Rechnung KW-55821 Summe {amount} EUR",
+        "en": "Invoice KW-55821 sum {amount} EUR"
+       },
+       "amount": true
+      }
+     ]
+    },
+    {
+     "receipt": 3,
+     "expense": "demo3",
+     "number": "EX-0043",
+     "scans": [
+      {
+       "id": 203,
+       "title": "Kombüse Catering",
+       "correspondent": "Kombüse Catering",
+       "text": "Total {amount} EUR",
+       "day": 1
+      }
+     ]
+    },
+    {
+     "vendor": "elbnetz",
+     "expense": "demo4",
+     "number": "EX-0044",
+     "day": -23,
+     "scans": [
+      {
+       "id": 311,
+       "title": {
+        "de": "Rechnung 09/2026",
+        "en": "Invoice 09/2026"
+       },
+       "correspondent": "Elbnetz Mobilfunk",
+       "text": {
+        "de": "Rechnungsbetrag {amount} EUR",
+        "en": "Invoice amount {amount} EUR"
+       },
+       "amount": true
+      }
+     ]
+    },
+    {
+     "receipt": 4,
+     "expense": "demo5",
+     "number": "EX-0045",
+     "scans": [
+      {
+       "id": 204,
+       "title": {
+        "de": "Quittung Mietwagen Nord",
+        "en": "Receipt Mietwagen Nord"
+       },
+       "correspondent": "Mietwagen Nord",
+       "text": {
+        "de": "Summe {amount}",
+        "en": "Sum {amount}"
+       },
+       "part": 99,
+       "tagged": true
+      },
+      {
+       "id": 205,
+       "title": {
+        "de": "Quittung Mietwagen Nord",
+        "en": "Receipt Mietwagen Nord"
+       },
+       "correspondent": "Mietwagen Nord",
+       "text": {
+        "de": "Summe {amount}",
+        "en": "Sum {amount}"
+       },
+       "rest": true,
+       "tagged": true,
+       "day": 1
+      }
+     ]
+    },
+    {
+     "receipt": 6,
+     "expense": "demo6",
+     "number": "EX-0046"
+    },
+    {
+     "receipt": 5,
+     "scans": [
+      {
+       "id": 206,
+       "title": {
+        "de": "Tankquittung",
+        "en": "Fuel receipt"
+       },
+       "correspondent": "Tankstelle Elbchaussee",
+       "text": {
+        "de": "Betrag {amount} EUR",
+        "en": "Amount {amount} EUR"
+       },
+       "amount": true,
+       "tagged": true
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "assets_state": {
+  "note": "Snipe-IT states of the first four inventory assets: the notebook's warranty ends soon, the NAS is past end of life and overdue for an audit, the fourth should have come back from Jonas. Licences: the first expires soon, the second has free seats.",
+  "url": "https://assets.demo",
+  "assets": [
+   {
+    "status": {
+     "de": "Ausgegeben",
+     "en": "Deployed"
+    },
+    "deployable": true,
+    "assigned": true,
+    "purchase_date": "@date-30",
+    "warranty_expires": "@date+10",
+    "eol_date": "@date+900",
+    "next_audit": "@date+100",
+    "last_change": "@date-30"
+   },
+   {
+    "status": {
+     "de": "In Betrieb",
+     "en": "In use"
+    },
+    "deployable": true,
+    "assigned": true,
+    "purchase_date": "@date-1900",
+    "warranty_expires": "@date-800",
+    "eol_date": "@date-20",
+    "next_audit": "@date-15",
+    "last_change": "@date-400"
+   },
+   {
+    "status": {
+     "de": "Bereit",
+     "en": "Ready"
+    },
+    "deployable": true,
+    "purchase_date": "@date-500",
+    "warranty_expires": "@date+230",
+    "next_audit": "@date+60",
+    "last_change": "@date-140"
+   },
+   {
+    "status": {
+     "de": "Ausgegeben",
+     "en": "Deployed"
+    },
+    "deployable": true,
+    "assigned": true,
+    "purchase_date": "@date-60",
+    "warranty_expires": "@date+1000",
+    "next_audit": "@date+200",
+    "last_change": "@date-60",
+    "assigned_to": "Jonas Brandt",
+    "expected_checkin": "@date-5"
+   }
+  ],
+  "licenses": [
+   {
+    "expires": "@date+20"
+   },
+   {
+    "expires": "@date+200",
+    "free": 2
+   }
+  ],
+  "consumables": [
+   {
+    "id": 1,
+    "name": {
+     "de": "Toner schwarz",
+     "en": "Black toner"
+    },
+    "remaining": 1,
+    "min": 2
+   }
+  ],
+  "audit_overdue": [
+   2
+  ]
+ },
+ "bank": {
+  "note": "Sure: one income matches the open invoice, the health insurance payment is overdue.",
+  "url": "https://money.demo",
+  "currency": "EUR",
+  "net_worth": 48210,
+  "accounts": [
+   {
+    "id": "a1",
+    "name": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    },
+    "type": "depository",
+    "classification": "asset",
+    "balance": 6120,
+    "currency": "EUR"
+   },
+   {
+    "id": "a2",
+    "name": {
+     "de": "Tagesgeld",
+     "en": "Savings"
+    },
+    "type": "depository",
+    "classification": "asset",
+    "balance": 150,
+    "currency": "EUR"
+   }
+  ],
+  "transactions": [
+   {
+    "id": "t1",
+    "date": "@date-3",
+    "name": "Northlight Pictures RE-2026-017",
+    "amount": 2380,
+    "category": {
+     "de": "Einnahmen",
+     "en": "Income"
+    },
+    "account": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    }
+   },
+   {
+    "id": "t2",
+    "date": "@date-5",
+    "name": "Nordhost Server",
+    "amount": 41.65,
+    "expense": true,
+    "category": {
+     "de": "Hosting",
+     "en": "Hosting"
+    },
+    "merchant": "Nordhost Server",
+    "account": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    }
+   },
+   {
+    "id": "t3",
+    "date": "@date-8",
+    "name": "Kabelwerk Studiobedarf",
+    "amount": -899,
+    "account": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    }
+   },
+   {
+    "id": "t4",
+    "date": "@date-12",
+    "name": {
+     "de": "Bäckerei",
+     "en": "Bakery"
+    },
+    "amount": -6.4,
+    "account": {
+     "de": "Tagesgeld",
+     "en": "Savings"
+    }
+   },
+   {
+    "id": "t5",
+    "date": "@date-40",
+    "name": "Nordhost Server",
+    "amount": 41.65,
+    "expense": true,
+    "category": {
+     "de": "Hosting",
+     "en": "Hosting"
+    },
+    "merchant": "Nordhost Server",
+    "account": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    }
+   }
+  ],
+  "recurring": [
+   {
+    "name": "Nordhost Server",
+    "status": "active",
+    "amount": 41.65,
+    "expense": true,
+    "next": "@date+25",
+    "last": "@date-5"
+   },
+   {
+    "name": {
+     "de": "Krankenversicherung",
+     "en": "Health insurance"
+    },
+    "status": "active",
+    "amount": 612,
+    "expense": true,
+    "next": "@date-9",
+    "last": "@date-39"
+   },
+   {
+    "name": {
+     "de": "Miete Studio",
+     "en": "Studio rent"
+    },
+    "status": "active",
+    "amount": 450,
+    "expense": true,
+    "next": "@date+6",
+    "last": "@date-24"
+   },
+   {
+    "name": {
+     "de": "Farbraum Grade, Abo",
+     "en": "Farbraum Grade subscription"
+    },
+    "status": "active",
+    "amount": 66.45,
+    "expense": true,
+    "next": "@date+11",
+    "last": "@date-19"
+   }
+  ]
+ },
+ "subscriptions": {
+  "note": "Wallos: the studio's suppliers plus its domain; the software subscription the bank knows is missing here on purpose.",
+  "url": "https://wallos.demo",
+  "currency": "EUR",
+  "subs": [
+   {
+    "vendor": "nordhost",
+    "next": "@date+4"
+   },
+   {
+    "vendor": "elbstrom",
+    "next": "@date+18"
+   },
+   {
+    "name": "Domain studio-weber.example.test",
+    "price": 24,
+    "monthly": 2,
+    "next": "@date+21",
+    "category": {
+     "de": "Hosting",
+     "en": "Hosting"
+    }
+   },
+   {
+    "vendor": "wellenklang",
+    "next": "@date+9"
+   }
+  ]
+ },
+ "suggestions": {
+  "note": "Ideas for new work and learning: three open, the last run failed.",
+  "url": "https://kintsugi.demo",
+  "new": 3,
+  "accepted": 2,
+  "snoozed": 1,
+  "done": 4,
+  "rejected": 2,
+  "rate": 75,
+  "gaps_open": 2,
+  "open": [
+   {
+    "id": 42,
+    "kind": "acquisition",
+    "title": {
+     "de": "Imagefilm für Stadtwerke anbieten",
+     "en": "Offer an image film to the public utility"
+    },
+    "url": "https://kintsugi.demo/vorschlaege#s-42",
+    "created": "@-0d"
+   },
+   {
+    "id": 41,
+    "kind": "development",
+    "title": {
+     "de": "Drohnenführerschein A2 machen",
+     "en": "Get the A2 drone licence"
+    },
+    "url": "https://kintsugi.demo/vorschlaege#s-41",
+    "created": "@-2d"
+   },
+   {
+    "id": 37,
+    "kind": "acquisition",
+    "title": {
+     "de": "Agentur Nordlicht nachfassen",
+     "en": "Follow up with Agentur Nordlicht"
+    },
+    "url": "https://kintsugi.demo/vorschlaege#s-37",
+    "created": "@-8d"
+   }
+  ],
+  "last_run": {
+   "status": "failed",
+   "detail": {
+    "de": "LLM nicht erreichbar",
+    "en": "LLM unreachable"
+   },
+   "at": "@-0d"
+  },
+  "research": true,
+  "budget_usd": 5,
+  "used_usd": 1.25
+ },
+ "archive": {
+  "note": "Older projects and activities, booked in the same weeks as the current work: their colours clash with current ones or are missing (Kimai Farbfächer).",
+  "projects": [
+   {
+    "customer": "northlight",
+    "name": {
+     "de": "Harbour Lights – Staffel 1",
+     "en": "Harbour Lights – Season 1"
+    },
+    "color": "#fe8019"
+   },
+   {
+    "customer": "speiche",
+    "name": {
+     "de": "Herbstspot",
+     "en": "Autumn commercial"
+    },
+    "color": "#83a598"
+   },
+   {
+    "customer": "elbgruen",
+    "name": {
+     "de": "Jahresbericht-Video",
+     "en": "Annual report video"
+    },
+    "color": "#8ec07c"
+   },
+   {
+    "customer": "studio",
+    "name": "Showreel 2025",
+    "color": null
+   }
+  ],
+  "activities": [
+   {
+    "name": {
+     "de": "Farbkorrektur",
+     "en": "Colour grading"
+    },
+    "color": "#83a598"
+   },
+   {
+    "name": {
+     "de": "Drehvorbereitung",
+     "en": "Shoot prep"
+    },
+    "color": "#d3869b"
+   },
+   {
+    "name": {
+     "de": "Sichtung",
+     "en": "Footage review"
+    },
+    "color": null
+   },
+   {
+    "name": {
+     "de": "Tonschnitt",
+     "en": "Dialogue edit"
+    },
+    "color": "#8ec07c"
+   }
+  ],
+  "bookings": {
+   "weeks": [
+    -6,
+    -1
+   ],
+   "people": [
+    {
+     "user": "mara",
+     "weekday": 1
+    },
+    {
+     "user": "selin",
+     "weekday": 3
+    }
+   ],
+   "slots": [
+    "09:00",
+    "14:00"
+   ],
+   "hours": 2
+  }
+ },
+ "approvals": {
+  "note": "Who approves and locks: Lena approves absences a week before they start, closes the previous month for everyone; trips of last month are approved, Jonas has submitted this month's.",
+  "by": "lena",
+  "days_before": 7,
+  "time": "10:00",
+  "month_lock_time": "18:00",
+  "trips": {
+   "approved_last_month": [
+    "mara",
+    "jonas",
+    "lena"
+   ],
+   "submitted_this_month": [
+    "jonas"
+   ]
+  }
+ },
  "timesheet_weeks": {
   "from_week": -8,
   "to_week": 1,
@@ -1301,153 +3021,16 @@
    }
   }
  },
- "film_engagement": {
+ "standby_timer": {
+  "note": "Jonas' timer when no shoot day is running (Plasmai).",
   "user": "jonas",
-  "project": "harbour",
-  "activity": "shoot",
-  "employer": "northlight",
-  "position": {
-   "de": "1. Kameraassistenz",
-   "en": "1st camera assistant"
-  },
-  "ruleset": "tv-ffs",
-  "weekly_gage": 1850,
-  "from": -21,
-  "to": 25,
-  "days": [
-   {
-    "day": -14,
-    "call": "07:00",
-    "wrap": "18:30",
-    "break_min": 60,
-    "location": "harbour-pier",
-    "note": {
-     "de": "Folge 3, Szenen 12–18",
-     "en": "Episode 3, scenes 12–18"
-    }
-   },
-   {
-    "day": -13,
-    "call": "07:00",
-    "wrap": "17:00",
-    "break_min": 60,
-    "location": "fishmarket",
-    "note": {
-     "de": "Folge 3, Szenen 19–24",
-     "en": "Episode 3, scenes 19–24"
-    }
-   },
-   {
-    "day": -12,
-    "call": "08:00",
-    "wrap": "19:00",
-    "break_min": 60,
-    "location": "beach",
-    "note": {
-     "de": "Folge 3, Strand bei Ebbe",
-     "en": "Episode 3, beach at low tide"
-    }
-   },
-   {
-    "day": -11,
-    "call": "10:00",
-    "wrap": "20:30",
-    "break_min": 45,
-    "location": "harbour-pier",
-    "note": {
-     "de": "Folge 3, Anschlüsse",
-     "en": "Episode 3, pick-ups"
-    }
-   },
-   {
-    "day": -8,
-    "call": "06:00",
-    "wrap": "16:00",
-    "break_min": 60,
-    "location": "ferry",
-    "note": {
-     "de": "Folge 4, Hafenfähre im Nebel",
-     "en": "Episode 4, harbour ferry in fog"
-    }
-   },
-   {
-    "day": -7,
-    "call": "07:00",
-    "wrap": "18:00",
-    "break_min": 60,
-    "location": "harbour-pier",
-    "note": {
-     "de": "Folge 4, Szenen 1–9",
-     "en": "Episode 4, scenes 1–9"
-    }
-   },
-   {
-    "day": -6,
-    "call": "13:00",
-    "wrap": "18:30",
-    "break_min": 30,
-    "location": "hafencity",
-    "note": {
-     "de": "Folge 4, Außen HafenCity",
-     "en": "Episode 4, exterior HafenCity"
-    }
-   },
-   {
-    "day": -5,
-    "call": "15:00",
-    "wrap": "23:30",
-    "break_min": 60,
-    "location": "speicherstadt",
-    "note": {
-     "de": "Nachtdreh Speicherstadt",
-     "en": "Night shoot in Speicherstadt"
-    }
-   },
-   {
-    "day": -2,
-    "call": "09:00",
-    "wrap": "19:30",
-    "break_min": 60,
-    "location": "beach",
-    "note": {
-     "de": "Samstagsdreh Övelgönne",
-     "en": "Saturday shoot at Övelgönne"
-    }
-   },
-   {
-    "day": 0,
-    "call": "07:00",
-    "wrap": "17:30",
-    "break_min": 60,
-    "location": "harbour-pier",
-    "note": {
-     "de": "Folge 5, Leuchtfeuer, Szenen 1–7",
-     "en": "Episode 5, beacon, scenes 1–7"
-    }
-   },
-   {
-    "day": 1,
-    "call": "07:00",
-    "wrap": "18:00",
-    "break_min": 60,
-    "location": "fishmarket",
-    "note": {
-     "de": "Folge 5, Szenen 8–15",
-     "en": "Episode 5, scenes 8–15"
-    }
-   },
-   {
-    "day": 2,
-    "call": "08:00",
-    "wrap": "19:15",
-    "break_min": 60,
-    "location": "beach",
-    "note": {
-     "de": "Folge 5, Strand bei Nebel",
-     "en": "Episode 5, beach in fog"
-    }
-   }
-  ]
+  "project": "showreel",
+  "activity": "edit",
+  "minutes_ago": 85,
+  "description": {
+   "de": "Kamera-Reel schneiden",
+   "en": "Cut the camera reel"
+  }
  },
  "places": [
   {
@@ -1865,267 +3448,210 @@
    "pickup": "rental-station"
   }
  ],
- "receipts": [
-  {
-   "id": 1,
-   "vendor": "Fotohaus Elbe",
-   "day": -18,
-   "amount": 342.0,
-   "number": "FE-2026-0917",
-   "category": {
-    "de": "Filmmaterial",
-    "en": "Film stock"
-   },
-   "project": "showreel",
-   "note": {
-    "de": "10 Rollen Farbnegativfilm 35 mm",
-    "en": "10 rolls of 35 mm colour negative film"
-   },
-   "state": "linked"
+ "location": {
+  "note": "Dawarich: Mara's visits at Northlight on the client days (bookkeeping), the areas home and Northlight, yearly stats; the track drives home → Northlight before a visit and back after it.",
+  "url": "https://dawarich.demo",
+  "home": "home-mara",
+  "site": "northlight-office",
+  "visit": {
+   "from": "08:30",
+   "to": "17:45",
+   "minutes": 555
   },
-  {
-   "id": 2,
-   "vendor": "Kabelwerk Studiobedarf",
-   "day": -15,
-   "amount": 89.7,
-   "number": "KW-55821",
-   "category": {
-    "de": "Technik",
-    "en": "Equipment"
+  "areas": [
+   {
+    "id": 1,
+    "place": "home-mara",
+    "radius": 100
    },
-   "project": "harbour",
-   "note": {
-    "de": "XLR-Kabel, Gaffa, 5 l Nebelfluid",
-    "en": "XLR cables, gaffer tape, 5 l fog fluid"
-   },
-   "state": "linked"
+   {
+    "id": 2,
+    "place": "northlight-office",
+    "radius": 150
+   }
+  ],
+  "stats": {
+   "total_km": 18450,
+   "year_km": 3100,
+   "countries": 2,
+   "cities": 14,
+   "month_km": 412,
+   "last_month_km": 530
   },
-  {
-   "id": 3,
-   "vendor": "Kombüse Catering",
-   "day": -14,
-   "amount": 486.5,
-   "number": "2026-114",
-   "category": {
-    "de": "Catering",
-    "en": "Catering"
-   },
-   "project": "harbour",
-   "note": {
-    "de": "Catering Drehtag Landungsbrücken",
-    "en": "Catering for the Landungsbrücken shoot"
-   },
-   "state": "suggested"
+  "last_point": "@-2h",
+  "route": {
+   "steps": 24,
+   "step_minutes": 2
   },
-  {
-   "id": 4,
-   "vendor": "Mietwagen Nord",
-   "day": -15,
-   "amount": 164.9,
-   "number": "MN-7710-26",
-   "category": {
-    "de": "Fahrzeug",
-    "en": "Vehicle"
-   },
-   "project": "spring",
-   "note": {
-    "de": "Kombi, 2 Tage",
-    "en": "Estate car, 2 days"
-   },
-   "state": "suggested"
-  },
-  {
-   "id": 5,
-   "vendor": "Tankstelle Elbchaussee",
-   "day": -9,
-   "amount": 72.14,
-   "number": "0048812",
-   "category": {
-    "de": "Kraftstoff",
-    "en": "Fuel"
-   },
-   "project": "spring",
-   "note": {
-    "de": "Diesel Transporter",
-    "en": "Diesel for the van"
-   },
-   "state": "suggested"
-  },
-  {
-   "id": 6,
-   "vendor": "Druckerei Nordlicht",
-   "day": -7,
-   "amount": 58.0,
-   "number": "DN-3391",
-   "category": {
-    "de": "Druck",
-    "en": "Printing"
-   },
-   "project": "spring",
-   "note": {
-    "de": "Storyboards „Licht an“, A3",
-    "en": "“Lights on” storyboards, A3"
-   },
-   "state": "open"
-  },
-  {
-   "id": 7,
-   "vendor": "Kombüse Catering",
-   "day": -5,
-   "amount": 212.0,
-   "number": "2026-121",
-   "category": {
-    "de": "Catering",
-    "en": "Catering"
-   },
-   "project": "harbour",
-   "note": {
-    "de": "Nachtdreh-Verpflegung",
-    "en": "Night shoot catering"
-   },
-   "state": "open"
-  },
-  {
-   "id": 8,
-   "vendor": "Kabelwerk Studiobedarf",
-   "day": -2,
-   "amount": 129.0,
-   "number": "KW-56107",
-   "category": {
-    "de": "Technik",
-    "en": "Equipment"
-   },
-   "project": "tidenhub",
-   "note": {
-    "de": "Ansteckmikrofon",
-    "en": "Lavalier microphone"
-   },
-   "state": "ignored"
-  },
-  {
-   "id": 9,
-   "vendor": "Moorhof-Rast",
-   "day": -10,
-   "amount": 64.8,
-   "number": "MR-0313",
-   "category": {
-    "de": "Verpflegung",
-    "en": "Meals"
-   },
-   "project": "nachtwache",
-   "note": {
-    "de": "Abendessen und Kaffee, Motivbesichtigung",
-    "en": "Dinner and coffee, location visit"
-   },
-   "state": "suggested"
-  },
-  {
-   "id": 10,
-   "vendor": "Wattfähre Graufeld",
-   "day": -10,
-   "amount": 95.0,
-   "number": "WF-26-118",
-   "category": {
-    "de": "Fahrzeug",
-    "en": "Vehicle"
-   },
-   "project": "nachtwache",
-   "note": {
-    "de": "Boot zum Leuchtturm, Hin und zurück",
-    "en": "Boat to the lighthouse and back"
-   },
-   "state": "open"
-  },
-  {
-   "id": 11,
-   "vendor": "Kabelwerk Studiobedarf",
-   "day": -4,
-   "amount": 146.8,
-   "number": "KW-56244",
-   "category": {
-    "de": "Technik",
-    "en": "Equipment"
-   },
-   "project": "nachtwache",
-   "note": {
-    "de": "Zwei Handscheinwerfer, 40 Batterien",
-    "en": "Two handheld floodlights, 40 batteries"
-   },
-   "state": "open"
+  "day": {
+   "note": "One of Mara's days as Dawarich tracks it (home, studio, fish market, Speiche, the beach in the evening); the areas and a suggested place for Kimai Anfahrten. visits: the stops Dawarich confirms; geocoded: the places its reverse geocoder knows.",
+   "areas": [
+    {
+     "id": 1,
+     "place": "home-mara",
+     "radius": 150
+    },
+    {
+     "id": 2,
+     "place": "studio",
+     "radius": 150
+    }
+   ],
+   "suggested": [
+    {
+     "id": 11,
+     "place": "speiche-workshop",
+     "visits": 3
+    }
+   ],
+   "segments": [
+    [
+     "home-mara",
+     "home-mara",
+     "06:00",
+     "07:30",
+     "stationary"
+    ],
+    [
+     "home-mara",
+     "studio",
+     "07:30",
+     "07:50",
+     "driving"
+    ],
+    [
+     "studio",
+     "studio",
+     "07:50",
+     "10:00",
+     "stationary"
+    ],
+    [
+     "studio",
+     "fishmarket",
+     "10:00",
+     "10:25",
+     "walking"
+    ],
+    [
+     "fishmarket",
+     "fishmarket",
+     "10:25",
+     "10:40",
+     "stationary"
+    ],
+    [
+     "fishmarket",
+     "studio",
+     "10:40",
+     "11:05",
+     "walking"
+    ],
+    [
+     "studio",
+     "studio",
+     "11:05",
+     "12:00",
+     "stationary"
+    ],
+    [
+     "studio",
+     "speiche-workshop",
+     "12:00",
+     "12:35",
+     "driving"
+    ],
+    [
+     "speiche-workshop",
+     "speiche-workshop",
+     "12:35",
+     "16:00",
+     "stationary"
+    ],
+    [
+     "speiche-workshop",
+     "home-mara",
+     "16:00",
+     "16:45",
+     "driving"
+    ],
+    [
+     "home-mara",
+     "home-mara",
+     "16:45",
+     "18:00",
+     "stationary"
+    ],
+    [
+     "home-mara",
+     "beach",
+     "18:00",
+     "18:40",
+     "cycling"
+    ],
+    [
+     "beach",
+     "beach",
+     "18:40",
+     "19:10",
+     "stationary"
+    ],
+    [
+     "beach",
+     "home-mara",
+     "19:10",
+     "19:50",
+     "cycling"
+    ],
+    [
+     "home-mara",
+     "home-mara",
+     "19:50",
+     "22:00",
+     "stationary"
+    ]
+   ],
+   "visits": [
+    [
+     "studio",
+     "07:50",
+     "12:00"
+    ],
+    [
+     "speiche-workshop",
+     "12:35",
+     "16:00"
+    ]
+   ],
+   "geocoded": [
+    "home-mara",
+    "studio",
+    "speiche-workshop"
+   ]
   }
- ],
- "vendors": [
-  {
-   "id": "elbnetz",
-   "name": "Elbnetz Mobilfunk",
-   "kind": {
-    "de": "Mobilfunk",
-    "en": "Mobile network"
-   },
-   "domain": "elbnetz.example.test",
-   "contract": {
-    "de": "Mobilfunkvertrag",
-    "en": "Mobile contract"
-   },
-   "monthly": 39.95
+ },
+ "logbook": {
+  "note": "Kimai Anfahrten: places get a radius, vehicles count from a date, trips leave in the morning and come back in the evening, driving takes minutes_per_km; a rental costs rent + fuel and stops at the workshop and the studio. Road km = straight line × road_factor.",
+  "place_radius": 150,
+  "vehicles_since": "2024-01-01",
+  "times": {
+   "out": "08:15",
+   "back": "17:30",
+   "rental": "09:00"
   },
-  {
-   "id": "nordhost",
-   "name": "Nordhost Server",
-   "kind": {
-    "de": "Hosting",
-    "en": "Hosting"
-   },
-   "domain": "nordhost.example.test",
-   "contract": {
-    "de": "Server-Miete",
-    "en": "Server rental"
-   },
-   "monthly": 41.65
+  "minutes_per_km": 2.5,
+  "min_minutes": 10,
+  "road_factor": 1.3,
+  "rental_split": {
+   "rent": 0.8,
+   "fuel": 0.2
   },
-  {
-   "id": "farbraum",
-   "name": "Farbraum Software",
-   "kind": {
-    "de": "Software",
-    "en": "Software"
-   },
-   "domain": "farbraum.example.test",
-   "contract": {
-    "de": "Farbraum Grade, Abo",
-    "en": "Farbraum Grade subscription"
-   },
-   "monthly": 66.45
-  },
-  {
-   "id": "elbstrom",
-   "name": "Elbstrom",
-   "kind": {
-    "de": "Energie",
-    "en": "Energy"
-   },
-   "domain": "elbstrom.example.test",
-   "contract": {
-    "de": "Ökostrom Studio",
-    "en": "Green power for the studio"
-   },
-   "monthly": 72.0
-  },
-  {
-   "id": "wellenklang",
-   "name": "Wellenklang",
-   "kind": {
-    "de": "Unterhaltung",
-    "en": "Entertainment"
-   },
-   "domain": "wellenklang.example.test",
-   "contract": {
-    "de": "Musik-Streaming",
-    "en": "Music streaming"
-   },
-   "monthly": 10.99
-  }
- ],
+  "rental_stops": [
+   "speiche-workshop",
+   "studio"
+  ],
+  "vehicle": "van"
+ },
  "inventory": {
   "assets": [
    {
@@ -2187,475 +3713,2044 @@
    "Blitz 980 NVMe"
   ]
  },
- "tasks": {
-  "collections": [
+ "hardware": {
+  "model": "Framework Laptop 13",
+  "cpu": "AMD Ryzen 7 7840U",
+  "charge_limit": 80,
+  "battery_percent": 76,
+  "cycle_count": 212,
+  "design_capacity_mwh": 61000,
+  "full_capacity_mwh": 57400,
+  "fan_curve": [
+   [
+    40,
+    0
+   ],
+   [
+    55,
+    25
+   ],
+   [
+    70,
+    55
+   ],
+   [
+    85,
+    100
+   ]
+  ],
+  "scenario": {
+   "de": "Rendern: der Kolk, Nacht 3",
+   "en": "Rendering: the Kolk, night 3"
+  },
+  "render": {
+   "note": "The render job's load 0..1: started minutes ago, base ± swing with small bursts, never below floor.",
+   "started_min": 20,
+   "base": 0.55,
+   "swing": 0.35,
+   "burst": 0.1,
+   "floor": 0.15
+  },
+  "sensors": {
+   "APU": [
+    48,
+    38
+   ],
+   "CPU": [
+    46,
+    40
+   ],
+   "Battery": [
+    31,
+    4
+   ],
+   "SSD": [
+    38,
+    9
+   ]
+  },
+  "fan": {
+   "name": "Fan 1",
+   "sensor": "APU",
+   "rpm": [
+    1800,
+    3600
+   ]
+  },
+  "tdp_watts": 28,
+  "charging": {
+   "rate_ma": 2100,
+   "voltage_mv": 16800
+  },
+  "epp": "balance_performance",
+  "history_min": 30,
+  "log": [
+   "framework-control demo",
+   "fan curve active (APU)",
+   "charge limit {charge_limit} %"
+  ],
+  "nominal_voltage": 15.4
+ },
+ "terminal": {
+  "user": "mara",
+  "host": "studio-pi",
+  "session": [
+   "$ cat dispo-folge-5.txt",
    {
-    "id": "harbour",
-    "name": "Harbour Lights",
-    "color": "#fe8019"
+    "de": "HARBOUR LIGHTS – STAFFEL 2 · FOLGE 5",
+    "en": "HARBOUR LIGHTS – SEASON 2 · EPISODE 5"
    },
    {
-    "id": "spring",
-    "name": "Speiche Spot",
-    "color": "#83a598"
+    "de": "Drehtag 1   Landungsbrücken   Treff 07:00",
+    "en": "Day 1   Landungsbrücken   Call 07:00"
    },
    {
-    "id": "studio",
-    "name": "Studio",
-    "color": "#d3869b"
+    "de": "Drehtag 2   Fischmarkt        Treff 07:00",
+    "en": "Day 2   Fish market       Call 07:00"
    },
    {
-    "id": "private",
+    "de": "Drehtag 3   Övelgönne         Treff 08:00",
+    "en": "Day 3   Övelgönne         Call 08:00"
+   },
+   "",
+   "$ df -h /srv/footage",
+   "Filesystem  Size  Used Avail Use%",
+   "/dev/sda1   7.3T  4.9T  2.4T  67%",
+   "",
+   "$ ls /srv/footage/nachtwache",
+   "kolk-nacht-1  kolk-nacht-2  kolk-nacht-3  seite-7.pdf",
+   "$ _"
+  ]
+ },
+ "speaker": {
+  "name": "Leuchtfeuer",
+  "hostname": "leuchtfeuer",
+  "room": {
+   "de": "Studio, Schnittplatz",
+   "en": "Studio, edit desk"
+  },
+  "volume": 32,
+  "muted": false,
+  "temp_c": 61,
+  "uptime_days": 9,
+  "wifi": {
+   "ssid": "StudioWeber",
+   "bssid": "a4:2b:b0:5d:03:13",
+   "freq": 5500,
+   "rssi": -58,
+   "link_mbps": 433,
+   "loss_pct": 0,
+   "rtt_ms": 3,
+   "gateway": "192.168.10.1",
+   "log": [
+    "02:41:55 Verbindung schlecht an a4:2b:b0:5d:03:0a (Verlust 48 %)",
+    "02:42:20 wechsle zu a4:2b:b0:5d:03:13 (5500 MHz, -61 dBm)",
+    "02:42:32 Wechsel erfolgreich (Verlust 0 %, 4 ms)"
+   ]
+  },
+  "radio": [
+   {
+    "name": "Sendehaus Graufeld",
+    "url": "https://stream.sendehaus-graufeld.example.test/live.mp3"
+   },
+   {
+    "name": "Radio Elbe",
+    "url": "https://stream.radio-elbe.example.test/128.mp3"
+   },
+   {
+    "name": "Hafenfunk",
+    "url": "https://stream.hafenfunk.example.test/aac"
+   }
+  ],
+  "playing": {
+   "radio": 0,
+   "title": {
+    "de": "Graufeld nach Mitternacht, Wiederholung",
+    "en": "Graufeld after midnight, repeat"
+   }
+  },
+  "alarms": [
+   {
     "name": {
-     "de": "Privat",
-     "en": "Personal"
+     "de": "Drehtag",
+     "en": "Shoot day"
     },
-    "color": "#b8bb26"
+    "time": "05:45",
+    "days": [
+     1,
+     2,
+     3,
+     4,
+     5
+    ],
+    "enabled": true,
+    "source": "radio:0",
+    "volume": 45,
+    "ramp_secs": 90,
+    "snooze_min": 9,
+    "max_mins": 30
    },
    {
-    "id": "nachtwache",
-    "name": "Nachtwache",
-    "color": "#fb4934"
+    "name": {
+     "de": "Abfahrt Landungsbrücken",
+     "en": "Leave for Landungsbrücken"
+    },
+    "time": "07:30",
+    "days": [
+     1,
+     3
+    ],
+    "enabled": true,
+    "source": "tone",
+    "volume": 0,
+    "ramp_secs": 0,
+    "snooze_min": 5,
+    "max_mins": 5
+   },
+   {
+    "name": {
+     "de": "Wochenende",
+     "en": "Weekend"
+    },
+    "time": "09:00",
+    "days": [
+     6,
+     0
+    ],
+    "enabled": false,
+    "source": "radio:1",
+    "volume": 30,
+    "ramp_secs": 120,
+    "snooze_min": 10,
+    "max_mins": 60
    }
   ],
-  "labels": [
+  "timers": [
    {
-    "id": "shoot",
     "name": {
-     "de": "Dreh",
-     "en": "Shoot"
+     "de": "Kaffee",
+     "en": "Coffee"
+    },
+    "total_secs": 240,
+    "elapsed_secs": 95
+   },
+   {
+    "name": {
+     "de": "Nebelmaschine aufheizen",
+     "en": "Fog machine warm-up"
+    },
+    "total_secs": 900,
+    "elapsed_secs": 310
+   }
+  ],
+  "buttons": {
+   "mic": {
+    "short": "smart"
+   }
+  },
+  "button_log": [
+   {
+    "name": "mic",
+    "value": "0",
+    "ago_secs": 420,
+    "action": "smart"
+   },
+   {
+    "name": "volumeup",
+    "value": "1",
+    "ago_secs": 1300
+   },
+   {
+    "name": "bluetooth",
+    "value": "0",
+    "ago_secs": 5400
+   }
+  ],
+  "mqtt": {
+   "host": "studio-pi.studio-weber.example.test",
+   "port": 1883,
+   "user": "leuchtfeuer",
+   "discovery": "homeassistant",
+   "connected": true
+  },
+  "led": {
+   "mode": "vu",
+   "brightness": 60,
+   "scheme": "amber"
+  },
+  "services_running": [
+   "librespot",
+   "gmediarender",
+   "sendspin-player",
+   "castrecv",
+   "shairport-sync",
+   "bluetoothd",
+   "btagent",
+   "bluealsa"
+  ],
+  "demo_time": "18:20",
+  "config": {
+   "bluetooth_pairing": "button",
+   "sendspin_port": 8927,
+   "airplay": "on",
+   "web_password": "demo"
+  },
+  "briefing": {
+   "place": "Hamburg",
+   "lat": 53.55,
+   "lon": 9.99,
+   "tts": "ha",
+   "then": "radio:0",
+   "podcast": 0,
+   "items": [
+    {
+     "type": "greeting"
+    },
+    {
+     "type": "weather"
+    },
+    {
+     "type": "warnings"
+    },
+    {
+     "type": "calendar",
+     "name": "Studio",
+     "url": "https://cloud.studio-weber.example.test/remote.php/dav/public-calendars/studio?export",
+     "days": 0
+    },
+    {
+     "type": "calendar",
+     "name": {
+      "de": "Müllabfuhr",
+      "en": "Waste collection"
+     },
+     "url": "https://www.stadtreinigung.example.test/abfuhr.ics",
+     "days": 1
+    },
+    {
+     "type": "ha",
+     "text": {
+      "de": "Fahrzeit ins Studio: {{ states('sensor.fahrzeit') }} Minuten.",
+      "en": "Travel time to the studio: {{ states('sensor.travel_time') }} minutes."
+     }
+    },
+    {
+     "type": "podcast"
     }
+   ]
+  },
+  "home_assistant": {
+   "url": "http://homeassistant.local:8123",
+   "token": "x",
+   "tts_engine": "tts.piper"
+  },
+  "voice": {
+   "port": 10700,
+   "mic": "leuchtfeuer_mic",
+   "mode": "wake",
+   "area": "Studio",
+   "duck_db": 20,
+   "heard": {
+    "de": "Wie warm ist es im Studio?",
+    "en": "How warm is it in the studio?"
    },
-   {
-    "id": "post",
-    "name": "Post"
-   },
-   {
-    "id": "orga",
-    "name": {
-     "de": "Orga",
-     "en": "Admin"
+   "answer": {
+    "de": "Im Studio sind es 21,5 Grad.",
+    "en": "It is 21.5 degrees in the studio."
+   }
+  },
+  "eq": {
+   "version": 1,
+   "bass": 2,
+   "loudness": true,
+   "room_on": true,
+   "room": [
+    {
+     "hz": 52,
+     "db": -6.4,
+     "q": 4.6
+    },
+    {
+     "hz": 118,
+     "db": -3.8,
+     "q": 3.2
     }
+   ]
+  },
+  "source_limits": {
+   "bluetooth": {
+    "max": 80,
+    "trim_db": 4
+   },
+   "radio": {
+    "start": 25
+   }
+  },
+  "syslog": {
+   "host": "192.168.10.20",
+   "port": 514,
+   "proto": "udp"
+  },
+  "system": {
+   "load1": 0.31,
+   "mem_total_mb": 462,
+   "mem_free_mb": 398,
+   "data_free_mb": 68,
+   "data_size_mb": 123,
+   "uptime_extra_hours": 5
+  },
+  "clock": {
+   "offset_ms": 38,
+   "checked_min_ago": 12,
+   "server": "pool.ntp.org",
+   "last_sync_hours_ago": 3
+  },
+  "hidden_service_groups": [
+   "tidal",
+   "snapcast"
+  ],
+  "audio_cards": [
+   {
+    "id": "wm8904",
+    "name": "HK Invoke DSP"
    },
    {
-    "id": "calls",
+    "id": "HDMI",
     "name": {
-     "de": "Anrufe",
-     "en": "Calls"
+     "de": "HDMI Ausgang",
+     "en": "HDMI output"
     }
    }
   ],
+  "bluetooth_devices": [
+   {
+    "addr": "00:1A:7D:DA:71:13",
+    "name": "JBL Flip 6",
+    "paired": true,
+    "connected": true
+   },
+   {
+    "addr": "F4:6D:04:12:34:56",
+    "name": "Bose SoundLink",
+    "rssi": -58
+   }
+  ],
+  "peers": [
+   {
+    "name": {
+     "de": "Küche",
+     "en": "Kitchen"
+    },
+    "url": "http://invoke-kueche.lan",
+    "online": true,
+    "volume": 22,
+    "temp_c": 61,
+    "playing": "spotify: Nils Frahm – Says"
+   },
+   {
+    "name": {
+     "de": "Lager",
+     "en": "Store room"
+    },
+    "url": "https://invoke-lager.lan",
+    "error": "dial tcp 192.168.10.47:443: i/o timeout"
+   }
+  ],
+  "found_peers": [
+   {
+    "id": "aabbccddeeff",
+    "name": {
+     "de": "Empfang",
+     "en": "Reception"
+    },
+    "url": "http://192.168.10.53"
+   }
+  ],
+  "logs": [
+   {
+    "ago_secs": 95,
+    "source": "hook",
+    "text": {
+     "de": "Dienst librespot gestartet (pid 2817)",
+     "en": "Service librespot started (pid 2817)"
+    }
+   },
+   {
+    "ago_secs": 80,
+    "source": "librespot",
+    "text": "[INFO librespot_playback::player] Loading <Says> with Spotify URI <spotify:track:1C1Z1Ry9Lo6pKyx1Rj5DnN>"
+   },
+   {
+    "ago_secs": 62,
+    "source": "leuchtfeuerd",
+    "text": {
+     "de": "Quelle radio stumm (andere Quelle hat Vorrang)",
+     "en": "Source radio muted (another source has priority)"
+    }
+   },
+   {
+    "ago_secs": 41,
+    "source": "bluetooth-4-aplay",
+    "text": "underrun!!! (at least 3.412 ms long)"
+   },
+   {
+    "ago_secs": 12,
+    "source": "leuchtfeuerd",
+    "text": {
+     "de": "Webradio http://stream.example/radio: error, neuer Versuch in 2s",
+     "en": "Web radio http://stream.example/radio: error, retry in 2s"
+    }
+   },
+   {
+    "ago_secs": 9,
+    "source": "leuchtfeuerd",
+    "text": {
+     "de": "Briefing für 06:45 vorbereitet (4 Abschnitte)",
+     "en": "Briefing for 06:45 prepared (4 sections)"
+    }
+   }
+  ],
+  "ssh_keys": [
+   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKLvR49qGA+o0okpI4l2wDksoS1Vptf26qrGl9IK/0uh mara@schnitt-laptop",
+   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFcHtOPWPaWZCXPIgw0tkATbFTkDx1MQn982m5FMFiI7 backup@nebelhorn"
+  ],
+  "vendor_sounds": {
+   "power_on.wav": 2.4,
+   "network_error.wav": 1.1,
+   "bt_connected.wav": 0.8,
+   "setup_mode.wav": 1.6
+  },
+  "tokens": [
+   {
+    "name": "Home Assistant",
+    "scope": "full"
+   },
+   {
+    "name": "Prometheus",
+    "scope": "read"
+   }
+  ]
+ },
+ "dashboard": {
+  "title": "Studio Weber",
+  "services": [
+   "Kimai",
+   "Invoice Ninja",
+   "Paperless-ngx",
+   "Dawarich",
+   "Immich",
+   "Nextcloud",
+   "Gitea",
+   "Uptime Kuma"
+  ]
+ },
+ "monitoring": {
+  "note": "Uptime checks. status: 1 up, 0 down (Uptime Kuma's codes); cert_days -1 = no certificate.",
+  "url": "https://status.demo",
+  "monitors": [
+   {
+    "name": "Kimai",
+    "type": "http",
+    "target": "https://zeit.demo",
+    "status": 1,
+    "cert_days": 54,
+    "ms": 180
+   },
+   {
+    "name": "NAS",
+    "type": "ping",
+    "status": 0,
+    "cert_days": -1
+   },
+   {
+    "name": "Shop",
+    "type": "http",
+    "target": "https://shop.demo",
+    "status": 1,
+    "cert_days": 9,
+    "ms": 420
+   }
+  ]
+ },
+ "server": {
+  "note": "The busy Docker host: CPU and memory in percent, one disk filling up; history = a random walk between base and base + swing.",
+  "url": "https://glances.demo",
+  "cpu": 38,
+  "mem": 64,
+  "swap": 4,
+  "load": 1.2,
+  "cores": 4,
+  "disks": [
+   {
+    "mount": "/",
+    "percent": 52
+   },
+   {
+    "mount": "/data",
+    "percent": 87
+   }
+  ],
+  "processes": [
+   {
+    "name": "immich-server",
+    "cpu": 18.2,
+    "mem": 9.4
+   },
+   {
+    "name": "postgres",
+    "cpu": 6.1,
+    "mem": 4.8
+   },
+   {
+    "name": "jellyfin",
+    "cpu": 4.4,
+    "mem": 3.1
+   },
+   {
+    "name": "node",
+    "cpu": 2.0,
+    "mem": 2.2
+   }
+  ],
+  "sensors": [
+   {
+    "label": "Package id 0",
+    "unit": "C",
+    "value": 54
+   },
+   {
+    "label": "nvme0",
+    "unit": "C",
+    "value": 41
+   },
+   {
+    "label": "fan1",
+    "unit": "R",
+    "value": 920
+   }
+  ],
+  "networks": [
+   {
+    "name": "eth0",
+    "rx": 1800000.0,
+    "tx": 400000.0
+   },
+   {
+    "name": "tailscale0",
+    "rx": 12000.0,
+    "tx": 9000.0
+   }
+  ],
+  "uptime": "12 days, 4:13:08",
+  "history": {
+   "base": 20,
+   "swing": 40
+  }
+ },
+ "virtualization": {
+  "note": "Proxmox VE: one node, its VMs; backups by VM id.",
+  "url": "https://pve.demo:8006",
+  "nodes": [
+   {
+    "name": "pve",
+    "online": true,
+    "updates": 12,
+    "storages": [
+     {
+      "name": "local-lvm",
+      "used": 430000000000.0,
+      "total": 480000000000.0
+     },
+     {
+      "name": "backup",
+      "used": 1100000000000.0,
+      "total": 4000000000000.0
+     }
+    ]
+   }
+  ],
+  "guests": [
+   {
+    "vmid": 100,
+    "name": "docker",
+    "node": "pve",
+    "running": true,
+    "cpu": 1.2,
+    "mem_bytes": 6000000000.0
+   },
+   {
+    "vmid": 101,
+    "name": "homeassistant",
+    "node": "pve",
+    "running": true,
+    "cpu": 0.3,
+    "mem_bytes": 2000000000.0
+   },
+   {
+    "vmid": 9000,
+    "name": "debian-template",
+    "node": "pve",
+    "template": true
+   }
+  ],
+  "backups": {
+   "100": "@-1d",
+   "101": "@-9d"
+  }
+ },
+ "storage": {
+  "note": "The NAS (TrueNAS): pool fast is degraded, its snapshot task failed.",
+  "url": "https://nas.demo",
+  "host": "truenas",
+  "version": "25.04.2",
+  "pools": [
+   {
+    "name": "tank",
+    "status": "ONLINE",
+    "healthy": true,
+    "size": 16000000000000.0,
+    "allocated": 14100000000000.0,
+    "scrub_end": "@-12d"
+   },
+   {
+    "name": "fast",
+    "status": "DEGRADED",
+    "healthy": false,
+    "size": 2000000000000.0,
+    "allocated": 600000000000.0,
+    "scrub_end": "@-41d",
+    "scrub_errors": 2
+   }
+  ],
+  "alerts": [
+   {
+    "id": "a1",
+    "level": "WARNING",
+    "text": "Device /dev/sdc is causing slow I/O on pool fast."
+   }
+  ],
+  "apps": [
+   {
+    "name": "jellyfin",
+    "state": "RUNNING",
+    "update": true
+   },
+   {
+    "name": "syncthing",
+    "state": "RUNNING"
+   }
+  ],
+  "snapshots": [
+   {
+    "dataset": "tank/photos",
+    "state": "FINISHED",
+    "enabled": true,
+    "last": "@-2h"
+   },
+   {
+    "dataset": "fast/vms",
+    "state": "ERROR",
+    "enabled": true,
+    "last": "@-26h"
+   }
+  ],
+  "datasets": [
+   {
+    "name": "tank/photos",
+    "used": 6200000000000.0,
+    "available": 1900000000000.0
+   },
+   {
+    "name": "tank/media",
+    "used": 4800000000000.0,
+    "available": 1900000000000.0
+   },
+   {
+    "name": "tank/backups",
+    "used": 2600000000000.0,
+    "available": 1900000000000.0
+   },
+   {
+    "name": "fast/vms",
+    "used": 500000000000.0,
+    "available": 1400000000000.0
+   }
+  ]
+ },
+ "disk_health": {
+  "note": "S.M.A.R.T. of the NAS disks (models from inventory.disks); status 0 passed, 1 failed.",
+  "url": "https://disks.demo",
+  "disks": [
+   {
+    "name": "sda",
+    "model": "Speicherwerk HD4 4TB",
+    "status": 0,
+    "temp": 38,
+    "hours": 31000,
+    "seen": "@-3h"
+   },
+   {
+    "name": "sdb",
+    "model": "Tiefgang NAS 4TB",
+    "status": 1,
+    "temp": 41,
+    "hours": 42000,
+    "seen": "@-3h"
+   },
+   {
+    "name": "nvme0",
+    "model": "Blitz 980 NVMe",
+    "status": 0,
+    "temp": 56,
+    "hours": 9000,
+    "seen": "@-3h"
+   }
+  ]
+ },
+ "containers": {
+  "note": "Docker on the host: paperless unhealthy, umami killed for lack of memory.",
+  "url": "http://docker-proxy.demo:2375",
+  "list": [
+   {
+    "name": "gitea",
+    "image": "gitea/gitea:1.24",
+    "state": "running",
+    "status": "Up 6 days (healthy)",
+    "health": "healthy",
+    "cpu": 1.2,
+    "mem_mb": 182,
+    "mem_limit_mb": 1024
+   },
+   {
+    "name": "immich-server",
+    "image": "ghcr.io/immich-app/immich-server:v1.131.0",
+    "state": "running",
+    "status": "Up 2 days (healthy)",
+    "health": "healthy",
+    "cpu": 14.5,
+    "mem_mb": 1630,
+    "mem_limit_mb": 4096
+   },
+   {
+    "name": "paperless",
+    "image": "paperlessngx/paperless-ngx",
+    "state": "running",
+    "status": "Up 3 hours (unhealthy)",
+    "health": "unhealthy",
+    "cpu": 3.1,
+    "mem_mb": 640,
+    "restarts": 2,
+    "logs": [
+     "[2026-10-02 07:58:12] celery.worker: Connected to redis://broker:6379/0",
+     "[2026-10-02 08:01:40] paperless.consumer: Waiting for redis… health check failed",
+     "[2026-10-02 08:01:40] password=*** (masked)"
+    ]
+   },
+   {
+    "name": "restic-nightly",
+    "image": "restic/restic",
+    "state": "exited",
+    "status": "Exited (0) 5 hours ago"
+   },
+   {
+    "name": "umami",
+    "image": "ghcr.io/umami-software/umami",
+    "state": "exited",
+    "status": "Exited (137) 40 minutes ago",
+    "exit_code": 137,
+    "restarts": 5,
+    "oom_killed": true,
+    "logs": [
+     "Listening on port 3000",
+     "FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory"
+    ]
+   }
+  ]
+ },
+ "stacks": {
+  "note": "Komodo: three servers, the backup Pi unreachable; paperless' last deploy failed.",
+  "url": "https://komodo.demo",
+  "servers_total": 3,
+  "servers_healthy": 2,
+  "servers_problem": 1,
+  "stacks": [
+   {
+    "name": "immich",
+    "state": "running",
+    "updates": [
+     "immich-server",
+     "immich-machine-learning"
+    ]
+   },
+   {
+    "name": "paperless",
+    "state": "unhealthy"
+   },
+   {
+    "name": "gitea",
+    "state": "running"
+   }
+  ],
+  "alerts": [
+   {
+    "level": "CRITICAL",
+    "kind": "ServerUnreachable",
+    "name": "pi-backup",
+    "at": "@-3h"
+   }
+  ],
+  "servers": [
+   {
+    "name": "nas",
+    "state": "ok",
+    "cpu": 23,
+    "mem_used": 21.4,
+    "mem_total": 32,
+    "disk_used": 412,
+    "disk_max": 950
+   },
+   {
+    "name": "docker-host",
+    "state": "ok",
+    "cpu": 61,
+    "mem_used": 13.8,
+    "mem_total": 16,
+    "disk_used": 188,
+    "disk_max": 480
+   },
+   {
+    "name": "pi-backup",
+    "state": "unhealthy"
+   }
+  ],
+  "deploys": {
+   "immich": {
+    "at": "@-6d",
+    "operation": "DeployStack",
+    "by": "mara",
+    "ok": true
+   },
+   "paperless": {
+    "at": "@-26h",
+    "operation": "DeployStack",
+    "by": "lena",
+    "ok": false
+   },
+   "gitea": {
+    "at": "@-19d",
+    "operation": "DeployStack",
+    "by": "mara",
+    "ok": true
+   }
+  }
+ },
+ "backups": {
+  "note": "Borg backup server (the laptop has been offline for six days) and the database dumps (PG Back Web).",
+  "server": {
+   "url": "https://borg.demo",
+   "failed24h": 1,
+   "completed24h": 5,
+   "used_bytes": 3100000000000.0,
+   "total_bytes": 4000000000000.0,
+   "last_backup": "@-7h",
+   "agents_outdated": 1,
+   "clients": [
+    {
+     "name": "nas",
+     "status": "online",
+     "last_seen": "@-1m",
+     "last_backup": "@-7h",
+     "repo_bytes": 2400000000000.0,
+     "last_bytes": 3800000000.0,
+     "last_seconds": 1260
+    },
+    {
+     "name": "laptop",
+     "status": "offline",
+     "last_seen": "@-6d",
+     "last_backup": "@-6d",
+     "repo_bytes": 700000000000.0,
+     "last_bytes": 1100000000.0,
+     "last_seconds": 540
+    }
+   ]
+  },
+  "databases": {
+   "url": "https://pgback.demo",
+   "last_event": "@-2h",
+   "backups": [
+    {
+     "name": "kimai",
+     "last_success": "@-2h"
+    },
+    {
+     "name": "invoiceninja",
+     "last_success": "@-50h",
+     "last_failure": "@-26h"
+    },
+    {
+     "name": "immich",
+     "last_success": "@-80h"
+    }
+   ]
+  }
+ },
+ "certs": {
+  "note": "TLS certificates the dashboard checks.",
+  "certs": [
+   {
+    "host": "shop.demo:443",
+    "not_after": "@+9d",
+    "issuer": "R11"
+   },
+   {
+    "host": "zeit.demo:443",
+    "not_after": "@+54d",
+    "issuer": "R10"
+   }
+  ]
+ },
+ "domains": {
+  "note": "Registered domains: example.org expires soon and has no DMARC.",
+  "domains": [
+   {
+    "name": "example.de",
+    "mail_checked": true,
+    "spf": true,
+    "dmarc": true
+   },
+   {
+    "name": "example.org",
+    "expires": "@+18d",
+    "mail_checked": true,
+    "spf": true
+   }
+  ],
+  "hosts": [
+   {
+    "host": "example.de",
+    "addrs": [
+     "203.0.113.7"
+    ]
+   },
+   {
+    "host": "cloud.example.org",
+    "addrs": [
+     "198.51.100.20"
+    ]
+   }
+  ]
+ },
+ "mail_blacklist": {
+  "note": "The mail server's IP is on one block list.",
+  "checked": [
+   "93.184.216.34"
+  ],
+  "listings": [
+   {
+    "ip": "93.184.216.34",
+    "zone": "bl.spamcop.net",
+    "code": "127.0.0.2"
+   }
+  ]
+ },
+ "dns": {
+  "note": "Two DNS filters; Pi-hole has blocking switched off. curve = a day of hourly counts as [base, swing]: quiet at night, busy evenings.",
+  "pihole": {
+   "url": "https://pihole.demo",
+   "queries": 48210,
+   "blocked": 9120,
+   "percent": 18.9,
+   "enabled": false,
+   "lists_updated": "@-21d",
+   "clients": 14,
+   "top_clients": [
+    {
+     "ip": "192.168.1.20",
+     "name": "laptop",
+     "queries": 9120,
+     "blocked": 1400
+    },
+    {
+     "ip": "192.168.1.87",
+     "queries": 14200,
+     "blocked": 8700
+    }
+   ],
+   "top_blocked": [
+    {
+     "domain": "telemetry.tv.example",
+     "count": 6100
+    },
+    {
+     "domain": "ads.example.net",
+     "count": 1900
+    }
+   ],
+   "curve": {
+    "queries": [
+     2000,
+     900
+    ],
+    "blocked": [
+     380,
+     160
+    ]
+   }
+  },
+  "adguard": {
+   "url": "https://adguard.demo",
+   "queries": 30500,
+   "blocked": 4100,
+   "percent": 13.4,
+   "enabled": true,
+   "top_clients": [
+    {
+     "ip": "192.168.1.31",
+     "queries": 8800
+    },
+    {
+     "ip": "192.168.1.12",
+     "queries": 5100
+    }
+   ],
+   "top_blocked": [
+    {
+     "domain": "metrics.app.example",
+     "count": 1300
+    }
+   ],
+   "curve": {
+    "queries": [
+     1300,
+     600
+    ],
+    "blocked": [
+     170,
+     80
+    ]
+   }
+  }
+ },
+ "gateway": {
+  "note": "The router (OPNsense): the LTE backup line is down.",
+  "url": "https://opnsense.demo",
+  "kind": "opnsense",
+  "version": "25.7.3",
+  "updates": 2,
+  "gateways": [
+   {
+    "name": "WAN_DHCP",
+    "up": true,
+    "delay_ms": 11.4
+   },
+   {
+    "name": "LTE",
+    "up": false,
+    "loss": 100
+   }
+  ]
+ },
+ "vpn": {
+  "note": "The download VPN (Gluetun): up, but in the wrong country.",
+  "url": "http://gluetun.demo:8000",
+  "status": "running",
+  "exit_ip": "185.65.134.10",
+  "country": "Netherlands",
+  "own_ip": "93.184.216.34",
+  "expected_country": "Sweden",
+  "port": 51413
+ },
+ "tailnet": {
+  "note": "Tailscale devices: the laptop's key expires soon, the Pi has been away for twelve days.",
+  "url": "https://api.tailscale.com",
+  "devices": [
+   {
+    "name": "nas",
+    "online": true,
+    "last_seen": "@+0m",
+    "tags": [
+     "tag:server"
+    ],
+    "os": "linux",
+    "client": "1.88.1"
+   },
+   {
+    "name": "laptop",
+    "online": true,
+    "last_seen": "@+0m",
+    "key_expiry": "@+9d",
+    "os": "macOS",
+    "client": "1.88.1"
+   },
+   {
+    "name": "pi",
+    "last_seen": "@-12d",
+    "update": true,
+    "tags": [
+     "tag:server",
+     "tag:iot"
+    ],
+    "os": "linux",
+    "client": "1.80.3"
+   }
+  ]
+ },
+ "tunnel": {
+  "note": "Pangolin: the parents' site is offline, Vaultwarden is unhealthy and not behind SSO. access: requests per resource, Gitea is scanned from abroad.",
+  "url": "https://pangolin.demo/v1",
+  "org": "home",
+  "sites": [
+   {
+    "name": "homelab",
+    "type": "newt",
+    "online": true,
+    "mb_in": 18400,
+    "mb_out": 92100,
+    "update": true
+   },
+   {
+    "name": "eltern",
+    "type": "newt",
+    "online": false,
+    "mb_in": 120,
+    "mb_out": 340
+   }
+  ],
+  "resources": [
+   {
+    "name": "Immich",
+    "domain": "photos.example.org",
+    "enabled": true,
+    "health": "healthy",
+    "sso": true
+   },
+   {
+    "name": "Vaultwarden",
+    "domain": "vault.example.org",
+    "enabled": true,
+    "health": "unhealthy"
+   }
+  ],
+  "access": {
+   "Immich": {
+    "requests": 18420,
+    "blocked": 12,
+    "countries": [
+     {
+      "name": "DE",
+      "n": 18100
+     },
+     {
+      "name": "NL",
+      "n": 240
+     }
+    ]
+   },
+   "Gitea": {
+    "requests": 2210,
+    "blocked": 960,
+    "countries": [
+     {
+      "name": "DE",
+      "n": 1100
+     },
+     {
+      "name": "US",
+      "n": 620
+     },
+     {
+      "name": "CN",
+      "n": 410
+     }
+    ]
+   }
+  }
+ },
+ "speed": {
+  "note": "Internet speed tests, four a day for a month; evenings are slower. latest = the last test.",
+  "hours": [
+   3,
+   9,
+   15,
+   21
+  ],
+  "down": 248,
+  "up": 41,
+  "ping": 12,
+  "evening_hour": 21,
+  "evening_drop": 70,
+  "latest": {
+   "down": 243,
+   "up": 41,
+   "ping": 12,
+   "jitter": 1.8,
+   "at": "@-20m"
+  }
+ },
+ "identity": {
+  "note": "authentik: an update is out, failed logins rose today (admin from Amsterdam). per_day: logins and failures per day, oldest first.",
+  "url": "https://auth.demo",
+  "version": "2025.6.3",
+  "latest": "2025.8.1",
+  "outdated": true,
+  "logins7d": 214,
+  "logins24h": 31,
+  "failed7d": 61,
+  "failed24h": 38,
+  "apps": [
+   {
+    "name": "Immich",
+    "events": 96,
+    "users": 4
+   },
+   {
+    "name": "Gitea",
+    "events": 41,
+    "users": 2
+   },
+   {
+    "name": "Andon",
+    "events": 30,
+    "users": 3
+   }
+  ],
+  "users": [
+   {
+    "name": "alex",
+    "last_login": "@-0d"
+   },
+   {
+    "name": "sam",
+    "last_login": "@-2d"
+   },
+   {
+    "name": "kim",
+    "last_login": "@-240d"
+   },
+   {
+    "name": "test"
+   }
+  ],
+  "logins": [
+   {
+    "user": "alex",
+    "ip": "203.0.113.7",
+    "country": "DE",
+    "city": "Berlin",
+    "lat": 52.52,
+    "lon": 13.4,
+    "at": "@-1h"
+   }
+  ],
+  "failures": [
+   {
+    "user": "admin",
+    "ip": "198.51.100.23",
+    "country": "NL",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "at": "@-20m"
+   },
+   {
+    "user": "alex",
+    "ip": "203.0.113.7",
+    "country": "DE",
+    "city": "Berlin",
+    "lat": 52.52,
+    "lon": 13.4,
+    "at": "@-3h"
+   }
+  ],
+  "per_day": [
+   [
+    28,
+    2
+   ],
+   [
+    33,
+    1
+   ],
+   [
+    30,
+    4
+   ],
+   [
+    25,
+    3
+   ],
+   [
+    36,
+    6
+   ],
+   [
+    31,
+    7
+   ],
+   [
+    31,
+    38
+   ]
+  ]
+ },
+ "passwords": {
+  "note": "Vaultwarden: Lena has no second factor.",
+  "url": "https://vault.demo",
+  "version": "1.34.3",
+  "users": [
+   {
+    "email": "mara@studio-weber.example.test",
+    "two_factor": true,
+    "enabled": true,
+    "last_active": "@-1d",
+    "orgs": [
+     "Studio Weber"
+    ]
+   },
+   {
+    "email": "lena@studio-weber.example.test",
+    "enabled": true,
+    "last_active": "@-3d",
+    "orgs": [
+     "Studio Weber"
+    ]
+   }
+  ]
+ },
+ "cloud": {
+  "note": "Nextcloud: little free space, app updates waiting.",
+  "url": "https://cloud.demo",
+  "version": "31.0.8.1",
+  "free_bytes": 8053063680,
+  "users": 6,
+  "active24": 3,
+  "files": 182340,
+  "app_updates": 4
+ },
+ "downloads": {
+  "note": "SABnzbd: a failed unpack; stats = volume per day (2-6 GB, half at weekends) and per news server.",
+  "url": "https://sab.demo",
+  "slots": 3,
+  "speed_kb": 42000,
+  "free_gb": 14.2,
+  "failures": [
+   {
+    "name": "Linux.ISO.2026",
+    "reason": "Unpacking failed, CRC error",
+    "at": "@-5h"
+   }
+  ],
+  "queue": [
+   {
+    "name": "Debian.13.netinst",
+    "percent": 64,
+    "left": "0:03:10"
+   },
+   {
+    "name": "Podcast.Archive.2025",
+    "percent": 12,
+    "left": "0:41:55"
+   },
+   {
+    "name": "Photos.Backup",
+    "percent": 0,
+    "left": "1:20:00"
+   }
+  ],
+  "stats": {
+   "days": 28,
+   "servers": {
+    "news.demo": 38000000000.0,
+    "block.demo": 6000000000.0
+   }
+  }
+ },
+ "code": {
+  "note": "Gitea (issues, reviews, a failed workflow, a stale mirror, commits per week) and GitHub.",
+  "gitea": {
+   "url": "https://git.demo",
+   "user": "mara",
+   "notifications": 4,
+   "assigned": [
+    {
+     "repo": "studio/showreel",
+     "title": {
+      "de": "Neue Szenen für Harbour Lights",
+      "en": "New Harbour Lights scenes"
+     },
+     "url": "https://git.demo/studio/showreel/issues/12",
+     "number": 12,
+     "due": "@-2d",
+     "updated": "@-10d"
+    },
+    {
+     "repo": "studio/website",
+     "title": {
+      "de": "Neues Theme",
+      "en": "New theme"
+     },
+     "url": "https://git.demo/studio/website/pulls/4",
+     "number": 4,
+     "pull": true,
+     "updated": "@-21d"
+    }
+   ],
+   "reviews": [
+    {
+     "repo": "team/infra",
+     "title": {
+      "de": "Traefik 3 Migration",
+      "en": "Traefik 3 migration"
+     },
+     "url": "https://git.demo/team/infra/pulls/7",
+     "number": 7,
+     "pull": true,
+     "updated": "@-4d"
+    }
+   ],
+   "repos": [
+    {
+     "name": "studio/showreel",
+     "url": "https://git.demo/studio/showreel",
+     "updated": "@-0d",
+     "failed_workflow": "test"
+    },
+    {
+     "name": "mirror/linux",
+     "url": "https://git.demo/mirror/linux",
+     "mirror": true,
+     "mirror_updated": "@-12d",
+     "updated": "@-12d"
+    }
+   ],
+   "weeks": {
+    "studio/showreel": [
+     2,
+     5,
+     0,
+     3,
+     8,
+     4,
+     6,
+     9
+    ],
+    "studio/website": [
+     1,
+     0,
+     0,
+     2,
+     0,
+     4,
+     1,
+     0
+    ]
+   },
+   "mirrors": [
+    {
+     "repo": "studio/website",
+     "remote": "https://github.com/studio/website.git",
+     "synced": "@-20m"
+    }
+   ]
+  },
+  "github": {
+   "url": "https://api.github.com",
+   "notifications": 4,
+   "repos": [
+    {
+     "name": "studio/website",
+     "issues": 3,
+     "prs": 1,
+     "ci": "success",
+     "release": "v0.12.0",
+     "released_at": "@-6d",
+     "pushed_at": "@-1d"
+    },
+    {
+     "name": "studio/showreel",
+     "issues": 0,
+     "prs": 0,
+     "ci": "failure",
+     "ci_step": "test › go test",
+     "pushed_at": "@-3h"
+    }
+   ],
+   "reviews": [
+    {
+     "repo": "studio/website",
+     "title": {
+      "de": "Kontaktformular prüfen",
+      "en": "Check the contact form"
+     },
+     "url": "https://github.com/studio/website/pull/42",
+     "number": 42,
+     "pull": true,
+     "updated": "@-3d"
+    }
+   ],
+   "my_prs": [
+    {
+     "repo": "studio/website",
+     "title": {
+      "de": "Bilder verkleinern",
+      "en": "Shrink images"
+     },
+     "url": "https://github.com/studio/website/pull/38",
+     "number": 38,
+     "pull": true,
+     "updated": "@-20d"
+    }
+   ]
+  }
+ },
+ "json_api": {
+  "note": "A generic JSON endpoint (Andon's JSON tile).",
+  "body": {
+   "stats": {
+    "users": 42,
+    "queue": 3
+   }
+  }
+ },
+ "smart_home": {
+  "note": "Home Assistant at Mara's: the bathroom window sensor's battery is low, a plug is unavailable, a core update waits. history: the living room warms through the day, the office light is on during work hours.",
+  "url": "https://home.demo",
+  "entities": [
+   {
+    "id": "binary_sensor.keller_wasser",
+    "name": {
+     "de": "Keller Wasser",
+     "en": "Basement water"
+    },
+    "domain": "binary_sensor",
+    "state": "off",
+    "device_class": "moisture",
+    "changed": "@-200h"
+   },
+   {
+    "id": "light.buero",
+    "name": {
+     "de": "Büro Licht",
+     "en": "Office light"
+    },
+    "domain": "light",
+    "state": "on",
+    "changed": "@-1h"
+   },
+   {
+    "id": "sensor.fenster_bad_batterie",
+    "name": {
+     "de": "Fenster Bad Batterie",
+     "en": "Bathroom window battery"
+    },
+    "domain": "sensor",
+    "state": "8",
+    "unit": "%",
+    "device_class": "battery",
+    "changed": "@-5h"
+   },
+   {
+    "id": "sensor.wohnzimmer_temperatur",
+    "name": {
+     "de": "Wohnzimmer",
+     "en": "Living room"
+    },
+    "domain": "sensor",
+    "state": "21.4",
+    "unit": "°C",
+    "device_class": "temperature",
+    "changed": "@-0h"
+   },
+   {
+    "id": "sensor.zigbee_steckdose_power",
+    "name": {
+     "de": "Steckdose Leistung",
+     "en": "Plug power"
+    },
+    "domain": "sensor",
+    "state": "unavailable",
+    "unit": "W",
+    "changed": "@-30h"
+   },
+   {
+    "id": "switch.kaffeemaschine",
+    "name": {
+     "de": "Kaffeemaschine",
+     "en": "Coffee machine"
+    },
+    "domain": "switch",
+    "state": "off",
+    "changed": "@-3h"
+   },
+   {
+    "id": "update.home_assistant_core_update",
+    "name": "Home Assistant Core",
+    "domain": "update",
+    "state": "on",
+    "changed": "@-20h"
+   }
+  ],
+  "history": {
+   "temperature": {
+    "entity": "sensor.wohnzimmer_temperatur",
+    "base": 19.5,
+    "swing": 2
+   },
+   "light": {
+    "entity": "light.buero",
+    "on_from": 8,
+    "on_to": 18
+   }
+  }
+ },
+ "pantry": {
+  "note": "Grocy: yoghurt has expired, coffee is missing, the bathroom is overdue.",
+  "url": "https://grocy.demo",
+  "expired": [
+   {
+    "name": {
+     "de": "Joghurt",
+     "en": "Yoghurt"
+    },
+    "due": "@date-2"
+   }
+  ],
+  "soon": [
+   {
+    "name": {
+     "de": "Milch",
+     "en": "Milk"
+    },
+    "due": "@date+0"
+   },
+   {
+    "name": {
+     "de": "Brot",
+     "en": "Bread"
+    },
+    "due": "@date+2"
+   }
+  ],
+  "missing": [
+   {
+    "name": {
+     "de": "Kaffee",
+     "en": "Coffee"
+    },
+    "missing": 1
+   }
+  ],
+  "chores": [
+   {
+    "name": {
+     "de": "Bad putzen",
+     "en": "Clean the bathroom"
+    },
+    "due": "@-30h"
+   },
+   {
+    "name": {
+     "de": "Pflanzen gießen",
+     "en": "Water the plants"
+    },
+    "due": "@+30h"
+   }
+  ]
+ },
+ "kitchen": {
+  "note": "Tandoor: the shopping list holds what Grocy runs out of, and the week's meal plan.",
+  "url": "https://tandoor.demo",
   "items": [
    {
-    "uid": "t01",
-    "collection": "harbour",
-    "summary": {
-     "de": "Drehgenehmigung Landungsbrücken beantragen",
-     "en": "Apply for the Landungsbrücken shooting permit"
+    "id": 1,
+    "food": {
+     "de": "Milch",
+     "en": "Milk"
     },
-    "due": -2,
-    "priority": 1,
-    "labels": [
-     "orga"
-    ],
-    "percent": 50
-   },
-   {
-    "uid": "t02",
-    "collection": "harbour",
-    "summary": {
-     "de": "Rohschnitt Folge 4 an Northlight schicken",
-     "en": "Send episode 4 rough cut to Northlight"
-    },
-    "due": 0,
-    "priority": 1,
-    "labels": [
-     "post"
-    ],
-    "description": {
-     "de": "Link zur Sichtung mit Timecode-Einblendung.",
-     "en": "Review link with burnt-in timecode."
+    "amount": 2,
+    "unit": "l",
+    "category": {
+     "de": "Kühlregal",
+     "en": "Chilled"
     }
    },
    {
-    "uid": "t03",
-    "collection": "harbour",
-    "summary": {
-     "de": "Dispo Folge 5 verteilen",
-     "en": "Send out call sheet for episode 5"
+    "id": 2,
+    "food": {
+     "de": "Brot",
+     "en": "Bread"
     },
-    "due": 0,
-    "priority": 5,
-    "labels": [
-     "orga"
-    ]
-   },
-   {
-    "uid": "t04",
-    "collection": "harbour",
-    "summary": {
-     "de": "Nachtdreh Speicherstadt nachbereiten",
-     "en": "Wrap up the Speicherstadt night shoot"
-    },
-    "due": 1,
-    "priority": 5,
-    "labels": [
-     "shoot"
-    ],
-    "children": [
-     "t05",
-     "t06"
-    ]
-   },
-   {
-    "uid": "t05",
-    "collection": "harbour",
-    "parent": "t04",
-    "summary": {
-     "de": "Karten sichern und doppelt backupen",
-     "en": "Offload cards and double back-up"
-    },
-    "due": 1,
-    "priority": 5,
-    "labels": [
-     "post"
-    ],
-    "completed": -4
-   },
-   {
-    "uid": "t06",
-    "collection": "harbour",
-    "parent": "t04",
-    "summary": {
-     "de": "Anwohner-Dankeschön verschicken",
-     "en": "Send thank-you notes to residents"
-    },
-    "due": 1,
-    "priority": 9,
-    "labels": [
-     "orga"
-    ]
-   },
-   {
-    "uid": "t07",
-    "collection": "spring",
-    "summary": {
-     "de": "Drehbuch „Licht an“ überarbeiten",
-     "en": "Revise the “Lights on” script"
-    },
-    "due": 0,
-    "priority": 1,
-    "labels": [
-     "shoot"
-    ],
-    "start": -1
-   },
-   {
-    "uid": "t08",
-    "collection": "spring",
-    "summary": {
-     "de": "Speiche wegen der Lichtfarbe des Dynamos anrufen",
-     "en": "Call Speiche about the dynamo light's colour"
-    },
-    "due": 1,
-    "priority": 5,
-    "labels": [
-     "calls"
-    ]
-   },
-   {
-    "uid": "t09",
-    "collection": "spring",
-    "summary": {
-     "de": "Schnittfassung 2 exportieren",
-     "en": "Export edit version 2"
-    },
-    "due": 4,
-    "priority": 5,
-    "labels": [
-     "post"
-    ]
-   },
-   {
-    "uid": "t10",
-    "collection": "spring",
-    "summary": {
-     "de": "Musikrechte klären",
-     "en": "Clear the music rights"
-    },
-    "due": 8,
-    "priority": 1,
-    "labels": [
-     "orga",
-     "calls"
-    ]
-   },
-   {
-    "uid": "t11",
-    "collection": "studio",
-    "summary": {
-     "de": "Belege September zuordnen",
-     "en": "Match September receipts"
-    },
-    "due": 3,
-    "priority": 5,
-    "labels": [
-     "orga"
-    ]
-   },
-   {
-    "uid": "t12",
-    "collection": "studio",
-    "summary": {
-     "de": "Showreel: Harbour-Lights-Szenen einbauen",
-     "en": "Showreel: add Harbour Lights scenes"
-    },
-    "due": 11,
-    "priority": 9,
-    "labels": [
-     "post"
-    ]
-   },
-   {
-    "uid": "t13",
-    "collection": "studio",
-    "summary": {
-     "de": "Objektive zur Wartung bringen, eins beschlägt immer",
-     "en": "Take the lenses in for service, one keeps fogging up"
-    },
-    "due": -4,
-    "priority": 5,
-    "labels": [
-     "orga"
-    ]
-   },
-   {
-    "uid": "t14",
-    "collection": "studio",
-    "summary": {
-     "de": "Filmrollen 03 und 04 scannen",
-     "en": "Scan film rolls 03 and 04"
-    },
-    "due": 2,
-    "priority": 5,
-    "labels": [
-     "post"
-    ]
-   },
-   {
-    "uid": "t15",
-    "collection": "studio",
-    "summary": {
-     "de": "Server-Backup prüfen",
-     "en": "Check the server backup"
-    },
-    "priority": 9,
-    "labels": [
-     "orga"
-    ],
-    "description": {
-     "de": "Eine gelöschte Datei ist wieder da.",
-     "en": "A deleted file is back."
+    "amount": 1,
+    "category": {
+     "de": "Bäckerei",
+     "en": "Bakery"
     }
-   },
-   {
-    "uid": "t16",
-    "collection": "private",
-    "summary": {
-     "de": "Fahrrad zur Inspektion",
-     "en": "Bike service"
-    },
-    "due": 5,
-    "priority": 9,
-    "labels": []
-   },
-   {
-    "uid": "t17",
-    "collection": "private",
-    "summary": {
-     "de": "Geschenk für Theo",
-     "en": "Present for Theo"
-    },
-    "due": 9,
-    "priority": 5,
-    "labels": []
-   },
-   {
-    "uid": "t18",
-    "collection": "harbour",
-    "summary": {
-     "de": "Kostüme Folge 5 abnehmen",
-     "en": "Approve costumes for episode 5"
-    },
-    "due": -1,
-    "priority": 5,
-    "labels": [
-     "shoot"
-    ],
-    "completed": -1
-   },
-   {
-    "uid": "t19",
-    "collection": "studio",
-    "summary": {
-     "de": "Angebot Elbfeuer Teil 2",
-     "en": "Quote for Elbfeuer part 2"
-    },
-    "due": 6,
-    "priority": 1,
-    "labels": [
-     "orga"
-    ]
-   },
-   {
-    "uid": "t20",
-    "collection": "harbour",
-    "summary": {
-     "de": "Tonaufnahmen an Theo übergeben",
-     "en": "Hand location sound over to Theo"
-    },
-    "completed": -3,
-    "due": -3,
-    "priority": 5,
-    "labels": [
-     "post"
-    ]
-   },
-   {
-    "uid": "t21",
-    "collection": "nachtwache",
-    "summary": {
-     "de": "Drehgenehmigung Leuchtturm Graufeld",
-     "en": "Graufeld lighthouse shooting permit"
-    },
-    "due": 2,
-    "priority": 1,
-    "labels": [
-     "orga"
-    ]
-   },
-   {
-    "uid": "t22",
-    "collection": "nachtwache",
-    "summary": {
-     "de": "Nachtaufnahmen vom Kolk sichten",
-     "en": "Review the night recordings from the Kolk"
-    },
-    "due": -9,
-    "priority": 5,
-    "labels": [
-     "post"
-    ],
-    "percent": 90,
-    "description": {
-     "de": "Nacht 3 ist länger als die Nacht war. Nochmal prüfen.",
-     "en": "Night 3 runs longer than the night did. Check again."
-    }
-   },
-   {
-    "uid": "t23",
-    "collection": "nachtwache",
-    "summary": {
-     "de": "Gefundene Manuskriptseite einscannen",
-     "en": "Scan the manuscript page we found"
-    },
-    "due": 0,
-    "priority": 5,
-    "labels": [
-     "post"
-    ],
-    "description": {
-     "de": "Lag heute früh auf dem Schnittplatz. Nicht aus unserem Drehbuch.",
-     "en": "Was on the edit desk this morning. Not from our script."
-    }
-   },
-   {
-    "uid": "t24",
-    "collection": "nachtwache",
-    "summary": {
-     "de": "Batterien für die Handscheinwerfer nachkaufen",
-     "en": "Buy more batteries for the floodlights"
-    },
-    "due": 3,
-    "priority": 5,
-    "labels": [
-     "shoot"
-    ]
-   },
-   {
-    "uid": "t25",
-    "collection": "nachtwache",
-    "summary": {
-     "de": "Mitschnitt „Graufeld nach Mitternacht“ anfragen",
-     "en": "Request a recording of “Graufeld after Midnight”"
-    },
-    "due": 5,
-    "priority": 9,
-    "labels": [
-     "calls"
-    ]
    }
   ],
+  "meals": [
+   {
+    "day": "@date+0",
+    "title": {
+     "de": "Linsensuppe",
+     "en": "Lentil soup"
+    },
+    "type": {
+     "de": "Mittagessen",
+     "en": "Lunch"
+    }
+   },
+   {
+    "day": "@date+2",
+    "title": {
+     "de": "Ofengemüse",
+     "en": "Roast vegetables"
+    },
+    "type": {
+     "de": "Abendessen",
+     "en": "Dinner"
+    }
+   }
+  ]
+ },
+ "energy": {
+  "note": "Tibber: hourly prices for today and tomorrow (base + swing over the day, grid and tax included), daily use with outdoor temperature.",
+  "url": "https://api.tibber.com/v1-beta/gql",
+  "home": {
+   "de": "Zuhause",
+   "en": "Home"
+  },
+  "currency": "EUR",
+  "level": "CHEAP",
+  "price": {
+   "base": 0.24,
+   "swing": 0.08,
+   "grid_and_tax": 0.17
+  },
+  "day": {
+   "kwh": 7,
+   "cost": 2,
+   "cost_step": 0.3,
+   "temp_c": 18,
+   "temp_step": 2
+  }
+ },
+ "weather": {
+  "note": "German weather service warnings for the studio's city.",
+  "url": "https://api.brightsky.dev",
+  "place": "Hamburg",
+  "warnings": [
+   {
+    "id": "demo-1",
+    "event": {
+     "de": "STURMBÖEN",
+     "en": "GALE GUSTS"
+    },
+    "headline": {
+     "de": "Amtliche WARNUNG vor STURMBÖEN",
+     "en": "Official WARNING of GALE GUSTS"
+    },
+    "severity": "moderate",
+    "onset": "@+0m",
+    "expire": "@+8h"
+   }
+  ]
+ },
+ "sites": {
+  "note": "Umami: the shop's views collapsed against the week before. detail: pages and referrers of the week; days = base + a wobble.",
+  "url": "https://stats.demo",
+  "sites": [
+   {
+    "id": "1",
+    "name": "Blog",
+    "domain": "blog.demo",
+    "views": 1840,
+    "visitors": 610,
+    "prev_views": 1720,
+    "prev_visit": 590
+   },
+   {
+    "id": "2",
+    "name": "Shop",
+    "domain": "shop.demo",
+    "views": 120,
+    "visitors": 41,
+    "prev_views": 980,
+    "prev_visit": 305
+   }
+  ],
+  "detail": {
+   "1": {
+    "pages": [
+     {
+      "name": "/",
+      "n": 820
+     },
+     {
+      "name": "/projekte/licht-an",
+      "n": 412
+     },
+     {
+      "name": "/kontakt",
+      "n": 160
+     }
+    ],
+    "referrers": [
+     {
+      "name": "–",
+      "n": 540
+     },
+     {
+      "name": "google.com",
+      "n": 210
+     },
+     {
+      "name": "instagram.com",
+      "n": 64
+     }
+    ],
+    "day_base": 50
+   },
+   "2": {
+    "pages": [
+     {
+      "name": "/",
+      "n": 120
+     },
+     {
+      "name": "/impressum",
+      "n": 12
+     }
+    ],
+    "referrers": [
+     {
+      "name": "–",
+      "n": 96
+     }
+    ],
+    "day_base": 4
+   }
+  }
+ },
+ "feeds": {
+  "note": "FreshRSS: one feed has been silent for over a year.",
+  "url": "https://rss.demo",
+  "unread": 812,
+  "feeds": [
+   {
+    "id": "feed/1",
+    "title": "heise online",
+    "category": "News",
+    "unread": 540,
+    "newest": "@-0d"
+   },
+   {
+    "id": "feed/2",
+    "title": "Go Blog",
+    "category": "Tech",
+    "unread": 12,
+    "newest": "@-9d"
+   },
+   {
+    "id": "feed/3",
+    "title": {
+     "de": "Altes Projektblog",
+     "en": "Old project blog"
+    },
+    "category": "Tech",
+    "unread": 0,
+    "newest": "@-400d"
+   },
+   {
+    "id": "feed/4",
+    "title": "Selfhosted Weekly",
+    "category": "Tech",
+    "unread": 260,
+    "newest": "@-2d"
+   }
+  ]
+ },
+ "bookmarks": {
+  "note": "Linkwarden: two bookmarks match tiles on the IT board, Grafana is missing there.",
+  "url": "https://links.demo",
+  "collections": [
+   "Homelab"
+  ],
+  "links": [
+   {
+    "name": "Kimai",
+    "url": "https://www.kimai.org/",
+    "collection": "Homelab",
+    "created": "@-30d"
+   },
+   {
+    "name": "Invoice Ninja",
+    "url": "https://invoiceninja.com",
+    "collection": "Homelab",
+    "created": "@-3d"
+   },
+   {
+    "name": "Grafana",
+    "url": "https://grafana.com",
+    "collection": "Homelab",
+    "created": "@-1d"
+   }
+  ]
+ },
+ "mail": {
+  "note": "The inbox's invoices: the hosting one matches an expense, the software one does not.",
+  "mailbox": "INBOX",
+  "scanned": 214,
+  "invoices": [
+   {
+    "uid": 1,
+    "date": "@-4d",
+    "sender": "Nordhost Server",
+    "addr": "billing@nordhost.example.test",
+    "domain": "nordhost.example.test",
+    "subject": {
+     "de": "Ihre Rechnung R0012345",
+     "en": "Your invoice R0012345"
+    },
+    "amount": 41.65,
+    "attachments": [
+     "Rechnung_R0012345.pdf"
+    ]
+   },
+   {
+    "uid": 2,
+    "date": "@-9d",
+    "sender": "Farbraum Software",
+    "addr": "sales@farbraum.example.test",
+    "domain": "farbraum.example.test",
+    "subject": "Invoice for your order",
+    "amount": 289,
+    "attachments": [
+     "invoice.pdf"
+    ]
+   }
+  ]
+ },
+ "calendar": {
+  "note": "Mara's calendar: a customer appointment two days ago, a call today, a private one in three days.",
   "events": [
    {
-    "day": 0,
-    "start": "09:00",
-    "end": "09:45",
-    "summary": {
-     "de": "Wochenplanung",
-     "en": "Weekly planning"
-    },
-    "collection": "studio"
+    "start": "@date-2 14:00",
+    "title": {
+     "de": "Drehplan Northlight Pictures",
+     "en": "Shooting plan Northlight Pictures"
+    }
    },
    {
-    "day": 0,
-    "start": "14:00",
-    "end": "15:00",
-    "summary": {
-     "de": "Call mit Speiche",
-     "en": "Call with Speiche"
-    },
-    "collection": "spring"
+    "start": "@date+0 16:00",
+    "title": "Call Speiche Fahrradmanufaktur"
    },
    {
-    "day": 1,
-    "start": "07:00",
-    "end": "17:30",
-    "summary": {
-     "de": "Dreh Landungsbrücken, Nebelszenen",
-     "en": "Shoot at Landungsbrücken, fog scenes"
-    },
-    "collection": "harbour"
-   },
-   {
-    "day": 2,
-    "start": "11:00",
-    "end": "12:00",
-    "summary": {
-     "de": "Rohschnitt-Abnahme Elbfeuer",
-     "en": "Rough cut review with Elbfeuer"
-    },
-    "collection": "studio"
-   },
-   {
-    "day": 3,
-    "start": "20:00",
-    "end": "23:59",
-    "summary": {
-     "de": "Nachtdreh Leuchtturm Graufeld",
-     "en": "Night shoot at the Graufeld lighthouse"
-    },
-    "collection": "nachtwache"
-   },
-   {
-    "day": 4,
-    "start": "14:00",
-    "end": "15:00",
-    "summary": {
-     "de": "Call mit dem Sendehaus",
-     "en": "Call with the Sendehaus"
-    },
-    "collection": "nachtwache"
+    "start": "@date+3 14:00",
+    "title": {
+     "de": "Zahnarzt",
+     "en": "Dentist"
+    }
    }
   ]
  },
@@ -2736,93 +5831,137 @@
    {
     "name": "Rolle 03 – Övelgönne",
     "frames": 12,
-    "stock": "Farbnegativ 35 mm"
+    "stock": "Farbnegativ 35 mm",
+    "underexposed": {
+     "5": 0.8,
+     "10": 0.9
+    }
    },
    {
     "name": "Rolle 04 – Speiche",
     "frames": 10,
-    "stock": "Farbnegativ 35 mm"
+    "stock": "Farbnegativ 35 mm",
+    "underexposed": {
+     "5": 0.8,
+     "10": 0.9,
+     "7": 0.95
+    }
    },
    {
     "name": "Rolle 05 – Graufeld",
     "frames": 8,
-    "stock": "Farbnegativ 35 mm"
+    "stock": "Farbnegativ 35 mm",
+    "underexposed": {
+     "5": 0.8,
+     "10": 0.9,
+     "7": 0.95
+    }
+   }
+  ],
+  "video_files": [
+   {
+    "name": "hl_s02e03_landungsbruecken_take4.mp4",
+    "seconds": 20,
+    "tone": 330,
+    "size": "1280x720",
+    "rate": 25
    }
   ]
  },
- "hardware": {
-  "model": "Framework Laptop 13",
-  "cpu": "AMD Ryzen 7 7840U",
-  "charge_limit": 80,
-  "battery_percent": 76,
-  "cycle_count": 212,
-  "design_capacity_mwh": 61000,
-  "full_capacity_mwh": 57400,
-  "fan_curve": [
-   [
-    40,
-    0
-   ],
-   [
-    55,
-    25
-   ],
-   [
-    70,
-    55
-   ],
-   [
-    85,
-    100
-   ]
-  ],
-  "scenario": {
-   "de": "Rendern: der Kolk, Nacht 3",
-   "en": "Rendering: the Kolk, night 3"
-  }
- },
- "terminal": {
-  "user": "mara",
-  "host": "studio-pi",
-  "session": [
-   "$ cat dispo-folge-5.txt",
+ "photos": {
+  "note": "Immich: the disk is nearly full, face detection failed three times, an update is out.",
+  "url": "https://photos.demo",
+  "photos": 48213,
+  "videos": 1920,
+  "disk_percent": 87.4,
+  "disk_available": "412 GiB",
+  "failed_jobs": {
+   "faceDetection": 3
+  },
+  "version": "v1.131.0",
+  "latest": "v1.132.3",
+  "users": [
    {
-    "de": "HARBOUR LIGHTS – STAFFEL 2 · FOLGE 5",
-    "en": "HARBOUR LIGHTS – SEASON 2 · EPISODE 5"
+    "name": "Mara",
+    "photos": 30112,
+    "videos": 1210,
+    "bytes": 1400000000000.0
    },
    {
-    "de": "Drehtag 1   Landungsbrücken   Treff 07:00",
-    "en": "Day 1   Landungsbrücken   Call 07:00"
-   },
-   {
-    "de": "Drehtag 2   Fischmarkt        Treff 07:00",
-    "en": "Day 2   Fish market       Call 07:00"
-   },
-   {
-    "de": "Drehtag 3   Övelgönne         Treff 08:00",
-    "en": "Day 3   Övelgönne         Call 08:00"
-   },
-   "",
-   "$ df -h /srv/footage",
-   "Filesystem  Size  Used Avail Use%",
-   "/dev/sda1   7.3T  4.9T  2.4T  67%",
-   "",
-   "$ ls /srv/footage/nachtwache",
-   "kolk-nacht-1  kolk-nacht-2  kolk-nacht-3  seite-7.pdf",
-   "$ _"
+    "name": "Lena",
+    "photos": 18101,
+    "videos": 710,
+    "bytes": 900000000000.0
+   }
   ]
  },
- "dashboard": {
-  "title": "Studio Weber",
-  "services": [
-   "Kimai",
-   "Invoice Ninja",
-   "Paperless-ngx",
-   "Dawarich",
-   "Immich",
-   "Nextcloud",
-   "Gitea",
-   "Uptime Kuma"
+ "library": {
+  "note": "Jellyfin: two streams; plays = a month of evenings (1-3 a day, three more at weekends) and plays per title.",
+  "url": "https://jellyfin.demo",
+  "kind": "jellyfin",
+  "version": "10.10.7",
+  "movies": 1204,
+  "series": 86,
+  "episodes": 4310,
+  "streams": [
+   {
+    "user": "Selin",
+    "title": {
+     "de": "Harbour Lights – Staffel 2",
+     "en": "Harbour Lights – Season 2"
+    }
+   },
+   {
+    "user": "Theo",
+    "title": "Harbour Lights (Original Score)"
+   }
+  ],
+  "titles": [
+   {
+    "title": {
+     "de": "Harbour Lights – Staffel 2",
+     "en": "Harbour Lights – Season 2"
+    },
+    "plays": 9
+   },
+   {
+    "title": "Harbour Lights (Original Score)",
+    "plays": 6
+   },
+   {
+    "title": {
+     "de": "Herbstspot „Licht an“",
+     "en": "Autumn spot “Lights on”"
+    },
+    "plays": 4
+   }
+  ]
+ },
+ "series": {
+  "note": "Sonarr: an episode is stuck, an indexer is down.",
+  "url": "https://sonarr.demo",
+  "app": "Sonarr",
+  "version": "4.0.15",
+  "queue": 3,
+  "missing": 12,
+  "stuck": [
+   "Harbour Lights S02E04"
+  ],
+  "health": [
+   {
+    "level": "warning",
+    "message": "Indexer Elbindex is unavailable"
+   }
+  ],
+  "upcoming": [
+   {
+    "title": "Harbour Lights 2x05",
+    "at": "@+26h"
+   },
+   {
+    "title": "Harbour Lights 2x06",
+    "at": "@+80h"
+   }
   ]
  },
  "graufeld": {
@@ -2954,9 +6093,844 @@
    "back": -4
   }
  },
- "known_but_internal": [
-  "Kintsugi"
- ],
+ "it_docs": {
+  "note": "Obsidian vault with Studio Weber's IT documentation (Hansei). Dates in notes are {{day:N}} placeholders, N = day offset from the anchor. Each check of Hansei finds something: a plain-text password and token, old code names (SW-NAS01, SW-VPS, SW-PI), a missing frontmatter key, an old review date, a dead link, a full compose copy. The restore note carries the returning file of the hidden layer.",
+  "hosts": [
+   {
+    "name": "Nebelhorn",
+    "old": "SW-NAS01",
+    "asset": "SRV-002",
+    "ip": "192.168.40.10"
+   },
+   {
+    "name": "Feuerschiff",
+    "old": "SW-VPS",
+    "vendor": "nordhost",
+    "ip": "203.0.113.24"
+   },
+   {
+    "name": "Boje",
+    "old": "SW-PI",
+    "ip": "192.168.40.3"
+   }
+  ],
+  "allow": [
+   "IT"
+  ],
+  "block": [
+   "Tagebuch"
+  ],
+  "rulebook": {
+   "path": "IT/Design.md",
+   "content": {
+    "de": "---\ntags:\n  - IT\nletzte Prüfung: {{day:-9}}\n---\nEntscheidungslog für die IT-Doku von Studio Weber. Bei Widerspruch zwischen einer Notiz und dieser Datei gilt diese Datei.\n\n# Namen\n\nHosts heißen nach Seezeichen der Elbe:\n\n| Name | Früher | Rolle |\n| --- | --- | --- |\n| [[Nebelhorn]] | SW-NAS01 | NAS im Studio |\n| [[Feuerschiff]] | SW-VPS | gemieteter Server bei Nordhost |\n| [[Boje]] | SW-PI | Raspberry Pi für DNS und Uptime |\n\nAlte Codenamen nur noch in deprecated-Notizen.\n\n# Dienstnotiz (Minimum)\n\nFrontmatter: `Gerät`, `URLs`, `Backup via`, `letzte Prüfung`. Body: Zweck, Erreichbarkeit, Link zur `compose.yaml` in Gitea. Keine Compose-Vollkopien.\n\n# Secrets\n\nKeine Passwörter, Tokens oder Schlüssel im Klartext. Stattdessen `siehe Vaultwarden: {Eintrag}` oder `${ENV_NAME}`.\n\n# Backup\n\nAlle Hosts sichern mit Borg auf [[Nebelhorn]]. Restic ist abgelöst.\n",
+    "en": "---\ntags:\n  - IT\nletzte Prüfung: {{day:-9}}\n---\nDecision log for Studio Weber's IT documentation. If a note contradicts this file, this file wins.\n\n# Names\n\nHosts are named after Elbe sea marks:\n\n| Name | Former | Role |\n| --- | --- | --- |\n| [[Nebelhorn]] | SW-NAS01 | NAS in the studio |\n| [[Feuerschiff]] | SW-VPS | rented server at Nordhost |\n| [[Boje]] | SW-PI | Raspberry Pi for DNS and uptime |\n\nOld code names only in deprecated notes.\n\n# Service note (minimum)\n\nFrontmatter: `Gerät`, `URLs`, `Backup via`, `letzte Prüfung`. Body: purpose, reachability, link to the `compose.yaml` in Gitea. No full compose copies.\n\n# Secrets\n\nNo passwords, tokens or keys in plain text. Use `siehe Vaultwarden: {entry}` or `${ENV_NAME}` instead.\n\n# Backup\n\nAll hosts back up with Borg to [[Nebelhorn]]. Restic is retired.\n"
+   }
+  },
+  "agent": {
+   "path": "agent.md",
+   "content": {
+    "de": "# Agent-Richtlinien\n\n- Ändere nur, was der Auftrag verlangt.\n- Unklares als Frage markieren, nicht raten.\n- Sprache der Notiz beibehalten.\n",
+    "en": "# Agent guidelines\n\n- Change only what the task asks for.\n- Mark unclear things as a question, do not guess.\n- Keep the language of the note.\n"
+   }
+  },
+  "required": {
+   "IT/Dienste": [
+    "Gerät",
+    "Backup via",
+    "letzte Prüfung"
+   ]
+  },
+  "notes": [
+   {
+    "path": "IT/IT.md",
+    "content": {
+     "de": "# IT\n\nLandkarte der IT von Studio Weber.\n\n- Geräte: [[Nebelhorn]], [[Feuerschiff]], [[Boje]]\n- Netzwerk: [[Netzwerkübersicht]]\n- Regeln: [[Design]]\n- Wiederherstellung: [[Restore Nebelhorn]]\n",
+     "en": "# IT\n\nMap of Studio Weber's IT.\n\n- Hosts: [[Nebelhorn]], [[Feuerschiff]], [[Boje]]\n- Network: [[Netzwerkübersicht]]\n- Rules: [[Design]]\n- Recovery: [[Restore Nebelhorn]]\n"
+    }
+   },
+   {
+    "path": "IT/Geräte/Nebelhorn.md",
+    "content": {
+     "de": "---\nIPs: [192.168.40.10]\nInventar: SRV-002\n---\n# Nebelhorn\n\nNAS im Studio, Speicherwerk NS-4 mit 4 × Tiefgang NAS 4TB. Früher SW-NAS01.\n\nNimmt die Borg-Backups aller Hosts an.\n",
+     "en": "---\nIPs: [192.168.40.10]\nInventar: SRV-002\n---\n# Nebelhorn\n\nNAS in the studio, Speicherwerk NS-4 with 4 × Tiefgang NAS 4TB. Formerly SW-NAS01.\n\nReceives the Borg backups of all hosts.\n"
+    }
+   },
+   {
+    "path": "IT/Geräte/Feuerschiff.md",
+    "content": {
+     "de": "---\nIPs: [203.0.113.24]\nAnbieter: Nordhost Server\n---\n# Feuerschiff\n\nGemieteter Server bei Nordhost für alles, was von außen erreichbar sein muss.\n",
+     "en": "---\nIPs: [203.0.113.24]\nAnbieter: Nordhost Server\n---\n# Feuerschiff\n\nRented server at Nordhost for everything that must be reachable from outside.\n"
+    }
+   },
+   {
+    "path": "IT/Geräte/Boje.md",
+    "content": {
+     "de": "---\nIPs: [192.168.40.3]\n---\n# Boje\n\nRaspberry Pi im Netzwerkschrank. DNS für das Studio und [[Uptime Kuma]].\n",
+     "en": "---\nIPs: [192.168.40.3]\n---\n# Boje\n\nRaspberry Pi in the network cabinet. DNS for the studio and [[Uptime Kuma]].\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Feuerschiff/Nextcloud.md",
+    "content": {
+     "de": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [cloud.studio-weber.example.test]\nletzte Prüfung: {{day:-420}}\n---\n# Nextcloud\n\nDateiablage für Kunden und Team. Läuft auf SW-VPS.\n\n## Zugang\nAdmin-Login über die Weboberfläche.\n- Benutzer: admin\n- Passwort: Elbfeuer-2026!\n\n## Backup\nNächtlich mit Restic nach Nordhost-Speicher.\n",
+     "en": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [cloud.studio-weber.example.test]\nletzte Prüfung: {{day:-420}}\n---\n# Nextcloud\n\nFile storage for customers and team. Runs on SW-VPS.\n\n## Access\nAdmin login through the web interface.\n- User: admin\n- Passwort: Elbfeuer-2026!\n\n## Backup\nNightly with Restic to Nordhost storage.\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Feuerschiff/Kimai.md",
+    "content": {
+     "de": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [zeit.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-260}}\n---\n# Kimai\n\nZeiterfassung für alle Projekte, mit Holiday- und Abrechnungs-Plugin.\n\nCompose: `docker-compose-feuerschiff/kimai/compose.yaml` in Gitea.\n",
+     "en": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [zeit.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-260}}\n---\n# Kimai\n\nTime tracking for all projects, with the holiday and billing plugins.\n\nCompose: `docker-compose-feuerschiff/kimai/compose.yaml` in Gitea.\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Feuerschiff/Invoice Ninja.md",
+    "content": {
+     "de": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [rechnung.studio-weber.example.test]\nletzte Prüfung: {{day:-30}}\n---\n# Invoice Ninja\n\nRechnungen und Angebote.\n\n## API\n- API-Token: ninja_4f9e2c71b8a0d53e\n- Genutzt von Kimai-Export und andon.\n",
+     "en": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [rechnung.studio-weber.example.test]\nletzte Prüfung: {{day:-30}}\n---\n# Invoice Ninja\n\nInvoices and quotes.\n\n## API\n- API-Token: ninja_4f9e2c71b8a0d53e\n- Used by the Kimai export and andon.\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Nebelhorn/Immich.md",
+    "content": {
+     "de": "---\nGerät: \"[[Nebelhorn]]\"\nURLs: [fotos.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-12}}\n---\n# Immich\n\nFotos vom Set und Referenzbilder.\n\n```yaml\nservices:\n  immich-server:\n    image: ghcr.io/immich-app/immich-server:release\n    volumes:\n      - /srv/fotos:/usr/src/app/upload\n```\n",
+     "en": "---\nGerät: \"[[Nebelhorn]]\"\nURLs: [fotos.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-12}}\n---\n# Immich\n\nPhotos from the set and reference pictures.\n\n```yaml\nservices:\n  immich-server:\n    image: ghcr.io/immich-app/immich-server:release\n    volumes:\n      - /srv/fotos:/usr/src/app/upload\n```\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Nebelhorn/Paperless-ngx.md",
+    "content": {
+     "de": "---\nURLs: [belege.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-40}}\n---\n# Paperless-ngx\n\nBelege und Verträge, OCR auf Deutsch und Englisch.\n\nBackup siehe [[Nebelhorn-Backup]].\n",
+     "en": "---\nURLs: [belege.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-40}}\n---\n# Paperless-ngx\n\nReceipts and contracts, OCR in German and English.\n\nBackup see [[Nebelhorn-Backup]].\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Nebelhorn/Gitea.md",
+    "content": {
+     "de": "---\nGerät: \"[[Nebelhorn]]\"\nURLs: [git.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-5}}\n---\n# Gitea\n\nRepos für Compose-Dateien (`docker-compose-nebelhorn`, `docker-compose-feuerschiff`) und Skripte.\n",
+     "en": "---\nGerät: \"[[Nebelhorn]]\"\nURLs: [git.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-5}}\n---\n# Gitea\n\nRepos for compose files (`docker-compose-nebelhorn`, `docker-compose-feuerschiff`) and scripts.\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/Boje/Uptime Kuma.md",
+    "content": {
+     "de": "---\nGerät: \"[[Boje]]\"\nURLs: [status.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-3}}\n---\n# Uptime Kuma\n\nÜberwacht alle Dienste. Meldet Ausfälle an das Team-Telefon.\n",
+     "en": "---\nGerät: \"[[Boje]]\"\nURLs: [status.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-3}}\n---\n# Uptime Kuma\n\nWatches all services. Reports outages to the team phone.\n"
+    }
+   },
+   {
+    "path": "IT/Dienste/deprecated/Dawarich.md",
+    "content": {
+     "de": "---\ndeprecated: true\n---\n# Dawarich\n\nLief bis 2025 auf SW-NAS01. Abgelöst, Daten liegen im Archiv.\n",
+     "en": "---\ndeprecated: true\n---\n# Dawarich\n\nRan on SW-NAS01 until 2025. Retired, data is in the archive.\n"
+    }
+   },
+   {
+    "path": "IT/Netzwerk/Netzwerkübersicht.md",
+    "content": {
+     "de": "# Netzwerkübersicht\n\n| VLAN | Netz | Zweck |\n| --- | --- | --- |\n| 40 | 192.168.40.0/24 | Studio |\n| 50 | 192.168.50.0/24 | Gäste und Set-Geräte |\n\nSwitch im Netzwerkschrank: Knotenwerk KS-8, 8 Ports, alle belegt.\n\nDNS: SW-PI (Split-Horizon für `studio-weber.example.test`).\n",
+     "en": "# Netzwerkübersicht\n\n| VLAN | Network | Purpose |\n| --- | --- | --- |\n| 40 | 192.168.40.0/24 | Studio |\n| 50 | 192.168.50.0/24 | Guests and set devices |\n\nSwitch in the network cabinet: Knotenwerk KS-8, 8 ports, all in use.\n\nDNS: SW-PI (split horizon for `studio-weber.example.test`).\n"
+    }
+   },
+   {
+    "path": "IT/Anleitungen/Restore Nebelhorn.md",
+    "content": {
+     "de": "# Restore Nebelhorn\n\n1. Borg-Repo auf der externen Platte einhängen.\n2. `borg list` zeigt die Archive, das jüngste nehmen.\n3. `borg extract` nach `/srv`.\n\nHinweis vom {{day:-4}}: `seite-7.pdf` war am Vortag gelöscht und lag im Archiv von 03:13 wieder im Nachtwache-Ordner. Ursache unklar.\n",
+     "en": "# Restore Nebelhorn\n\n1. Mount the Borg repo on the external disk.\n2. `borg list` shows the archives, take the newest.\n3. `borg extract` to `/srv`.\n\nNote from {{day:-4}}: `seite-7.pdf` was deleted the day before and was back in the Nachtwache folder in the 03:13 archive. Cause unknown.\n"
+    }
+   }
+  ],
+  "private": [
+   {
+    "path": "Projekte/Harbour Lights.md",
+    "content": {
+     "de": "# Harbour Lights\n\nStaffel 2, Folge 3 „Irrlicht“. Kein IT-Thema.\n",
+     "en": "# Harbour Lights\n\nSeason 2, episode 3 “Irrlicht”. Not an IT topic.\n"
+    }
+   },
+   {
+    "path": "Tagebuch/Heute.md",
+    "content": {
+     "de": "# Tagebuch\n\nPrivat. Diese Notiz liegt in einem gesperrten Ordner.\n",
+     "en": "# Diary\n\nPrivate. This note is in a blocked folder.\n"
+    }
+   }
+  ],
+  "batches": [
+   {
+    "id": "secrets",
+    "source": "ai",
+    "provider": "demo",
+    "title": {
+     "de": "Klartext-Secrets entfernen",
+     "en": "Remove plain-text secrets"
+    },
+    "topic": {
+     "de": "Secrets",
+     "en": "Secrets"
+    },
+    "instruction": {
+     "de": "Entferne Klartext-Secrets aus den Dienstnotizen auf Feuerschiff.",
+     "en": "Remove plain-text secrets from the service notes on Feuerschiff."
+    },
+    "summary": {
+     "de": "Zwei Klartext-Werte durch Vaultwarden-Verweise ersetzt, Backup-Angaben ergänzt.",
+     "en": "Replaced two plain-text values with Vaultwarden references, added backup details."
+    },
+    "usage": {
+     "in": 41200,
+     "out": 5300
+    },
+    "files": [
+     {
+      "path": "IT/Dienste/Feuerschiff/Nextcloud.md",
+      "summary": {
+       "de": "Passwort durch Vaultwarden-Verweis ersetzt, Backup auf Borg umgestellt.",
+       "en": "Replaced the password with a Vaultwarden reference, switched the backup to Borg."
+      },
+      "versions": [
+       {
+        "author": "ai",
+        "edits": {
+         "de": [
+          [
+           "letzte Prüfung:",
+           "Backup via: Restic\nletzte Prüfung:"
+          ],
+          [
+           "- Passwort: Elbfeuer-2026!",
+           "- Passwort: siehe Vaultwarden: Nextcloud Admin"
+          ],
+          [
+           "Nächtlich mit Restic nach Nordhost-Speicher.",
+           "Nächtlich mit Restic nach Nordhost-Speicher, 14 Tage Aufbewahrung."
+          ]
+         ],
+         "en": [
+          [
+           "letzte Prüfung:",
+           "Backup via: Restic\nletzte Prüfung:"
+          ],
+          [
+           "- Passwort: Elbfeuer-2026!",
+           "- Passwort: siehe Vaultwarden: Nextcloud Admin"
+          ],
+          [
+           "Nightly with Restic to Nordhost storage.",
+           "Nightly with Restic to Nordhost storage, kept for 14 days."
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "",
+           "after": "Backup via: Restic",
+           "reason": "Pflichtfeld Backup via ergänzt.",
+           "rule": "Design.md › Dienstnotiz"
+          },
+          {
+           "before": "Elbfeuer-2026!",
+           "after": "siehe Vaultwarden: Nextcloud Admin",
+           "reason": "Klartext-Passwort ersetzt.",
+           "rule": "Design.md › Secrets"
+          },
+          {
+           "before": "",
+           "after": "14 Tage Aufbewahrung",
+           "reason": "Aufbewahrung aus dem Backup-Plan ergänzt."
+          }
+         ],
+         "en": [
+          {
+           "before": "",
+           "after": "Backup via: Restic",
+           "reason": "Added the required Backup via field.",
+           "rule": "Design.md › Dienstnotiz"
+          },
+          {
+           "before": "Elbfeuer-2026!",
+           "after": "siehe Vaultwarden: Nextcloud Admin",
+           "reason": "Replaced the plain-text password.",
+           "rule": "Design.md › Secrets"
+          },
+          {
+           "before": "",
+           "after": "kept for 14 days",
+           "reason": "Added retention from the backup plan."
+          }
+         ]
+        }
+       },
+       {
+        "author": "ai",
+        "note": "feedback",
+        "edits": {
+         "de": [
+          [
+           "letzte Prüfung:",
+           "Backup via: Borg\nletzte Prüfung:"
+          ],
+          [
+           "- Passwort: Elbfeuer-2026!",
+           "- Passwort: siehe Vaultwarden: Nextcloud Admin"
+          ],
+          [
+           "Nächtlich mit Restic nach Nordhost-Speicher.",
+           "Nächtlich mit Borg auf [[Nebelhorn]], siehe [[Restore Nebelhorn]]."
+          ]
+         ],
+         "en": [
+          [
+           "letzte Prüfung:",
+           "Backup via: Borg\nletzte Prüfung:"
+          ],
+          [
+           "- Passwort: Elbfeuer-2026!",
+           "- Passwort: siehe Vaultwarden: Nextcloud Admin"
+          ],
+          [
+           "Nightly with Restic to Nordhost storage.",
+           "Nightly with Borg to [[Nebelhorn]], see [[Restore Nebelhorn]]."
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "",
+           "after": "Backup via: Borg",
+           "reason": "Pflichtfeld Backup via ergänzt.",
+           "rule": "Design.md › Dienstnotiz"
+          },
+          {
+           "before": "Elbfeuer-2026!",
+           "after": "siehe Vaultwarden: Nextcloud Admin",
+           "reason": "Klartext-Passwort ersetzt.",
+           "rule": "Design.md › Secrets"
+          },
+          {
+           "before": "Restic",
+           "after": "Borg auf [[Nebelhorn]]",
+           "reason": "Restic ist abgelöst, Backup läuft über Borg.",
+           "rule": "Design.md › Backup"
+          }
+         ],
+         "en": [
+          {
+           "before": "",
+           "after": "Backup via: Borg",
+           "reason": "Added the required Backup via field.",
+           "rule": "Design.md › Dienstnotiz"
+          },
+          {
+           "before": "Elbfeuer-2026!",
+           "after": "siehe Vaultwarden: Nextcloud Admin",
+           "reason": "Replaced the plain-text password.",
+           "rule": "Design.md › Secrets"
+          },
+          {
+           "before": "Restic",
+           "after": "Borg to [[Nebelhorn]]",
+           "reason": "Restic is retired, backups run with Borg.",
+           "rule": "Design.md › Backup"
+          }
+         ]
+        }
+       }
+      ],
+      "accept": [
+       1
+      ]
+     },
+     {
+      "path": "IT/Dienste/Feuerschiff/Invoice Ninja.md",
+      "summary": {
+       "de": "API-Token durch Vaultwarden-Verweis ersetzt.",
+       "en": "Replaced the API token with a Vaultwarden reference."
+      },
+      "versions": [
+       {
+        "author": "ai",
+        "edits": {
+         "de": [
+          [
+           "- API-Token: ninja_4f9e2c71b8a0d53e",
+           "- API-Token: siehe Vaultwarden: Invoice Ninja API"
+          ],
+          [
+           "letzte Prüfung:",
+           "Backup via: Borg\nletzte Prüfung:"
+          ]
+         ],
+         "en": [
+          [
+           "- API-Token: ninja_4f9e2c71b8a0d53e",
+           "- API-Token: siehe Vaultwarden: Invoice Ninja API"
+          ],
+          [
+           "letzte Prüfung:",
+           "Backup via: Borg\nletzte Prüfung:"
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "ninja_4f9e2c71b8a0d53e",
+           "after": "siehe Vaultwarden",
+           "reason": "Token gehört in Vaultwarden.",
+           "rule": "Design.md › Secrets"
+          },
+          {
+           "before": "",
+           "after": "Backup via: Borg",
+           "reason": "Pflichtfeld ergänzt; Feuerschiff sichert mit Borg.",
+           "rule": "Design.md › Backup"
+          }
+         ],
+         "en": [
+          {
+           "before": "ninja_4f9e2c71b8a0d53e",
+           "after": "siehe Vaultwarden",
+           "reason": "The token belongs in Vaultwarden.",
+           "rule": "Design.md › Secrets"
+          },
+          {
+           "before": "",
+           "after": "Backup via: Borg",
+           "reason": "Added the required field; Feuerschiff backs up with Borg.",
+           "rule": "Design.md › Backup"
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "thread": [
+     {
+      "role": "user",
+      "scope": "hunk",
+      "path": "IT/Dienste/Feuerschiff/Nextcloud.md",
+      "hunk_of_version": 1,
+      "hunk": 2,
+      "quick": "wrong-fact",
+      "text": {
+       "de": "Backup läuft über Borg auf Nebelhorn, nicht mehr über Restic.",
+       "en": "Backups run with Borg to Nebelhorn, not Restic anymore."
+      }
+     },
+     {
+      "role": "ai",
+      "text": {
+       "de": "Verstanden. Restic durch Borg ersetzt und [[Restore Nebelhorn]] verlinkt. Soll ich das auch in den anderen Dateien des Batches prüfen?",
+       "en": "Understood. Replaced Restic with Borg and linked [[Restore Nebelhorn]]. Should I check the other files of the batch too?"
+      }
+     },
+     {
+      "role": "user",
+      "scope": "batch",
+      "text": {
+       "de": "Ja, im ganzen Batch.",
+       "en": "Yes, in the whole batch."
+      }
+     },
+     {
+      "role": "ai",
+      "text": {
+       "de": "Invoice Ninja hatte kein Backup-Feld, dort Borg ergänzt. Sonst keine Restic-Stellen.",
+       "en": "Invoice Ninja had no backup field, added Borg there. No other Restic mentions."
+      }
+     }
+    ],
+    "suggestions": [
+     {
+      "text": {
+       "de": "Backup läuft über Borg auf Nebelhorn, nicht mehr über Restic.",
+       "en": "Backups run with Borg to Nebelhorn, not Restic anymore."
+      },
+      "count": 3
+     }
+    ]
+   },
+   {
+    "id": "codenames",
+    "source": "ai",
+    "provider": "demo",
+    "title": {
+     "de": "Codenamen → Seezeichen-Namen",
+     "en": "Code names → sea mark names"
+    },
+    "topic": {
+     "de": "Namen",
+     "en": "Names"
+    },
+    "instruction": {
+     "de": "Ersetze alte Codenamen durch die aktuellen Hostnamen.",
+     "en": "Replace old code names with the current host names."
+    },
+    "summary": {
+     "de": "SW-NAS01, SW-VPS und SW-PI durch Nebelhorn, Feuerschiff und Boje ersetzt.",
+     "en": "Replaced SW-NAS01, SW-VPS and SW-PI with Nebelhorn, Feuerschiff and Boje."
+    },
+    "usage": {
+     "in": 18400,
+     "out": 2100
+    },
+    "files": [
+     {
+      "path": "IT/Geräte/Nebelhorn.md",
+      "versions": [
+       {
+        "author": "ai",
+        "edits": {
+         "de": [
+          [
+           "Früher SW-NAS01.",
+           "Früher SW-NAS01 (historischer Alias)."
+          ]
+         ],
+         "en": [
+          [
+           "Formerly SW-NAS01.",
+           "Formerly SW-NAS01 (historical alias)."
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "SW-NAS01.",
+           "after": "(historischer Alias)",
+           "reason": "Alter Name bleibt als historischer Alias erkennbar.",
+           "rule": "Design.md › Namen"
+          }
+         ],
+         "en": [
+          {
+           "before": "SW-NAS01.",
+           "after": "(historical alias)",
+           "reason": "The old name stays as a marked historical alias.",
+           "rule": "Design.md › Namen"
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "path": "IT/Netzwerk/Netzwerkübersicht.md",
+      "versions": [
+       {
+        "author": "ai",
+        "edits": {
+         "de": [
+          [
+           "DNS: SW-PI",
+           "DNS: [[Boje]]"
+          ]
+         ],
+         "en": [
+          [
+           "DNS: SW-PI",
+           "DNS: [[Boje]]"
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "SW-PI",
+           "after": "[[Boje]]",
+           "reason": "SW-PI heißt jetzt Boje.",
+           "rule": "Design.md › Namen"
+          }
+         ],
+         "en": [
+          {
+           "before": "SW-PI",
+           "after": "[[Boje]]",
+           "reason": "SW-PI is now called Boje.",
+           "rule": "Design.md › Namen"
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "thread": [
+     {
+      "role": "ai",
+      "question": true,
+      "text": {
+       "de": "In Nextcloud steht „Läuft auf SW-VPS“. Ist das dasselbe Feuerschiff, oder lief Nextcloud früher auf einem anderen Server?",
+       "en": "Nextcloud says “Runs on SW-VPS”. Is that the same Feuerschiff, or did Nextcloud run on another server before?"
+      }
+     },
+     {
+      "role": "ai",
+      "question": true,
+      "text": {
+       "de": "Soll SW-NAS01 in der Gerätenotiz als historischer Alias bleiben oder ganz raus?",
+       "en": "Should SW-NAS01 stay in the host note as a historical alias or go completely?"
+      }
+     }
+    ]
+   },
+   {
+    "id": "switch",
+    "source": "ai",
+    "provider": "demo",
+    "title": {
+     "de": "Switch-Tausch Knotenwerk KS-24",
+     "en": "Switch swap Knotenwerk KS-24"
+    },
+    "topic": {
+     "de": "Netzwerk",
+     "en": "Network"
+    },
+    "instruction": {
+     "de": "Im Netzwerkschrank hängt jetzt ein Knotenwerk KS-24 statt des KS-8. Alle Stellen aktualisieren.",
+     "en": "The network cabinet now has a Knotenwerk KS-24 instead of the KS-8. Update every mention."
+    },
+    "summary": {
+     "de": "Switch in der Netzwerkübersicht aktualisiert.",
+     "en": "Updated the switch in the network overview."
+    },
+    "usage": {
+     "in": 9800,
+     "out": 900
+    },
+    "files": [
+     {
+      "path": "IT/Netzwerk/Netzwerkübersicht.md",
+      "versions": [
+       {
+        "author": "ai",
+        "edits": {
+         "de": [
+          [
+           "Switch im Netzwerkschrank: Knotenwerk KS-8, 8 Ports, alle belegt.",
+           "Switch im Netzwerkschrank: Knotenwerk KS-24, 24 Ports."
+          ]
+         ],
+         "en": [
+          [
+           "Switch in the network cabinet: Knotenwerk KS-8, 8 ports, all in use.",
+           "Switch in the network cabinet: Knotenwerk KS-24, 24 ports."
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "Knotenwerk KS-8, 8 Ports, alle belegt.",
+           "after": "Knotenwerk KS-24, 24 Ports.",
+           "reason": "Neuer Switch laut Auftrag; Belegung unbekannt, daher weggelassen."
+          }
+         ],
+         "en": [
+          {
+           "before": "Knotenwerk KS-8, 8 ports, all in use.",
+           "after": "Knotenwerk KS-24, 24 ports.",
+           "reason": "New switch as requested; port usage unknown, so left out."
+          }
+         ]
+        }
+       }
+      ]
+     }
+    ],
+    "thread": []
+   },
+   {
+    "id": "breakglass",
+    "source": "ai",
+    "provider": "demo",
+    "done": true,
+    "day": -2,
+    "title": {
+     "de": "Break-Glass-Zugang für Gitea",
+     "en": "Break-glass access for Gitea"
+    },
+    "topic": {
+     "de": "Zugang",
+     "en": "Access"
+    },
+    "instruction": {
+     "de": "Dokumentiere den SSO-Notzugang der Dienste.",
+     "en": "Document the SSO emergency access of the services."
+    },
+    "summary": {
+     "de": "Gitea nennt jetzt den Break-Glass-Eintrag in Vaultwarden.",
+     "en": "Gitea now names the break-glass entry in Vaultwarden."
+    },
+    "usage": {
+     "in": 7200,
+     "out": 600
+    },
+    "files": [
+     {
+      "path": "IT/Dienste/Nebelhorn/Gitea.md",
+      "versions": [
+       {
+        "author": "ai",
+        "edits": {
+         "de": [
+          [
+           "und Skripte.",
+           "und Skripte. Zugang über SSO, Break-Glass-Konto siehe Vaultwarden: Gitea Admin."
+          ]
+         ],
+         "en": [
+          [
+           "and scripts.",
+           "and scripts. Access through SSO, break-glass account see Vaultwarden: Gitea Admin."
+          ]
+         ]
+        },
+        "changes": {
+         "de": [
+          {
+           "before": "",
+           "after": "Break-Glass",
+           "reason": "SSO-Break-Glass dokumentiert.",
+           "rule": "Design.md › Dienstnotiz"
+          }
+         ],
+         "en": [
+          {
+           "before": "",
+           "after": "break-glass",
+           "reason": "Documented the SSO break-glass account.",
+           "rule": "Design.md › Dienstnotiz"
+          }
+         ]
+        }
+       }
+      ],
+      "accept": [
+       0
+      ]
+     }
+    ],
+    "thread": []
+   }
+  ],
+  "conformity_history": [
+   0.31,
+   0.34,
+   0.38,
+   0.41,
+   0.44,
+   0.47,
+   0.49,
+   0.5
+  ],
+  "reviewed_days": [
+   12,
+   9,
+   17,
+   6,
+   23
+  ],
+  "ai_script": {
+   "note": "The demo AI's answers and the edits it proposes per batch kind; code names come from hosts (old → name).",
+   "replies": {
+    "secrets": {
+     "de": "Klartext-Werte durch Vaultwarden-Verweise ersetzt.",
+     "en": "Replaced plain-text values with Vaultwarden references."
+    },
+    "names": {
+     "de": "Alte Codenamen durch die Seezeichen-Namen ersetzt.",
+     "en": "Replaced old code names with the sea mark names."
+    },
+    "switch": {
+     "de": "Switch in der Netzwerkübersicht aktualisiert.",
+     "en": "Updated the switch in the network overview."
+    },
+    "borg": {
+     "de": "Verstanden. Restic durch Borg auf [[Nebelhorn]] ersetzt.",
+     "en": "Understood. Replaced Restic with Borg to [[Nebelhorn]]."
+    },
+    "generic": {
+     "de": "Verstanden, in der Demo antwortet eine vorbereitete KI ohne echtes Modell.",
+     "en": "Understood; in the demo a prepared AI answers without a real model."
+    },
+    "question": {
+     "de": "Welche Notizen genau meinst du? Die Demo-KI kennt Secrets, Codenamen und den Switch.",
+     "en": "Which notes exactly? The demo AI knows secrets, code names and the switch."
+    }
+   },
+   "topics": {
+    "secrets": {
+     "de": "Secrets",
+     "en": "Secrets"
+    },
+    "names": {
+     "de": "Namen",
+     "en": "Names"
+    },
+    "switch": {
+     "de": "Netzwerk",
+     "en": "Network"
+    },
+    "borg": {
+     "de": "Backup",
+     "en": "Backup"
+    },
+    "other": "Demo"
+   },
+   "secret_value": "siehe Vaultwarden: Admin",
+   "switch": {
+    "from": "Knotenwerk KS-8, 8 Ports, alle belegt.",
+    "to": "Knotenwerk KS-24, 24 Ports."
+   },
+   "borg": [
+    {
+     "from": "Nächtlich mit Restic",
+     "to": "Nächtlich mit Borg auf [[Nebelhorn]]."
+    },
+    {
+     "from": "Nightly with Restic",
+     "to": "Nightly with Borg to [[Nebelhorn]]."
+    }
+   ]
+  },
+  "review": {
+   "field": "letzte Prüfung",
+   "days": 180
+  },
+  "providers": [
+   {
+    "name": "studio-ki",
+    "kind": "demo",
+    "model": "demo",
+    "local": true
+   },
+   {
+    "name": "claude",
+    "kind": "anthropic",
+    "model": "claude-opus-5",
+    "fallback": "default"
+   },
+   {
+    "name": "ollama",
+    "kind": "openai",
+    "model": "qwen3",
+    "base_url": "http://localhost:11434/v1",
+    "local": true
+   }
+  ],
+  "provider": "studio-ki",
+  "local_only": [
+   "IT/Anleitungen"
+  ],
+  "batch_spacing_min": 47
+ },
  "timesheets": [
   {
    "user": "jonas",
