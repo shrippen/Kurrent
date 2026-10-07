@@ -319,3 +319,12 @@ curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-
 7. **1.0** — packaging AUR/COPR, KRunner if ready, translation/docs pass, ship.
 
 **0.3** shipped 2026-08-29; **0.3.1** i18n complete. One-liner installer remains the bridge until distro packages exist.
+
+## Update check (Kante 1.22)
+
+A hint when a newer release exists, for installs nothing else updates. Format and rules: `shrippen.github.io/overview/VERSIONS.md`.
+
+- [ ] Only in the package attached to Gitea/GitHub releases (installed with `kpackagetool6`); the KDE Store and AUR build leaves it out, because Discover announces updates there. Build switch in the packaging script, checked like the demo exclusion
+- [ ] `KanteUpdateCheck { project: "kurrent"; version: Plasmoid.metaData.version; enabled: … }` with `KanteCallout` (link, dismiss); config keys `updateCheck` (default on) and `updateMemory` (persist `memory`); always off in demo mode
+- [ ] README: what is fetched (`https://shrippen.github.io/versions.json`, no parameters, at most once a day) and how to switch it off
+- [ ] After every release run `python3 ../shrippen.github.io/overview/tools/build-versions.py` and commit `docs/versions.json` there
