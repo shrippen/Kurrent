@@ -1,0 +1,55 @@
+name: pr-agent
+
+# A second reader for pull requests: PR-Agent (qodo-ai/pr-agent) reviews
+# each new PR with another LLM and posts its findings as a comment.
+# A comment of the owner runs it again: /review, /improve, /ask "…".
+#
+# Needs the secret PR_AGENT_LLM_KEY and the variable PR_AGENT_MODEL (a
+# LiteLLM model name, e.g. gpt-5.6, gemini/gemini-3.5-pro, or through
+# OpenRouter openrouter/<vendor>/<model>). For a model PR-Agent does not
+# know, the variable PR_AGENT_MODEL_TOKENS gives its context size.
+# Comments come from the Actions bot; the secret PR_AGENT_GITEA_TOKEN sets
+# an own user.
+# Settings: .gitea/pr-agent/config.toml.
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: pr-agent-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-agent:
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event.issue.pull_request &&
+       github.event.comment.user.login == github.repository_owner &&
+       startsWith(github.event.comment.body, '/'))
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    container: python:3.12-slim
+    steps:
+      # actions/checkout runs on Node.
+      - name: Tools
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git nodejs >/dev/null
+          pip install -q pr-agent==0.47.0
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          sparse-checkout: .gitea/pr-agent
+
+      - name: PR-Agent
+        env:
+          PR_URL: ${{ github.server_url }}/${{ github.repository }}/pulls/${{ github.event.pull_request.number || github.event.issue.number }}
+          COMMAND: ${{ github.event.comment.body || '/review' }}
+          MODEL: ${{ vars.PR_AGENT_MODEL }}
+          MODEL_TOKENS: ${{ vars.PR_AGENT_MODEL_TOKENS }}
+          LLM_KEY: ${{ secrets.PR_AGENT_LLM_KEY }}
+          GITEA_URL: ${{ github.server_url }}
+          GITEA_TOKEN: ${{ secrets.PR_AGENT_GITEA_TOKEN || github.token }}
+        run: .gitea/pr-agent/run.sh
