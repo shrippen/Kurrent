@@ -1,9 +1,20 @@
+# Checks bei jedem Pull Request und auf main/1.0.
+#
+# Dieselbe Datei liegt in .gitea/workflows und .github/workflows: Gitea liest nur .gitea/workflows,
+# sobald es das gibt, GitHub nur .github/workflows. Zwei Dateien, damit eine Änderung hier daran
+# erinnert, die andere mitzuziehen.
 name: Tests
 
 on:
   push:
     branches: [main, "1.0"]
   pull_request:
+
+# Ein Runner arbeitet die Warteschlange der Reihe nach ab. Ein neuerer Push auf denselben
+# Branch oder PR ersetzt den älteren Lauf, statt sich dahinter einzureihen.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   unit:
