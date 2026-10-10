@@ -1,0 +1,121 @@
+# Baut .plasmoid und Linux-Binary-Tarball und hängt sie an das GitHub-Release.
+# Nur GitHub: GitHub ist der öffentliche Ausspielweg und hat als einziger Release-Dateien; Gitea
+# prüft nur (Regel „Gitea prüft, GitHub veröffentlicht“). Die Bedingung am Job release hält den
+# Workflow auch dann von Gitea fern, wenn Gitea .github/workflows liest; die anderen Jobs hängen
+# per needs daran. install-linux.sh und die Landing Page laden von hier.
+#
+# Von Hand (workflow_dispatch): ohne tag nur bauen, mit tag an dieses Release anhängen.
+
+name: Release packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach artifacts to (empty = build only)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Tag
+        id: tag
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then tag="$INPUT_TAG"; else tag="$REF_NAME"; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create the release (notes from CHANGELOG.md)
+        if: steps.tag.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 && exit 0
+          version="${TAG#v}"
+          awk -v v="$version" '
+            $0 ~ "^## v?" v "( |$)" { on = 1; next }
+            /^## /                  { on = 0 }
+            on
+          ' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Kurrent $version." > notes.md
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Kurrent $version" --notes-file notes.md --verify-tag
+
+  plasmoid:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext zip
+
+      - name: Build .plasmoid
+        run: |
+          chmod +x scripts/package-plasmoid.sh
+          scripts/package-plasmoid.sh
+          ls -lh dist/*.plasmoid
+
+      - name: Attach to GitHub release
+        if: needs.release.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: gh release upload "$TAG" dist/*.plasmoid install-linux.sh --repo "$GITHUB_REPOSITORY" --clobber
+
+  linux-binary:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Quellen per docker cp hinein und Ergebnis wieder heraus kopieren: geht auf jedem Runner,
+      # auch wenn er mit dem Docker-Daemon eines Hosts spricht (dort zeigte ein Bind-Mount ins Leere).
+      - name: Build plugin tarball (Arch)
+        run: |
+          cid="$(docker create -w /src archlinux:latest bash -lc '
+            set -euo pipefail
+            pacman -Syu --noconfirm
+            pacman -S --noconfirm --needed \
+              base-devel cmake extra-cmake-modules python gettext \
+              qt6-base qt6-declarative \
+              kcalendarcore ki18n kconfig knotifications kglobalaccel \
+              akonadi akonadi-calendar
+            chmod +x scripts/package-linux-bin.sh
+            scripts/package-linux-bin.sh
+            ls -lh dist/kurrent-linux-*.tar.gz
+          ')"
+          docker cp . "${cid}:/src"
+          docker start -a "${cid}" || { docker rm "${cid}" >/dev/null; exit 1; }
+          mkdir -p dist
+          docker cp "${cid}:/src/dist/." dist/
+          docker rm "${cid}" >/dev/null
+          ls -lh dist/kurrent-linux-*.tar.gz
+
+      - name: Attach to GitHub release
+        if: needs.release.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release.outputs.tag }}
+        run: gh release upload "$TAG" dist/kurrent-*.tar.gz --repo "$GITHUB_REPOSITORY" --clobber
