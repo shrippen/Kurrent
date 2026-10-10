@@ -1,4 +1,6 @@
 # Baut .plasmoid und Linux-Binary-Tarball und hängt sie an das Gitea-Release.
+# Läuft einmal je Tag: das Upload-Skript legt das Release an, falls es fehlt; ein Trigger
+# auf „release published“ würde jeden Release doppelt bauen.
 # Token: Secret RELEASE_TOKEN (write:repository), sonst der Job-Token.
 
 name: Release packages
@@ -7,8 +9,6 @@ on:
   push:
     tags:
       - "v*"
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       tag:
