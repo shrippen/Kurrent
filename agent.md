@@ -71,3 +71,4 @@ Rule 7: Use the body to explain what and why vs. how. Assume the code explains t
 - Changes arrive as pull requests: work on a branch, open a PR, merge it on Gitea (the mirror follows).
 - Never merge a PR, push to `main` (or any default branch), push tags or publish releases on GitHub. A merge there is overwritten by the next Gitea push.
 - Never force-push a branch that someone else's PR depends on.
+- PR-Agent (where set up): If the review fails (an error, no result, e.g. a key or cost limit), ask for it once more with `/review`; if that fails too, green CI is enough to merge (owner, 11.10.2026).
