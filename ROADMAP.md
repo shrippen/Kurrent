@@ -308,6 +308,57 @@ curl -fsSL https://github.com/shrippen/Kurrent/releases/latest/download/install-
 
 ---
 
+## Layouts — planned (after 1.0)
+
+Today one frame: sidebar, header, six modes, three editors. Plan: layouts picked on first run and in General. Concepts from the UI review of 2026-10-12 (personas of the demo world: Emi starts without a calendar, Selin works by keyboard, Mara has 17 overdue tasks, Hinnerk needs big targets).
+
+A layout is the frame (sidebar or not, header, entry point); a mode stays what the main pane draws inside it.
+
+| `layout` | Concept | Builds on | Days |
+|---|---|---|---|
+| `classic` | today's frame, default | — | — |
+| `focus` | no sidebar, no modes: Now / Soon / Someday, overdue inside Now; one line for adding and search; projects as filter chips | `horizonOf` | 3–4 |
+| `board` | one board, axes chosen in the header; Kanban, Swimlanes and Plan become presets of it | `MatrixGrid` | 5–7 |
+| `week` | tasks and calendar events in one week; overdue column left, undated tray below, drag sets the date | Agenda view | 5–7 |
+| `stack` | one task at a time: ↑ done, → today, ← tomorrow, ↓ someday; after three postponements it suggests splitting | `triageQueue` | 3–4 |
+| `flow` | tasks drift toward the now line, overdue piles up at it, older = bigger. Experimental, settings only | new drawing | 6–9 |
+
+Not layouts, for every layout:
+
+- **One editor (5–7 days):** the inspector is the editor in every width (a sheet over the list when narrow); fields save on leave. Inline editor, full editor and `clickAction` go; one reschedule preset set instead of three.
+- **Command palette (3–5 days):** one field for adding and searching, j/k/x/t/e, shows what Quick Add recognised and whether the task exists. Quick Add learns absolute dates, "in 3 days" and recurrence (+2–3).
+
+**First run:** Kurrent has no wizard. A card in the main pane asks "How do you work?" (see today → `focus`, plan by project → `board`, plan by week → `week`, as before → `classic`) and, without a task list, offers the calendar app. `stack` is also an action on the overdue banner ("Go through"). 1–2 days.
+
+**Fewer options:** a layout decides what settings decide today (sidebar sections, tiles, view tabs). Each layout step removes the settings it makes moot. Layouts take the style from `KanteStyle` roles only, no per-style components.
+
+```
+ plugin/ (TaskLogic, TaskController, stores) ── FullView: Loader(layout) ─► Classic|Focus|Board|Week|Stack|Flow
+        └── kurrentcore (static lib) ────────── kurrent-tui
+```
+
+Steps, each a PR that is useful alone:
+
+1. **Data layer** — `LayoutId`, `normalizeLayout`, `horizonOf`, `overdueDays`, `triageQueue` in TaskLogic, with tests. Branch `feature/layout-foundation`.
+2. **Layout seam (3–5 days)** — `FullView` loads the frame per `layout`; `classic` is today's frame moved unchanged. `tests/screenshot.sh` before and after.
+3. **Key and first run (1–2 days)** — `layout` in `main.xml` and shared settings, Design.md; the first-run card.
+4. `focus` → 5. `stack` → 6. one editor → 7. `week` → 8. `board` (migrates `mainPaneMode` kanban/swimlanes/plan) → 9. palette → 10. `flow`.
+11. **Release chores** across the steps: demo screenshots of every layout in every language, landing page, release log (2–3 days).
+
+Total ≈ 36–53 days; steps 1–5 (≈ 10–15 days) are a release worth having.
+
+## Terminal client — planned (after 1.0)
+
+Kurrent in a terminal: over SSH into one's own session, in tiling setups. Same logic and stores, no second task model; Akonadi stays the source of truth.
+
+- **Split first (1–3 days):** `plugin/` becomes `kurrentcore` (static lib: TaskLogic, Quick Add, TaskController, stores) plus the thin QML plugin. Tests link the core.
+- **`kurrent-tui`:** a `QCoreApplication` with the core. Views: `focus` sections, `stack` triage, week table; main input is Quick Add. Keys as in the palette (j/k/x/t/e, `/`).
+- **Rules:** needs a running Akonadi (the user's session); headless servers without one are out of scope. No features of its own. Shipped as its own binary, not in the Store package.
+- **Open:** library (FTXUI vs. plain ANSI), demo mode via `MemoryTaskStore` for screenshots.
+- **Estimate:** 8–12 days after the split.
+
+---
+
 ## Build order
 
 1. **0.4** — keyboard, global shortcuts, undo header button, join polish.
