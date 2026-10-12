@@ -149,28 +149,12 @@ ColumnLayout {
         var _dep = _modelRev + (controller && controller.taskModel ? controller.taskModel.count : 0)
         var _reorg = controller ? controller.listReorganizing : false
         if (!controller) return {}
-        var list = controller.agendaTasksForRange(rangeStart, rangeEnd)
-        var result = {}
-        for (var i = 0; i < list.length; ++i) {
-            var t = list[i]
-            var key = (t.completed && t.completedDate && !isNaN(new Date(t.completedDate).getTime()))
-                ? DateTime.isoDateKey(t.completedDate) : DateTime.isoDateKey(t.due)
-            if (!result[key]) result[key] = []
-            result[key].push(t)
-        }
-        return result
+        // Done tasks on their completion day, open ones first (controller).
+        return controller.agendaTasksByDay(rangeStart, rangeEnd)
     }
 
     function tasksForDay(d) {
-        var l = tasksByDay[DateTime.isoDateKey(d)]
-        if (!l || l.length === 0) return []
-        var incomplete = []
-        var done = []
-        for (var i = 0; i < l.length; i++) {
-            if (l[i].completed) done.push(l[i])
-            else incomplete.push(l[i])
-        }
-        return incomplete.concat(done)
+        return tasksByDay[DateTime.isoDateKey(d)] || []
     }
 
     // Figures for the tiles above the pane (FullView / ViewTiles): events and open tasks of the

@@ -644,6 +644,29 @@ Horizon horizonOf(const TaskEntry &task, const QDate &today);
 /** Whole days an open task is overdue; 0 when due today or later, undated or done. */
 int overdueDays(const TaskEntry &task, const QDate &today);
 
+/** Fields for a new VTODO status (sidebar drop): Completed (3) also completes the task at
+ *  100 %, any other status reopens it. Example: 6 → {status: 6, completed: false}. */
+QVariantMap statusChangeFields(int status);
+
+/** Percent complete a progress band stands for when a task is dropped on it ("26-50" → 38). */
+int progressMidpoint(const QString &band);
+
+/** Kanban status columns without "Canceled" when the setting hides it. */
+enum class CanceledColumn { Show, Hide };
+QStringList shownKanbanColumns(const QStringList &keys, const QString &source, CanceledColumn canceled);
+
+/** Heatmap figures for the shown period. Counts in display order (selected year first), so
+ *  the best day is the first day with the highest count. perDay averages over the days of
+ *  the period up to `now` (part days count as whole ones). */
+struct HeatmapSummary {
+    int total = 0;
+    double perDay = 0.0;
+    int bestCount = 0;
+    QString bestKey;
+};
+HeatmapSummary summarizeHeatmap(const QList<QVariantMap> &countsInOrder, const QDateTime &start,
+                                const QDateTime &end, const QDateTime &now);
+
 /** Open overdue tasks for the Stack layout: oldest first, then higher priority, then title. */
 QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today);
 

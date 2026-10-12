@@ -724,7 +724,8 @@ Item {
                             if (!visible) {
                                 return Kirigami.Theme.textColor
                             }
-                            if (DateTime.isDueBeforeToday(task.dueDate)) {
+                            // One overdue rule for the whole widget (TaskLogic::overdueDays).
+                            if (task.overdueDays > 0) {
                                 return Kirigami.Theme.negativeTextColor
                             }
                             return KanteStyle.themed ? KanteStyle.mutedTextColor : Kirigami.Theme.highlightColor

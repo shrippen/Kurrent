@@ -88,14 +88,4 @@ TestCase {
         compare(DateTime.formatDueRowLabel(null, {}), "")
         compare(DateTime.formatDueRowLabel(new Date(Number.NaN), {}), "")
     }
-
-    function test_isDueBeforeToday() {
-        var past = new Date()
-        past.setDate(past.getDate() - 2)
-        verify(DateTime.isDueBeforeToday(past))
-        var future = new Date()
-        future.setDate(future.getDate() + 2)
-        verify(!DateTime.isDueBeforeToday(future))
-        verify(!DateTime.isDueBeforeToday(null))
-    }
 }

@@ -161,14 +161,6 @@ function isoDateKey(dt) {
     }
 }
 
-function isDueBeforeToday(due) {
-    var dueDay = isoDateKey(due)
-    if (!dueDay.length) {
-        return false
-    }
-    return dueDay < isoDateKey(new Date())
-}
-
 /**
  * Task row due chip: locale short date, optional relative Today/Tomorrow/Yesterday, optional time.
  * labels: { today, tomorrow, yesterday } — pass i18n strings from QML.

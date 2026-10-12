@@ -121,6 +121,7 @@ const QString PlanHorizon = QStringLiteral("planHorizon");
 const QString PlanShowUndated = QStringLiteral("planShowUndated");
 const QString PlanShowCompleted = QStringLiteral("planShowCompleted");
 const QString MultiSelectEnabled = QStringLiteral("multiSelectEnabled");
+const QString KanbanHideCanceled = QStringLiteral("kanbanHideCanceled");
 const QString HiddenProjects = QStringLiteral("hiddenProjects");
 const QString HiddenLabels = QStringLiteral("hiddenLabels");
 const QString HiddenLocations = QStringLiteral("hiddenLocations");
@@ -310,6 +311,8 @@ TaskController::TaskController(QObject *parent)
     connect(this, &TaskController::kanbanColumnSourceChanged, this, &TaskController::blockedFiltersChanged);
     connect(this, &TaskController::swimlaneSettingsChanged, this, &TaskController::blockedFiltersChanged);
     connect(this, &TaskController::pendingCountChanged, this, &TaskController::badgeChanged);
+    connect(this, &TaskController::kanbanLayoutChanged, this, &TaskController::shownKanbanColumnsChanged);
+    connect(this, &TaskController::kanbanColumnSourceChanged, this, &TaskController::shownKanbanColumnsChanged);
     connect(this, &TaskController::sidebarCountsChanged, this, &TaskController::badgeChanged);
     connect(this, &TaskController::settingsChanged, this, &TaskController::badgeChanged);
 
@@ -1498,6 +1501,7 @@ QVariantMap TaskController::taskEntryToVariantMap(const TaskEntry &task) const
     map.insert(QStringLiteral("summary"), task.summary);
     map.insert(QStringLiteral("description"), task.description);
     map.insert(QStringLiteral("dueDate"), task.dueDate);
+    map.insert(QStringLiteral("overdueDays"), TaskLogic::overdueDays(task, QDate::currentDate()));
     map.insert(QStringLiteral("startDate"), task.startDate);
     map.insert(QStringLiteral("completed"), task.completed);
     map.insert(QStringLiteral("categories"), task.categories);
@@ -2135,6 +2139,64 @@ QVariantList TaskController::agendaTasksForRange(const QDate &from, const QDate 
     return result;
 }
 
+QVariantMap TaskController::agendaTasksByDay(const QDate &from, const QDate &to) const
+{
+    // Day lists in task order, open tasks first: {"2026-10-12": [open…, done…]}.
+    QHash<QString, QVariantList> open;
+    QHash<QString, QVariantList> done;
+    QStringList days;
+    const QVariantList tasks = agendaTasksForRange(from, to);
+    for (const QVariant &value : tasks) {
+        const QVariantMap task = value.toMap();
+        const bool completed = task.value(QStringLiteral("completed")).toBool();
+        const QDateTime completedAt = task.value(QStringLiteral("completedDate")).toDateTime();
+        const QDateTime when = completed && completedAt.isValid()
+                ? completedAt : task.value(QStringLiteral("due")).toDateTime();
+        const QString day = when.isValid() ? when.toLocalTime().date().toString(Qt::ISODate) : QString();
+        if (!days.contains(day)) {
+            days.append(day);
+        }
+        (completed ? done : open)[day].append(task);
+    }
+
+    QVariantMap out;
+    for (const QString &day : std::as_const(days)) {
+        out.insert(day, open.value(day) + done.value(day));
+    }
+    return out;
+}
+
+QVariantMap TaskController::heatmapPeriod(const QDate &monthStart, const QVariantList &years,
+                                          const QString &mode) const
+{
+    QList<QVariantMap> countsInOrder;
+    QDate start(monthStart.year(), monthStart.month(), 1);
+    QDate end = start.addMonths(1);
+    if (years.isEmpty()) {
+        countsInOrder.append(heatmapCountsForMonth(monthStart, mode));
+    } else {
+        start = QDate(monthStart.year(), 1, 1);
+        end = start.addYears(1);
+        for (const QVariant &year : years) {
+            countsInOrder.append(heatmapCountsForYear(year.toInt(), mode));
+        }
+    }
+
+    QVariantMap merged;
+    for (const QVariantMap &counts : std::as_const(countsInOrder)) {
+        merged.insert(counts);
+    }
+    const TaskLogic::HeatmapSummary summary = TaskLogic::summarizeHeatmap(
+            countsInOrder, start.startOfDay(), end.startOfDay(), QDateTime::currentDateTime());
+    return {
+        {QStringLiteral("counts"), merged},
+        {QStringLiteral("total"), summary.total},
+        {QStringLiteral("perDay"), summary.perDay},
+        {QStringLiteral("bestCount"), summary.bestCount},
+        {QStringLiteral("bestKey"), summary.bestKey},
+    };
+}
+
 QVariantMap TaskController::heatmapCountsForYear(int year, const QString &mode) const
 {
     // For completions, iterate all Akonadi tasks (not just filtered model)
@@ -2327,6 +2389,21 @@ bool TaskController::isProjectHidden(qint64 collectionId) const
 {
     return TaskLogic::tokenSetContains(liveSetting(Key::HiddenProjects).toString(),
                                        QString::number(collectionId), kIdSeparator);
+}
+
+QStringList TaskController::shownKanbanColumns() const
+{
+    return TaskLogic::shownKanbanColumns(m_kanbanColumnKeys, m_kanbanColumnSource, m_canceledColumn);
+}
+
+void TaskController::setTaskStatus(qint64 itemId, int status)
+{
+    updateTaskFull(itemId, TaskLogic::statusChangeFields(status));
+}
+
+void TaskController::setTaskProgressBand(qint64 itemId, const QString &band)
+{
+    updateTaskFull(itemId, {{QStringLiteral("percentComplete"), TaskLogic::progressMidpoint(band)}});
 }
 
 QVariantMap TaskController::blockedFilters() const
@@ -2803,6 +2880,12 @@ void TaskController::loadSettings()
         setMultiSelectEnabled(flag(Key::MultiSelectEnabled));
         setListGroupMode(now.value(Key::ListGroupMode).toString());
         setMainPaneMode(text(Key::MainPaneMode, TaskLogic::MainPaneMode::List));
+        const auto canceled = flag(Key::KanbanHideCanceled) ? TaskLogic::CanceledColumn::Hide
+                                                             : TaskLogic::CanceledColumn::Show;
+        if (canceled != m_canceledColumn) {
+            m_canceledColumn = canceled;
+            Q_EMIT shownKanbanColumnsChanged();
+        }
     }
 
     // First load: startSession picks the view and sort itself.

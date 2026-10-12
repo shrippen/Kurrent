@@ -100,10 +100,12 @@ Beide teilen sich `components/MatrixGrid.qml`: **ein** `GridLayout` in einer `Fl
 
 - Monats- oder Jahresgitter. Monat: quadratische Zellen (max. 4 GU) mit Tag oben links und Anzahl in der Mitte, Legende direkt darunter; daneben (ab 30 GU) oder darunter die Aufgaben des gewählten Tages (`heatmapTasksForDay`, Klick → Inspektor bzw. Editor). Navigation, Monat/Jahr und Modus in einer Zeile.
 - Modus umschaltbar: offene Fälligkeiten pro Tag vs. Erledigungen pro Tag (aus STATUS/`COMPLETED`, nicht gespeicherter „Streak“-Zähler).
+- Zahlen des gezeigten Zeitraums (Summe, Schnitt pro Tag bis heute, bester Tag) und die zusammengeführten Jahre liefert `heatmapPeriod` (`TaskLogic::summarizeHeatmap`); QML formatiert nur.
 
 ### Kalender + Aufgaben
 
 - **Tages-Ansicht:** Event-Streifen (bestehender Event-Cache, opaque/busy wie Notifications) plus VTODO-Liste für denselben Tag — **kein** Zusammenführen von VEVENT und VTODO in 1.0.
+- Aufgaben pro Tag kommen gruppiert aus `agendaTasksByDay` (Erledigte am Erledigungstag, offene zuerst); die Kalenderauswahl schaltet `toggleBusyCalendar` (persistiert `busyCalendarIds`).
 - „Block time“ (Task → verknüpftes VEVENT) bewusst **nach 1.0**.
 
 ### Smart Views
@@ -206,6 +208,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 
 ## Hinweis „Überfällig“
 
+- **Eine Regel für „überfällig“:** offen und fällig vor heute (`TaskLogic::overdueDays`, gleiche Menge wie die View Überfällig). Zeilen und Karten lesen die Rolle `overdueDays`, Inspektor und Snapshots das gleichnamige Feld; QML vergleicht keine Daten selbst.
 - `OverdueBanner` (`Kirigami.InlineMessage`, Warning) über der Aufgabenfläche, wenn überfällige Aufgaben existieren und die aktuelle View sie nicht zeigt (nicht in Überfällig/Erledigt). Aktionen: **Alle auf heute** (`rescheduleOverdueToToday`, Preset `today`: Uhrzeit bleibt, ganztägig → heute 00:00) und **Überfällige zeigen**. Schließen blendet ihn aus, bis die Zahl wieder steigt. Abschaltbar (`showOverdueBanner`). Nur ein Ort zeigt die Zahl: mit Kacheln die Überfällig-Kachel (Kopfzeile ohne Überfällig-Zahl), im schmalen Layout ein Chip „N überfällig“ in der Kopfzeile mit beiden Aktionen.
 
 ## Farbe

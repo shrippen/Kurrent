@@ -500,6 +500,33 @@ void TaskControllerStoreTest::demoModeLoadsWorldTasks()
     const QVariantList events = demo->agendaEventsForDay(QDate(2026, 9, 14));
     QCOMPARE(events.size(), 2);
     QCOMPARE(events.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Weekly planning"));
+
+    // Agenda by day: done tasks on their completion day, open ones first.
+    const QVariantMap byDay = demo->agendaTasksByDay(QDate(2026, 9, 7), QDate(2026, 9, 27));
+    QVERIFY(!byDay.isEmpty());
+    for (auto it = byDay.cbegin(); it != byDay.cend(); ++it) {
+        bool seenDone = false;
+        for (const QVariant &value : it.value().toList()) {
+            const QVariantMap task = value.toMap();
+            const bool done = task.value(QStringLiteral("completed")).toBool();
+            QVERIFY(!(seenDone && !done));
+            seenDone = seenDone || done;
+            const QDateTime completedAt = task.value(QStringLiteral("completedDate")).toDateTime();
+            const QDateTime when = done && completedAt.isValid() ? completedAt
+                                                                 : task.value(QStringLiteral("due")).toDateTime();
+            QCOMPARE(when.toLocalTime().date().toString(Qt::ISODate), it.key());
+        }
+    }
+
+    // Heatmap period: counts and figures together.
+    const QVariantMap period = demo->heatmapPeriod(QDate(2026, 9, 1), {}, QStringLiteral("completed"));
+    int total = 0;
+    const QVariantMap counts = period.value(QStringLiteral("counts")).toMap();
+    for (const QVariant &n : counts) {
+        total += n.toInt();
+    }
+    QCOMPARE(period.value(QStringLiteral("total")).toInt(), total);
+
     demo->resetSharedStateForTest();
     delete demo;
     qunsetenv("KURRENT_DEMO");

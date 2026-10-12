@@ -573,16 +573,6 @@ Item {
         return true
     }
 
-    function progressMidpoint(band) {
-        switch (band) {
-        case "0-25": return 12
-        case "26-50": return 38
-        case "51-75": return 63
-        case "76-100": return 88
-        default: return 0
-        }
-    }
-
     function progressIconForBand(band) {
         // Three-bar metaphor via battery fill levels (Breeze).
         switch (band) {
@@ -616,9 +606,7 @@ Item {
         if (!dragHost || !dragHost.draggingTask || !band) {
             return false
         }
-        controller.updateTaskFull(dragHost.draggingTask.itemId, {
-            percentComplete: progressMidpoint(band)
-        })
+        controller.setTaskProgressBand(dragHost.draggingTask.itemId, band)
         return true
     }
 
@@ -626,14 +614,7 @@ Item {
         if (!dragHost || !dragHost.draggingTask) {
             return false
         }
-        var fields = { status: Number(status) }
-        if (Number(status) === 3) {
-            fields.completed = true
-            fields.percentComplete = 100
-        } else {
-            fields.completed = false
-        }
-        controller.updateTaskFull(dragHost.draggingTask.itemId, fields)
+        controller.setTaskStatus(dragHost.draggingTask.itemId, Number(status))
         return true
     }
 

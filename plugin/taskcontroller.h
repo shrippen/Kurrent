@@ -74,6 +74,8 @@ class TaskController : public QObject
     Q_PROPERTY(QString kanbanWriteMode READ kanbanWriteMode WRITE setKanbanWriteMode NOTIFY kanbanWriteModeChanged)
     Q_PROPERTY(QString kanbanManualOrderJson READ kanbanManualOrderJson WRITE setKanbanManualOrderJson NOTIFY kanbanManualOrderJsonChanged)
     Q_PROPERTY(QStringList kanbanColumnKeys READ kanbanColumnKeys NOTIFY kanbanLayoutChanged)
+    // Columns the board shows: kanbanColumnKeys without "Canceled" when kanbanHideCanceled is on.
+    Q_PROPERTY(QStringList shownKanbanColumns READ shownKanbanColumns NOTIFY shownKanbanColumnsChanged)
     Q_PROPERTY(int kanbanRevision READ kanbanRevision NOTIFY kanbanLayoutChanged)
     Q_PROPERTY(QString swimlaneLaneAxis READ swimlaneLaneAxis WRITE setSwimlaneLaneAxis NOTIFY swimlaneSettingsChanged)
     Q_PROPERTY(QString swimlaneTimeBucket READ swimlaneTimeBucket WRITE setSwimlaneTimeBucket NOTIFY swimlaneSettingsChanged)
@@ -183,6 +185,7 @@ public:
     QString kanbanWriteMode() const { return m_kanbanWriteMode; }
     QString kanbanManualOrderJson() const { return m_kanbanManualOrderJson; }
     QStringList kanbanColumnKeys() const { return m_kanbanColumnKeys; }
+    QStringList shownKanbanColumns() const;
     int kanbanRevision() const { return m_kanbanRevision; }
     QString swimlaneLaneAxis() const { return m_swimlaneLaneAxis; }
     QString swimlaneTimeBucket() const { return m_swimlaneTimeBucket; }
@@ -316,8 +319,15 @@ public:
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
     Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
     Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
+    /** The same tasks by ISO day ("2026-10-12"): done ones on their completion day; open
+     *  tasks before done ones. */
+    Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const;
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
+    /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest
+     *  first). {counts, total, perDay, bestCount, bestKey} (TaskLogic::summarizeHeatmap). */
+    Q_INVOKABLE QVariantMap heatmapPeriod(const QDate &monthStart, const QVariantList &years,
+                                          const QString &mode) const;
     /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
     Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
     /** Installed task app for the settings ("KOrganizer" / "Merkuro"); empty if none. */
@@ -425,6 +435,9 @@ public:
     Q_INVOKABLE void addTaskCategory(qint64 itemId, const QString &category);
     Q_INVOKABLE void removeTaskCategory(qint64 itemId, const QString &category);
     Q_INVOKABLE void setTaskPriority(qint64 itemId, int priority);
+    /** Sidebar drops: status (Completed also completes) and progress band (its midpoint). */
+    Q_INVOKABLE void setTaskStatus(qint64 itemId, int status);
+    Q_INVOKABLE void setTaskProgressBand(qint64 itemId, const QString &band);
     Q_INVOKABLE void moveTaskToCollection(qint64 itemId, qint64 collectionId);
     Q_INVOKABLE void setTaskCompleted(qint64 itemId, bool completed);
     Q_INVOKABLE void deleteTask(qint64 itemId);
@@ -516,6 +529,7 @@ signals:
     void kanbanWriteModeChanged();
     void kanbanManualOrderJsonChanged();
     void kanbanLayoutChanged();
+    void shownKanbanColumnsChanged();
     void swimlaneSettingsChanged();
     void matrixDrillChanged();
     void planSettingsChanged();
@@ -671,6 +685,7 @@ enum class SyncResult { Error, Ok };
     QVariantMap m_settings;
     bool m_session = false;
     bool m_loadingSettings = false;
+    TaskLogic::CanceledColumn m_canceledColumn = TaskLogic::CanceledColumn::Show;
     bool m_loading = false;
     bool m_listReorganizing = false;
     double m_rebuildMsPerTask = 0.08;

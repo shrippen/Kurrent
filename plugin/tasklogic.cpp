@@ -3549,4 +3549,69 @@ QStringList sortLevelKeys(const QStringList &levels, int level, const QStringLis
     return out;
 }
 
+QVariantMap statusChangeFields(int status)
+{
+    constexpr int kStatusCompleted = 3;
+    constexpr int kPercentDone = 100;
+    QVariantMap fields{{QStringLiteral("status"), status}};
+    if (status != kStatusCompleted) {
+        fields.insert(QStringLiteral("completed"), false);
+        return fields;
+    }
+    fields.insert(QStringLiteral("completed"), true);
+    fields.insert(QStringLiteral("percentComplete"), kPercentDone);
+    return fields;
+}
+
+int progressMidpoint(const QString &band)
+{
+    static const QHash<QString, int> midpoints = {
+        {QStringLiteral("0-25"), 12},
+        {QStringLiteral("26-50"), 38},
+        {QStringLiteral("51-75"), 63},
+        {QStringLiteral("76-100"), 88},
+    };
+    return midpoints.value(band, 0);
+}
+
+QStringList shownKanbanColumns(const QStringList &keys, const QString &source, CanceledColumn canceled)
+{
+    if (canceled == CanceledColumn::Show || source != KanbanSource::Status) {
+        return keys;
+    }
+    // "5" is CANCELLED; "cancelled" the legacy slug key.
+    QStringList out;
+    for (const QString &key : keys) {
+        if (key == QLatin1String("5") || key == QLatin1String("cancelled")) {
+            continue;
+        }
+        out.append(key);
+    }
+    return out;
+}
+
+HeatmapSummary summarizeHeatmap(const QList<QVariantMap> &countsInOrder, const QDateTime &start,
+                                const QDateTime &end, const QDateTime &now)
+{
+    constexpr double kMsPerDay = 86400000.0;
+    HeatmapSummary summary;
+    for (const QVariantMap &counts : countsInOrder) {
+        for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
+            const int n = it.value().toInt();
+            summary.total += n;
+            if (n > summary.bestCount) {
+                summary.bestCount = n;
+                summary.bestKey = it.key();
+            }
+        }
+    }
+    if (now < start) {
+        return summary;
+    }
+    const QDateTime until = now < end ? now : end;
+    const int days = qMax(1, int(qCeil(start.msecsTo(until) / kMsPerDay)));
+    summary.perDay = double(summary.total) / days;
+    return summary;
+}
+
 } // namespace TaskLogic

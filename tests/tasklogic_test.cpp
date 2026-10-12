@@ -107,6 +107,9 @@ private Q_SLOTS:
     void panelBadgeAlertRule();
     void blockedSidebarFiltersPerLayout();
     void firstSidebarProjectSkipsReadOnly();
+    void statusAndProgressDrops();
+    void kanbanCanceledColumnHidden();
+    void heatmapSummaryFigures();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1865,6 +1868,55 @@ void TaskLogicTest::firstSidebarProjectSkipsReadOnly()
 
     QCOMPARE(TaskLogic::firstSidebarProjectId({readOnly, empty, busy}, {}), qint64(3));
     QCOMPARE(TaskLogic::firstSidebarProjectId({readOnly, empty}, {}), qint64(2));
+}
+
+void TaskLogicTest::statusAndProgressDrops()
+{
+    const QVariantMap done = TaskLogic::statusChangeFields(3);
+    QCOMPARE(done.value(QStringLiteral("completed")).toBool(), true);
+    QCOMPARE(done.value(QStringLiteral("percentComplete")).toInt(), 100);
+    const QVariantMap running = TaskLogic::statusChangeFields(6);
+    QCOMPARE(running.value(QStringLiteral("status")).toInt(), 6);
+    QCOMPARE(running.value(QStringLiteral("completed")).toBool(), false);
+    QVERIFY(!running.contains(QStringLiteral("percentComplete")));
+
+    QCOMPARE(TaskLogic::progressMidpoint(QStringLiteral("26-50")), 38);
+    QCOMPARE(TaskLogic::progressMidpoint(QStringLiteral("76-100")), 88);
+    QCOMPARE(TaskLogic::progressMidpoint(QStringLiteral("x")), 0);
+}
+
+void TaskLogicTest::kanbanCanceledColumnHidden()
+{
+    const QStringList keys{"4", "6", "3", "5", "cancelled"};
+    QCOMPARE(TaskLogic::shownKanbanColumns(keys, TaskLogic::KanbanSource::Status, TaskLogic::CanceledColumn::Hide),
+             (QStringList{"4", "6", "3"}));
+    QCOMPARE(TaskLogic::shownKanbanColumns(keys, TaskLogic::KanbanSource::Status, TaskLogic::CanceledColumn::Show),
+             keys);
+    QCOMPARE(TaskLogic::shownKanbanColumns(keys, TaskLogic::KanbanSource::Label, TaskLogic::CanceledColumn::Hide),
+             keys);
+}
+
+void TaskLogicTest::heatmapSummaryFigures()
+{
+    const QDateTime start(QDate(2026, 10, 1), QTime(0, 0));
+    const QDateTime end(QDate(2026, 11, 1), QTime(0, 0));
+    const QVariantMap october{{"2026-10-02", 3}, {"2026-10-05", 4}, {"2026-10-07", 4}};
+
+    // Ten and a half days in: part days count, so 11 days.
+    const auto running = TaskLogic::summarizeHeatmap({october}, start, end, QDateTime(QDate(2026, 10, 11), QTime(12, 0)));
+    QCOMPARE(running.total, 11);
+    QCOMPARE(running.perDay, 1.0);
+    QCOMPARE(running.bestCount, 4);
+    QCOMPARE(running.bestKey, QStringLiteral("2026-10-05"));
+
+    // Past period: all 31 days; future period: no average.
+    QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, QDateTime(QDate(2027, 1, 1), QTime(0, 0))).perDay,
+             11.0 / 31);
+    QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, QDateTime(QDate(2026, 9, 1), QTime(0, 0))).perDay, 0.0);
+
+    // Several years: the first map (the selected year) wins ties.
+    const QVariantMap older{{"2025-03-01", 4}};
+    QCOMPARE(TaskLogic::summarizeHeatmap({october, older}, start, end, end).bestKey, QStringLiteral("2026-10-05"));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

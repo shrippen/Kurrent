@@ -1,4 +1,5 @@
 #include "tasklistmodel.h"
+#include "tasklogic.h"
 
 #include <QElapsedTimer>
 
@@ -114,6 +115,8 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.syncing;
     case PendingDeleteRole:
         return task.pendingDelete;
+    case OverdueDaysRole:
+        return TaskLogic::overdueDays(task, QDate::currentDate());
     default:
         return {};
     }
@@ -156,6 +159,7 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
         {GeoUrlRole, "geoUrl"},
         {SyncingRole, "syncing"},
         {PendingDeleteRole, "pendingDelete"},
+        {OverdueDaysRole, "overdueDays"},
     };
 }
 
@@ -480,6 +484,7 @@ QVector<int> TaskListModel::dataDiffRoles(const TaskEntry &a, const TaskEntry &b
     add(a.geoUrl != b.geoUrl, GeoUrlRole);
     add(a.syncing != b.syncing, SyncingRole);
     add(a.pendingDelete != b.pendingDelete, PendingDeleteRole);
+    add(a.dueDate != b.dueDate || a.completed != b.completed, OverdueDaysRole);
 
     return roles;
 }

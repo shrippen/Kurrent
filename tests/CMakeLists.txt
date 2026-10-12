@@ -36,10 +36,13 @@ add_executable(kurrent-models-test
     ${CMAKE_SOURCE_DIR}/plugin/tasklistmodel.h
     ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.cpp
     ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
 )
 target_include_directories(kurrent-models-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
 target_link_libraries(kurrent-models-test PRIVATE
     Qt6::Core
+    Qt6::Gui
     Qt6::Test
     KPim6::AkonadiCore
 )
