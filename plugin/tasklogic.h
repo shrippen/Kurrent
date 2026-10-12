@@ -610,4 +610,31 @@ QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
                                 const QStringList &rowOrder,
                                 const QDate &today);
 
+
+// Main-pane layouts (ROADMAP "Layouts"): values of the `layout` key.
+namespace LayoutId
+{
+inline const QString Classic = QStringLiteral("classic");
+inline const QString Focus = QStringLiteral("focus");
+inline const QString Board = QStringLiteral("board");
+inline const QString Week = QStringLiteral("week");
+inline const QString Stack = QStringLiteral("stack");
+inline const QString Flow = QStringLiteral("flow");
+}
+
+/** Stored layout if known, else LayoutId::Classic (old or newer configs never blank the pane). */
+QString normalizeLayout(const QString &layout);
+
+/** When an open task is due: today or before, later, never. Completed tasks are Done. */
+enum class Horizon { Now, Soon, Someday, Done };
+
+/** Horizon of a task; the Focus layout's sections, the Flow layout's banks. */
+Horizon horizonOf(const TaskEntry &task, const QDate &today);
+
+/** Whole days an open task is overdue; 0 when due today or later, undated or done. */
+int overdueDays(const TaskEntry &task, const QDate &today);
+
+/** Open overdue tasks for the Stack layout: oldest first, then higher priority, then title. */
+QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today);
+
 } // namespace TaskLogic

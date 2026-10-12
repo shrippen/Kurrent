@@ -3199,4 +3199,66 @@ QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
     return result;
 }
 
+QString normalizeLayout(const QString &layout)
+{
+    static const QStringList known = {LayoutId::Classic, LayoutId::Focus, LayoutId::Board,
+                                      LayoutId::Week, LayoutId::Stack, LayoutId::Flow};
+    return known.contains(layout) ? layout : LayoutId::Classic;
+}
+
+Horizon horizonOf(const TaskEntry &task, const QDate &today)
+{
+    if (task.completed) {
+        return Horizon::Done;
+    }
+    if (!task.dueDate.isValid()) {
+        return Horizon::Someday;
+    }
+    return task.dueDate.date() <= today ? Horizon::Now : Horizon::Soon;
+}
+
+int overdueDays(const TaskEntry &task, const QDate &today)
+{
+    if (task.completed || !task.dueDate.isValid()) {
+        return 0;
+    }
+    return qMax(qint64(0), task.dueDate.date().daysTo(today));
+}
+
+namespace
+{
+// High (1) before Medium (5) before Low (9) before none (0).
+int priorityRank(int priority)
+{
+    const int band = priorityBand(priority);
+    return band == PriorityBand::None ? PriorityBand::Low + 1 : band;
+}
+} // namespace
+
+QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today)
+{
+    QList<TaskEntry> out;
+    for (const TaskEntry &task : tasks) {
+        if (overdueDays(task, today) > 0) {
+            out.append(task);
+        }
+    }
+
+    // Example: due 19.09. high, 19.09. low, 21.09. high → that order.
+    std::stable_sort(out.begin(), out.end(), [&today](const TaskEntry &a, const TaskEntry &b) {
+        const int ageA = overdueDays(a, today);
+        const int ageB = overdueDays(b, today);
+        if (ageA != ageB) {
+            return ageA > ageB;
+        }
+        const int rankA = priorityRank(a.priority);
+        const int rankB = priorityRank(b.priority);
+        if (rankA != rankB) {
+            return rankA < rankB;
+        }
+        return a.summary.localeAwareCompare(b.summary) < 0;
+    });
+    return out;
+}
+
 } // namespace TaskLogic
