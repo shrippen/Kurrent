@@ -577,7 +577,7 @@ FocusScope {
                 Layout.fillWidth: true
                 icon.name: "internet-services"
                 text: i18n("Open map")
-                onClicked: Qt.openUrlExternally(task.geoUrl)
+                onClicked: controller.openMapLink(task.itemId)
             }
 
             FieldLabel {

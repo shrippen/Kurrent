@@ -420,6 +420,9 @@ public:
                                             const QVariantList &projects) const;
     Q_INVOKABLE void rescheduleTask(qint64 itemId, const QString &preset);
     Q_INVOKABLE QString joinUrlFor(const QString &description, const QString &location) const;
+    /** Opens a task's meeting link or map location in the default app; false without one. */
+    Q_INVOKABLE bool openJoinLink(qint64 itemId) const;
+    Q_INVOKABLE bool openMapLink(qint64 itemId) const;
     Q_INVOKABLE void updateTask(qint64 itemId,
                                 const QString &summary,
                                 const QString &description,
@@ -590,6 +593,8 @@ enum class SyncResult { Error, Ok };
     void persistSort(const QString &mode);
     void applyViewSort();
     QString setting(const QString &key) const;
+    enum class TaskLink { Join, Map };
+    QString taskLink(qint64 itemId, TaskLink link) const;
     QVariant liveSetting(const QString &key) const;
     bool isProjectHidden(qint64 collectionId) const;
     const TaskLogic::SmartViewDef *smartViewFor(const QString &viewId) const;

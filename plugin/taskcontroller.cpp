@@ -36,6 +36,8 @@
 #include <QTime>
 #include <QDebug>
 #include <QFile>
+#include <QDesktopServices>
+#include <QUrl>
 #include <QGuiApplication>
 #include <QHash>
 #include <QLoggingCategory>
@@ -3291,6 +3293,28 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
 QString TaskController::joinUrlFor(const QString &description, const QString &location) const
 {
     return TaskLogic::joinUrl(description, location);
+}
+
+QString TaskController::taskLink(qint64 itemId, TaskLink link) const
+{
+    const auto it = s_tasks.constFind(itemId);
+    if (it == s_tasks.cend() || !it->todo) {
+        return {};
+    }
+    const TaskEntry task = makeTaskEntry(*it, 0, false);
+    return link == TaskLink::Join ? task.joinUrl : task.geoUrl;
+}
+
+bool TaskController::openJoinLink(qint64 itemId) const
+{
+    const QString url = taskLink(itemId, TaskLink::Join);
+    return !url.isEmpty() && QDesktopServices::openUrl(QUrl(url));
+}
+
+bool TaskController::openMapLink(qint64 itemId) const
+{
+    const QString url = taskLink(itemId, TaskLink::Map);
+    return !url.isEmpty() && QDesktopServices::openUrl(QUrl(url));
 }
 
 TaskController::CachedTask *TaskController::prepareEdit(qint64 itemId)

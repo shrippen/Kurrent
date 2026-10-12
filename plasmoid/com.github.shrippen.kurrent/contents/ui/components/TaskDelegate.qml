@@ -470,7 +470,7 @@ Item {
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                         Layout.alignment: Qt.AlignVCenter
-                        onClicked: Qt.openUrlExternally(task.joinUrl)
+                        onClicked: root.controller.openJoinLink(task.itemId)
                         QQC2.ToolTip.text: i18n("Open / Join")
                         QQC2.ToolTip.visible: joinHover.hovered && !root.listMoving
                         HoverHandler { id: joinHover }

@@ -716,6 +716,11 @@ void TaskControllerStoreTest::newTaskTargetAndProjectLists()
     settings->store(QStringLiteral("showEmptyProjects"), true);
     QCOMPARE(ids(m_controller->sidebarProjects()), QList<qint64>{20});
     settings->resetToDefaults();
+
+    // Links: nothing to open for unknown tasks or tasks without one.
+    QVERIFY(!m_controller->openJoinLink(999));
+    m_controller->installTestTask(1, QStringLiteral("plain"), 10);
+    QVERIFY(!m_controller->openMapLink(1));
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

@@ -337,6 +337,7 @@ Views ─select*/storeSetting─▶ TaskController ─store─▶ SharedSettings
                                    ▲                 │ changed
                                    └─ loadSettings ◀─┘ → settingsChanged (Design, Farben)
 ```
+- Join-Link und Kartenlink einer Aufgabe öffnet der Controller (`openJoinLink` / `openMapLink`), nicht QML; nur feste Projekt-Links (Plugin fehlt, Versions-Hinweis) bleiben `Qt.openUrlExternally`.
 - KCM-Seiten nutzen einen eigenen, nur lesenden Controller (`ConfigControllerLoader`) für Listen und Zähler; er bindet keine Config und persistiert nichts. **General** übernimmt die aktivierten Projekte mit `loadEnabledCollections()`.
 - `planTimeBucket`, `planHorizon`, `planShowUndated`, `planShowCompleted` liegen ebenfalls in `kurrentrc` (früher nur pro Instanz); beim ersten Start übernimmt `seedMissingFrom` die Werte der Instanz.
 - `Design.qml` liest Sidebar-Breite, Dichte, Overlay-Dim und Reduced Motion aus dieser Config (über `main.qml`, neu bei `settingsChanged`).
