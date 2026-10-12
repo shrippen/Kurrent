@@ -76,8 +76,7 @@ FocusScope {
         recurrenceBox.currentIndex = recurrenceIndexFor(task.recurrencePreset || "none")
         reminderBox.currentIndex = reminderIndexFor(task.reminderMinutes)
         projectPicker.collectionId = task.collectionId || -1
-        projectPicker.hiddenProjects = Plasmoid.configuration.hiddenProjects || ""
-        projectPicker.collectionModel = controller.collectionModel
+        projectPicker.controller = controller
         projectPicker.rebuild()
     }
 

@@ -121,7 +121,19 @@ const QString PlanHorizon = QStringLiteral("planHorizon");
 const QString PlanShowUndated = QStringLiteral("planShowUndated");
 const QString PlanShowCompleted = QStringLiteral("planShowCompleted");
 const QString MultiSelectEnabled = QStringLiteral("multiSelectEnabled");
+const QString HiddenProjects = QStringLiteral("hiddenProjects");
+const QString HiddenLabels = QStringLiteral("hiddenLabels");
+const QString HiddenLocations = QStringLiteral("hiddenLocations");
+const QString ShowEmptyProjects = QStringLiteral("showEmptyProjects");
+const QString NewTaskProjectMode = QStringLiteral("newTaskProjectMode");
+const QString NewTaskDefaultCollection = QStringLiteral("newTaskDefaultCollectionId");
+const QString PanelBadge = QStringLiteral("panelBadge");
+const QString PanelBadgeOverdueColor = QStringLiteral("panelBadgeOverdueColor");
 }
+
+const QString kIdSeparator = QStringLiteral(",");
+const QString kNameSeparator = QStringLiteral("||");
+const QString kScopeAll = QStringLiteral("all");
 
 void logAkonadi(const QString &message)
 {
@@ -294,6 +306,12 @@ TaskController::TaskController(QObject *parent)
     connect(this, &TaskController::mainPaneModeChanged, this, &TaskController::sortOptionsChanged);
     connect(this, &TaskController::kanbanColumnSourceChanged, this, &TaskController::sortOptionsChanged);
     connect(this, &TaskController::listGroupModeChanged, this, &TaskController::sortOptionsChanged);
+    connect(this, &TaskController::mainPaneModeChanged, this, &TaskController::blockedFiltersChanged);
+    connect(this, &TaskController::kanbanColumnSourceChanged, this, &TaskController::blockedFiltersChanged);
+    connect(this, &TaskController::swimlaneSettingsChanged, this, &TaskController::blockedFiltersChanged);
+    connect(this, &TaskController::pendingCountChanged, this, &TaskController::badgeChanged);
+    connect(this, &TaskController::sidebarCountsChanged, this, &TaskController::badgeChanged);
+    connect(this, &TaskController::settingsChanged, this, &TaskController::badgeChanged);
 
     KurrentLogging::reloadFromSharedSettings();
     connect(SharedSettings::instance(), &SharedSettings::changed, this, []() {
@@ -2296,6 +2314,162 @@ QVariantList TaskController::smartViewsList() const
         result.append(row);
     }
     return result;
+}
+
+QVariant TaskController::liveSetting(const QString &key) const
+{
+    // Straight from kurrentrc: views rebuild while the configuration updates, before
+    // loadSettings() has run.
+    return SharedSettings::instance()->values().value(key);
+}
+
+bool TaskController::isProjectHidden(qint64 collectionId) const
+{
+    return TaskLogic::tokenSetContains(liveSetting(Key::HiddenProjects).toString(),
+                                       QString::number(collectionId), kIdSeparator);
+}
+
+QVariantMap TaskController::blockedFilters() const
+{
+    return TaskLogic::blockedSidebarFilters(m_mainPaneMode, m_kanbanColumnSource, m_swimlaneLaneAxis);
+}
+
+int TaskController::badgeCount() const
+{
+    return TaskLogic::panelBadgeCount(liveSetting(Key::PanelBadge).toString(), m_pendingCount, m_viewTaskCounts);
+}
+
+bool TaskController::badgeAlert() const
+{
+    return TaskLogic::panelBadgeAlert(liveSetting(Key::PanelBadge).toString(),
+                                      liveSetting(Key::PanelBadgeOverdueColor).toString(), m_viewTaskCounts);
+}
+
+QVariantList TaskController::sidebarProjects() const
+{
+    const bool showEmpty = liveSetting(Key::ShowEmptyProjects).toBool();
+    QVariantList out;
+    for (int row = 0; row < m_collectionModel.count(); ++row) {
+        const qint64 id = m_collectionModel.collectionIdAt(row);
+        const int taskCount = m_collectionModel.taskCountAt(row);
+        if ((!showEmpty && taskCount <= 0) || isProjectHidden(id)) {
+            continue;
+        }
+        out.append(QVariantMap{
+            {QStringLiteral("collectionId"), id},
+            {QStringLiteral("name"), m_collectionModel.nameAt(row)},
+            {QStringLiteral("taskCount"), taskCount},
+        });
+    }
+    return out;
+}
+
+namespace
+{
+QStringList withoutTokens(const QStringList &items, const QString &hiddenRaw, const QString &separator)
+{
+    QStringList out;
+    for (const QString &item : items) {
+        if (TaskLogic::tokenSetContains(hiddenRaw, item, separator)) {
+            continue;
+        }
+        out.append(item);
+    }
+    return out;
+}
+} // namespace
+
+QStringList TaskController::sidebarLabels() const
+{
+    return withoutTokens(m_availableLabels, liveSetting(Key::HiddenLabels).toString(), kNameSeparator);
+}
+
+QStringList TaskController::sidebarLocations() const
+{
+    return withoutTokens(m_availableLocations, liveSetting(Key::HiddenLocations).toString(), kNameSeparator);
+}
+
+QVariantList TaskController::writableProjects() const
+{
+    QVariantList out;
+    for (int row = 0; row < m_collectionModel.count(); ++row) {
+        const qint64 id = m_collectionModel.collectionIdAt(row);
+        if (!m_collectionModel.enabledAt(row) || isProjectHidden(id) || !m_collectionModel.writableAt(row)) {
+            continue;
+        }
+        out.append(QVariantMap{
+            {QStringLiteral("collectionId"), id},
+            {QStringLiteral("name"), m_collectionModel.nameAt(row)},
+        });
+    }
+    return out;
+}
+
+QVariantMap TaskController::newTaskTarget() const
+{
+    // The rule's inputs: a usable selection, the first sidebar project, a usable default.
+    const qint64 selected = m_collectionModel.writableForId(m_selectedCollectionId) ? m_selectedCollectionId : -1;
+
+    QList<TaskLogic::ProjectCandidate> candidates;
+    QSet<qint64> hidden;
+    for (int row = 0; row < m_collectionModel.count(); ++row) {
+        TaskLogic::ProjectCandidate candidate;
+        candidate.id = m_collectionModel.collectionIdAt(row);
+        candidate.enabled = m_collectionModel.enabledAt(row);
+        candidate.taskCount = m_collectionModel.taskCountAt(row);
+        candidate.writable = m_collectionModel.writableAt(row);
+        candidates.append(candidate);
+        if (isProjectHidden(candidate.id)) {
+            hidden.insert(candidate.id);
+        }
+    }
+
+    const qint64 defaultId = liveSetting(Key::NewTaskDefaultCollection).toString().toLongLong();
+    const int defaultRow = m_collectionModel.rowForCollectionId(defaultId);
+    const bool defaultUsable = defaultRow >= 0 && m_collectionModel.enabledAt(defaultRow)
+            && m_collectionModel.writableForId(defaultId);
+    const TaskLogic::NewTaskTarget target = TaskLogic::resolveNewTaskTarget(
+            selected, liveSetting(Key::NewTaskProjectMode).toString(), defaultId,
+            defaultUsable ? TaskLogic::DefaultCollection::Exists : TaskLogic::DefaultCollection::Missing,
+            TaskLogic::firstSidebarProjectId(candidates, hidden));
+
+    QVariantMap out{{QStringLiteral("collectionId"), target.collectionId}, {QStringLiteral("ask"), false}};
+    if (!target.ask) {
+        return out;
+    }
+
+    // Ask only when there is a choice; no writable project → Akonadi's default (-1).
+    const QVariantList choices = writableProjects();
+    if (choices.size() <= 1) {
+        out.insert(QStringLiteral("collectionId"),
+                   choices.isEmpty() ? -1 : choices.first().toMap().value(QStringLiteral("collectionId")));
+        return out;
+    }
+    out.insert(QStringLiteral("ask"), true);
+    out.insert(QStringLiteral("choices"), choices);
+    return out;
+}
+
+QVariantList TaskController::projectChoices(qint64 currentId, const QString &scope) const
+{
+    const bool all = scope == kScopeAll;
+    QVariantList out;
+    for (int row = 0; row < m_collectionModel.count(); ++row) {
+        if (!m_collectionModel.enabledAt(row)) {
+            continue;
+        }
+        const qint64 id = m_collectionModel.collectionIdAt(row);
+        const bool listed = m_collectionModel.writableAt(row)
+                && (all || (m_collectionModel.taskCountAt(row) > 0 && !isProjectHidden(id)));
+        if (!listed && id != currentId) {
+            continue;
+        }
+        out.append(QVariantMap{
+            {QStringLiteral("collectionId"), id},
+            {QStringLiteral("name"), m_collectionModel.nameAt(row)},
+        });
+    }
+    return out;
 }
 
 void TaskController::setCatchUpEnabled(bool enabled)

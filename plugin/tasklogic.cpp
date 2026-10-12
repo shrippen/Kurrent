@@ -927,7 +927,7 @@ qint64 firstSidebarProjectId(const QList<ProjectCandidate> &projects, const QSet
 {
     qint64 firstNonHidden = -1;
     for (const ProjectCandidate &project : projects) {
-        if (!project.enabled || hiddenIds.contains(project.id)) {
+        if (!project.enabled || !project.writable || hiddenIds.contains(project.id)) {
             continue;
         }
         if (firstNonHidden < 0) {
@@ -1142,6 +1142,55 @@ int panelBadgeCount(const QString &mode, int openRoots, const QVariantMap &viewC
         return qMax(0, viewCounts.value(QStringLiteral("high")).toInt());
     }
     return qMax(0, openRoots);
+}
+
+bool panelBadgeAlert(const QString &mode, const QString &colorMode, const QVariantMap &viewCounts)
+{
+    if (colorMode != QLatin1String("negative")) {
+        return false;
+    }
+    if (mode == QLatin1String("overdue")) {
+        return true;
+    }
+    return mode == QLatin1String("today") && viewCounts.value(ViewId::Overdue).toInt() > 0;
+}
+
+QVariantMap blockedSidebarFilters(const QString &mainPaneMode, const QString &kanbanSource,
+                                  const QString &laneAxis)
+{
+    static const QString project = QStringLiteral("project");
+    static const QString label = QStringLiteral("label");
+    static const QString priority = QStringLiteral("priority");
+    QVariantMap out;
+    if (mainPaneMode == MainPaneMode::Kanban) {
+        // Kanban column source → the sidebar filter it replaces.
+        static const QHash<QString, QString> byColumn = {
+            {KanbanSource::Label, label},
+            {KanbanSource::Project, project},
+            {KanbanSource::Priority, priority},
+            {KanbanSource::Status, QStringLiteral("status")},
+            {KanbanSource::Secrecy, QStringLiteral("secrecy")},
+            {KanbanSource::Completion, QStringLiteral("progress")},
+        };
+        const QString kind = byColumn.value(kanbanSource);
+        if (!kind.isEmpty()) {
+            out.insert(kind, mainPaneMode);
+        }
+        if (kanbanSource == KanbanSource::Label) {
+            out.insert(QStringLiteral("view:") + ViewId::Unlabeled, mainPaneMode);
+        }
+        return out;
+    }
+    if (mainPaneMode == MainPaneMode::Swimlane) {
+        if (laneAxis == label || laneAxis == project || laneAxis == priority) {
+            out.insert(laneAxis, mainPaneMode);
+        }
+        return out;
+    }
+    if (mainPaneMode == MainPaneMode::Plan) {
+        out.insert(project, mainPaneMode);
+    }
+    return out;
 }
 
 QDateTime defaultDueForMode(const QString &mode, const QDate &today)

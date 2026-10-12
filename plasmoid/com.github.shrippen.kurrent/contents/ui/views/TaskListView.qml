@@ -17,8 +17,6 @@ ColumnLayout {
     required property TaskController controller
     property Item dragHost: null
     property string hiddenProjects: ""
-    property string newTaskProjectMode: "ask"
-    property string newTaskDefaultCollectionId: ""
     property bool multiSelectEnabled: false
     // Full-editor overlay: suppress row hover under the dim.
     property bool interactionsSuspended: false
@@ -956,74 +954,11 @@ ColumnLayout {
         }
     }
 
-    function isProjectHidden(collectionId) {
-        if (!hiddenProjects) {
-            return false
-        }
-        return hiddenProjects.split(",").indexOf(String(collectionId)) >= 0
-    }
-
-    function collectionExists(collectionId) {
-        var model = controller.collectionModel
-        if (!model || collectionId <= 0) {
-            return false
-        }
-        var row = model.rowForCollectionId(collectionId)
-        return row >= 0 && model.enabledAt(row)
-    }
-
-    function collectionWritable(collectionId) {
-        var model = controller.collectionModel
-        if (!model || collectionId <= 0) {
-            return false
-        }
-        return model.writableForId(collectionId)
-    }
-
-    function firstSidebarProjectId() {
-        var model = controller.collectionModel
-        if (!model) {
-            return -1
-        }
-        var firstNonHidden = -1
-        for (var i = 0; i < model.count; ++i) {
-            var id = model.collectionIdAt(i)
-            if (!model.enabledAt(i) || isProjectHidden(id) || !model.writableAt(i)) {
-                continue
-            }
-            if (firstNonHidden < 0) {
-                firstNonHidden = id
-            }
-            if (model.taskCountAt(i) > 0) {
-                return id
-            }
-        }
-        return firstNonHidden
-    }
-
+    // hiddenProjects only re-triggers the binding; the controller applies it.
     readonly property var writableProjects: {
         var _count = controller.collectionModel ? controller.collectionModel.count : 0
         var _hidden = hiddenProjects
-        return askProjectList()
-    }
-
-    function askProjectList() {
-        var model = controller.collectionModel
-        var out = []
-        if (!model) {
-            return out
-        }
-        for (var i = 0; i < model.count; ++i) {
-            var id = model.collectionIdAt(i)
-            if (!model.enabledAt(i) || isProjectHidden(id) || !model.writableAt(i)) {
-                continue
-            }
-            out.push({
-                collectionId: id,
-                name: model.nameAt(i)
-            })
-        }
-        return out
+        return controller.writableProjects()
     }
 
     function confirmNewTask(collectionId) {
@@ -1046,47 +981,17 @@ ColumnLayout {
             newTaskField.text = ""
             return
         }
-        var collectionId = controller.selectedCollectionId
-        if (collectionId > 0 && collectionWritable(collectionId)) {
-            controller.createTask(text, collectionId)
-            newTaskField.text = ""
-            return
-        }
-
-        var mode = newTaskProjectMode || "ask"
-        if (mode === "first") {
-            collectionId = firstSidebarProjectId()
-            if (collectionId > 0) {
-                controller.createTask(text, collectionId)
-                newTaskField.text = ""
-                return
-            }
-            mode = "ask"
-        } else if (mode === "fixed") {
-            collectionId = Number(newTaskDefaultCollectionId)
-            if (collectionId > 0 && collectionExists(collectionId) && collectionWritable(collectionId)) {
-                controller.createTask(text, collectionId)
-                newTaskField.text = ""
-                return
-            }
-            mode = "ask"
-        }
-
-        var choices = askProjectList()
-        if (choices.length === 1) {
-            controller.createTask(text, choices[0].collectionId)
-            newTaskField.text = ""
-            return
-        }
-        if (choices.length === 0) {
-            controller.createTask(text, -1)
+        // Selected project, the "new task project" setting, or the only one (controller).
+        var target = controller.newTaskTarget()
+        if (!target.ask) {
+            controller.createTask(text, target.collectionId)
             newTaskField.text = ""
             return
         }
 
         pendingNewTask = text
         newTaskField.text = ""
-        askProjects = choices
+        askProjects = target.choices
         projectAskPopup.open()
     }
 }

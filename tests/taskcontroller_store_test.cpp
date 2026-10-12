@@ -44,6 +44,7 @@ private Q_SLOTS:
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
     void sessionFollowsSmartViewMode();
+    void newTaskTargetAndProjectLists();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -642,6 +643,52 @@ void TaskControllerStoreTest::sessionFollowsSmartViewMode()
     // Without a mode the current one stays.
     m_controller->setCurrentView(QStringLiteral("smart:n"));
     QCOMPARE(m_controller->mainPaneMode(), TaskLogic::MainPaneMode::Plan);
+}
+
+void TaskControllerStoreTest::newTaskTargetAndProjectLists()
+{
+    QQmlPropertyMap config;
+    fillDefaults(&config);
+    SharedSettings *settings = SharedSettings::instance();
+    auto ids = [](const QVariantList &rows) {
+        QList<qint64> out;
+        for (const QVariant &row : rows) {
+            out.append(row.toMap().value(QStringLiteral("collectionId")).toLongLong());
+        }
+        return out;
+    };
+
+    // Two writable projects, "ask": the user chooses.
+    QVariantMap target = m_controller->newTaskTarget();
+    QVERIFY(target.value(QStringLiteral("ask")).toBool());
+    QCOMPARE(ids(target.value(QStringLiteral("choices")).toList()), (QList<qint64>{10, 20}));
+
+    // A selected project wins.
+    m_controller->setSelectedCollectionId(20);
+    QCOMPARE(m_controller->newTaskTarget().value(QStringLiteral("collectionId")).toLongLong(), qint64(20));
+    m_controller->setSelectedCollectionId(-1);
+
+    // Fixed default project.
+    settings->store(QStringLiteral("newTaskProjectMode"), QStringLiteral("fixed"));
+    settings->store(QStringLiteral("newTaskDefaultCollectionId"), QStringLiteral("20"));
+    target = m_controller->newTaskTarget();
+    QVERIFY(!target.value(QStringLiteral("ask")).toBool());
+    QCOMPARE(target.value(QStringLiteral("collectionId")).toLongLong(), qint64(20));
+
+    // Hidden projects leave the lists; the only one left needs no question.
+    settings->store(QStringLiteral("newTaskProjectMode"), QStringLiteral("ask"));
+    settings->store(QStringLiteral("hiddenProjects"), QStringLiteral("10"));
+    QCOMPARE(ids(m_controller->writableProjects()), QList<qint64>{20});
+    target = m_controller->newTaskTarget();
+    QVERIFY(!target.value(QStringLiteral("ask")).toBool());
+    QCOMPARE(target.value(QStringLiteral("collectionId")).toLongLong(), qint64(20));
+    QCOMPARE(ids(m_controller->projectChoices(-1, QStringLiteral("all"))), (QList<qint64>{10, 20}));
+    // Sidebar scope: no tasks yet, so only the current project stays.
+    QCOMPARE(ids(m_controller->projectChoices(10, QStringLiteral("sidebar"))), QList<qint64>{10});
+
+    settings->store(QStringLiteral("showEmptyProjects"), true);
+    QCOMPARE(ids(m_controller->sidebarProjects()), QList<qint64>{20});
+    settings->resetToDefaults();
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

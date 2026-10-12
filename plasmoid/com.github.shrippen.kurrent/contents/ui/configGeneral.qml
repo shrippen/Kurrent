@@ -180,10 +180,8 @@ ConfigPageBase {
                 visible: root.cfg_newTaskProjectMode === "fixed"
                 Layout.fillWidth: true
                 Layout.maximumWidth: Kirigami.Units.gridUnit * 20
-                collectionModel: settingsController ? settingsController.collectionModel : null
-                hiddenProjects: plasmoid.configuration.hiddenProjects || ""
-                includeEmptyProjects: true
-                includeHiddenProjects: true
+                controller: settingsController
+                scope: "all"
                 collectionId: {
                     var n = Number(root.cfg_newTaskDefaultCollectionId)
                     return n > 0 ? n : -1

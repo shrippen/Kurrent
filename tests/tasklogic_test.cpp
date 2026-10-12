@@ -104,6 +104,9 @@ private Q_SLOTS:
     void sortLevelPickDropsConflicts();
     void sortWithoutGroupFamily();
     void sortKeysAllowedPerLayout();
+    void panelBadgeAlertRule();
+    void blockedSidebarFiltersPerLayout();
+    void firstSidebarProjectSkipsReadOnly();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1819,6 +1822,49 @@ void TaskLogicTest::sortKeysAllowedPerLayout()
     QVERIFY(!second.contains(QStringLiteral("dueDesc")));
     QVERIFY(second.contains(QStringLiteral("title")));
     QVERIFY(!TaskLogic::sortLevelKeys({"due", "title", "none"}, 0, listKeys).contains(QStringLiteral("none")));
+}
+
+void TaskLogicTest::panelBadgeAlertRule()
+{
+    const QVariantMap overdue{{QStringLiteral("overdue"), 2}};
+    const QString negative = QStringLiteral("negative");
+    QVERIFY(TaskLogic::panelBadgeAlert(QStringLiteral("overdue"), negative, {}));
+    QVERIFY(TaskLogic::panelBadgeAlert(QStringLiteral("today"), negative, overdue));
+    QVERIFY(!TaskLogic::panelBadgeAlert(QStringLiteral("today"), negative, {}));
+    QVERIFY(!TaskLogic::panelBadgeAlert(QStringLiteral("open"), negative, overdue));
+    QVERIFY(!TaskLogic::panelBadgeAlert(QStringLiteral("overdue"), QStringLiteral("highlight"), overdue));
+}
+
+void TaskLogicTest::blockedSidebarFiltersPerLayout()
+{
+    using namespace TaskLogic;
+    const QVariantMap labels = blockedSidebarFilters(MainPaneMode::Kanban, KanbanSource::Label, QString());
+    QCOMPARE(labels.keys(), (QStringList{"label", "view:unlabeled"}));
+    QCOMPARE(labels.value(QStringLiteral("label")).toString(), MainPaneMode::Kanban);
+    QCOMPARE(blockedSidebarFilters(MainPaneMode::Kanban, KanbanSource::Completion, QString()).keys(),
+             QStringList{"progress"});
+    QVERIFY(blockedSidebarFilters(MainPaneMode::Kanban, KanbanSource::Due, QString()).isEmpty());
+    QCOMPARE(blockedSidebarFilters(MainPaneMode::Swimlane, KanbanSource::Label, QStringLiteral("priority")).keys(),
+             QStringList{"priority"});
+    QVERIFY(blockedSidebarFilters(MainPaneMode::Swimlane, QString(), QStringLiteral("parent")).isEmpty());
+    QCOMPARE(blockedSidebarFilters(MainPaneMode::Plan, QString(), QString()).keys(), QStringList{"project"});
+    QVERIFY(blockedSidebarFilters(MainPaneMode::List, KanbanSource::Label, QStringLiteral("label")).isEmpty());
+}
+
+void TaskLogicTest::firstSidebarProjectSkipsReadOnly()
+{
+    TaskLogic::ProjectCandidate readOnly;
+    readOnly.id = 1;
+    readOnly.taskCount = 3;
+    readOnly.writable = false;
+    TaskLogic::ProjectCandidate empty;
+    empty.id = 2;
+    TaskLogic::ProjectCandidate busy;
+    busy.id = 3;
+    busy.taskCount = 1;
+
+    QCOMPARE(TaskLogic::firstSidebarProjectId({readOnly, empty, busy}, {}), qint64(3));
+    QCOMPARE(TaskLogic::firstSidebarProjectId({readOnly, empty}, {}), qint64(2));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

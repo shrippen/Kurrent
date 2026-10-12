@@ -1004,7 +1004,6 @@ Item {
                 id: sidebar
                 Layout.fillHeight: true
                 controller: backend
-                filterPolicy: plasmoidRoot
                 dragHost: fullRoot
                 interactionsSuspended: taskFullEditor.visible
                 hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
@@ -1017,7 +1016,6 @@ Item {
                 hiddenSections: Plasmoid.configuration.hiddenSidebarSections ?? "progress||status||secrecy||location"
                 viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
                 hiddenViews: Plasmoid.configuration.hiddenViews || ""
-                smartViewsJson: Plasmoid.configuration.smartViews || "[]"
             }
 
             // Sections this view hides, with the reason (g7).
@@ -1734,8 +1732,6 @@ Item {
                 dragHost: fullRoot
                 interactionsSuspended: taskFullEditor.visible
                 hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
-                newTaskProjectMode: Plasmoid.configuration.newTaskProjectMode || "ask"
-                newTaskDefaultCollectionId: Plasmoid.configuration.newTaskDefaultCollectionId || ""
                 multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
                 heatmapFactsInTiles: viewTiles.visible
                 onOpenFullEditor: function(taskObj) { fullRoot.openFullEditor(taskObj) }

@@ -9,11 +9,12 @@ import "../Kante"
 Item {
     id: root
 
-    property var collectionModel
-    property string hiddenProjects: ""
+    // TaskController; it decides which projects are offered (projectChoices).
+    property var controller: null
+    readonly property var collectionModel: controller ? controller.collectionModel : null
     property int collectionId: -1
-    property bool includeEmptyProjects: false
-    property bool includeHiddenProjects: false
+    /** "sidebar": writable, not hidden, with tasks. "all": every writable project. */
+    property string scope: "sidebar"
 
     /** Show radios when count <= this; otherwise ComboBox. */
     readonly property int directLimit: 4
@@ -24,34 +25,8 @@ Item {
                              : (projects.length === 0 ? emptyLabel.implicitHeight : radioRow.implicitHeight)
     implicitWidth: parent ? parent.width : Kirigami.Units.gridUnit * 12
 
-    function _isHidden(id) {
-        if (!hiddenProjects) {
-            return false
-        }
-        return hiddenProjects.split(",").indexOf(String(id)) >= 0
-    }
-
     function rebuild() {
-        var out = []
-        if (!collectionModel) {
-            projects = out
-            return
-        }
-        for (var i = 0; i < collectionModel.count; ++i) {
-            var id = collectionModel.collectionIdAt(i)
-            var name = collectionModel.nameAt(i)
-            var taskCount = collectionModel.taskCountAt(i)
-            if (!collectionModel.enabledAt(i)) {
-                continue
-            }
-            var writable = collectionModel.writableAt(i)
-            var hidden = !includeHiddenProjects && _isHidden(id)
-            var emptyOk = includeEmptyProjects || taskCount > 0
-            // Same filter as sidebar unless include* flags override it; always keep current.
-            if (((emptyOk && !hidden && writable) || id === collectionId)) {
-                out.push({ collectionId: id, name: name })
-            }
-        }
+        var out = controller ? controller.projectChoices(collectionId, scope) : []
         projects = out
 
         if (out.length === 0) {
@@ -84,9 +59,7 @@ Item {
     }
 
     onCollectionModelChanged: rebuild()
-    onHiddenProjectsChanged: rebuild()
-    onIncludeEmptyProjectsChanged: rebuild()
-    onIncludeHiddenProjectsChanged: rebuild()
+    onScopeChanged: rebuild()
 
     Connections {
         target: root.collectionModel || null

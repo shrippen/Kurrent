@@ -179,6 +179,7 @@ struct ProjectCandidate {
     qint64 id = -1;
     bool enabled = true;
     int taskCount = 0;
+    bool writable = true;
 };
 
 struct NewTaskTarget {
@@ -323,6 +324,15 @@ QString emptyKind(LoadState loading,
                   ErrorPresence error);
 
 int panelBadgeCount(const QString &mode, int openRoots, const QVariantMap &viewCounts);
+
+/** Panel badge in the alert colour (colorMode "negative"): it counts overdue tasks, or
+ *  today's while some are overdue. */
+bool panelBadgeAlert(const QString &mode, const QString &colorMode, const QVariantMap &viewCounts);
+
+/** Sidebar filters the layout already shows as columns, lanes or rows, which would leave a
+ *  single one: key ("project", "label", …, "view:unlabeled") → layout ("kanban", …). */
+QVariantMap blockedSidebarFilters(const QString &mainPaneMode, const QString &kanbanSource,
+                                  const QString &laneAxis);
 
 QDateTime defaultDueForMode(const QString &mode, const QDate &today);
 

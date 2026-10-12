@@ -135,14 +135,8 @@ PlasmoidItem {
             parts.push({ kind: "label", text: label, key: label })
         }
         if (priority >= 0) {
-            var priorityText = i18n("None")
-            if (priority >= 1 && priority <= 3) {
-                priorityText = i18n("High")
-            } else if (priority >= 4 && priority <= 6) {
-                priorityText = i18n("Medium")
-            } else if (priority >= 7 && priority <= 9) {
-                priorityText = i18n("Low")
-            }
+            // The controller keeps the band (TaskLogic::priorityBand): 1 high, 5 medium, 9 low.
+            var priorityText = priorityBandLabels[priority] || i18n("None")
             parts.push({ kind: "priority", text: priorityText, key: String(priority) })
         }
         if (progressBand && progressBand !== "") {
@@ -167,6 +161,8 @@ PlasmoidItem {
         }
         return parts
     }
+
+    readonly property var priorityBandLabels: ({ 1: i18n("High"), 5: i18n("Medium"), 9: i18n("Low") })
 
     function activeViewIconSource() {
         if (!backend) {
@@ -259,40 +255,12 @@ PlasmoidItem {
                 : i18n("No open tasks")
     }
 
-    readonly property int panelBadgeCount: {
-        if (!backend) {
-            return 0
-        }
-        var mode = Plasmoid.configuration.panelBadge || "open"
-        var counts = panelViewCounts
-        if (mode === "off") {
-            return 0
-        }
-        if (mode === "today") {
-            return counts["today"] || 0
-        }
-        if (mode === "overdue") {
-            return counts["overdue"] || 0
-        }
-        if (mode === "tomorrow") {
-            return counts["tomorrow"] || 0
-        }
-        if (mode === "high") {
-            return counts["high"] || 0
-        }
-        return backend.pendingCount
-    }
+    // Count and alert colour follow the panelBadge settings (TaskController::badgeCount).
+    readonly property int panelBadgeCount: backend ? backend.badgeCount : 0
 
     readonly property bool panelBadgeUseDot: (Plasmoid.configuration.panelBadgeStyle || "number") === "dot"
 
-    readonly property bool panelBadgeNegative: {
-        var mode = Plasmoid.configuration.panelBadge || "open"
-        var colorMode = Plasmoid.configuration.panelBadgeOverdueColor || "highlight"
-        var counts = panelViewCounts
-        return colorMode === "negative"
-                && ((mode === "overdue")
-                    || (mode === "today" && (counts["overdue"] || 0) > 0))
-    }
+    readonly property bool panelBadgeNegative: backend ? backend.badgeAlert : false
 
     readonly property color panelBadgeColor: panelBadgeNegative
             ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.highlightColor
@@ -304,20 +272,8 @@ PlasmoidItem {
             ? KanteStyle.accentForegroundColor
             : (panelBadgeNegative ? "white" : Kirigami.Theme.highlightedTextColor)
 
-    function parseSmartViews() {
-        return parsedSmartViews
-    }
-
-    readonly property var parsedSmartViews: {
-        try {
-            return JSON.parse(Plasmoid.configuration.smartViews || "[]")
-        } catch (e) {
-            return []
-        }
-    }
-
     readonly property var smartViewById: {
-        var views = parsedSmartViews
+        var views = backend ? backend.smartViews : []
         var byId = {}
         for (var i = 0; i < views.length; ++i) {
             var sv = views[i]
@@ -375,96 +331,6 @@ PlasmoidItem {
         "nopriority": i18n("No priority"),
         "nostatus": i18n("No status")
     })
-
-    function isSidebarFilterEnabled(kind, extra) {
-        if (!backend) {
-            return true
-        }
-        var mode = backend.mainPaneMode
-        if (mode === KurrentUi.Design.viewModeKanban) {
-            if (kind === "label" && backend.kanbanColumnSource === "label") {
-                return false
-            }
-            if (kind === "project" && backend.kanbanColumnSource === "project") {
-                return false
-            }
-            if (kind === "priority" && backend.kanbanColumnSource === "priority") {
-                return false
-            }
-            if (kind === "status" && backend.kanbanColumnSource === "status") {
-                return false
-            }
-            if (kind === "secrecy" && backend.kanbanColumnSource === "secrecy") {
-                return false
-            }
-            if (kind === "progress" && backend.kanbanColumnSource === "completion") {
-                return false
-            }
-            if (kind === "view" && extra === "unlabeled" && backend.kanbanColumnSource === "label") {
-                return false
-            }
-        }
-        if (mode === KurrentUi.Design.viewModeSwimlane) {
-            if (kind === "label" && backend.swimlaneLaneAxis === "label") {
-                return false
-            }
-            if (kind === "project" && backend.swimlaneLaneAxis === "project") {
-                return false
-            }
-            if (kind === "priority" && backend.swimlaneLaneAxis === "priority") {
-                return false
-            }
-        }
-        if (mode === KurrentUi.Design.viewModePlan && kind === "project") {
-            return false
-        }
-        return true
-    }
-
-    function sidebarFilterDisabledReason(kind, extra) {
-        if (!backend) {
-            return ""
-        }
-        var mode = backend.mainPaneMode
-        if (mode === KurrentUi.Design.viewModeKanban) {
-            if (kind === "label" && backend.kanbanColumnSource === "label") {
-                return i18n("Labels are already Kanban columns.")
-            }
-            if (kind === "project" && backend.kanbanColumnSource === "project") {
-                return i18n("Projects are already Kanban columns.")
-            }
-            if (kind === "priority" && backend.kanbanColumnSource === "priority") {
-                return i18n("Priorities are already Kanban columns.")
-            }
-            if (kind === "status" && backend.kanbanColumnSource === "status") {
-                return i18n("Status is already used for Kanban columns.")
-            }
-            if (kind === "secrecy" && backend.kanbanColumnSource === "secrecy") {
-                return i18n("Secrecy is already used for Kanban columns.")
-            }
-            if (kind === "progress" && backend.kanbanColumnSource === "completion") {
-                return i18n("Progress is already used for Kanban columns.")
-            }
-            if (kind === "view" && extra === "unlabeled" && backend.kanbanColumnSource === "label") {
-                return i18n("Unlabeled view does not apply when Kanban uses labels as columns.")
-            }
-        }
-        if (mode === KurrentUi.Design.viewModeSwimlane) {
-            if (kind === "label" && backend.swimlaneLaneAxis === "label") {
-                return i18n("Labels are already swimlane rows.")
-            }
-            if (kind === "project" && backend.swimlaneLaneAxis === "project") {
-                return i18n("Projects are already swimlane rows.")
-            }
-            if (kind === "priority" && backend.swimlaneLaneAxis === "priority") {
-                return i18n("Priorities are already swimlane rows.")
-            }
-        }
-        if (mode === KurrentUi.Design.viewModePlan && kind === "project") {
-            return i18n("Projects are already plan rows.")
-        }
-        return i18n("Not available in the current view.")
-    }
 
     // Last applied colour overrides: a settings change elsewhere must not re-colour every row.
     property string appliedColorsRaw: "-"

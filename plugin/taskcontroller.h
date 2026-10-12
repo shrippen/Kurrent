@@ -89,6 +89,12 @@ class TaskController : public QObject
     Q_PROPERTY(bool multiSelectEnabled READ multiSelectEnabled WRITE setMultiSelectEnabled NOTIFY multiSelectEnabledChanged)
     Q_PROPERTY(QStringList selectedTaskIds READ selectedTaskIds NOTIFY selectedTaskIdsChanged)
     Q_PROPERTY(QString smartViewsJson READ smartViewsJson WRITE setSmartViewsJson NOTIFY smartViewsJsonChanged)
+    Q_PROPERTY(QVariantList smartViews READ smartViewsList NOTIFY smartViewsJsonChanged)
+    // Sidebar filters the main-pane layout already shows (TaskLogic::blockedSidebarFilters).
+    Q_PROPERTY(QVariantMap blockedFilters READ blockedFilters NOTIFY blockedFiltersChanged)
+    // Panel icon badge: number for the "panelBadge" setting, alert colour for overdue.
+    Q_PROPERTY(int badgeCount READ badgeCount NOTIFY badgeChanged)
+    Q_PROPERTY(bool badgeAlert READ badgeAlert NOTIFY badgeChanged)
     Q_PROPERTY(qint64 conflictItemId READ conflictItemId NOTIFY conflictItemIdChanged)
     Q_PROPERTY(bool catchUpEnabled READ catchUpEnabled WRITE setCatchUpEnabled NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int catchUpDays READ catchUpDays WRITE setCatchUpDays NOTIFY catchUpSettingsChanged)
@@ -192,6 +198,9 @@ public:
     bool multiSelectEnabled() const { return m_multiSelectEnabled; }
     QStringList selectedTaskIds() const { return m_selectedTaskIds; }
     QString smartViewsJson() const { return m_smartViewsJson; }
+    QVariantMap blockedFilters() const;
+    int badgeCount() const;
+    bool badgeAlert() const;
     qint64 conflictItemId() const { return m_conflictItemId; }
     bool catchUpEnabled() const { return m_catchUpEnabled; }
     int catchUpDays() const { return m_catchUpDays; }
@@ -329,6 +338,19 @@ public:
     Q_INVOKABLE void reloadTask(qint64 itemId);
     Q_INVOKABLE void dismissConflict();
     Q_INVOKABLE QVariantList smartViewsList() const;
+    /** Sidebar rows: projects with tasks (or all with showEmptyProjects), labels and
+     *  locations, without the hidden ones. Projects as {collectionId, name, taskCount}. */
+    Q_INVOKABLE QVariantList sidebarProjects() const;
+    Q_INVOKABLE QStringList sidebarLabels() const;
+    Q_INVOKABLE QStringList sidebarLocations() const;
+    /** Projects a new task can go to: enabled, writable, not hidden; {collectionId, name}. */
+    Q_INVOKABLE QVariantList writableProjects() const;
+    /** Project for a new task without a Quick Add project: the selected one, else the
+     *  newTaskProjectMode rule, else the only writable one. {collectionId, ask, choices}. */
+    Q_INVOKABLE QVariantMap newTaskTarget() const;
+    /** Project picker rows; scope "sidebar" (writable, not hidden, with tasks) or "all"
+     *  (every writable one). The current project always stays listed. */
+    Q_INVOKABLE QVariantList projectChoices(qint64 currentId, const QString &scope) const;
     void setCatchUpEnabled(bool enabled);
     void setCatchUpDays(int days);
     void setMorningHour(int hour);
@@ -486,6 +508,8 @@ signals:
     void selectedLocationChanged();
     void sortModeChanged();
     void sortOptionsChanged();
+    void blockedFiltersChanged();
+    void badgeChanged();
     void listGroupModeChanged();
     void mainPaneModeChanged();
     void kanbanColumnSourceChanged();
@@ -552,6 +576,8 @@ enum class SyncResult { Error, Ok };
     void persistSort(const QString &mode);
     void applyViewSort();
     QString setting(const QString &key) const;
+    QVariant liveSetting(const QString &key) const;
+    bool isProjectHidden(qint64 collectionId) const;
     const TaskLogic::SmartViewDef *smartViewFor(const QString &viewId) const;
     TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
     QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
