@@ -611,6 +611,15 @@ void TaskControllerStoreTest::sessionRemembersSorts()
     m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::Kanban);
     QCOMPARE(m_controller->sortMode(), TaskLogic::SortMode::Custom);
 
+    // Sort menu and list groups: the group's field leaves the sort.
+    m_controller->selectSortLevel(0, QStringLiteral("priority"));
+    QCOMPARE(m_controller->sortKeys(), (QStringList{"priority", "none", "none"}));
+    m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::List);
+    m_controller->selectListGroup(QStringLiteral("priority"));
+    QCOMPARE(m_controller->sortMode(), QStringLiteral("due,title"));
+    QCOMPARE(stored(QStringLiteral("listGroupMode")).toString(), QStringLiteral("priority"));
+    QVERIFY(!m_controller->sortLevelOptions().first().toStringList().contains(QStringLiteral("priority")));
+
     // Global scope: one stored sort.
     m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::List);
     SharedSettings::instance()->store(QStringLiteral("sortScope"), TaskLogic::SortScope::Global);

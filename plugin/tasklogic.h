@@ -662,6 +662,47 @@ QString jsonMapWith(const QString &json, const QString &key, const QString &valu
 QString sortModeForView(const QString &scope, const QString &globalMode,
                         const QString &byViewJson, const QString &viewId);
 
+// The sort menu: up to three levels of keys; "none" ends the list.
+namespace SortKey
+{
+inline const QString None = QStringLiteral("none");
+inline const QString Priority = QStringLiteral("priority");
+inline const QString Due = QStringLiteral("due");
+inline const QString DueDesc = QStringLiteral("dueDesc");
+inline const QString Title = QStringLiteral("title");
+inline const QString Completed = QStringLiteral("completed");
+}
+constexpr int kSortLevels = 3;
+
+/** Every key the sort menu knows, in menu order (Custom first). */
+QStringList sortKeyIds();
+
+/** Field a key sorts by: "dueDesc" → "due". Two directions of one field exclude each other. */
+QString sortFamily(const QString &key);
+
+bool sortKeysConflict(const QString &a, const QString &b);
+
+/** The menu levels of a mode, padded with "none", later duplicates of a field dropped.
+ *  Example: "due,dueDesc,title" → due, none, none. */
+QStringList sortLevels(const QString &mode);
+
+/** Mode from menu levels: the first defaults to priority, "none" levels are skipped. */
+QString joinSortLevels(const QStringList &levels);
+
+/** Mode after picking `key` at `level`; later levels of the same field drop out. */
+QString withSortLevel(const QString &mode, int level, const QString &key);
+
+/** Mode without keys of `family` (the list is grouped by it); empty when nothing changes.
+ *  Example: "priority,due" without "priority" → "due"; nothing left → "due,title". */
+QString withoutSortFamily(const QString &mode, const QString &family);
+
+/** Keys the current layout allows: Custom only in Kanban; never the Kanban column or the
+ *  list group field (the order inside a column or group would be constant). */
+QStringList allowedSortKeys(const QString &mainPaneMode, const QString &kanbanSource, const QString &listGroup);
+
+/** Keys a menu level may offer: allowed ones, "none" below the first level, no field twice. */
+QStringList sortLevelKeys(const QStringList &levels, int level, const QStringList &allowed);
+
 /** Key of the remembered Kanban sort: "view|columnSource" (e.g. "today|status"). */
 QString kanbanSortKey(const QString &viewId, const QString &source);
 

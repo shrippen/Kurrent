@@ -100,6 +100,10 @@ private Q_SLOTS:
     void sortModeForViewScopes();
     void jsonMapEditsKeepOthers();
     void collectionIdsFromCsvSkipsJunk();
+    void sortLevelsParseAndJoin();
+    void sortLevelPickDropsConflicts();
+    void sortWithoutGroupFamily();
+    void sortKeysAllowedPerLayout();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1749,6 +1753,72 @@ void TaskLogicTest::collectionIdsFromCsvSkipsJunk()
 {
     QCOMPARE(TaskLogic::collectionIdsFromCsv(QStringLiteral("12, 15,,x,7")), (QList<qint64>{12, 15, 7}));
     QVERIFY(TaskLogic::collectionIdsFromCsv(QString()).isEmpty());
+}
+
+void TaskLogicTest::sortLevelsParseAndJoin()
+{
+    using L = QStringList;
+    QCOMPARE(TaskLogic::sortLevels(QString()), (L{"priority", "due", "title"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("default")), (L{"priority", "due", "title"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("custom")), (L{"custom", "none", "none"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral(" due , title ")), (L{"due", "title", "none"}));
+    // Same field twice: the later level drops; an empty second level clears the third.
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("due,dueDesc,title")), (L{"due", "none", "none"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("default,title")), (L{"priority", "title", "none"}));
+
+    QCOMPARE(TaskLogic::joinSortLevels({"none", "due", "none"}), QStringLiteral("priority,due"));
+    QCOMPARE(TaskLogic::joinSortLevels({"title", "none", "due"}), QStringLiteral("title,due"));
+    QCOMPARE(TaskLogic::sortFamily(QStringLiteral("projectDesc")), QStringLiteral("project"));
+    QVERIFY(!TaskLogic::sortKeysConflict(QStringLiteral("none"), QStringLiteral("none")));
+}
+
+void TaskLogicTest::sortLevelPickDropsConflicts()
+{
+    QCOMPARE(TaskLogic::withSortLevel(QStringLiteral("priority,due,title"), 0, QStringLiteral("dueDesc")),
+             QStringLiteral("dueDesc,title"));
+    QCOMPARE(TaskLogic::withSortLevel(QStringLiteral("priority,due,title"), 1, QStringLiteral("none")),
+             QStringLiteral("priority"));
+    QCOMPARE(TaskLogic::withSortLevel(QStringLiteral("priority,due"), 2, QStringLiteral("titleDesc")),
+             QStringLiteral("priority,due,titleDesc"));
+}
+
+void TaskLogicTest::sortWithoutGroupFamily()
+{
+    QCOMPARE(TaskLogic::withoutSortFamily(QStringLiteral("priority,due,title"), QStringLiteral("priority")),
+             QStringLiteral("due,title"));
+    QCOMPARE(TaskLogic::withoutSortFamily(QStringLiteral("project"), QStringLiteral("project")),
+             QStringLiteral("due,title"));
+    QVERIFY(TaskLogic::withoutSortFamily(QStringLiteral("due,title"), QStringLiteral("label")).isEmpty());
+    QVERIFY(TaskLogic::withoutSortFamily(QStringLiteral("priority"), QString()).isEmpty());
+}
+
+void TaskLogicTest::sortKeysAllowedPerLayout()
+{
+    const QString list = TaskLogic::MainPaneMode::List;
+    const QString kanban = TaskLogic::MainPaneMode::Kanban;
+    const QStringList listKeys = TaskLogic::allowedSortKeys(list, TaskLogic::KanbanSource::Priority, QString());
+    QVERIFY(!listKeys.contains(QStringLiteral("custom")));
+    QVERIFY(listKeys.contains(QStringLiteral("priority")));
+
+    const QStringList kanbanKeys = TaskLogic::allowedSortKeys(kanban, TaskLogic::KanbanSource::Due, QString());
+    QVERIFY(kanbanKeys.contains(QStringLiteral("custom")));
+    QVERIFY(!kanbanKeys.contains(QStringLiteral("due")));
+    QVERIFY(!kanbanKeys.contains(QStringLiteral("dueDesc")));
+    QVERIFY(!TaskLogic::allowedSortKeys(kanban, TaskLogic::KanbanSource::Completion, QString())
+                 .contains(QStringLiteral("completed")));
+
+    const QStringList grouped = TaskLogic::allowedSortKeys(list, QString(), QStringLiteral("label"));
+    QVERIFY(!grouped.contains(QStringLiteral("label")));
+    QVERIFY(!grouped.contains(QStringLiteral("labelDesc")));
+    QCOMPARE(TaskLogic::allowedSortKeys(list, QString(), QStringLiteral("none")).size(),
+             TaskLogic::sortKeyIds().size() - 1);
+
+    // Level 1 offers "none" and nothing of the first level's field.
+    const QStringList second = TaskLogic::sortLevelKeys({"due", "title", "none"}, 1, listKeys);
+    QVERIFY(second.contains(QStringLiteral("none")));
+    QVERIFY(!second.contains(QStringLiteral("dueDesc")));
+    QVERIFY(second.contains(QStringLiteral("title")));
+    QVERIFY(!TaskLogic::sortLevelKeys({"due", "title", "none"}, 0, listKeys).contains(QStringLiteral("none")));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

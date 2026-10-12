@@ -65,6 +65,9 @@ class TaskController : public QObject
     Q_PROPERTY(int selectedSecrecy READ selectedSecrecy WRITE setSelectedSecrecy NOTIFY selectedSecrecyChanged)
     Q_PROPERTY(QString selectedLocation READ selectedLocation WRITE setSelectedLocation NOTIFY selectedLocationChanged)
     Q_PROPERTY(QString sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
+    // Sort menu: the three levels of sortMode and, per level, the keys it may offer.
+    Q_PROPERTY(QStringList sortKeys READ sortKeys NOTIFY sortModeChanged)
+    Q_PROPERTY(QVariantList sortLevelOptions READ sortLevelOptions NOTIFY sortOptionsChanged)
     Q_PROPERTY(QString listGroupMode READ listGroupMode WRITE setListGroupMode NOTIFY listGroupModeChanged)
     Q_PROPERTY(QString mainPaneMode READ mainPaneMode WRITE setMainPaneMode NOTIFY mainPaneModeChanged)
     Q_PROPERTY(QString kanbanColumnSource READ kanbanColumnSource WRITE setKanbanColumnSource NOTIFY kanbanColumnSourceChanged)
@@ -166,6 +169,8 @@ public:
     int selectedSecrecy() const { return m_selectedSecrecy; }
     QString selectedLocation() const { return m_selectedLocation; }
     QString sortMode() const { return m_sortMode; }
+    QStringList sortKeys() const;
+    QVariantList sortLevelOptions() const;
     QString listGroupMode() const { return m_listGroupMode; }
     QString mainPaneMode() const { return m_mainPaneMode; }
     QString kanbanColumnSource() const { return m_kanbanColumnSource; }
@@ -362,6 +367,8 @@ public:
     /** Toolbar / menu choices: apply and persist. */
     Q_INVOKABLE void selectMainPaneMode(const QString &mode);
     Q_INVOKABLE void selectSort(const QString &mode);
+    /** Sort menu radio: `key` at level 0–2; later levels of the same field drop out. */
+    Q_INVOKABLE void selectSortLevel(int level, const QString &key);
     Q_INVOKABLE void selectListGroup(const QString &mode);
     Q_INVOKABLE void selectKanbanSource(const QString &source);
     /** Bucket / look-ahead of the active matrix mode (Swimlanes or Project plan). */
@@ -478,6 +485,7 @@ signals:
     void selectedSecrecyChanged();
     void selectedLocationChanged();
     void sortModeChanged();
+    void sortOptionsChanged();
     void listGroupModeChanged();
     void mainPaneModeChanged();
     void kanbanColumnSourceChanged();

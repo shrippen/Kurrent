@@ -289,6 +289,12 @@ TaskController::TaskController(QObject *parent)
     m_store = new AkonadiTaskStore(this);
     connect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
 
+    // The sort menu's offer depends on the sort, the layout, the Kanban columns and the group.
+    connect(this, &TaskController::sortModeChanged, this, &TaskController::sortOptionsChanged);
+    connect(this, &TaskController::mainPaneModeChanged, this, &TaskController::sortOptionsChanged);
+    connect(this, &TaskController::kanbanColumnSourceChanged, this, &TaskController::sortOptionsChanged);
+    connect(this, &TaskController::listGroupModeChanged, this, &TaskController::sortOptionsChanged);
+
     KurrentLogging::reloadFromSharedSettings();
     connect(SharedSettings::instance(), &SharedSettings::changed, this, []() {
         KurrentLogging::reloadFromSharedSettings();
@@ -2730,11 +2736,38 @@ void TaskController::selectSort(const QString &mode)
     persistSort(mode);
 }
 
+void TaskController::selectSortLevel(int level, const QString &key)
+{
+    selectSort(TaskLogic::withSortLevel(m_sortMode, level, key));
+}
+
+QStringList TaskController::sortKeys() const
+{
+    return TaskLogic::sortLevels(m_sortMode);
+}
+
+QVariantList TaskController::sortLevelOptions() const
+{
+    const QStringList levels = sortKeys();
+    const QStringList allowed = TaskLogic::allowedSortKeys(m_mainPaneMode, m_kanbanColumnSource, m_listGroupMode);
+    QVariantList out;
+    for (int level = 0; level < TaskLogic::kSortLevels; ++level) {
+        out.append(TaskLogic::sortLevelKeys(levels, level, allowed));
+    }
+    return out;
+}
+
 void TaskController::selectListGroup(const QString &mode)
 {
     const QString normalized = mode == TaskLogic::ListGroupSource::None ? QString() : mode;
     setListGroupMode(normalized);
     persist(Key::ListGroupMode, normalized);
+
+    // Grouped by a field: sorting by it inside each group would change nothing.
+    const QString stripped = TaskLogic::withoutSortFamily(m_sortMode, normalized);
+    if (!stripped.isEmpty()) {
+        selectSort(stripped);
+    }
 }
 
 void TaskController::selectKanbanSource(const QString &source)

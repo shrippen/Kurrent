@@ -3313,4 +3313,191 @@ QList<qint64> collectionIdsFromCsv(const QString &csv)
     return ids;
 }
 
+QStringList sortKeyIds()
+{
+    static const QStringList ids = {
+        SortMode::Custom, SortKey::Due, SortKey::DueDesc, QStringLiteral("start"), SortKey::Priority,
+        QStringLiteral("project"), QStringLiteral("projectDesc"), QStringLiteral("label"),
+        QStringLiteral("labelDesc"), QStringLiteral("status"), QStringLiteral("statusDesc"),
+        QStringLiteral("secrecy"), QStringLiteral("secrecyDesc"), QStringLiteral("location"),
+        QStringLiteral("locationDesc"), SortKey::Title, QStringLiteral("titleDesc"),
+        QStringLiteral("reminder"), QStringLiteral("reminderDesc"), QStringLiteral("recurring"),
+        QStringLiteral("recurringDesc"), QStringLiteral("progress"), QStringLiteral("progressDesc"),
+        SortKey::Completed,
+    };
+    return ids;
+}
+
+QString sortFamily(const QString &key)
+{
+    static const QString desc = QStringLiteral("Desc");
+    return key.endsWith(desc) ? key.chopped(desc.size()) : key;
+}
+
+bool sortKeysConflict(const QString &a, const QString &b)
+{
+    if (a.isEmpty() || b.isEmpty() || a == SortKey::None || b == SortKey::None) {
+        return false;
+    }
+    return sortFamily(a) == sortFamily(b);
+}
+
+QStringList sortLevels(const QString &mode)
+{
+    static const QString legacyDefault = QStringLiteral("default");
+    QStringList raw;
+    for (const QString &part : mode.split(QLatin1Char(','))) {
+        const QString key = part.trimmed();
+        if (!key.isEmpty()) {
+            raw.append(key);
+        }
+    }
+
+    // Empty or legacy "default" → Priority › Due › A–Z.
+    if (raw.isEmpty() || raw == QStringList{legacyDefault}) {
+        return {SortKey::Priority, SortKey::Due, SortKey::Title};
+    }
+    if (raw == QStringList{SortMode::Custom}) {
+        return {SortMode::Custom, SortKey::None, SortKey::None};
+    }
+
+    QStringList levels = {SortKey::Priority, SortKey::None, SortKey::None};
+    for (int i = 0; i < qMin(kSortLevels, int(raw.size())); ++i) {
+        levels[i] = raw.at(i) == legacyDefault ? SortKey::Priority : raw.at(i);
+    }
+    for (int a = 0; a < kSortLevels; ++a) {
+        for (int b = a + 1; b < kSortLevels; ++b) {
+            if (levels.at(b) != SortKey::None && sortKeysConflict(levels.at(a), levels.at(b))) {
+                levels[b] = SortKey::None;
+            }
+        }
+    }
+    if (levels.at(1) == SortKey::None) {
+        levels[2] = SortKey::None;
+    }
+    return levels;
+}
+
+QString joinSortLevels(const QStringList &levels)
+{
+    const QString first = levels.value(0);
+    QStringList out = {(first.isEmpty() || first == SortKey::None || first == QLatin1String("default"))
+                               ? SortKey::Priority
+                               : first};
+    for (int i = 1; i < kSortLevels; ++i) {
+        const QString key = levels.value(i);
+        if (!key.isEmpty() && key != SortKey::None) {
+            out.append(key);
+        }
+    }
+    return out.join(QLatin1Char(','));
+}
+
+QString withSortLevel(const QString &mode, int level, const QString &key)
+{
+    QStringList levels = sortLevels(mode);
+    if (level < 0 || level >= kSortLevels) {
+        return joinSortLevels(levels);
+    }
+    levels[level] = key;
+    if (level == 1 && key == SortKey::None) {
+        levels[2] = SortKey::None;
+    }
+    if (key == SortKey::None) {
+        return joinSortLevels(levels);
+    }
+    for (int i = level + 1; i < kSortLevels; ++i) {
+        if (sortKeysConflict(key, levels.at(i))) {
+            levels[i] = SortKey::None;
+        }
+    }
+    return joinSortLevels(levels);
+}
+
+QString withoutSortFamily(const QString &mode, const QString &family)
+{
+    if (family.isEmpty()) {
+        return {};
+    }
+    QStringList kept;
+    bool changed = false;
+    for (const QString &key : sortLevels(mode)) {
+        if (key == SortKey::None) {
+            continue;
+        }
+        if (sortFamily(key) == family) {
+            changed = true;
+            continue;
+        }
+        kept.append(key);
+    }
+    if (!changed) {
+        return {};
+    }
+    if (kept.isEmpty()) {
+        kept = {SortKey::Due, SortKey::Title};
+    }
+    return joinSortLevels(kept);
+}
+
+namespace
+{
+// Kanban columns already split by this field: sorting by it inside a column changes nothing.
+bool blockedByKanban(const QString &key, const QString &source)
+{
+    if (source == KanbanSource::Priority) {
+        return key == SortKey::Priority;
+    }
+    if (source == KanbanSource::Due) {
+        return key == SortKey::Due || key == SortKey::DueDesc;
+    }
+    if (source == KanbanSource::Completion) {
+        return key == SortKey::Completed;
+    }
+    return false;
+}
+} // namespace
+
+QStringList allowedSortKeys(const QString &mainPaneMode, const QString &kanbanSource, const QString &listGroup)
+{
+    const bool kanban = mainPaneMode == MainPaneMode::Kanban;
+    const bool grouped = !listGroup.isEmpty() && listGroup != ListGroupSource::None;
+    QStringList out;
+    for (const QString &key : sortKeyIds()) {
+        if (key == SortMode::Custom && !kanban) {
+            continue;
+        }
+        if (kanban && blockedByKanban(key, kanbanSource)) {
+            continue;
+        }
+        if (grouped && sortFamily(key) == listGroup) {
+            continue;
+        }
+        out.append(key);
+    }
+    return out;
+}
+
+QStringList sortLevelKeys(const QStringList &levels, int level, const QStringList &allowed)
+{
+    QStringList out;
+    if (level > 0) {
+        out.append(SortKey::None);
+    }
+    for (const QString &key : allowed) {
+        bool blocked = false;
+        for (int i = 0; i < level; ++i) {
+            if (sortKeysConflict(levels.value(i), key)) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked) {
+            continue;
+        }
+        out.append(key);
+    }
+    return out;
+}
+
 } // namespace TaskLogic
