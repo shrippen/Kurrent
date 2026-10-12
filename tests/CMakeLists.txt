@@ -58,6 +58,15 @@ target_link_libraries(kurrent-calendar-test PRIVATE
 )
 add_test(NAME kurrent-calendar COMMAND kurrent-calendar-test)
 
+add_executable(kurrent-tui-screens-test
+    tui_screens_test.cpp
+    ${CMAKE_SOURCE_DIR}/tui/screens.cpp
+    ${CMAKE_SOURCE_DIR}/tui/screens.h
+)
+target_include_directories(kurrent-tui-screens-test PRIVATE ${CMAKE_SOURCE_DIR}/tui)
+target_link_libraries(kurrent-tui-screens-test PRIVATE Qt6::Core Qt6::Test)
+add_test(NAME kurrent-tui-screens COMMAND kurrent-tui-screens-test)
+
 add_executable(kurrent-taskstore-test
     taskstore_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp

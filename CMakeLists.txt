@@ -46,6 +46,7 @@ include(CTest)
 set(CMAKE_AUTOMOC ON)
 
 add_subdirectory(plugin)
+add_subdirectory(tui)
 
 option(KURRENT_BUILD_KRUNNER "Build the KRunner plugin" ON)
 if(KURRENT_BUILD_KRUNNER)
