@@ -97,6 +97,9 @@ private Q_SLOTS:
     void normalizeLayoutFallsBack();
     void horizonAndOverdueDays();
     void triageQueueOldestFirst();
+    void sortModeForViewScopes();
+    void jsonMapEditsKeepOthers();
+    void collectionIdsFromCsvSkipsJunk();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1416,6 +1419,8 @@ void TaskLogicTest::smartViewFilterJson()
     QCOMPARE(views.size(), 1);
     QCOMPARE(views.first().id, QStringLiteral("work"));
     QCOMPARE(views.first().defaultMode, QStringLiteral("kanban"));
+    // No "mode": the view keeps the current main-pane mode.
+    QVERIFY(TaskLogic::parseSmartViews(QStringLiteral(R"([{"id":"x"}])")).first().defaultMode.isEmpty());
 
     TaskEntry match;
     match.categories = {QStringLiteral("work")};
@@ -1704,6 +1709,46 @@ void TaskLogicTest::triageQueueOldestFirst()
     QCOMPARE(queue.at(1).summary, low.summary);
     QCOMPARE(queue.at(2).summary, none.summary);
     QCOMPARE(queue.at(3).summary, younger.summary);
+}
+
+void TaskLogicTest::sortModeForViewScopes()
+{
+    const QString byView = QStringLiteral("{\"today\":\"due,title\"}");
+
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::Global, QString(), byView, QStringLiteral("today")),
+             TaskLogic::SortMode::Default);
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::Global, QStringLiteral("title"), byView,
+                                        QStringLiteral("today")),
+             QStringLiteral("title"));
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::PerView, QStringLiteral("title"), byView,
+                                        QStringLiteral("today")),
+             QStringLiteral("due,title"));
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::PerView, QStringLiteral("title"), byView,
+                                        QStringLiteral("inbox")),
+             TaskLogic::SortMode::Default);
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::PerView, QString(), QStringLiteral("broken"),
+                                        QStringLiteral("inbox")),
+             TaskLogic::SortMode::Default);
+    QCOMPARE(TaskLogic::kanbanSortKey(QStringLiteral("today"), QStringLiteral("status")), QStringLiteral("today|status"));
+}
+
+void TaskLogicTest::jsonMapEditsKeepOthers()
+{
+    const QString start = QStringLiteral("{\"inbox\":\"title\"}");
+    const QString added = TaskLogic::jsonMapWith(start, QStringLiteral("today"), QStringLiteral("due"));
+
+    QCOMPARE(TaskLogic::jsonMapValue(added, QStringLiteral("inbox")), QStringLiteral("title"));
+    QCOMPARE(TaskLogic::jsonMapValue(added, QStringLiteral("today")), QStringLiteral("due"));
+    QCOMPARE(TaskLogic::jsonMapWith(added, QStringLiteral("today"), QString()), start);
+    QCOMPARE(TaskLogic::jsonMapWith(QStringLiteral("[1]"), QStringLiteral("a"), QStringLiteral("b")),
+             QStringLiteral("{\"a\":\"b\"}"));
+    QVERIFY(TaskLogic::jsonMapValue(QString(), QStringLiteral("a")).isEmpty());
+}
+
+void TaskLogicTest::collectionIdsFromCsvSkipsJunk()
+{
+    QCOMPARE(TaskLogic::collectionIdsFromCsv(QStringLiteral("12, 15,,x,7")), (QList<qint64>{12, 15, 7}));
+    QVERIFY(TaskLogic::collectionIdsFromCsv(QString()).isEmpty());
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

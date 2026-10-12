@@ -16,6 +16,7 @@
 #include <QHash>
 #include <QObject>
 #include <QPointF>
+#include <QPointer>
 #include <QSet>
 #include <QStringList>
 #include <QTimer>
@@ -295,7 +296,7 @@ public:
     Q_INVOKABLE void setMatrixDrilldown(const QString &source, const QString &laneKey,
                                         const QString &timeKey, const QString &label);
     Q_INVOKABLE void clearMatrixDrilldown();
-    /** Ask the shell to switch the main-pane mode (persists like the toolbar does). */
+    /** Switch the main-pane mode from a view (cell drill-down, heatmap day); persists. */
     Q_INVOKABLE void requestMainPaneMode(const QString &mode);
     Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
@@ -340,7 +341,34 @@ public:
     void setQuietHoursEnd(int hour);
     void setSuppressRemindersDuringEvents(bool enabled);
     void setBusyCalendarIds(const QString &ids);
+    /** Agenda menu: show / hide one calendar's events as busy time; persists. */
+    Q_INVOKABLE void toggleBusyCalendar(qint64 calendarId);
     Q_INVOKABLE void setEnabledCollectionIds(const QVariantList &ids);
+
+    // ── Settings (kurrentrc via SharedSettings) ──
+    //
+    //   KCM pages ─cfg_*─▶ Plasmoid.configuration ◀──── applyTo ────────┐
+    //                            │ any key changed                      │
+    //                            ▼ copyFrom                             │
+    //   views ─select*/storeSetting─▶ TaskController ─store─▶ SharedSettings (kurrentrc)
+    //                                       ▲                           │ changed
+    //                                       └──── loadSettings ◀────────┘
+    //
+    // The widget's controller owns the bridge; views never write the configuration.
+    /** Widget start: bridge `configuration`, load settings, restore the start view, refresh. */
+    Q_INVOKABLE void startSession(QObject *configuration);
+    /** Read-only: apply the stored `enabledCollections` (settings pages). */
+    Q_INVOKABLE void loadEnabledCollections();
+    /** Toolbar / menu choices: apply and persist. */
+    Q_INVOKABLE void selectMainPaneMode(const QString &mode);
+    Q_INVOKABLE void selectSort(const QString &mode);
+    Q_INVOKABLE void selectListGroup(const QString &mode);
+    Q_INVOKABLE void selectKanbanSource(const QString &source);
+    /** Bucket / look-ahead of the active matrix mode (Swimlanes or Project plan). */
+    Q_INVOKABLE void selectMatrixBucket(const QString &bucket);
+    Q_INVOKABLE void selectMatrixHorizon(int periods);
+    /** Persist a plain preference (e.g. "planShowUndated", "sidebarWidthUnits"). */
+    Q_INVOKABLE void storeSetting(const QString &key, const QVariant &value);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void syncNow();
     Q_INVOKABLE void createTask(const QString &summary, qint64 collectionId);
@@ -458,7 +486,6 @@ signals:
     void kanbanLayoutChanged();
     void swimlaneSettingsChanged();
     void matrixDrillChanged();
-    void mainPaneModeRequested(const QString &mode);
     void planSettingsChanged();
     void multiSelectEnabledChanged();
     void selectedTaskIdsChanged();
@@ -487,6 +514,12 @@ signals:
     void dbusAddTaskRequested(const QString &summary);
     void dbusOpenViewRequested(const QString &view);
     void dbusSearchRequested(const QString &query);
+    /** kurrentrc changed (any key); the bound configuration is already up to date. */
+    void settingsChanged();
+
+private Q_SLOTS:
+    void onConfigEdited();
+    void onSettingsStored();
 
 private:
 enum class SyncResult { Error, Ok };
@@ -504,6 +537,14 @@ enum class SyncResult { Error, Ok };
         qint64 revertCollectionId = -1;
     };
 
+    void bindConfiguration(QObject *configuration);
+    void loadSettings();
+    void followView();
+    void persist(const QString &key, const QVariant &value);
+    void persistSort(const QString &mode);
+    void applyViewSort();
+    QString setting(const QString &key) const;
+    const TaskLogic::SmartViewDef *smartViewFor(const QString &viewId) const;
     TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
     QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
     void setLoading(bool loading);
@@ -591,6 +632,11 @@ enum class SyncResult { Error, Ok };
 
     bool m_akonadiAvailable = false;
     bool m_demo = false;
+    // Settings: bound Plasmoid.configuration, last loaded kurrentrc values.
+    QPointer<QObject> m_configuration;
+    QVariantMap m_settings;
+    bool m_session = false;
+    bool m_loadingSettings = false;
     bool m_loading = false;
     bool m_listReorganizing = false;
     double m_rebuildMsPerTask = 0.08;

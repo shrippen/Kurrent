@@ -96,29 +96,6 @@ Item {
         resolveOverlayHost()
         plasmoidRoot.applyPopupBackground()
         initSortMenuCaches()
-        Qt.callLater(function() {
-            plasmoidRoot.applyMainPaneMode()
-            plasmoidRoot.applySortForCurrentView()
-        })
-    }
-
-    Connections {
-        target: backend
-        function onKanbanManualOrderJsonChanged() {
-            if (!backend) {
-                return
-            }
-            if (Plasmoid.configuration.kanbanManualOrder !== backend.kanbanManualOrderJson) {
-                Plasmoid.configuration.kanbanManualOrder = backend.kanbanManualOrderJson
-                plasmoidRoot.persistSharedSettings()
-            }
-        }
-        function onSortModeChanged() {
-            if (backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban
-                    && backend.sortMode === "custom") {
-                plasmoidRoot.persistSortMode("custom")
-            }
-        }
     }
 
     Connections {
@@ -683,9 +660,7 @@ Item {
     function setListGroupMode(mode) {
         mainPaneHost.requestSortFeedback()
         var normalized = (!mode || mode === "none") ? "" : mode
-        backend.listGroupMode = normalized
-        Plasmoid.configuration.listGroupMode = normalized
-        plasmoidRoot.persistSharedSettings()
+        backend.selectListGroup(normalized)
         stripSortKeysMatchingGroup(normalized)
     }
 
@@ -941,8 +916,7 @@ Item {
 
     function applySortMode(mode) {
         mainPaneHost.requestSortFeedback()
-        backend.sortMode = mode
-        plasmoidRoot.persistSortMode(mode)
+        backend.selectSort(mode)
     }
 
     function setSortLevel(level, id) {
@@ -1069,21 +1043,7 @@ Item {
         if (!backend) {
             return
         }
-        backend.kanbanColumnSource = source
-        if (source === "label") {
-            backend.selectedLabel = ""
-        } else if (source === "project") {
-            backend.selectedCollectionId = -1
-        } else if (source === "priority") {
-            backend.selectedPriority = -1
-        } else if (source === "status") {
-            backend.selectedStatus = -1
-        } else if (source === "completion") {
-            backend.selectedProgressBand = ""
-        }
-        Plasmoid.configuration.kanbanColumnSource = source
-        plasmoidRoot.persistSharedSettings()
-        plasmoidRoot.applySortForCurrentView()
+        backend.selectKanbanSource(source)
     }
 
     function openKanbanColumnsMenu() {
@@ -1148,23 +1108,15 @@ Item {
     }
 
     function setMatrixLaneAxis(axis) {
-        Plasmoid.configuration.swimlaneLaneAxis = axis
+        backend.storeSetting("swimlaneLaneAxis", axis)
     }
 
     function setMatrixBucket(bucket) {
-        if (swimlaneMode) {
-            Plasmoid.configuration.swimlaneTimeBucket = bucket
-        } else {
-            Plasmoid.configuration.planTimeBucket = bucket
-        }
+        backend.selectMatrixBucket(bucket)
     }
 
     function setMatrixHorizon(n) {
-        if (swimlaneMode) {
-            Plasmoid.configuration.swimlaneHorizon = n
-        } else {
-            Plasmoid.configuration.planHorizon = n
-        }
+        backend.selectMatrixHorizon(n)
     }
 
     function openMatrixMenu() {
@@ -1390,7 +1342,7 @@ Item {
                         return
                     }
                     KurrentUi.Design.sidebarWidthUnits = units
-                    Plasmoid.configuration.sidebarWidthUnits = units
+                    backend.storeSetting("sidebarWidthUnits", units)
                 }
             }
         }
@@ -1667,7 +1619,7 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                     }
                     TapHandler {
-                        onTapped: plasmoidRoot.setMainPaneMode(backend.matrixDrillSource === "plan"
+                        onTapped: backend.selectMainPaneMode(backend.matrixDrillSource === "plan"
                                 ? KurrentUi.Design.viewModePlan : KurrentUi.Design.viewModeSwimlane)
                     }
                     QQC2.ToolTip.text: i18n("Back to the matrix")
@@ -1782,7 +1734,7 @@ Item {
                             checked: backend.mainPaneMode === modelData.id
                             onTriggered: {
                                 mainPaneHost.beginViewTransition(modelData.id)
-                                plasmoidRoot.setMainPaneMode(modelData.id)
+                                backend.selectMainPaneMode(modelData.id)
                             }
                         }
                     }
@@ -1873,7 +1825,7 @@ Item {
                         text: i18n("Show undated tasks")
                         checkable: true
                         checked: backend.planShowUndated
-                        onTriggered: Plasmoid.configuration.planShowUndated = checked
+                        onTriggered: backend.storeSetting("planShowUndated", checked)
                     }
                     QQC2.MenuItem {
                         visible: !fullRoot.swimlaneMode
@@ -1881,7 +1833,7 @@ Item {
                         text: i18n("Show completed tasks")
                         checkable: true
                         checked: backend.planShowCompleted
-                        onTriggered: Plasmoid.configuration.planShowCompleted = checked
+                        onTriggered: backend.storeSetting("planShowCompleted", checked)
                     }
                 }
 

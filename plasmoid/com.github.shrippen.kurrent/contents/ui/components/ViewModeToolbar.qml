@@ -110,16 +110,8 @@ RowLayout {
         // Optimistic update: immediate visual feedback.
         root.currentMode = modeId
         mainPaneHost.beginViewTransition(modeId)
-        if (plasmoidRoot) {
-            plasmoidRoot.setMainPaneMode(modeId)
-        } else if (fullRoot && fullRoot.backend) {
-            // Fallback: plasmoidRoot is unavailable (QML scoping issue
-            // with required property in externally loaded component).
-            // Set backend directly – persist config so the value survives.
-            if (typeof Plasmoid !== "undefined" && Plasmoid.configuration) {
-                Plasmoid.configuration.mainPaneMode = modeId || "list"
-            }
-            fullRoot.backend.mainPaneMode = modeId
+        if (fullRoot && fullRoot.backend) {
+            fullRoot.backend.selectMainPaneMode(modeId)
         }
     }
 

@@ -67,6 +67,7 @@
 - Priority flag in task rows sits right before the due date.
 - Kanban cards: Plasma style uses the Kirigami card look with a hover tint; Kante and Kante Light use a Kante card with the priority bar on top.
 - View-mode toolbar: the active mode shows a highlight tint with a hairline border (Plasma) or an accent fill (Kante).
+- Project plan options (columns, look ahead, undated and completed tasks) are shared by all Kurrent widgets, like every other setting. The first start keeps each widget's current values.
 
 #### Swimlanes and Project plan — polish pass
 - **Shared matrix grid**: pinned column and row headers (both axes), Kanban-style scrolling (wheel, thin bars, middle-click pan), current period highlighted, "jump to current period" button, columns use spare width.

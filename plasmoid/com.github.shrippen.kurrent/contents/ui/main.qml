@@ -91,7 +91,6 @@ PlasmoidItem {
     readonly property bool pluginReady: pluginLoader.status === Loader.Ready && !!pluginLoader.item
     readonly property bool pluginMissing: pluginLoader.status === Loader.Error
     readonly property var backend: pluginReady ? pluginLoader.item.controller : null
-    readonly property var sharedSettings: pluginReady ? pluginLoader.item.settings : null
 
     function normalizeReleaseVersion(v) {
         if (!v) {
@@ -305,10 +304,6 @@ PlasmoidItem {
             ? KanteStyle.accentForegroundColor
             : (panelBadgeNegative ? "white" : Kirigami.Theme.highlightedTextColor)
 
-    function defaultSortMode() {
-        return "priority,due,title"
-    }
-
     function parseSmartViews() {
         return parsedSmartViews
     }
@@ -380,30 +375,6 @@ PlasmoidItem {
         "nopriority": i18n("No priority"),
         "nostatus": i18n("No status")
     })
-
-    function sortModeForView(viewId) {
-        var scope = Plasmoid.configuration.sortScope || "global"
-        if (scope === "perView") {
-            var byView = {}
-            try {
-                byView = JSON.parse(Plasmoid.configuration.sortModeByView || "{}")
-            } catch (e) {
-                byView = {}
-            }
-            var perViewMode = byView[viewId]
-            if (perViewMode && perViewMode !== "") {
-                return perViewMode
-            }
-            return defaultSortMode()
-        }
-        var stored = Plasmoid.configuration.sortMode || ""
-        return stored !== "" ? stored : defaultSortMode()
-    }
-
-    function storedMainPaneMode() {
-        var mode = Plasmoid.configuration.mainPaneMode || ""
-        return mode !== "" ? mode : KurrentUi.Design.viewModeList
-    }
 
     function isSidebarFilterEnabled(kind, extra) {
         if (!backend) {
@@ -495,107 +466,16 @@ PlasmoidItem {
         return i18n("Not available in the current view.")
     }
 
-    function persistMainPaneMode(mode) {
-        Plasmoid.configuration.mainPaneMode = mode || KurrentUi.Design.viewModeList
-    }
-
-    function applyMainPaneMode() {
-        if (!backend) {
-            return
-        }
-        backend.mainPaneMode = storedMainPaneMode()
-    }
-
-    function setMainPaneMode(mode) {
-        if (!backend) {
-            return
-        }
-        // Persist FIRST: the onMainPaneModeChanged handler calls
-        // applyMainPaneMode() → storedMainPaneMode(), which reads
-        // Plasmoid.configuration.  If we persist after setting the
-        // backend property, the synchronous signal handler reads
-        // the OLD value and immediately resets the mode.
-        persistMainPaneMode(mode)
-        backend.mainPaneMode = mode
-        applySortForCurrentView()
-    }
-
-    function persistSortMode(mode) {
-        persistKanbanComboSort(mode)
-        if (mode === "custom") {
-            persistSharedSettings()
-            return
-        }
-        var def = defaultSortMode()
-        var scope = Plasmoid.configuration.sortScope || "global"
-        if (scope === "perView") {
-            var byView = {}
-            try {
-                byView = JSON.parse(Plasmoid.configuration.sortModeByView || "{}")
-            } catch (e) {
-                byView = {}
-            }
-            var viewId = backend ? backend.currentView : ""
-            if (mode === def) {
-                delete byView[viewId]
-            } else {
-                byView[viewId] = mode
-            }
-            Plasmoid.configuration.sortModeByView = JSON.stringify(byView)
-        } else {
-            Plasmoid.configuration.sortMode = mode === def ? "" : mode
-        }
-        persistSharedSettings()
-    }
-
-    function kanbanComboKey() {
-        if (!backend) {
-            return ""
-        }
-        return backend.currentView + "|" + backend.kanbanColumnSource
-    }
-
-    function persistKanbanComboSort(mode) {
-        if (!backend || backend.mainPaneMode !== KurrentUi.Design.viewModeKanban) {
-            return
-        }
-        var map = {}
-        try {
-            map = JSON.parse(Plasmoid.configuration.kanbanSortModeByViewColumn || "{}")
-        } catch (e) {
-            map = {}
-        }
-        map[kanbanComboKey()] = mode
-        Plasmoid.configuration.kanbanSortModeByViewColumn = JSON.stringify(map)
-    }
-
-    function applySortForCurrentView() {
-        if (!backend) {
-            return
-        }
-        if (backend.mainPaneMode === KurrentUi.Design.viewModeKanban) {
-            var map = {}
-            try {
-                map = JSON.parse(Plasmoid.configuration.kanbanSortModeByViewColumn || "{}")
-            } catch (e) {
-                map = {}
-            }
-            var combo = kanbanComboKey()
-            if (map[combo]) {
-                backend.sortMode = map[combo]
-                return
-            }
-        }
-        backend.sortMode = sortModeForView(backend.currentView)
-    }
-
-    function persistSharedSettings() {
-        if (sharedSettings) {
-            sharedSettings.copyFrom(Plasmoid.configuration)
-        }
-    }
+    // Last applied colour overrides: a settings change elsewhere must not re-colour every row.
+    property string appliedColorsRaw: "-"
 
     function applyColorsFromConfig() {
+        var raw = [Plasmoid.configuration.projectColors, Plasmoid.configuration.labelColors,
+                   Plasmoid.configuration.locationColors].join("\n")
+        if (raw === appliedColorsRaw) {
+            return
+        }
+        appliedColorsRaw = raw
         var projects = {}
         var labels = {}
         var locations = {}
@@ -628,45 +508,14 @@ PlasmoidItem {
                 ? Plasmoid.configuration.scrollSpeed : 50
     }
 
-    function loadSharedSettings() {
-        if (sharedSettings) {
-            sharedSettings.applyTo(Plasmoid.configuration)
-        }
-        applyDesignFromConfig()
-        applyColorsFromConfig()
-    }
-
+    // The controller has bridged the configuration with kurrentrc by now (PluginBackend).
     function initPluginSettings() {
-        if (!sharedSettings) {
-            applyDesignFromConfig()
-            applyColorsFromConfig()
-            return
-        }
-        sharedSettings.seedFromIfEmpty(Plasmoid.configuration)
-        sharedSettings.applyTo(Plasmoid.configuration)
         applyDesignFromConfig()
         applyColorsFromConfig()
         if (backend && backend.smokeTest) {
             root.expanded = true
         }
         applyPopupBackground()
-        if (backend) {
-            backend.smartViewsJson = Plasmoid.configuration.smartViews || "[]"
-            backend.kanbanColumnSource = Plasmoid.configuration.kanbanColumnSource || "status"
-            backend.kanbanWriteMode = Plasmoid.configuration.kanbanWriteMode || "fields"
-            backend.kanbanManualOrderJson = Plasmoid.configuration.kanbanManualOrder || "{}"
-            backend.swimlaneLaneAxis = Plasmoid.configuration.swimlaneLaneAxis || "project"
-            backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "week"
-            backend.swimlaneHorizon = Plasmoid.configuration.swimlaneHorizon || 0
-            backend.planTimeBucket = Plasmoid.configuration.planTimeBucket || "week"
-            backend.planHorizon = Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
-            backend.planShowUndated = Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
-            backend.planShowCompleted = Plasmoid.configuration.planShowCompleted === true
-            backend.multiSelectEnabled = Plasmoid.configuration.multiSelectEnabled === true
-            backend.listGroupMode = Plasmoid.configuration.listGroupMode || ""
-            applyMainPaneMode()
-            applySortForCurrentView()
-        }
     }
 
     Component.onCompleted: {
@@ -683,9 +532,6 @@ PlasmoidItem {
         target: backend
         function onDbusShowRequested() {
             root.expanded = true
-        }
-        function onMainPaneModeRequested(mode) {
-            root.setMainPaneMode(mode)
         }
         function onDbusAddTaskRequested(summary) {
             root.expanded = true
@@ -710,406 +556,13 @@ PlasmoidItem {
         }
     }
 
-    function applyEnabledCollections() {
-        if (!backend) {
-            return
-        }
-        var raw = Plasmoid.configuration.enabledCollections || ""
-        if (!raw.trim()) {
-            return
-        }
-        var parts = raw.split(",")
-        var ids = []
-        for (var i = 0; i < parts.length; ++i) {
-            var value = parseInt(parts[i].trim(), 10)
-            if (!isNaN(value)) {
-                ids.push(value)
-            }
-        }
-        if (ids.length > 0) {
-            backend.setEnabledCollectionIds(ids)
-        }
-    }
-
-    Connections {
-        target: sharedSettings
-        function onChanged() {
-            root.loadSharedSettings()
-        }
-    }
-
-    Connections {
-        target: Plasmoid.configuration
-        function onShowCompletedChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.showCompleted = Plasmoid.configuration.showCompleted
-            }
-        }
-        function onDefaultViewChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.currentView = Plasmoid.configuration.defaultView
-            }
-        }
-        function onEnabledCollectionsChanged() {
-            root.persistSharedSettings()
-            root.applyEnabledCollections()
-            if (backend) {
-                backend.refresh()
-            }
-        }
-        function onBlurBackgroundChanged() {
-            root.persistSharedSettings()
-            root.applyPopupBackground()
-        }
-        function onHiddenProjectsChanged() {
-            root.persistSharedSettings()
-        }
-        function onHiddenLabelsChanged() {
-            root.persistSharedSettings()
-        }
-        function onSidebarRowSizeChanged() {
-            root.persistSharedSettings()
-        }
-        function onNewTaskProjectModeChanged() {
-            root.persistSharedSettings()
-        }
-        function onNewTaskDefaultCollectionIdChanged() {
-            root.persistSharedSettings()
-        }
-        function onCatchUpEnabledChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.catchUpEnabled = Plasmoid.configuration.catchUpEnabled !== false
-            }
-        }
-        function onCatchUpDaysChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.catchUpDays = Plasmoid.configuration.catchUpDays || 14
-            }
-        }
-        function onMorningHourChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.morningHour = Plasmoid.configuration.morningHour
-            }
-        }
-        function onAfternoonHourChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.afternoonHour = Plasmoid.configuration.afternoonHour
-            }
-        }
-        function onEveningHourChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.eveningHour = Plasmoid.configuration.eveningHour
-            }
-        }
-        function onShowJoinButtonChanged() {
-            root.persistSharedSettings()
-        }
-        function onRememberLastViewChanged() {
-            root.persistSharedSettings()
-        }
-        function onLastViewChanged() {
-            root.persistSharedSettings()
-        }
-        function onDensityChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onUiStyleChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onAccentProjectColorsChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onAccentPriorityColorsChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onShowOverdueBannerChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onShowViewTilesChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onShowInspectorChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onSidebarWidthUnitsChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onOverlayDimStepChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onReducedMotionChanged() {
-            root.persistSharedSettings()
-            root.applyDesignFromConfig()
-        }
-        function onShowEmptyProjectsChanged() {
-            root.persistSharedSettings()
-        }
-        function onShowSidebarCountsChanged() {
-            root.persistSharedSettings()
-        }
-        function onShowDateChipChanged() {
-            root.persistSharedSettings()
-        }
-        function onShowLabelChipsChanged() {
-            root.persistSharedSettings()
-        }
-        function onShowPriorityChipChanged() {
-            root.persistSharedSettings()
-        }
-        function onShowRecurringIconChanged() {
-            root.persistSharedSettings()
-        }
-        function onDefaultDueModeChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.defaultDueMode = Plasmoid.configuration.defaultDueMode || "none"
-            }
-        }
-        function onConfirmDeleteChanged() {
-            root.persistSharedSettings()
-        }
-        function onClickActionChanged() {
-            root.persistSharedSettings()
-        }
-        function onPanelBadgeChanged() {
-            root.persistSharedSettings()
-        }
-        function onFlyoutWidthUnitsChanged() {
-            root.persistSharedSettings()
-        }
-        function onFlyoutHeightUnitsChanged() {
-            root.persistSharedSettings()
-        }
-        function onSearchTitleOnlyChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.searchTitleOnly = Plasmoid.configuration.searchTitleOnly === true
-            }
-        }
-        function onCompleteChildrenChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.completeChildren = Plasmoid.configuration.completeChildren === true
-            }
-        }
-        function onCountsExcludeCollapsedChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.countsExcludeCollapsed = Plasmoid.configuration.countsExcludeCollapsed === true
-            }
-        }
-        function onNotificationsEnabledChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.notificationsEnabled = Plasmoid.configuration.notificationsEnabled !== false
-            }
-        }
-        function onDefaultReminderMinutesChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.defaultReminderMinutes = Plasmoid.configuration.defaultReminderMinutes
-            }
-        }
-        function onProjectColorsChanged() {
-            root.persistSharedSettings()
-            root.applyColorsFromConfig()
-        }
-        function onLabelColorsChanged() {
-            root.persistSharedSettings()
-            root.applyColorsFromConfig()
-        }
-        function onDescriptionPreviewLinesChanged() {
-            root.persistSharedSettings()
-        }
-        function onSidebarSectionOrderChanged() { root.persistSharedSettings() }
-        function onHiddenSidebarSectionsChanged() { root.persistSharedSettings() }
-        function onSidebarViewOrderChanged() { root.persistSharedSettings() }
-        function onHiddenViewsChanged() { root.persistSharedSettings() }
-        function onSearchCaseSensitiveChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.searchCaseSensitive = Plasmoid.configuration.searchCaseSensitive === true
-            }
-        }
-        function onRelativeDatesChanged() { root.persistSharedSettings() }
-        function onShowTimeOnRowChanged() { root.persistSharedSettings() }
-        function onCompleteNeedsModifierChanged() { root.persistSharedSettings() }
-        function onQuietHoursEnabledChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.quietHoursEnabled = Plasmoid.configuration.quietHoursEnabled === true
-            }
-        }
-        function onQuietHoursStartChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.quietHoursStart = Plasmoid.configuration.quietHoursStart
-            }
-        }
-        function onQuietHoursEndChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.quietHoursEnd = Plasmoid.configuration.quietHoursEnd
-            }
-        }
-        function onSuppressRemindersDuringEventsChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.suppressRemindersDuringEvents = Plasmoid.configuration.suppressRemindersDuringEvents === true
-            }
-        }
-        function onBusyCalendarIdsChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.busyCalendarIds = Plasmoid.configuration.busyCalendarIds || ""
-            }
-        }
-        function onSortScopeChanged() {
-            root.persistSharedSettings()
-            root.applySortForCurrentView()
-        }
-        function onSortModeChanged() {
-            root.persistSharedSettings()
-        }
-        function onSortModeByViewChanged() {
-            root.persistSharedSettings()
-        }
-        function onViewModeByViewChanged() {
-            root.persistSharedSettings()
-        }
-        function onSmartViewsChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.smartViewsJson = Plasmoid.configuration.smartViews || "[]"
-            }
-        }
-        function onMainPaneModeChanged() {
-            root.persistSharedSettings()
-            root.applyMainPaneMode()
-            root.applySortForCurrentView()
-        }
-        function onKanbanColumnSourceChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.kanbanColumnSource = Plasmoid.configuration.kanbanColumnSource || "status"
-            }
-            root.applySortForCurrentView()
-        }
-        function onKanbanSortModeByViewColumnChanged() {
-            root.persistSharedSettings()
-        }
-        function onKanbanWriteModeChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.kanbanWriteMode = Plasmoid.configuration.kanbanWriteMode || "fields"
-            }
-        }
-        function onKanbanManualOrderChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.kanbanManualOrderJson = Plasmoid.configuration.kanbanManualOrder || "{}"
-            }
-        }
-        function onSwimlaneLaneAxisChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.swimlaneLaneAxis = Plasmoid.configuration.swimlaneLaneAxis || "project"
-            }
-        }
-        function onSwimlaneTimeBucketChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.swimlaneTimeBucket = Plasmoid.configuration.swimlaneTimeBucket || "week"
-            }
-        }
-        function onSwimlaneHorizonChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.swimlaneHorizon = Plasmoid.configuration.swimlaneHorizon || 0
-            }
-        }
-        function onPlanTimeBucketChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.planTimeBucket = Plasmoid.configuration.planTimeBucket || "week"
-            }
-        }
-        function onPlanHorizonChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.planHorizon = Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
-            }
-        }
-        function onPlanShowUndatedChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.planShowUndated = Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
-            }
-        }
-        function onPlanShowCompletedChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.planShowCompleted = Plasmoid.configuration.planShowCompleted === true
-            }
-        }
-        function onMultiSelectEnabledChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.multiSelectEnabled = Plasmoid.configuration.multiSelectEnabled === true
-            }
-        }
-        function onVerboseJournalLoggingChanged() {
-            root.persistSharedSettings()
-        }
-        function onInfoJournalLoggingChanged() {
-            root.persistSharedSettings()
-        }
-        function onListGroupModeChanged() {
-            root.persistSharedSettings()
-            if (backend) {
-                backend.listGroupMode = Plasmoid.configuration.listGroupMode || ""
-            }
-        }
-    }
-
+    // Settings changed (settings page, other widget): presentation follows the configuration.
     Connections {
         target: backend
-        function onCurrentViewChanged() {
-            if (Plasmoid.configuration.rememberLastView && backend) {
-                Plasmoid.configuration.lastView = backend.currentView
-            }
-            // Apply smart view default mode if set.
-            if (backend && backend.currentView.indexOf("smart:") === 0) {
-                var smartId = backend.currentView.slice(6)
-                var smart = smartViewById[smartId]
-                if (smart && smart.mode && smart.mode !== backend.mainPaneMode) {
-                    setMainPaneMode(smart.mode)
-                }
-                // Apply smart view sort override if set.
-                if (smart && smart.sort) {
-                    var currentSort = sortModeForView(backend.currentView)
-                    if (currentSort === defaultSortMode()) {
-                        backend.sortMode = smart.sort
-                    }
-                }
-            }
-            root.applySortForCurrentView()
+        function onSettingsChanged() {
+            root.applyDesignFromConfig()
+            root.applyColorsFromConfig()
+            root.applyPopupBackground()
         }
     }
 

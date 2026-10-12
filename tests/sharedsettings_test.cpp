@@ -25,6 +25,8 @@ private Q_SLOTS:
     void persistsReminderSearchAndColors();
     void persistsSortModeKeys();
     void persistsViewModeAndSmartViews();
+    void seedsMissingKeysOnly();
+    void storesTypedKnownKeys();
 
 private:
     QTemporaryDir m_dir;
@@ -282,6 +284,41 @@ void SharedSettingsTest::persistsViewModeAndSmartViews()
     QCOMPARE(target.value(QStringLiteral("kanbanColumnSource")).toString(), QStringLiteral("due"));
     QCOMPARE(target.value(QStringLiteral("multiSelectEnabled")).toBool(), true);
     QVERIFY(target.value(QStringLiteral("smartViews")).toString().contains(QStringLiteral("x")));
+}
+
+void SharedSettingsTest::seedsMissingKeysOnly()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-missing"));
+    SharedSettings store(fileName);
+    store.store(QStringLiteral("sortMode"), QStringLiteral("title"));
+
+    // Plan keys lived only in the widget config before: they are adopted, stored keys win.
+    QQmlPropertyMap config;
+    config.insert(QStringLiteral("sortMode"), QStringLiteral("due"));
+    config.insert(QStringLiteral("planHorizon"), 12);
+    config.insert(QStringLiteral("planShowUndated"), false);
+    store.seedMissingFrom(&config);
+
+    SharedSettings other(fileName);
+    QCOMPARE(other.values().value(QStringLiteral("sortMode")).toString(), QStringLiteral("title"));
+    QCOMPARE(other.values().value(QStringLiteral("planHorizon")).toInt(), 12);
+    QCOMPARE(other.values().value(QStringLiteral("planShowUndated")).toBool(), false);
+    QCOMPARE(other.values().value(QStringLiteral("planTimeBucket")).toString(), QStringLiteral("week"));
+}
+
+void SharedSettingsTest::storesTypedKnownKeys()
+{
+    const QString fileName = m_dir.filePath(QStringLiteral("kurrent-shared-store"));
+    SharedSettings store(fileName);
+    QSignalSpy changed(&store, &SharedSettings::changed);
+
+    store.store(QStringLiteral("planHorizon"), QStringLiteral("4"));
+    store.store(QStringLiteral("planHorizon"), 4);
+    store.store(QStringLiteral("noSuchKey"), 1);
+
+    QCOMPARE(changed.count(), 1);
+    QCOMPARE(store.values().value(QStringLiteral("planHorizon")).userType(), QMetaType::Int);
+    QCOMPARE(SharedSettings(fileName).values().value(QStringLiteral("planHorizon")).toInt(), 4);
 }
 
 QTEST_MAIN(SharedSettingsTest)

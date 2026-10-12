@@ -39,7 +39,10 @@
 #include <QGuiApplication>
 #include <QHash>
 #include <QLoggingCategory>
+#include <QScopedValueRollback>
 #include <QScreen>
+#include <QMetaMethod>
+#include <QMetaProperty>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
@@ -72,6 +75,53 @@ constexpr int kRebuildDelayMs = 50;
 constexpr int kCollectionsReloadDelayMs = 250;
 constexpr int kAkonadiRetryIntervalMs = 5000;
 constexpr int kAsyncRebuildThreshold = 40;
+constexpr int kDefaultCatchUpDays = 14;
+const QString kSmartPrefix = QStringLiteral("smart:");
+
+// kurrentrc keys the controller reads or writes (SharedSettings::specs()).
+namespace Key
+{
+const QString DefaultView = QStringLiteral("defaultView");
+const QString RememberLastView = QStringLiteral("rememberLastView");
+const QString LastView = QStringLiteral("lastView");
+const QString EnabledCollections = QStringLiteral("enabledCollections");
+const QString ShowCompleted = QStringLiteral("showCompleted");
+const QString CatchUpEnabled = QStringLiteral("catchUpEnabled");
+const QString CatchUpDays = QStringLiteral("catchUpDays");
+const QString MorningHour = QStringLiteral("morningHour");
+const QString AfternoonHour = QStringLiteral("afternoonHour");
+const QString EveningHour = QStringLiteral("eveningHour");
+const QString DefaultDueMode = QStringLiteral("defaultDueMode");
+const QString SearchTitleOnly = QStringLiteral("searchTitleOnly");
+const QString SearchCaseSensitive = QStringLiteral("searchCaseSensitive");
+const QString CompleteChildren = QStringLiteral("completeChildren");
+const QString CountsExcludeCollapsed = QStringLiteral("countsExcludeCollapsed");
+const QString NotificationsEnabled = QStringLiteral("notificationsEnabled");
+const QString DefaultReminderMinutes = QStringLiteral("defaultReminderMinutes");
+const QString QuietHoursEnabled = QStringLiteral("quietHoursEnabled");
+const QString QuietHoursStart = QStringLiteral("quietHoursStart");
+const QString QuietHoursEnd = QStringLiteral("quietHoursEnd");
+const QString SuppressReminders = QStringLiteral("suppressRemindersDuringEvents");
+const QString BusyCalendarIds = QStringLiteral("busyCalendarIds");
+const QString SmartViews = QStringLiteral("smartViews");
+const QString SortMode = QStringLiteral("sortMode");
+const QString SortScope = QStringLiteral("sortScope");
+const QString SortModeByView = QStringLiteral("sortModeByView");
+const QString ListGroupMode = QStringLiteral("listGroupMode");
+const QString MainPaneMode = QStringLiteral("mainPaneMode");
+const QString KanbanColumnSource = QStringLiteral("kanbanColumnSource");
+const QString KanbanWriteMode = QStringLiteral("kanbanWriteMode");
+const QString KanbanManualOrder = QStringLiteral("kanbanManualOrder");
+const QString KanbanSortByColumn = QStringLiteral("kanbanSortModeByViewColumn");
+const QString SwimlaneLaneAxis = QStringLiteral("swimlaneLaneAxis");
+const QString SwimlaneTimeBucket = QStringLiteral("swimlaneTimeBucket");
+const QString SwimlaneHorizon = QStringLiteral("swimlaneHorizon");
+const QString PlanTimeBucket = QStringLiteral("planTimeBucket");
+const QString PlanHorizon = QStringLiteral("planHorizon");
+const QString PlanShowUndated = QStringLiteral("planShowUndated");
+const QString PlanShowCompleted = QStringLiteral("planShowCompleted");
+const QString MultiSelectEnabled = QStringLiteral("multiSelectEnabled");
+}
 
 void logAkonadi(const QString &message)
 {
@@ -704,6 +754,9 @@ void TaskController::setCurrentView(const QString &view)
     clearMatrixDrilldown();
     scheduleRebuild();
     Q_EMIT currentViewChanged();
+    if (m_session) {
+        followView();
+    }
 }
 
 void TaskController::setManagementView(const QString &view)
@@ -825,6 +878,11 @@ void TaskController::setSortMode(const QString &mode)
     maybeShowReorganizing();
     scheduleRebuild();
     Q_EMIT sortModeChanged();
+
+    // A Kanban reorder switches to Custom: remember it for this view and column source.
+    if (m_mainPaneMode == TaskLogic::MainPaneMode::Kanban && m_sortMode == TaskLogic::SortMode::Custom) {
+        persistSort(m_sortMode);
+    }
 }
 
 void TaskController::setListGroupMode(const QString &mode)
@@ -890,6 +948,7 @@ void TaskController::setKanbanManualOrderJson(const QString &json)
             : QVariantMap();
     Q_EMIT kanbanManualOrderJsonChanged();
     updateKanbanLayout();
+    persist(Key::KanbanManualOrder, m_kanbanManualOrderJson);
 }
 
 void TaskController::setSwimlaneLaneAxis(const QString &axis)
@@ -1897,7 +1956,7 @@ void TaskController::clearMatrixDrilldown()
 
 void TaskController::requestMainPaneMode(const QString &mode)
 {
-    Q_EMIT mainPaneModeRequested(mode);
+    selectMainPaneMode(mode);
 }
 
 QVariantMap TaskController::heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const
@@ -2079,6 +2138,18 @@ QVariantList TaskController::eventCalendars() const
         result.append(row);
     }
     return result;
+}
+
+void TaskController::toggleBusyCalendar(qint64 calendarId)
+{
+    QList<qint64> allIds;
+    allIds.reserve(s_eventCollections.size());
+    for (const Akonadi::Collection &collection : s_eventCollections) {
+        allIds.append(collection.id());
+    }
+    const QString csv = TaskLogic::toggleEnabledCsv(m_busyCalendarIds, calendarId, allIds);
+    setBusyCalendarIds(csv);
+    persist(Key::BusyCalendarIds, csv);
 }
 
 void TaskController::setAgendaSelectedDate(const QDate &date)
@@ -2411,6 +2482,296 @@ void TaskController::setEnabledCollectionIds(const QVariantList &ids)
                  .arg(enabled.size())
                  .arg(m_collectionModel.hasCustomEnabledFilter() ? QStringLiteral("custom filter") : QStringLiteral("all")));
     loadTasks();
+}
+
+void TaskController::startSession(QObject *configuration)
+{
+    if (m_session) {
+        return;
+    }
+    bindConfiguration(configuration);
+    loadSettings();
+
+    // Start view: the default view, or the last one when "remember last view" is on.
+    QString view = setting(Key::DefaultView);
+    if (view.isEmpty()) {
+        view = TaskLogic::ViewId::Inbox;
+    }
+    const QString lastView = setting(Key::LastView);
+    if (m_settings.value(Key::RememberLastView).toBool() && !lastView.isEmpty()) {
+        view = lastView;
+    }
+    setCurrentView(view);
+    loadEnabledCollections();
+
+    m_session = true;
+    applyViewSort();
+    connect(SharedSettings::instance(), &SharedSettings::changed, this, &TaskController::onSettingsStored);
+    QTimer::singleShot(0, this, &TaskController::refresh);
+}
+
+void TaskController::loadEnabledCollections()
+{
+    const QString csv = SharedSettings::instance()->values().value(Key::EnabledCollections).toString();
+    const QList<qint64> ids = TaskLogic::collectionIdsFromCsv(csv);
+    if (ids.isEmpty()) {
+        return;
+    }
+    QVariantList list;
+    for (qint64 id : ids) {
+        list.append(id);
+    }
+    setEnabledCollectionIds(list);
+}
+
+void TaskController::bindConfiguration(QObject *configuration)
+{
+    if (!configuration) {
+        return;
+    }
+    m_configuration = configuration;
+    SharedSettings *store = SharedSettings::instance();
+    store->seedFromIfEmpty(configuration);
+    store->seedMissingFrom(configuration);
+    store->applyTo(configuration);
+
+    // One generic bridge: any known key's change signal pushes the whole configuration.
+    // QML writes (KCM Apply) and C++ inserts both emit these, unlike valueChanged().
+    const QStringList keys = store->keys();
+    const QMetaMethod slot = staticMetaObject.method(staticMetaObject.indexOfSlot("onConfigEdited()"));
+    const QMetaObject *meta = configuration->metaObject();
+    for (int i = 0; i < meta->propertyCount(); ++i) {
+        const QMetaProperty property = meta->property(i);
+        if (!property.hasNotifySignal() || !keys.contains(QLatin1String(property.name()))) {
+            continue;
+        }
+        connect(configuration, property.notifySignal(), this, slot);
+    }
+}
+
+void TaskController::onConfigEdited()
+{
+    if (!m_configuration) {
+        return;
+    }
+    SharedSettings::instance()->copyFrom(m_configuration);
+}
+
+void TaskController::onSettingsStored()
+{
+    if (m_configuration) {
+        SharedSettings::instance()->applyTo(m_configuration);
+    }
+    loadSettings();
+    Q_EMIT settingsChanged();
+}
+
+QString TaskController::setting(const QString &key) const
+{
+    return m_settings.value(key).toString();
+}
+
+void TaskController::loadSettings()
+{
+    const QVariantMap before = m_settings;
+    m_settings = SharedSettings::instance()->values();
+    const QVariantMap &now = m_settings;
+    auto text = [&now](const QString &key, const QString &fallback) {
+        const QString value = now.value(key).toString();
+        return value.isEmpty() ? fallback : value;
+    };
+    auto number = [&now](const QString &key) {
+        return now.value(key).toInt();
+    };
+    auto flag = [&now](const QString &key) {
+        return now.value(key).toBool();
+    };
+
+    // Mirror every setting into its property; nothing is written back meanwhile.
+    {
+        const QScopedValueRollback<bool> guard(m_loadingSettings, true);
+        setShowCompleted(flag(Key::ShowCompleted));
+        setCatchUpEnabled(flag(Key::CatchUpEnabled));
+        const int catchUpDays = number(Key::CatchUpDays);
+        setCatchUpDays(catchUpDays != 0 ? catchUpDays : kDefaultCatchUpDays);
+        setMorningHour(number(Key::MorningHour));
+        setAfternoonHour(number(Key::AfternoonHour));
+        setEveningHour(number(Key::EveningHour));
+        setDefaultDueMode(text(Key::DefaultDueMode, QStringLiteral("none")));
+        setSearchTitleOnly(flag(Key::SearchTitleOnly));
+        setSearchCaseSensitive(flag(Key::SearchCaseSensitive));
+        setCompleteChildren(flag(Key::CompleteChildren));
+        setCountsExcludeCollapsed(flag(Key::CountsExcludeCollapsed));
+        setNotificationsEnabled(flag(Key::NotificationsEnabled));
+        setDefaultReminderMinutes(number(Key::DefaultReminderMinutes));
+        setQuietHoursEnabled(flag(Key::QuietHoursEnabled));
+        setQuietHoursStart(number(Key::QuietHoursStart));
+        setQuietHoursEnd(number(Key::QuietHoursEnd));
+        setSuppressRemindersDuringEvents(flag(Key::SuppressReminders));
+        setBusyCalendarIds(now.value(Key::BusyCalendarIds).toString());
+        setSmartViewsJson(text(Key::SmartViews, QStringLiteral("[]")));
+        setKanbanColumnSource(text(Key::KanbanColumnSource, TaskLogic::KanbanSource::Status));
+        setKanbanWriteMode(text(Key::KanbanWriteMode, QStringLiteral("fields")));
+        setKanbanManualOrderJson(text(Key::KanbanManualOrder, QStringLiteral("{}")));
+        setSwimlaneLaneAxis(text(Key::SwimlaneLaneAxis, QStringLiteral("project")));
+        setSwimlaneTimeBucket(text(Key::SwimlaneTimeBucket, QStringLiteral("week")));
+        setSwimlaneHorizon(number(Key::SwimlaneHorizon));
+        setPlanTimeBucket(text(Key::PlanTimeBucket, QStringLiteral("week")));
+        setPlanHorizon(number(Key::PlanHorizon));
+        setPlanShowUndated(flag(Key::PlanShowUndated));
+        setPlanShowCompleted(flag(Key::PlanShowCompleted));
+        setMultiSelectEnabled(flag(Key::MultiSelectEnabled));
+        setListGroupMode(now.value(Key::ListGroupMode).toString());
+        setMainPaneMode(text(Key::MainPaneMode, TaskLogic::MainPaneMode::List));
+    }
+
+    // First load: startSession picks the view and sort itself.
+    if (before.isEmpty()) {
+        return;
+    }
+
+    // Changed elsewhere (settings page, other widget): follow like a user choice.
+    auto changed = [&before, &now](const QString &key) {
+        return before.value(key) != now.value(key);
+    };
+    if (changed(Key::DefaultView)) {
+        setCurrentView(now.value(Key::DefaultView).toString());
+    }
+    if (changed(Key::EnabledCollections)) {
+        loadEnabledCollections();
+        refresh();
+    }
+    if (changed(Key::SortScope) || changed(Key::MainPaneMode) || changed(Key::KanbanColumnSource)) {
+        applyViewSort();
+    }
+}
+
+void TaskController::persist(const QString &key, const QVariant &value)
+{
+    if (!m_session || m_loadingSettings) {
+        return;
+    }
+    SharedSettings::instance()->store(key, value);
+}
+
+const TaskLogic::SmartViewDef *TaskController::smartViewFor(const QString &viewId) const
+{
+    if (!viewId.startsWith(kSmartPrefix)) {
+        return nullptr;
+    }
+    const QString smartId = viewId.mid(kSmartPrefix.size());
+    for (const TaskLogic::SmartViewDef &def : m_smartViews) {
+        if (def.id == smartId) {
+            return &def;
+        }
+    }
+    return nullptr;
+}
+
+void TaskController::followView()
+{
+    if (m_settings.value(Key::RememberLastView).toBool()) {
+        persist(Key::LastView, m_currentView);
+    }
+
+    // A smart view may bring its own main-pane mode. (Its "sort" was always overridden by
+    // the view's stored sort below, so it is not applied.)
+    const TaskLogic::SmartViewDef *smart = smartViewFor(m_currentView);
+    if (smart && !smart->defaultMode.isEmpty() && smart->defaultMode != m_mainPaneMode) {
+        selectMainPaneMode(smart->defaultMode);
+    }
+    applyViewSort();
+}
+
+void TaskController::applyViewSort()
+{
+    // Kanban remembers a sort per view and column source (e.g. Custom after a reorder).
+    if (m_mainPaneMode == TaskLogic::MainPaneMode::Kanban) {
+        const QString remembered = TaskLogic::jsonMapValue(
+                setting(Key::KanbanSortByColumn), TaskLogic::kanbanSortKey(m_currentView, m_kanbanColumnSource));
+        if (!remembered.isEmpty()) {
+            setSortMode(remembered);
+            return;
+        }
+    }
+    setSortMode(TaskLogic::sortModeForView(setting(Key::SortScope), setting(Key::SortMode),
+                                           setting(Key::SortModeByView), m_currentView));
+}
+
+void TaskController::persistSort(const QString &mode)
+{
+    if (m_mainPaneMode == TaskLogic::MainPaneMode::Kanban) {
+        const QString key = TaskLogic::kanbanSortKey(m_currentView, m_kanbanColumnSource);
+        persist(Key::KanbanSortByColumn, TaskLogic::jsonMapWith(setting(Key::KanbanSortByColumn), key, mode));
+    }
+    if (mode == TaskLogic::SortMode::Custom) {
+        return;
+    }
+
+    // The default is stored as "no entry", so a later default change reaches every view.
+    const QString stored = mode == TaskLogic::SortMode::Default ? QString() : mode;
+    if (setting(Key::SortScope) == TaskLogic::SortScope::PerView) {
+        persist(Key::SortModeByView, TaskLogic::jsonMapWith(setting(Key::SortModeByView), m_currentView, stored));
+        return;
+    }
+    persist(Key::SortMode, stored);
+}
+
+void TaskController::selectMainPaneMode(const QString &mode)
+{
+    persist(Key::MainPaneMode, mode.isEmpty() ? TaskLogic::MainPaneMode::List : mode);
+    setMainPaneMode(mode);
+    applyViewSort();
+}
+
+void TaskController::selectSort(const QString &mode)
+{
+    setSortMode(mode);
+    persistSort(mode);
+}
+
+void TaskController::selectListGroup(const QString &mode)
+{
+    const QString normalized = mode == TaskLogic::ListGroupSource::None ? QString() : mode;
+    setListGroupMode(normalized);
+    persist(Key::ListGroupMode, normalized);
+}
+
+void TaskController::selectKanbanSource(const QString &source)
+{
+    setKanbanColumnSource(source);
+
+    // Columns now show this field: its sidebar filter would leave one column.
+    if (source == TaskLogic::KanbanSource::Label) {
+        setSelectedLabel(QString());
+    } else if (source == TaskLogic::KanbanSource::Project) {
+        setSelectedCollectionId(-1);
+    } else if (source == TaskLogic::KanbanSource::Priority) {
+        setSelectedPriority(-1);
+    } else if (source == TaskLogic::KanbanSource::Status) {
+        setSelectedStatus(-1);
+    } else if (source == TaskLogic::KanbanSource::Completion) {
+        setSelectedProgressBand(QString());
+    }
+    persist(Key::KanbanColumnSource, source);
+    applyViewSort();
+}
+
+void TaskController::selectMatrixBucket(const QString &bucket)
+{
+    const bool swimlane = m_mainPaneMode == TaskLogic::MainPaneMode::Swimlane;
+    persist(swimlane ? Key::SwimlaneTimeBucket : Key::PlanTimeBucket, bucket);
+}
+
+void TaskController::selectMatrixHorizon(int periods)
+{
+    const bool swimlane = m_mainPaneMode == TaskLogic::MainPaneMode::Swimlane;
+    persist(swimlane ? Key::SwimlaneHorizon : Key::PlanHorizon, periods);
+}
+
+void TaskController::storeSetting(const QString &key, const QVariant &value)
+{
+    persist(key, value);
 }
 
 void TaskController::refresh()

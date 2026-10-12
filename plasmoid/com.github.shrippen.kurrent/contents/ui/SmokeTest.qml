@@ -168,12 +168,12 @@ Item {
             return
         case 23:
             if (backend && plasmoidRoot) {
-                plasmoidRoot.setMainPaneMode("kanban")
+                backend.selectMainPaneMode("kanban")
             }
             return
         case 24:
             if (backend && plasmoidRoot) {
-                plasmoidRoot.setMainPaneMode("list")
+                backend.selectMainPaneMode("list")
             }
             return
         case 25:
@@ -188,7 +188,7 @@ Item {
         case 28:
             // Matrix views: every axis / bucket combination must build and render.
             backend.currentView = "inbox"
-            plasmoidRoot.setMainPaneMode("swimlane")
+            backend.selectMainPaneMode("swimlane")
             return
         case 29:
             backend.swimlaneLaneAxis = "priority"
@@ -209,11 +209,11 @@ Item {
         case 34:
             backend.swimlaneTimeBucket = "week"
             backend.setMatrixDrilldown("swimlane", "", "unscheduled", "smoke")
-            plasmoidRoot.setMainPaneMode("list")
+            backend.selectMainPaneMode("list")
             return
         case 35:
             backend.clearMatrixDrilldown()
-            plasmoidRoot.setMainPaneMode("plan")
+            backend.selectMainPaneMode("plan")
             return
         case 36:
             backend.planTimeBucket = "day"
@@ -225,10 +225,10 @@ Item {
         case 38:
             backend.planTimeBucket = "week"
             backend.planShowCompleted = false
-            plasmoidRoot.setMainPaneMode("heatmap")
+            backend.selectMainPaneMode("heatmap")
             return
         case 39:
-            plasmoidRoot.setMainPaneMode("list")
+            backend.selectMainPaneMode("list")
             backend.currentView = "inbox"
             backend.smokeTrace("KURRENT_SMOKE_DONE")
             runner.stop()

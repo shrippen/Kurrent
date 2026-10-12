@@ -2384,7 +2384,7 @@ SmartViewDef parseSmartViewObject(const QJsonObject &obj)
     if (def.icon.isEmpty()) {
         def.icon = QStringLiteral("view-filter");
     }
-    def.defaultMode = obj.value(QStringLiteral("mode")).toString(MainPaneMode::List);
+    def.defaultMode = obj.value(QStringLiteral("mode")).toString();
     def.sortOverride = obj.value(QStringLiteral("sort")).toString();
 
     const QJsonObject rules = obj.value(QStringLiteral("rules")).toObject();
@@ -3259,6 +3259,58 @@ QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today)
         return a.summary.localeAwareCompare(b.summary) < 0;
     });
     return out;
+}
+
+namespace
+{
+QJsonObject jsonMap(const QString &json)
+{
+    const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+    return doc.isObject() ? doc.object() : QJsonObject();
+}
+} // namespace
+
+QString jsonMapValue(const QString &json, const QString &key)
+{
+    return jsonMap(json).value(key).toString();
+}
+
+QString jsonMapWith(const QString &json, const QString &key, const QString &value)
+{
+    QJsonObject map = jsonMap(json);
+    if (value.isEmpty()) {
+        map.remove(key);
+    } else {
+        map.insert(key, value);
+    }
+    return QString::fromUtf8(QJsonDocument(map).toJson(QJsonDocument::Compact));
+}
+
+QString sortModeForView(const QString &scope, const QString &globalMode,
+                        const QString &byViewJson, const QString &viewId)
+{
+    const QString stored = scope == SortScope::PerView ? jsonMapValue(byViewJson, viewId) : globalMode;
+    return stored.isEmpty() ? SortMode::Default : stored;
+}
+
+QString kanbanSortKey(const QString &viewId, const QString &source)
+{
+    return viewId + QLatin1Char('|') + source;
+}
+
+QList<qint64> collectionIdsFromCsv(const QString &csv)
+{
+    QList<qint64> ids;
+    const QStringList parts = csv.split(QLatin1Char(','), Qt::SkipEmptyParts);
+    for (const QString &part : parts) {
+        bool ok = false;
+        const qint64 id = part.trimmed().toLongLong(&ok);
+        if (!ok) {
+            continue;
+        }
+        ids.append(id);
+    }
+    return ids;
 }
 
 } // namespace TaskLogic

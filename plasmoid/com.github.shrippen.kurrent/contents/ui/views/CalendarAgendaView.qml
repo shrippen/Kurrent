@@ -360,32 +360,15 @@ ColumnLayout {
                 text: modelData.name
                 checkable: true
                 checked: modelData.enabled
-                onToggled: root.setCalendarEnabled(modelData.id, checked)
+                onToggled: {
+                    if (checked !== modelData.enabled) {
+                        controller.toggleBusyCalendar(modelData.id)
+                    }
+                }
             }
             onObjectAdded: calMenu.insertItem(index, object)
             onObjectRemoved: calMenu.removeItem(object)
         }
-    }
-
-    function setCalendarEnabled(id, enabled) {
-        var cals = controller.eventCalendars
-        var allIds = []
-        for (var i = 0; i < cals.length; ++i)
-            allIds.push(String(cals[i].id))
-        var raw = String(controller.busyCalendarIds || "")
-        var parts = raw.length > 0 ? raw.split(",") : []
-        var set = {}
-        if (parts.length === 0) {
-            for (var j = 0; j < allIds.length; ++j) set[allIds[j]] = true
-        } else {
-            for (var k = 0; k < parts.length; ++k) set[parts[k]] = true
-        }
-        if (enabled) set[String(id)] = true
-        else delete set[String(id)]
-        var ids = Object.keys(set).filter(function(x) { return set[x] })
-        var csv = (ids.length >= allIds.length && allIds.length > 0) ? "" : ids.join(",")
-        Plasmoid.configuration.busyCalendarIds = csv
-        controller.busyCalendarIds = csv
     }
 
     // ── Date picker popup ─────────────────────────────────────────

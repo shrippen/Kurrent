@@ -637,4 +637,35 @@ int overdueDays(const TaskEntry &task, const QDate &today);
 /** Open overdue tasks for the Stack layout: oldest first, then higher priority, then title. */
 QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today);
 
+// Sort modes are comma lists of keys, most significant first ("priority,due,title").
+namespace SortMode
+{
+inline const QString Default = QStringLiteral("priority,due,title");
+inline const QString Custom = QStringLiteral("custom");
+}
+
+// Values of the `sortScope` setting: one sort for all views, or one per view.
+namespace SortScope
+{
+inline const QString Global = QStringLiteral("global");
+inline const QString PerView = QStringLiteral("perView");
+}
+
+/** Value of `key` in a JSON object string; empty when missing or the JSON is broken. */
+QString jsonMapValue(const QString &json, const QString &key);
+
+/** The JSON object string with `key` set to `value`; an empty value removes the key. */
+QString jsonMapWith(const QString &json, const QString &key, const QString &value);
+
+/** Sort a view opens with: its `sortModeByView` entry (per-view scope) or the global
+ *  `sortMode`, else SortMode::Default. */
+QString sortModeForView(const QString &scope, const QString &globalMode,
+                        const QString &byViewJson, const QString &viewId);
+
+/** Key of the remembered Kanban sort: "view|columnSource" (e.g. "today|status"). */
+QString kanbanSortKey(const QString &viewId, const QString &source);
+
+/** Ids from the `enabledCollections` setting ("12, 15" → 12, 15); junk entries are skipped. */
+QList<qint64> collectionIdsFromCsv(const QString &csv);
+
 } // namespace TaskLogic
