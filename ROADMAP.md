@@ -347,15 +347,15 @@ Steps, each a PR that is useful alone:
 
 Total ≈ 36–53 days; steps 1–5 (≈ 10–15 days) are a release worth having.
 
-## Terminal client — planned (after 1.0)
+## Terminal client — built
 
 Kurrent in a terminal: over SSH into one's own session, in tiling setups. Same logic and stores, no second task model; Akonadi stays the source of truth.
 
-- **Split first (1–3 days):** `plugin/` becomes `kurrentcore` (static lib: TaskLogic, Quick Add, TaskController, stores) plus the thin QML plugin. Tests link the core.
-- **`kurrent-tui`:** a `QCoreApplication` with the core. Views: `focus` sections, `stack` triage, week table; main input is Quick Add. Keys as in the palette (j/k/x/t/e, `/`).
+- **Split (built):** `plugin/` builds `kurrentcore` (static lib: TaskLogic, Quick Add, TaskController, stores) and the thin QML plugin on it. `TaskController::setSessionServices(Off)` leaves the D-Bus name and global shortcuts to the widget.
+- **`kurrent-tui` (built):** a `QCoreApplication` with the core. Views: `focus` sections (Now / Soon / Someday) and `stack` triage; `a` adds with Quick Add, `/` searches; x/t/m/d act on the selected task. Screens are pure functions with tests (`tui/screens.cpp`).
+- **Open:** week table, editing beyond due and done, translations of the new strings.
 - **Rules:** needs a running Akonadi (the user's session); headless servers without one are out of scope. No features of its own. Shipped as its own binary, not in the Store package.
 - **Open:** library (FTXUI vs. plain ANSI), demo mode via `MemoryTaskStore` for screenshots.
-- **Estimate:** 8–12 days after the split.
 
 ---
 
