@@ -186,14 +186,8 @@ Flickable {
         onTriggered: root.settleScrollBounds()
     }
 
-    // Status columns can drop "Canceled" (Settings › Views › Kanban, k2).
-    readonly property var columnKeys: {
-        var keys = controller ? controller.kanbanColumnKeys : []
-        if (!Plasmoid.configuration.kanbanHideCanceled || !controller || controller.kanbanColumnSource !== "status") {
-            return keys
-        }
-        return keys.filter(function(k) { return k !== "5" && k !== "cancelled" })
-    }
+    // Status columns can drop "Canceled" (Settings › Views › Kanban, k2); the controller decides.
+    readonly property var columnKeys: controller ? controller.shownKanbanColumns : []
     // While a card is dragged every column stays open as a drop target.
     readonly property bool dragging: !!(dragHost && dragHost.draggingTask)
     readonly property int layoutRevision: controller ? controller.kanbanRevision : 0

@@ -23,6 +23,8 @@ public:
     static SharedSettings *instance();
 
     Q_INVOKABLE void seedFromIfEmpty(QObject *configuration);
+    /** Copies keys this file does not hold yet (added in a later version) from the configuration. */
+    void seedMissingFrom(QObject *configuration);
     Q_INVOKABLE void copyFrom(QObject *configuration);
     Q_INVOKABLE void applyTo(QObject *configuration);
     Q_INVOKABLE void resetToDefaults();
@@ -32,6 +34,8 @@ public:
     Q_INVOKABLE QVariantMap values() const;
     Q_INVOKABLE QVariantMap defaults() const;
     Q_INVOKABLE void storeString(const QString &key, const QString &value);
+    /** Writes one known key (typed like its spec) and emits changed() when it differs. */
+    void store(const QString &key, const QVariant &value);
 
 Q_SIGNALS:
     void changed();
@@ -59,6 +63,7 @@ private:
     static bool sameValue(const QVariant &left, const QVariant &right, ValueType type);
     static QVariant typedValue(const QVariant &value, ValueType type);
     static const KeySpec *specs();
+    static const KeySpec *specFor(const QString &key);
     static int specCount();
 
     KSharedConfig::Ptr m_config;

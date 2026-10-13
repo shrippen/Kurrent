@@ -151,47 +151,20 @@ ColumnLayout {
         return arr
     }
 
-    // ── Counts: merged for all visible years in year mode ──────────
-    readonly property var activeCounts: {
-        if (!controller) return ({})
-        if (showYear) {
-            var merged = {}
-            for (var i = 0; i < visibleYearNumbers.length; i++) {
-                var yc = controller.heatmapCountsForYear(visibleYearNumbers[i], heatmapMode)
-                var keys = Object.keys(yc)
-                for (var j = 0; j < keys.length; j++)
-                    merged[keys[j]] = yc[keys[j]]
-            }
-            return merged
-        }
-        return controller.heatmapCountsForMonth(monthStart, heatmapMode)
-    }
+    // ── Counts and figures of the shown period (month, or all visible years) ──
+    readonly property var heatmapPeriod: controller
+            ? controller.heatmapPeriod(monthStart, showYear ? visibleYearNumbers : [], heatmapMode)
+            : ({ counts: {}, total: 0, perDay: 0, bestCount: 0, bestKey: "" })
+    readonly property var activeCounts: heatmapPeriod.counts
 
     // Figures for the facts row: total, average per day so far, best day (shown period).
     readonly property var periodFacts: {
-        var keys = Object.keys(activeCounts)
-        var total = 0
-        var bestCount = 0
-        var bestKey = ""
-        for (var i = 0; i < keys.length; ++i) {
-            var n = activeCounts[keys[i]] || 0
-            total += n
-            if (n > bestCount) {
-                bestCount = n
-                bestKey = keys[i]
-            }
-        }
-        var start = showYear ? new Date(monthStart.getFullYear(), 0, 1) : new Date(monthStart)
-        var end = showYear ? new Date(monthStart.getFullYear() + 1, 0, 1)
-                           : new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1)
-        var now = new Date()
-        var until = now < end ? now : end
-        var days = Math.max(1, Math.ceil((until - start) / 86400000))
+        var bestKey = heatmapPeriod.bestKey
         var bestDate = bestKey.length ? new Date(bestKey + "T00:00:00") : null
         return {
-            total: total,
-            perDay: now < start ? 0 : total / days,
-            bestCount: bestCount,
+            total: heatmapPeriod.total,
+            perDay: heatmapPeriod.perDay,
+            bestCount: heatmapPeriod.bestCount,
             bestLabel: bestDate && !isNaN(bestDate) ? Qt.locale().toString(bestDate, Qt.locale().dateFormat(Locale.ShortFormat)) : ""
         }
     }

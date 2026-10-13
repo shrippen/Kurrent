@@ -13,8 +13,6 @@ Item {
     property var onOpenFullEditor: null
     property bool interactionsSuspended: false
     property string hiddenProjects: ""
-    property string newTaskProjectMode: "ask"
-    property string newTaskDefaultCollectionId: ""
     property bool multiSelectEnabled: false
 
     property alias taskList: taskListView
@@ -280,8 +278,6 @@ Item {
                 dragHost: host.dragHost
                 interactionsSuspended: host.interactionsSuspended
                 hiddenProjects: host.hiddenProjects
-                newTaskProjectMode: host.newTaskProjectMode
-                newTaskDefaultCollectionId: host.newTaskDefaultCollectionId
                 multiSelectEnabled: host.multiSelectEnabled
             }
         }

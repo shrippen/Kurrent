@@ -1,4 +1,5 @@
 #include "memorytaskstore.h"
+#include "sharedsettings.h"
 #include "taskcontroller.h"
 
 #include <Akonadi/Collection>
@@ -6,6 +7,11 @@
 #include <KCalendarCore/Todo>
 
 #include <QCoreApplication>
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQmlExpression>
+#include <QQmlPropertyMap>
+#include <QStandardPaths>
 #include <QSignalSpy>
 #include <QTest>
 
@@ -14,6 +20,7 @@ class TaskControllerStoreTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
+    void initTestCase();
     void init();
     void cleanup();
 
@@ -34,6 +41,10 @@ private Q_SLOTS:
     void inspectorSnapshotAndChildren();
     void heatmapTasksForDay();
     void demoModeLoadsWorldTasks();
+    void sessionBridgesConfiguration();
+    void sessionRemembersSorts();
+    void sessionFollowsSmartViewMode();
+    void newTaskTargetAndProjectLists();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -59,6 +70,12 @@ void TaskControllerStoreTest::waitStore(QSignalSpy &spy, int count)
     while (spy.size() < count) {
         QVERIFY(spy.wait(1000));
     }
+}
+
+void TaskControllerStoreTest::initTestCase()
+{
+    // SharedSettings::instance() then lives in ~/.qttest, never the user's kurrentrc.
+    QStandardPaths::setTestModeEnabled(true);
 }
 
 void TaskControllerStoreTest::init()
@@ -483,11 +500,227 @@ void TaskControllerStoreTest::demoModeLoadsWorldTasks()
     const QVariantList events = demo->agendaEventsForDay(QDate(2026, 9, 14));
     QCOMPARE(events.size(), 2);
     QCOMPARE(events.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Weekly planning"));
+
+    // Agenda by day: done tasks on their completion day, open ones first.
+    const QVariantMap byDay = demo->agendaTasksByDay(QDate(2026, 9, 7), QDate(2026, 9, 27));
+    QVERIFY(!byDay.isEmpty());
+    for (auto it = byDay.cbegin(); it != byDay.cend(); ++it) {
+        bool seenDone = false;
+        for (const QVariant &value : it.value().toList()) {
+            const QVariantMap task = value.toMap();
+            const bool done = task.value(QStringLiteral("completed")).toBool();
+            QVERIFY(!(seenDone && !done));
+            seenDone = seenDone || done;
+            const QDateTime completedAt = task.value(QStringLiteral("completedDate")).toDateTime();
+            const QDateTime when = done && completedAt.isValid() ? completedAt
+                                                                 : task.value(QStringLiteral("due")).toDateTime();
+            QCOMPARE(when.toLocalTime().date().toString(Qt::ISODate), it.key());
+        }
+    }
+
+    // Heatmap period: counts and figures together.
+    const QVariantMap period = demo->heatmapPeriod(QDate(2026, 9, 1), {}, QStringLiteral("completed"));
+    int total = 0;
+    const QVariantMap counts = period.value(QStringLiteral("counts")).toMap();
+    for (const QVariant &n : counts) {
+        total += n.toInt();
+    }
+    QCOMPARE(period.value(QStringLiteral("total")).toInt(), total);
+
     demo->resetSharedStateForTest();
     delete demo;
     qunsetenv("KURRENT_DEMO");
     qunsetenv("KURRENT_DEMO_WORLD");
     qunsetenv("DEMO_TODAY");
+}
+
+namespace
+{
+// A Plasmoid.configuration stand-in holding every kurrentrc key with its default.
+void fillDefaults(QQmlPropertyMap *config)
+{
+    SharedSettings::instance()->resetToDefaults();
+    const QVariantMap defaults = SharedSettings::instance()->defaults();
+    for (auto it = defaults.cbegin(); it != defaults.cend(); ++it) {
+        config->insert(it.key(), it.value());
+    }
+}
+
+// Writes like a settings page does on Apply (from QML, so change signals fire).
+void writeFromQml(QQmlPropertyMap *config, const QString &assignment)
+{
+    QQmlEngine engine;
+    QQmlContext context(engine.rootContext());
+    context.setContextProperty(QStringLiteral("cfg"), config);
+    QQmlExpression expression(&context, nullptr, QStringLiteral("cfg.") + assignment);
+    expression.evaluate();
+    QVERIFY(!expression.hasError());
+}
+
+QVariant stored(const QString &key)
+{
+    return SharedSettings::instance()->values().value(key);
+}
+} // namespace
+
+void TaskControllerStoreTest::sessionBridgesConfiguration()
+{
+    QQmlPropertyMap config;
+    fillDefaults(&config);
+    SharedSettings::instance()->store(QStringLiteral("defaultView"), QStringLiteral("today"));
+    m_controller->startSession(&config);
+
+    // Start view restored; the configuration mirrors kurrentrc.
+    QCOMPARE(m_controller->currentView(), QStringLiteral("today"));
+    QCOMPARE(config.value(QStringLiteral("defaultView")).toString(), QStringLiteral("today"));
+
+    // Settings page → configuration → kurrentrc → controller.
+    QSignalSpy settingsChanged(m_controller, &TaskController::settingsChanged);
+    writeFromQml(&config, QStringLiteral("swimlaneLaneAxis = 'label'"));
+    QCOMPARE(stored(QStringLiteral("swimlaneLaneAxis")).toString(), QStringLiteral("label"));
+    QCOMPARE(m_controller->swimlaneLaneAxis(), QStringLiteral("label"));
+    QVERIFY(settingsChanged.count() >= 1);
+
+    // Elsewhere (other widget) → kurrentrc → configuration and controller.
+    SharedSettings::instance()->store(QStringLiteral("planHorizon"), 4);
+    QCOMPARE(m_controller->planHorizon(), 4);
+    QCOMPARE(config.value(QStringLiteral("planHorizon")).toInt(), 4);
+
+    // A view choice persists through the controller.
+    m_controller->storeSetting(QStringLiteral("planShowUndated"), false);
+    QCOMPARE(m_controller->planShowUndated(), false);
+    QCOMPARE(config.value(QStringLiteral("planShowUndated")).toBool(), false);
+
+    // Kanban columns: the matching sidebar filter is cleared.
+    m_controller->setSelectedLabel(QStringLiteral("work"));
+    m_controller->selectKanbanSource(TaskLogic::KanbanSource::Label);
+    QVERIFY(m_controller->selectedLabel().isEmpty());
+    QCOMPARE(stored(QStringLiteral("kanbanColumnSource")).toString(), TaskLogic::KanbanSource::Label);
+
+    // The settings page changes the default view: the widget follows.
+    writeFromQml(&config, QStringLiteral("defaultView = 'overdue'"));
+    QCOMPARE(m_controller->currentView(), QStringLiteral("overdue"));
+
+    // Remember last view.
+    writeFromQml(&config, QStringLiteral("rememberLastView = true"));
+    m_controller->setCurrentView(QStringLiteral("tomorrow"));
+    QCOMPARE(stored(QStringLiteral("lastView")).toString(), QStringLiteral("tomorrow"));
+}
+
+void TaskControllerStoreTest::sessionRemembersSorts()
+{
+    QQmlPropertyMap config;
+    fillDefaults(&config);
+    SharedSettings::instance()->store(QStringLiteral("sortScope"), TaskLogic::SortScope::PerView);
+    m_controller->startSession(&config);
+
+    // Per-view scope: each view keeps its own sort; the default is stored as no entry.
+    m_controller->setCurrentView(QStringLiteral("today"));
+    m_controller->selectSort(QStringLiteral("due,title"));
+    QCOMPARE(TaskLogic::jsonMapValue(stored(QStringLiteral("sortModeByView")).toString(), QStringLiteral("today")),
+             QStringLiteral("due,title"));
+    m_controller->setCurrentView(QStringLiteral("inbox"));
+    QCOMPARE(m_controller->sortMode(), TaskLogic::SortMode::Default);
+    m_controller->setCurrentView(QStringLiteral("today"));
+    QCOMPARE(m_controller->sortMode(), QStringLiteral("due,title"));
+    m_controller->selectSort(TaskLogic::SortMode::Default);
+    QVERIFY(TaskLogic::jsonMapValue(stored(QStringLiteral("sortModeByView")).toString(), QStringLiteral("today")).isEmpty());
+
+    // Kanban remembers Custom (set by a reorder) per view and column source.
+    m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::Kanban);
+    QCOMPARE(stored(QStringLiteral("mainPaneMode")).toString(), TaskLogic::MainPaneMode::Kanban);
+    m_controller->setSortMode(TaskLogic::SortMode::Custom);
+    QCOMPARE(TaskLogic::jsonMapValue(stored(QStringLiteral("kanbanSortModeByViewColumn")).toString(),
+                                     QStringLiteral("today|status")),
+             TaskLogic::SortMode::Custom);
+    m_controller->requestMainPaneMode(TaskLogic::MainPaneMode::List);
+    QCOMPARE(m_controller->sortMode(), TaskLogic::SortMode::Default);
+    QCOMPARE(stored(QStringLiteral("mainPaneMode")).toString(), TaskLogic::MainPaneMode::List);
+    m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::Kanban);
+    QCOMPARE(m_controller->sortMode(), TaskLogic::SortMode::Custom);
+
+    // Sort menu and list groups: the group's field leaves the sort.
+    m_controller->selectSortLevel(0, QStringLiteral("priority"));
+    QCOMPARE(m_controller->sortKeys(), (QStringList{"priority", "none", "none"}));
+    m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::List);
+    m_controller->selectListGroup(QStringLiteral("priority"));
+    QCOMPARE(m_controller->sortMode(), QStringLiteral("due,title"));
+    QCOMPARE(stored(QStringLiteral("listGroupMode")).toString(), QStringLiteral("priority"));
+    QVERIFY(!m_controller->sortLevelOptions().first().toStringList().contains(QStringLiteral("priority")));
+
+    // Global scope: one stored sort.
+    m_controller->selectMainPaneMode(TaskLogic::MainPaneMode::List);
+    SharedSettings::instance()->store(QStringLiteral("sortScope"), TaskLogic::SortScope::Global);
+    m_controller->selectSort(QStringLiteral("title"));
+    QCOMPARE(stored(QStringLiteral("sortMode")).toString(), QStringLiteral("title"));
+}
+
+void TaskControllerStoreTest::sessionFollowsSmartViewMode()
+{
+    QQmlPropertyMap config;
+    fillDefaults(&config);
+    SharedSettings::instance()->store(QStringLiteral("smartViews"),
+            QStringLiteral(R"([{"id":"w","name":"W","mode":"plan"},{"id":"n","name":"N"}])"));
+    m_controller->startSession(&config);
+
+    m_controller->setCurrentView(QStringLiteral("smart:w"));
+    QCOMPARE(m_controller->mainPaneMode(), TaskLogic::MainPaneMode::Plan);
+    QCOMPARE(stored(QStringLiteral("mainPaneMode")).toString(), TaskLogic::MainPaneMode::Plan);
+
+    // Without a mode the current one stays.
+    m_controller->setCurrentView(QStringLiteral("smart:n"));
+    QCOMPARE(m_controller->mainPaneMode(), TaskLogic::MainPaneMode::Plan);
+}
+
+void TaskControllerStoreTest::newTaskTargetAndProjectLists()
+{
+    QQmlPropertyMap config;
+    fillDefaults(&config);
+    SharedSettings *settings = SharedSettings::instance();
+    auto ids = [](const QVariantList &rows) {
+        QList<qint64> out;
+        for (const QVariant &row : rows) {
+            out.append(row.toMap().value(QStringLiteral("collectionId")).toLongLong());
+        }
+        return out;
+    };
+
+    // Two writable projects, "ask": the user chooses.
+    QVariantMap target = m_controller->newTaskTarget();
+    QVERIFY(target.value(QStringLiteral("ask")).toBool());
+    QCOMPARE(ids(target.value(QStringLiteral("choices")).toList()), (QList<qint64>{10, 20}));
+
+    // A selected project wins.
+    m_controller->setSelectedCollectionId(20);
+    QCOMPARE(m_controller->newTaskTarget().value(QStringLiteral("collectionId")).toLongLong(), qint64(20));
+    m_controller->setSelectedCollectionId(-1);
+
+    // Fixed default project.
+    settings->store(QStringLiteral("newTaskProjectMode"), QStringLiteral("fixed"));
+    settings->store(QStringLiteral("newTaskDefaultCollectionId"), QStringLiteral("20"));
+    target = m_controller->newTaskTarget();
+    QVERIFY(!target.value(QStringLiteral("ask")).toBool());
+    QCOMPARE(target.value(QStringLiteral("collectionId")).toLongLong(), qint64(20));
+
+    // Hidden projects leave the lists; the only one left needs no question.
+    settings->store(QStringLiteral("newTaskProjectMode"), QStringLiteral("ask"));
+    settings->store(QStringLiteral("hiddenProjects"), QStringLiteral("10"));
+    QCOMPARE(ids(m_controller->writableProjects()), QList<qint64>{20});
+    target = m_controller->newTaskTarget();
+    QVERIFY(!target.value(QStringLiteral("ask")).toBool());
+    QCOMPARE(target.value(QStringLiteral("collectionId")).toLongLong(), qint64(20));
+    QCOMPARE(ids(m_controller->projectChoices(-1, QStringLiteral("all"))), (QList<qint64>{10, 20}));
+    // Sidebar scope: no tasks yet, so only the current project stays.
+    QCOMPARE(ids(m_controller->projectChoices(10, QStringLiteral("sidebar"))), QList<qint64>{10});
+
+    settings->store(QStringLiteral("showEmptyProjects"), true);
+    QCOMPARE(ids(m_controller->sidebarProjects()), QList<qint64>{20});
+    settings->resetToDefaults();
+
+    // Links: nothing to open for unknown tasks or tasks without one.
+    QVERIFY(!m_controller->openJoinLink(999));
+    m_controller->installTestTask(1, QStringLiteral("plain"), 10);
+    QVERIFY(!m_controller->openMapLink(1));
 }
 
 QTEST_MAIN(TaskControllerStoreTest)

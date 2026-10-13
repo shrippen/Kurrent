@@ -17,7 +17,6 @@ Item {
 
     required property TaskController controller
     property Item dragHost: null
-    property var filterPolicy: null
     property string hiddenProjects: ""
     property string hiddenLabels: ""
     property string hiddenLocations: ""
@@ -29,7 +28,6 @@ Item {
     property string hiddenSections: ""
     property string viewOrder: ""
     property string hiddenViews: ""
-    property string smartViewsJson: "[]"
 
     readonly property string sectionDefaults: "views,projects,labels,priorities,progress,status,secrecy,location"
     readonly property string primaryViewDefaults: "inbox,today,overdue,tomorrow,scheduled,anytime,completed"
@@ -95,18 +93,37 @@ Item {
     property bool interactionsSuspended: false
     readonly property bool rowHoverEnabled: !interactionsSuspended
 
+    // The controller knows which filters the layout already shows (columns, lanes, rows).
     function filterEnabled(kind, extra) {
-        if (!filterPolicy || typeof filterPolicy.isSidebarFilterEnabled !== "function") {
-            return true
-        }
-        return filterPolicy.isSidebarFilterEnabled(kind, extra || "")
+        return !controller.blockedFilters[filterKey(kind, extra)]
+    }
+
+    function filterKey(kind, extra) {
+        return extra ? kind + ":" + extra : kind
     }
 
     function filterDisabledReason(kind, extra) {
-        if (!filterPolicy || typeof filterPolicy.sidebarFilterDisabledReason !== "function") {
-            return ""
+        var layout = controller.blockedFilters[filterKey(kind, extra)]
+        if (layout === "kanban") {
+            switch (filterKey(kind, extra)) {
+            case "label": return i18n("Labels are already Kanban columns.")
+            case "project": return i18n("Projects are already Kanban columns.")
+            case "priority": return i18n("Priorities are already Kanban columns.")
+            case "status": return i18n("Status is already used for Kanban columns.")
+            case "secrecy": return i18n("Secrecy is already used for Kanban columns.")
+            case "progress": return i18n("Progress is already used for Kanban columns.")
+            case "view:unlabeled": return i18n("Unlabeled view does not apply when Kanban uses labels as columns.")
+            }
+        } else if (layout === "swimlane") {
+            switch (kind) {
+            case "label": return i18n("Labels are already swimlane rows.")
+            case "project": return i18n("Projects are already swimlane rows.")
+            case "priority": return i18n("Priorities are already swimlane rows.")
+            }
+        } else if (layout === "plan" && kind === "project") {
+            return i18n("Projects are already plan rows.")
         }
-        return filterPolicy.sidebarFilterDisabledReason(kind, extra || "")
+        return i18n("Not available in the current view.")
     }
 
     implicitWidth: sidebarWidth
@@ -230,40 +247,11 @@ Item {
     onSectionRowHeightChanged: Qt.callLater(redistributeSections)
     onComfortableRowsChanged: Qt.callLater(redistributeSections)
 
+    // Hidden projects, labels and locations (Settings › Organize) are left out by the controller.
     function rebuildVisibleLists() {
-        var projects = []
-        var model = controller.collectionModel
-        if (model) {
-            for (var i = 0; i < model.count; ++i) {
-                var collectionId = model.collectionIdAt(i)
-                if ((root.showEmptyProjects || model.taskCountAt(i) > 0) && !root._isProjectHidden(collectionId)) {
-                    projects.push({
-                        collectionId: collectionId,
-                        name: model.nameAt(i),
-                        taskCount: model.taskCountAt(i)
-                    })
-                }
-            }
-        }
-        visibleProjects = projects
-
-        var labels = []
-        var allLabels = controller.availableLabels
-        for (var j = 0; j < allLabels.length; ++j) {
-            if (!root._isLabelHidden(allLabels[j])) {
-                labels.push(allLabels[j])
-            }
-        }
-        visibleLabelItems = labels
-
-        var locations = []
-        var allLocations = controller.availableLocations
-        for (var loc = 0; loc < allLocations.length; ++loc) {
-            if (!root._isLocationHidden(allLocations[loc])) {
-                locations.push(allLocations[loc])
-            }
-        }
-        visibleLocationItems = locations
+        visibleProjects = controller.sidebarProjects()
+        visibleLabelItems = controller.sidebarLabels()
+        visibleLocationItems = controller.sidebarLocations()
     }
 
     function visibleProjectCount() {
@@ -529,30 +517,6 @@ Item {
         Qt.callLater(redistributeSections)
     }
 
-    function _isProjectHidden(collectionId) {
-        if (!hiddenProjects) {
-            return false
-        }
-        var parts = hiddenProjects.split(",")
-        return parts.indexOf(String(collectionId)) >= 0
-    }
-
-    function _isLabelHidden(label) {
-        if (!hiddenLabels) {
-            return false
-        }
-        var parts = hiddenLabels.split("||")
-        return parts.indexOf(label) >= 0
-    }
-
-    function _isLocationHidden(location) {
-        if (!hiddenLocations) {
-            return false
-        }
-        var parts = hiddenLocations.split("||")
-        return parts.indexOf(location) >= 0
-    }
-
     function dropTaskOnProject(collectionId) {
         if (!dragHost || !dragHost.draggingTask || collectionId <= 0) {
             return false
@@ -609,16 +573,6 @@ Item {
         return true
     }
 
-    function progressMidpoint(band) {
-        switch (band) {
-        case "0-25": return 12
-        case "26-50": return 38
-        case "51-75": return 63
-        case "76-100": return 88
-        default: return 0
-        }
-    }
-
     function progressIconForBand(band) {
         // Three-bar metaphor via battery fill levels (Breeze).
         switch (band) {
@@ -652,9 +606,7 @@ Item {
         if (!dragHost || !dragHost.draggingTask || !band) {
             return false
         }
-        controller.updateTaskFull(dragHost.draggingTask.itemId, {
-            percentComplete: progressMidpoint(band)
-        })
+        controller.setTaskProgressBand(dragHost.draggingTask.itemId, band)
         return true
     }
 
@@ -662,14 +614,7 @@ Item {
         if (!dragHost || !dragHost.draggingTask) {
             return false
         }
-        var fields = { status: Number(status) }
-        if (Number(status) === 3) {
-            fields.completed = true
-            fields.percentComplete = 100
-        } else {
-            fields.completed = false
-        }
-        controller.updateTaskFull(dragHost.draggingTask.itemId, fields)
+        controller.setTaskStatus(dragHost.draggingTask.itemId, Number(status))
         return true
     }
 
@@ -770,28 +715,28 @@ Item {
 
     property var smartViewSidebarItems: []
 
-    onSmartViewsJsonChanged: Qt.callLater(rebuildSmartViewItems)
+    Connections {
+        target: root.controller
+        function onSmartViewsJsonChanged() { Qt.callLater(root.rebuildSmartViewItems) }
+    }
 
     function rebuildSmartViewItems() {
         var out = []
-        try {
-            var smartViews = JSON.parse(root.smartViewsJson || "[]")
-            for (var k = 0; k < smartViews.length; ++k) {
-                var sv = smartViews[k]
-                if (!sv || !sv.id) {
-                    continue
-                }
-                out.push({
-                    viewId: "smart:" + sv.id,
-                    label: sv.name || sv.id,
-                    icon: sv.icon || "view-filter"
-                })
+        var smartViews = controller.smartViews
+        for (var k = 0; k < smartViews.length; ++k) {
+            var sv = smartViews[k]
+            if (!sv.id) {
+                continue
             }
-            out.sort(function(a, b) {
-                return a.label.localeCompare(b.label)
+            out.push({
+                viewId: sv.viewId,
+                label: sv.name || sv.id,
+                icon: sv.icon
             })
-        } catch (e) {
         }
+        out.sort(function(a, b) {
+            return a.label.localeCompare(b.label)
+        })
         smartViewSidebarItems = out
     }
 

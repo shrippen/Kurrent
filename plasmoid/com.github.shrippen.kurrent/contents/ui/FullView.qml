@@ -96,29 +96,6 @@ Item {
         resolveOverlayHost()
         plasmoidRoot.applyPopupBackground()
         initSortMenuCaches()
-        Qt.callLater(function() {
-            plasmoidRoot.applyMainPaneMode()
-            plasmoidRoot.applySortForCurrentView()
-        })
-    }
-
-    Connections {
-        target: backend
-        function onKanbanManualOrderJsonChanged() {
-            if (!backend) {
-                return
-            }
-            if (Plasmoid.configuration.kanbanManualOrder !== backend.kanbanManualOrderJson) {
-                Plasmoid.configuration.kanbanManualOrder = backend.kanbanManualOrderJson
-                plasmoidRoot.persistSharedSettings()
-            }
-        }
-        function onSortModeChanged() {
-            if (backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban
-                    && backend.sortMode === "custom") {
-                plasmoidRoot.persistSortMode("custom")
-            }
-        }
     }
 
     Connections {
@@ -406,53 +383,8 @@ Item {
         taskFullEditor.open()
     }
 
-    readonly property string defaultSortMode: "priority,due,title"
-
-    function parseSortKeys(mode) {
-        var raw = String(mode || "").split(",").map(function(s) {
-            return s.trim()
-        }).filter(function(s) {
-            return s.length > 0
-        })
-        // Legacy "default" / empty → Priority › Due › A–Z
-        if (raw.length === 0 || (raw.length === 1 && raw[0] === "default")) {
-            return ["priority", "due", "title"]
-        }
-        if (raw.length === 1 && raw[0] === "custom") {
-            return ["custom", "none", "none"]
-        }
-        var keys = ["priority", "none", "none"]
-        for (var i = 0; i < Math.min(3, raw.length); ++i) {
-            keys[i] = raw[i] === "default" ? "priority" : raw[i]
-        }
-        for (var a = 0; a < 3; ++a) {
-            for (var b = a + 1; b < 3; ++b) {
-                if (keys[b] !== "none" && sortKeysConflict(keys[a], keys[b])) {
-                    keys[b] = "none"
-                }
-            }
-        }
-        if (keys[1] === "none") {
-            keys[2] = "none"
-        }
-        return keys
-    }
-
-    function buildSortMode(keys) {
-        var first = keys[0] && keys[0] !== "none" && keys[0] !== "default"
-                   ? keys[0] : "priority"
-        var out = [first]
-        if (keys[1] && keys[1] !== "none") {
-            out.push(keys[1])
-        }
-        if (keys[2] && keys[2] !== "none") {
-            out.push(keys[2])
-        }
-        return out.join(",")
-    }
-
-    // Shared atomic keys; compound modes like "due,priority" come from levels 1–3.
-    // Opposite directions of the same field are mutually exclusive across levels.
+    // Labels of the sort keys (TaskLogic::sortKeyIds); which ones a level offers, and how a
+    // pick changes the other levels, the controller decides.
     readonly property var sortOptions: [
         { id: "custom", label: i18n("Custom (manual)") },
         { id: "due", label: i18n("Due date") },
@@ -497,64 +429,8 @@ Item {
         return label !== undefined ? label : source
     }
 
-    function sortBlockedForKanban(sortId) {
-        if (!backend || backend.mainPaneMode !== KurrentUi.Design.viewModeKanban) {
-            return false
-        }
-        var src = backend.kanbanColumnSource
-        if (src === "priority" && sortId === "priority") {
-            return true
-        }
-        if (src === "due" && (sortId === "due" || sortId === "dueDesc")) {
-            return true
-        }
-        if (src === "completion" && sortId === "completed") {
-            return true
-        }
-        return false
-    }
-
-    function sortBlockedForListGroup(sortId) {
-        if (!backend) {
-            return false
-        }
-        var group = backend.listGroupMode || ""
-        if (!group || group === "none") {
-            return false
-        }
-        return sortFieldFamily(sortId) === group
-    }
-
-    readonly property var activeSortOptions: {
-        var out = []
-        var kanban = backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban
-        var _group = backend ? (backend.listGroupMode || "") : ""
-        for (var i = 0; i < sortOptions.length; ++i) {
-            var id = sortOptions[i].id
-            if (id === "custom" && !kanban) {
-                continue
-            }
-            if (kanban && sortBlockedForKanban(id)) {
-                continue
-            }
-            if (sortBlockedForListGroup(id)) {
-                continue
-            }
-            out.push(sortOptions[i])
-        }
-        return out
-    }
-
-    readonly property var activeSortOptionIds: {
-        var ids = {}
-        var opts = activeSortOptions
-        for (var i = 0; i < opts.length; ++i) {
-            ids[opts[i].id] = true
-        }
-        return ids
-    }
-
-    readonly property var sortKeys: parseSortKeys(backend ? backend.sortMode : defaultSortMode)
+    // Levels and allowed keys come from the controller (TaskLogic sort rules).
+    readonly property var sortKeys: backend ? backend.sortKeys : ["priority", "due", "title"]
 
     readonly property var viewModeOptions: [
         { id: KurrentUi.Design.viewModeList, label: i18n("List"), icon: "view-list-details" },
@@ -584,55 +460,9 @@ Item {
         }
     }
 
-    readonly property var firstSortOptions: {
-        var _ = sortKeys
-        return optionsForSortLevel(0)
-    }
-    readonly property var secondSortOptions: {
-        var _ = sortKeys
-        return optionsForSortLevel(1)
-    }
-    readonly property var thirdSortOptions: {
-        var _ = sortKeys
-        return optionsForSortLevel(2)
-    }
-
-    function sortFieldFamily(id) {
-        if (id === "title" || id === "titleDesc") {
-            return "title"
-        }
-        if (id === "due" || id === "dueDesc") {
-            return "due"
-        }
-        if (id === "start" || id === "startDesc") {
-            return "start"
-        }
-        if (id === "reminder" || id === "reminderDesc") {
-            return "reminder"
-        }
-        if (id === "recurring" || id === "recurringDesc") {
-            return "recurring"
-        }
-        if (id === "progress" || id === "progressDesc") {
-            return "progress"
-        }
-        if (id === "project" || id === "projectDesc") {
-            return "project"
-        }
-        if (id === "label" || id === "labelDesc") {
-            return "label"
-        }
-        if (id === "status" || id === "statusDesc") {
-            return "status"
-        }
-        if (id === "secrecy" || id === "secrecyDesc") {
-            return "secrecy"
-        }
-        if (id === "location" || id === "locationDesc") {
-            return "location"
-        }
-        return id
-    }
+    readonly property var firstSortOptions: optionsForSortLevel(0)
+    readonly property var secondSortOptions: optionsForSortLevel(1)
+    readonly property var thirdSortOptions: optionsForSortLevel(2)
 
     readonly property var listGroupOptions: [
         { id: "none", label: i18n("None") },
@@ -651,42 +481,9 @@ Item {
         return label !== undefined ? label : i18n("None")
     }
 
-    function stripSortKeysMatchingGroup(groupMode) {
-        if (!groupMode) {
-            return
-        }
-        var keys = parseSortKeys(backend.sortMode)
-        var compacted = []
-        var changed = false
-        for (var i = 0; i < 3; ++i) {
-            if (keys[i] === "none") {
-                continue
-            }
-            if (sortFieldFamily(keys[i]) === groupMode) {
-                changed = true
-                continue
-            }
-            compacted.push(keys[i])
-        }
-        if (!changed) {
-            return
-        }
-        if (compacted.length === 0) {
-            compacted = ["due", "title"]
-        }
-        while (compacted.length < 3) {
-            compacted.push("none")
-        }
-        applySortMode(buildSortMode(compacted))
-    }
-
     function setListGroupMode(mode) {
         mainPaneHost.requestSortFeedback()
-        var normalized = (!mode || mode === "none") ? "" : mode
-        backend.listGroupMode = normalized
-        Plasmoid.configuration.listGroupMode = normalized
-        plasmoidRoot.persistSharedSettings()
-        stripSortKeysMatchingGroup(normalized)
+        backend.selectListGroup(mode || "")
     }
 
     readonly property int mainPaneHeaderToolSize: KurrentUi.Design.mainPaneHeaderToolSize
@@ -881,13 +678,6 @@ Item {
         })
     }
 
-    function sortKeysConflict(a, b) {
-        if (!a || !b || a === "none" || b === "none") {
-            return false
-        }
-        return sortFieldFamily(a) === sortFieldFamily(b)
-    }
-
     function sortKeyLabel(id) {
         if (!id || id === "none") {
             return sortKeyLabelById["none"] || i18n("None")
@@ -896,11 +686,8 @@ Item {
         return label !== undefined ? label : id
     }
 
-    function sortModeLabel(mode) {
-        if (String(mode) === "custom") {
-            return i18n("Custom (manual)")
-        }
-        var keys = parseSortKeys(mode)
+    function sortModeLabel() {
+        var keys = sortKeys
         var parts = [sortKeyLabel(keys[0])]
         if (keys[1] && keys[1] !== "none") {
             parts.push(sortKeyLabel(keys[1]))
@@ -911,54 +698,22 @@ Item {
         return parts.join(" › ")
     }
 
+    // Menu options of one level in A–Z label order, limited to what the controller allows.
     function optionsForSortLevel(level) {
-        var keys = sortKeys
-        var allowed = activeSortOptionIds
+        var allowed = backend ? backend.sortLevelOptions[level] : []
         var out = []
         var master = sortOptionsAlphabetical
         for (var m = 0; m < master.length; ++m) {
-            var opt = master[m]
-            if (opt.id === "none") {
-                if (level === 0) {
-                    continue
-                }
-            } else if (!allowed[opt.id]) {
-                continue
-            }
-            var blocked = false
-            for (var i = 0; i < level; ++i) {
-                if (sortKeysConflict(keys[i], opt.id)) {
-                    blocked = true
-                    break
-                }
-            }
-            if (!blocked) {
-                out.push(opt)
+            if (allowed.indexOf(master[m].id) >= 0) {
+                out.push(master[m])
             }
         }
         return out
     }
 
-    function applySortMode(mode) {
-        mainPaneHost.requestSortFeedback()
-        backend.sortMode = mode
-        plasmoidRoot.persistSortMode(mode)
-    }
-
     function setSortLevel(level, id) {
-        var keys = parseSortKeys(backend.sortMode)
-        keys[level] = id
-        if (level === 1 && id === "none") {
-            keys[2] = "none"
-        }
-        if (id !== "none") {
-            for (var i = level + 1; i < 3; ++i) {
-                if (sortKeysConflict(id, keys[i])) {
-                    keys[i] = "none"
-                }
-            }
-        }
-        applySortMode(buildSortMode(keys))
+        mainPaneHost.requestSortFeedback()
+        backend.selectSortLevel(level, id)
     }
 
     // Wide/narrow thresholds + sort lookups (once at startup — not on each open).
@@ -1069,21 +824,7 @@ Item {
         if (!backend) {
             return
         }
-        backend.kanbanColumnSource = source
-        if (source === "label") {
-            backend.selectedLabel = ""
-        } else if (source === "project") {
-            backend.selectedCollectionId = -1
-        } else if (source === "priority") {
-            backend.selectedPriority = -1
-        } else if (source === "status") {
-            backend.selectedStatus = -1
-        } else if (source === "completion") {
-            backend.selectedProgressBand = ""
-        }
-        Plasmoid.configuration.kanbanColumnSource = source
-        plasmoidRoot.persistSharedSettings()
-        plasmoidRoot.applySortForCurrentView()
+        backend.selectKanbanSource(source)
     }
 
     function openKanbanColumnsMenu() {
@@ -1148,23 +889,15 @@ Item {
     }
 
     function setMatrixLaneAxis(axis) {
-        Plasmoid.configuration.swimlaneLaneAxis = axis
+        backend.storeSetting("swimlaneLaneAxis", axis)
     }
 
     function setMatrixBucket(bucket) {
-        if (swimlaneMode) {
-            Plasmoid.configuration.swimlaneTimeBucket = bucket
-        } else {
-            Plasmoid.configuration.planTimeBucket = bucket
-        }
+        backend.selectMatrixBucket(bucket)
     }
 
     function setMatrixHorizon(n) {
-        if (swimlaneMode) {
-            Plasmoid.configuration.swimlaneHorizon = n
-        } else {
-            Plasmoid.configuration.planHorizon = n
-        }
+        backend.selectMatrixHorizon(n)
     }
 
     function openMatrixMenu() {
@@ -1271,7 +1004,6 @@ Item {
                 id: sidebar
                 Layout.fillHeight: true
                 controller: backend
-                filterPolicy: plasmoidRoot
                 dragHost: fullRoot
                 interactionsSuspended: taskFullEditor.visible
                 hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
@@ -1284,7 +1016,6 @@ Item {
                 hiddenSections: Plasmoid.configuration.hiddenSidebarSections ?? "progress||status||secrecy||location"
                 viewOrder: Plasmoid.configuration.sidebarViewOrder || ""
                 hiddenViews: Plasmoid.configuration.hiddenViews || ""
-                smartViewsJson: Plasmoid.configuration.smartViews || "[]"
             }
 
             // Sections this view hides, with the reason (g7).
@@ -1390,7 +1121,7 @@ Item {
                         return
                     }
                     KurrentUi.Design.sidebarWidthUnits = units
-                    Plasmoid.configuration.sidebarWidthUnits = units
+                    backend.storeSetting("sidebarWidthUnits", units)
                 }
             }
         }
@@ -1667,7 +1398,7 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                     }
                     TapHandler {
-                        onTapped: plasmoidRoot.setMainPaneMode(backend.matrixDrillSource === "plan"
+                        onTapped: backend.selectMainPaneMode(backend.matrixDrillSource === "plan"
                                 ? KurrentUi.Design.viewModePlan : KurrentUi.Design.viewModeSwimlane)
                     }
                     QQC2.ToolTip.text: i18n("Back to the matrix")
@@ -1752,7 +1483,7 @@ Item {
                     icon.name: "view-sort"
                     display: QQC2.AbstractButton.IconOnly
                     onClicked: fullRoot.openSortMenu()
-                    QQC2.ToolTip.text: i18n("Sort: %1", fullRoot.sortModeLabel(backend.sortMode))
+                    QQC2.ToolTip.text: i18n("Sort: %1", fullRoot.sortModeLabel())
                     QQC2.ToolTip.visible: hovered
                 }
 
@@ -1782,7 +1513,7 @@ Item {
                             checked: backend.mainPaneMode === modelData.id
                             onTriggered: {
                                 mainPaneHost.beginViewTransition(modelData.id)
-                                plasmoidRoot.setMainPaneMode(modelData.id)
+                                backend.selectMainPaneMode(modelData.id)
                             }
                         }
                     }
@@ -1873,7 +1604,7 @@ Item {
                         text: i18n("Show undated tasks")
                         checkable: true
                         checked: backend.planShowUndated
-                        onTriggered: Plasmoid.configuration.planShowUndated = checked
+                        onTriggered: backend.storeSetting("planShowUndated", checked)
                     }
                     QQC2.MenuItem {
                         visible: !fullRoot.swimlaneMode
@@ -1881,7 +1612,7 @@ Item {
                         text: i18n("Show completed tasks")
                         checkable: true
                         checked: backend.planShowCompleted
-                        onTriggered: Plasmoid.configuration.planShowCompleted = checked
+                        onTriggered: backend.storeSetting("planShowCompleted", checked)
                     }
                 }
 
@@ -2001,8 +1732,6 @@ Item {
                 dragHost: fullRoot
                 interactionsSuspended: taskFullEditor.visible
                 hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
-                newTaskProjectMode: Plasmoid.configuration.newTaskProjectMode || "ask"
-                newTaskDefaultCollectionId: Plasmoid.configuration.newTaskDefaultCollectionId || ""
                 multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
                 heatmapFactsInTiles: viewTiles.visible
                 onOpenFullEditor: function(taskObj) { fullRoot.openFullEditor(taskObj) }

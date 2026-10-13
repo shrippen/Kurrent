@@ -42,7 +42,7 @@ Item {
         return n
     }
     readonly property color priorityTone: hasTask && task.priority > 0 ? Design.priorityColor(task.priority) : KanteStyle.accentColor
-    readonly property bool overdue: hasTask && !task.completed && task.dueDate && task.dueDate < new Date()
+    readonly property bool overdue: hasTask && task.overdueDays > 0
 
     // Inline editor: title, description and location become fields until saved or cancelled.
     property bool editing: false

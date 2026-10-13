@@ -116,17 +116,17 @@ Item {
             break
         }
         case "modeMid":
-            plasmoidRoot.setMainPaneMode(item.value)
+            backend.selectMainPaneMode(item.value)
             wait = 110
             break
         case "style":
-            // Through the configuration: main.qml re-applies Design from it on every config
+            // Through the settings: main.qml re-applies Design from them on every settings
             // change (e.g. the next view-mode switch), so an in-memory value would not stick.
-            Plasmoid.configuration.uiStyle = item.value
+            backend.storeSetting("uiStyle", item.value)
             wait = 800
             break
         case "mode":
-            plasmoidRoot.setMainPaneMode(item.value)
+            backend.selectMainPaneMode(item.value)
             wait = 1400
             break
         case "editor": {

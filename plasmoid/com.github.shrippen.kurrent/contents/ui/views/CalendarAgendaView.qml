@@ -149,28 +149,12 @@ ColumnLayout {
         var _dep = _modelRev + (controller && controller.taskModel ? controller.taskModel.count : 0)
         var _reorg = controller ? controller.listReorganizing : false
         if (!controller) return {}
-        var list = controller.agendaTasksForRange(rangeStart, rangeEnd)
-        var result = {}
-        for (var i = 0; i < list.length; ++i) {
-            var t = list[i]
-            var key = (t.completed && t.completedDate && !isNaN(new Date(t.completedDate).getTime()))
-                ? DateTime.isoDateKey(t.completedDate) : DateTime.isoDateKey(t.due)
-            if (!result[key]) result[key] = []
-            result[key].push(t)
-        }
-        return result
+        // Done tasks on their completion day, open ones first (controller).
+        return controller.agendaTasksByDay(rangeStart, rangeEnd)
     }
 
     function tasksForDay(d) {
-        var l = tasksByDay[DateTime.isoDateKey(d)]
-        if (!l || l.length === 0) return []
-        var incomplete = []
-        var done = []
-        for (var i = 0; i < l.length; i++) {
-            if (l[i].completed) done.push(l[i])
-            else incomplete.push(l[i])
-        }
-        return incomplete.concat(done)
+        return tasksByDay[DateTime.isoDateKey(d)] || []
     }
 
     // Figures for the tiles above the pane (FullView / ViewTiles): events and open tasks of the
@@ -360,32 +344,15 @@ ColumnLayout {
                 text: modelData.name
                 checkable: true
                 checked: modelData.enabled
-                onToggled: root.setCalendarEnabled(modelData.id, checked)
+                onToggled: {
+                    if (checked !== modelData.enabled) {
+                        controller.toggleBusyCalendar(modelData.id)
+                    }
+                }
             }
             onObjectAdded: calMenu.insertItem(index, object)
             onObjectRemoved: calMenu.removeItem(object)
         }
-    }
-
-    function setCalendarEnabled(id, enabled) {
-        var cals = controller.eventCalendars
-        var allIds = []
-        for (var i = 0; i < cals.length; ++i)
-            allIds.push(String(cals[i].id))
-        var raw = String(controller.busyCalendarIds || "")
-        var parts = raw.length > 0 ? raw.split(",") : []
-        var set = {}
-        if (parts.length === 0) {
-            for (var j = 0; j < allIds.length; ++j) set[allIds[j]] = true
-        } else {
-            for (var k = 0; k < parts.length; ++k) set[parts[k]] = true
-        }
-        if (enabled) set[String(id)] = true
-        else delete set[String(id)]
-        var ids = Object.keys(set).filter(function(x) { return set[x] })
-        var csv = (ids.length >= allIds.length && allIds.length > 0) ? "" : ids.join(",")
-        Plasmoid.configuration.busyCalendarIds = csv
-        controller.busyCalendarIds = csv
     }
 
     // ── Date picker popup ─────────────────────────────────────────

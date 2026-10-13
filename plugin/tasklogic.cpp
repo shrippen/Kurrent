@@ -927,7 +927,7 @@ qint64 firstSidebarProjectId(const QList<ProjectCandidate> &projects, const QSet
 {
     qint64 firstNonHidden = -1;
     for (const ProjectCandidate &project : projects) {
-        if (!project.enabled || hiddenIds.contains(project.id)) {
+        if (!project.enabled || !project.writable || hiddenIds.contains(project.id)) {
             continue;
         }
         if (firstNonHidden < 0) {
@@ -1142,6 +1142,55 @@ int panelBadgeCount(const QString &mode, int openRoots, const QVariantMap &viewC
         return qMax(0, viewCounts.value(QStringLiteral("high")).toInt());
     }
     return qMax(0, openRoots);
+}
+
+bool panelBadgeAlert(const QString &mode, const QString &colorMode, const QVariantMap &viewCounts)
+{
+    if (colorMode != QLatin1String("negative")) {
+        return false;
+    }
+    if (mode == QLatin1String("overdue")) {
+        return true;
+    }
+    return mode == QLatin1String("today") && viewCounts.value(ViewId::Overdue).toInt() > 0;
+}
+
+QVariantMap blockedSidebarFilters(const QString &mainPaneMode, const QString &kanbanSource,
+                                  const QString &laneAxis)
+{
+    static const QString project = QStringLiteral("project");
+    static const QString label = QStringLiteral("label");
+    static const QString priority = QStringLiteral("priority");
+    QVariantMap out;
+    if (mainPaneMode == MainPaneMode::Kanban) {
+        // Kanban column source → the sidebar filter it replaces.
+        static const QHash<QString, QString> byColumn = {
+            {KanbanSource::Label, label},
+            {KanbanSource::Project, project},
+            {KanbanSource::Priority, priority},
+            {KanbanSource::Status, QStringLiteral("status")},
+            {KanbanSource::Secrecy, QStringLiteral("secrecy")},
+            {KanbanSource::Completion, QStringLiteral("progress")},
+        };
+        const QString kind = byColumn.value(kanbanSource);
+        if (!kind.isEmpty()) {
+            out.insert(kind, mainPaneMode);
+        }
+        if (kanbanSource == KanbanSource::Label) {
+            out.insert(QStringLiteral("view:") + ViewId::Unlabeled, mainPaneMode);
+        }
+        return out;
+    }
+    if (mainPaneMode == MainPaneMode::Swimlane) {
+        if (laneAxis == label || laneAxis == project || laneAxis == priority) {
+            out.insert(laneAxis, mainPaneMode);
+        }
+        return out;
+    }
+    if (mainPaneMode == MainPaneMode::Plan) {
+        out.insert(project, mainPaneMode);
+    }
+    return out;
 }
 
 QDateTime defaultDueForMode(const QString &mode, const QDate &today)
@@ -2384,7 +2433,7 @@ SmartViewDef parseSmartViewObject(const QJsonObject &obj)
     if (def.icon.isEmpty()) {
         def.icon = QStringLiteral("view-filter");
     }
-    def.defaultMode = obj.value(QStringLiteral("mode")).toString(MainPaneMode::List);
+    def.defaultMode = obj.value(QStringLiteral("mode")).toString();
     def.sortOverride = obj.value(QStringLiteral("sort")).toString();
 
     const QJsonObject rules = obj.value(QStringLiteral("rules")).toObject();
@@ -3259,6 +3308,310 @@ QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today)
         return a.summary.localeAwareCompare(b.summary) < 0;
     });
     return out;
+}
+
+namespace
+{
+QJsonObject jsonMap(const QString &json)
+{
+    const QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+    return doc.isObject() ? doc.object() : QJsonObject();
+}
+} // namespace
+
+QString jsonMapValue(const QString &json, const QString &key)
+{
+    return jsonMap(json).value(key).toString();
+}
+
+QString jsonMapWith(const QString &json, const QString &key, const QString &value)
+{
+    QJsonObject map = jsonMap(json);
+    if (value.isEmpty()) {
+        map.remove(key);
+    } else {
+        map.insert(key, value);
+    }
+    return QString::fromUtf8(QJsonDocument(map).toJson(QJsonDocument::Compact));
+}
+
+QString sortModeForView(const QString &scope, const QString &globalMode,
+                        const QString &byViewJson, const QString &viewId)
+{
+    const QString stored = scope == SortScope::PerView ? jsonMapValue(byViewJson, viewId) : globalMode;
+    return stored.isEmpty() ? SortMode::Default : stored;
+}
+
+QString kanbanSortKey(const QString &viewId, const QString &source)
+{
+    return viewId + QLatin1Char('|') + source;
+}
+
+QList<qint64> collectionIdsFromCsv(const QString &csv)
+{
+    QList<qint64> ids;
+    const QStringList parts = csv.split(QLatin1Char(','), Qt::SkipEmptyParts);
+    for (const QString &part : parts) {
+        bool ok = false;
+        const qint64 id = part.trimmed().toLongLong(&ok);
+        if (!ok) {
+            continue;
+        }
+        ids.append(id);
+    }
+    return ids;
+}
+
+QStringList sortKeyIds()
+{
+    static const QStringList ids = {
+        SortMode::Custom, SortKey::Due, SortKey::DueDesc, QStringLiteral("start"), SortKey::Priority,
+        QStringLiteral("project"), QStringLiteral("projectDesc"), QStringLiteral("label"),
+        QStringLiteral("labelDesc"), QStringLiteral("status"), QStringLiteral("statusDesc"),
+        QStringLiteral("secrecy"), QStringLiteral("secrecyDesc"), QStringLiteral("location"),
+        QStringLiteral("locationDesc"), SortKey::Title, QStringLiteral("titleDesc"),
+        QStringLiteral("reminder"), QStringLiteral("reminderDesc"), QStringLiteral("recurring"),
+        QStringLiteral("recurringDesc"), QStringLiteral("progress"), QStringLiteral("progressDesc"),
+        SortKey::Completed,
+    };
+    return ids;
+}
+
+QString sortFamily(const QString &key)
+{
+    static const QString desc = QStringLiteral("Desc");
+    return key.endsWith(desc) ? key.chopped(desc.size()) : key;
+}
+
+bool sortKeysConflict(const QString &a, const QString &b)
+{
+    if (a.isEmpty() || b.isEmpty() || a == SortKey::None || b == SortKey::None) {
+        return false;
+    }
+    return sortFamily(a) == sortFamily(b);
+}
+
+QStringList sortLevels(const QString &mode)
+{
+    static const QString legacyDefault = QStringLiteral("default");
+    QStringList raw;
+    for (const QString &part : mode.split(QLatin1Char(','))) {
+        const QString key = part.trimmed();
+        if (!key.isEmpty()) {
+            raw.append(key);
+        }
+    }
+
+    // Empty or legacy "default" → Priority › Due › A–Z.
+    if (raw.isEmpty() || raw == QStringList{legacyDefault}) {
+        return {SortKey::Priority, SortKey::Due, SortKey::Title};
+    }
+    if (raw == QStringList{SortMode::Custom}) {
+        return {SortMode::Custom, SortKey::None, SortKey::None};
+    }
+
+    QStringList levels = {SortKey::Priority, SortKey::None, SortKey::None};
+    for (int i = 0; i < qMin(kSortLevels, int(raw.size())); ++i) {
+        levels[i] = raw.at(i) == legacyDefault ? SortKey::Priority : raw.at(i);
+    }
+    for (int a = 0; a < kSortLevels; ++a) {
+        for (int b = a + 1; b < kSortLevels; ++b) {
+            if (levels.at(b) != SortKey::None && sortKeysConflict(levels.at(a), levels.at(b))) {
+                levels[b] = SortKey::None;
+            }
+        }
+    }
+    if (levels.at(1) == SortKey::None) {
+        levels[2] = SortKey::None;
+    }
+    return levels;
+}
+
+QString joinSortLevels(const QStringList &levels)
+{
+    const QString first = levels.value(0);
+    QStringList out = {(first.isEmpty() || first == SortKey::None || first == QLatin1String("default"))
+                               ? SortKey::Priority
+                               : first};
+    for (int i = 1; i < kSortLevels; ++i) {
+        const QString key = levels.value(i);
+        if (!key.isEmpty() && key != SortKey::None) {
+            out.append(key);
+        }
+    }
+    return out.join(QLatin1Char(','));
+}
+
+QString withSortLevel(const QString &mode, int level, const QString &key)
+{
+    QStringList levels = sortLevels(mode);
+    if (level < 0 || level >= kSortLevels) {
+        return joinSortLevels(levels);
+    }
+    levels[level] = key;
+    if (level == 1 && key == SortKey::None) {
+        levels[2] = SortKey::None;
+    }
+    if (key == SortKey::None) {
+        return joinSortLevels(levels);
+    }
+    for (int i = level + 1; i < kSortLevels; ++i) {
+        if (sortKeysConflict(key, levels.at(i))) {
+            levels[i] = SortKey::None;
+        }
+    }
+    return joinSortLevels(levels);
+}
+
+QString withoutSortFamily(const QString &mode, const QString &family)
+{
+    if (family.isEmpty()) {
+        return {};
+    }
+    QStringList kept;
+    bool changed = false;
+    for (const QString &key : sortLevels(mode)) {
+        if (key == SortKey::None) {
+            continue;
+        }
+        if (sortFamily(key) == family) {
+            changed = true;
+            continue;
+        }
+        kept.append(key);
+    }
+    if (!changed) {
+        return {};
+    }
+    if (kept.isEmpty()) {
+        kept = {SortKey::Due, SortKey::Title};
+    }
+    return joinSortLevels(kept);
+}
+
+namespace
+{
+// Kanban columns already split by this field: sorting by it inside a column changes nothing.
+bool blockedByKanban(const QString &key, const QString &source)
+{
+    if (source == KanbanSource::Priority) {
+        return key == SortKey::Priority;
+    }
+    if (source == KanbanSource::Due) {
+        return key == SortKey::Due || key == SortKey::DueDesc;
+    }
+    if (source == KanbanSource::Completion) {
+        return key == SortKey::Completed;
+    }
+    return false;
+}
+} // namespace
+
+QStringList allowedSortKeys(const QString &mainPaneMode, const QString &kanbanSource, const QString &listGroup)
+{
+    const bool kanban = mainPaneMode == MainPaneMode::Kanban;
+    const bool grouped = !listGroup.isEmpty() && listGroup != ListGroupSource::None;
+    QStringList out;
+    for (const QString &key : sortKeyIds()) {
+        if (key == SortMode::Custom && !kanban) {
+            continue;
+        }
+        if (kanban && blockedByKanban(key, kanbanSource)) {
+            continue;
+        }
+        if (grouped && sortFamily(key) == listGroup) {
+            continue;
+        }
+        out.append(key);
+    }
+    return out;
+}
+
+QStringList sortLevelKeys(const QStringList &levels, int level, const QStringList &allowed)
+{
+    QStringList out;
+    if (level > 0) {
+        out.append(SortKey::None);
+    }
+    for (const QString &key : allowed) {
+        bool blocked = false;
+        for (int i = 0; i < level; ++i) {
+            if (sortKeysConflict(levels.value(i), key)) {
+                blocked = true;
+                break;
+            }
+        }
+        if (blocked) {
+            continue;
+        }
+        out.append(key);
+    }
+    return out;
+}
+
+QVariantMap statusChangeFields(int status)
+{
+    constexpr int kStatusCompleted = 3;
+    constexpr int kPercentDone = 100;
+    QVariantMap fields{{QStringLiteral("status"), status}};
+    if (status != kStatusCompleted) {
+        fields.insert(QStringLiteral("completed"), false);
+        return fields;
+    }
+    fields.insert(QStringLiteral("completed"), true);
+    fields.insert(QStringLiteral("percentComplete"), kPercentDone);
+    return fields;
+}
+
+int progressMidpoint(const QString &band)
+{
+    static const QHash<QString, int> midpoints = {
+        {QStringLiteral("0-25"), 12},
+        {QStringLiteral("26-50"), 38},
+        {QStringLiteral("51-75"), 63},
+        {QStringLiteral("76-100"), 88},
+    };
+    return midpoints.value(band, 0);
+}
+
+QStringList shownKanbanColumns(const QStringList &keys, const QString &source, CanceledColumn canceled)
+{
+    if (canceled == CanceledColumn::Show || source != KanbanSource::Status) {
+        return keys;
+    }
+    // "5" is CANCELLED; "cancelled" the legacy slug key.
+    QStringList out;
+    for (const QString &key : keys) {
+        if (key == QLatin1String("5") || key == QLatin1String("cancelled")) {
+            continue;
+        }
+        out.append(key);
+    }
+    return out;
+}
+
+HeatmapSummary summarizeHeatmap(const QList<QVariantMap> &countsInOrder, const QDateTime &start,
+                                const QDateTime &end, const QDateTime &now)
+{
+    constexpr double kMsPerDay = 86400000.0;
+    HeatmapSummary summary;
+    for (const QVariantMap &counts : countsInOrder) {
+        for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
+            const int n = it.value().toInt();
+            summary.total += n;
+            if (n > summary.bestCount) {
+                summary.bestCount = n;
+                summary.bestKey = it.key();
+            }
+        }
+    }
+    if (now < start) {
+        return summary;
+    }
+    const QDateTime until = now < end ? now : end;
+    const int days = qMax(1, int(qCeil(start.msecsTo(until) / kMsPerDay)));
+    summary.perDay = double(summary.total) / days;
+    return summary;
 }
 
 } // namespace TaskLogic

@@ -67,6 +67,7 @@
 - Priority flag in task rows sits right before the due date.
 - Kanban cards: Plasma style uses the Kirigami card look with a hover tint; Kante and Kante Light use a Kante card with the priority bar on top.
 - View-mode toolbar: the active mode shows a highlight tint with a hairline border (Plasma) or an accent fill (Kante).
+- Project plan options (columns, look ahead, undated and completed tasks) are shared by all Kurrent widgets, like every other setting. The first start keeps each widget's current values.
 
 #### Swimlanes and Project plan — polish pass
 - **Shared matrix grid**: pinned column and row headers (both axes), Kanban-style scrolling (wheel, thin bars, middle-click pan), current period highlighted, "jump to current period" button, columns use spare width.
@@ -84,6 +85,7 @@
 - Weekend columns are computed once per matrix instead of per cell.
 
 ### Fixed
+- Overdue means the same everywhere: an open task due before today, as in the Overdue view. Task rows no longer show the due date of completed tasks in red, and the inspector no longer marks tasks due earlier today as overdue.
 - Settings › General: "Ask before deleting" toggled "Show completed tasks", and "Complete only with Shift or Ctrl" toggled "Ask before deleting".
 - Settings showed no options: `config.qml` imported the generated dev-build marker as a directory, so the category list failed to load.
 - Tasks completed in Kurrent had no completion date (COMPLETED), so the heatmap did not count them; completions after midnight UTC landed on the previous day.
