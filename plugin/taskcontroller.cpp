@@ -196,6 +196,7 @@ QHash<qint64, QString> TaskController::s_collectionNames;
 QStringList TaskController::s_extraLabels;
 QStringList TaskController::s_extraLocations;
 QList<TaskController *> TaskController::s_instances;
+TaskController::SessionServices TaskController::s_sessionServices = TaskController::SessionServices::On;
 qint64 TaskController::s_nextTempId = -2;
 int TaskController::s_smokeStep = 0;
 bool TaskController::s_smokeFinished = false;
@@ -255,6 +256,9 @@ TaskController::TaskController(QObject *parent)
     loadRebuildPerfProfile();
     // D-Bus and GlobalAccel talk to the session bus; let QML finish constructing first.
     QTimer::singleShot(0, this, [this]() {
+        if (s_sessionServices == SessionServices::Off) {
+            return;
+        }
         registerSessionInterface();
         registerGlobalShortcuts();
     });
@@ -289,6 +293,11 @@ void TaskController::setTaskStore(AbstractTaskStore *store)
         m_store->setParent(this);
     }
     connect(m_store, &AbstractTaskStore::finished, this, &TaskController::onStoreFinished);
+}
+
+void TaskController::setSessionServices(SessionServices services)
+{
+    s_sessionServices = services;
 }
 
 bool TaskController::demoMode() const

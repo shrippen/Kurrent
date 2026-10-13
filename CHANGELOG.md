@@ -4,6 +4,9 @@
 
 ### Added
 
+#### Terminal client
+- **`kurrent-tui`**: Kurrent in a terminal, installed next to the widget. Now, Soon and Someday as one list; `x` done, `t` today, `m` tomorrow, `d` someday, `a` adds with Quick Add, `/` searches, `g` goes through overdue tasks one at a time (↑ done, → today, ← tomorrow, ↓ someday). Same tasks through Akonadi as the widget; the widget keeps the D-Bus name and the global shortcuts.
+
 #### Sidebar
 - The views (Inbox, Today, Overdue, …, Maintenance) always get their full height; projects, labels and the other sections share the rest and scroll. Before, every section got an equal share and the last views were only reachable by scrolling.
 - **Settings › Sidebar › Row size › Dense (more rows)**: Kante's dense list rows (24 px) for long sidebars, opt-in.

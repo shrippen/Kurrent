@@ -5,8 +5,12 @@ find_package(KF6 REQUIRED COMPONENTS CalendarCore I18n Config)
 find_package(KF6 QUIET COMPONENTS Notifications GlobalAccel)
 find_package(KPim6Akonadi REQUIRED)
 
-add_library(kurrentplugin SHARED
-    kurrentplugin.cpp
+# kurrentcore: tasks, Quick Add, Akonadi store, controller. No QML types are
+# registered here, so the plugin and the terminal client (tui/) both link it.
+#
+#   kurrentplugin (QML: main.qml, views) ─┐
+#   kurrent-tui   (terminal)             ─┴─▶ kurrentcore ─▶ Akonadi / KCalendarCore
+add_library(kurrentcore STATIC
     taskcontroller.cpp
     taskcontroller.h
     tasklogic.cpp
@@ -34,16 +38,17 @@ add_library(kurrentplugin SHARED
 # Internal demo mode for the landing-page screenshots (demo/). Never on in releases.
 option(KURRENT_DEMO "Internal demo mode for screenshots; never enable for releases" OFF)
 if(KURRENT_DEMO)
-    target_sources(kurrentplugin PRIVATE demodata.cpp demodata.h)
-    target_compile_definitions(kurrentplugin PRIVATE KURRENT_WITH_DEMO)
+    target_sources(kurrentcore PRIVATE demodata.cpp demodata.h)
+    target_compile_definitions(kurrentcore PRIVATE KURRENT_WITH_DEMO)
 endif()
 
-set_target_properties(kurrentplugin PROPERTIES
+set_target_properties(kurrentcore PROPERTIES
     AUTOMOC ON
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml/com/github/shrippen/kurrent"
+    POSITION_INDEPENDENT_CODE ON
 )
+target_include_directories(kurrentcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(kurrentplugin PRIVATE
+target_link_libraries(kurrentcore PUBLIC
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -56,14 +61,25 @@ target_link_libraries(kurrentplugin PRIVATE
 )
 
 if(TARGET KF6::Notifications)
-    target_link_libraries(kurrentplugin PRIVATE KF6::Notifications)
-    target_compile_definitions(kurrentplugin PRIVATE KURRENT_HAS_NOTIFICATIONS=1)
+    target_link_libraries(kurrentcore PUBLIC KF6::Notifications)
+    target_compile_definitions(kurrentcore PRIVATE KURRENT_HAS_NOTIFICATIONS=1)
 endif()
 
 if(TARGET KF6::GlobalAccel)
-    target_link_libraries(kurrentplugin PRIVATE KF6::GlobalAccel)
-    target_compile_definitions(kurrentplugin PRIVATE KURRENT_HAS_GLOBALACCEL=1)
+    target_link_libraries(kurrentcore PUBLIC KF6::GlobalAccel)
+    target_compile_definitions(kurrentcore PRIVATE KURRENT_HAS_GLOBALACCEL=1)
 endif()
+
+add_library(kurrentplugin SHARED
+    kurrentplugin.cpp
+)
+
+set_target_properties(kurrentplugin PROPERTIES
+    AUTOMOC ON
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qml/com/github/shrippen/kurrent"
+)
+
+target_link_libraries(kurrentplugin PRIVATE kurrentcore)
 
 # Prefer Qt's QML dir; fall back to lib/qml under the install prefix.
 if(NOT KDE_INSTALL_QMLDIR OR KDE_INSTALL_QMLDIR STREQUAL "")

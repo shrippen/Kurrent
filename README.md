@@ -101,6 +101,7 @@ The Akonadi backend is a compiled QML plugin. The `.plasmoid` from the KDE Store
 - Shared configuration between desktop and panel instances
 - Optional blurred wallpaper background via Plasma
 - Manual sync via toolbar button
+- Terminal client `kurrent-tui`: Now / Soon / Someday, Quick Add, search, overdue triage (needs a running Akonadi session)
 
 ## Roadmap
 

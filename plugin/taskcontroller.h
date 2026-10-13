@@ -130,6 +130,11 @@ public:
     explicit TaskController(QObject *parent = nullptr);
     ~TaskController() override;
 
+    /** Session-wide services: the D-Bus name and global shortcuts. Off for the terminal client. */
+    enum class SessionServices { On, Off };
+    /** Call before the first controller is built. */
+    static void setSessionServices(SessionServices services);
+
     int buildNumber() const;
     QString pluginVersion() const;
     bool devBuild() const;
@@ -736,6 +741,7 @@ enum class SyncResult { Error, Ok };
     static QStringList s_extraLabels;
     static QStringList s_extraLocations;
     static QList<TaskController *> s_instances;
+    static SessionServices s_sessionServices;
     static qint64 s_nextTempId;
     static int s_smokeStep;
     static bool s_smokeFinished;
