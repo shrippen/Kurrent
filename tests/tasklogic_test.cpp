@@ -93,6 +93,10 @@ private Q_SLOTS:
     void planMatrixGridOverdueConsolidationAndHorizon();
     void swimlanePlanHeatmapHelpers();
     void matrixBucketsAndSwimlane();
+
+    void normalizeLayoutFallsBack();
+    void horizonAndOverdueDays();
+    void triageQueueOldestFirst();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1632,6 +1636,74 @@ void TaskLogicTest::swimlanePlanHeatmapHelpers()
     task.completedDate = QDateTime(today, QTime(12, 0));
     const QVariantMap heat = TaskLogic::heatmapCounts({task}, QStringLiteral("completed"), today);
     QVERIFY(heat.contains(today.toString(Qt::ISODate)));
+}
+
+void TaskLogicTest::normalizeLayoutFallsBack()
+{
+    QCOMPARE(TaskLogic::normalizeLayout(TaskLogic::LayoutId::Stack), TaskLogic::LayoutId::Stack);
+    QCOMPARE(TaskLogic::normalizeLayout(QStringLiteral("flow")), TaskLogic::LayoutId::Flow);
+    QCOMPARE(TaskLogic::normalizeLayout(QString()), TaskLogic::LayoutId::Classic);
+    QCOMPARE(TaskLogic::normalizeLayout(QStringLiteral("kanban")), TaskLogic::LayoutId::Classic);
+}
+
+void TaskLogicTest::horizonAndOverdueDays()
+{
+    const QDate today(2026, 10, 14);
+    TaskEntry task = makeTask(QStringLiteral("Rohschnitt Folge 4"));
+
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Someday);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 0);
+
+    task.dueDate = QDateTime(QDate(2026, 9, 21), QTime(18, 0));
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Now);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 23);
+
+    // Due later today is Now, not overdue.
+    task.dueDate = QDateTime(today, QTime(23, 0));
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Now);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 0);
+
+    task.dueDate = QDateTime(today.addDays(1), QTime(9, 0));
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Soon);
+
+    task.dueDate = QDateTime(QDate(2026, 9, 21), QTime(18, 0));
+    task.completed = true;
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Done);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 0);
+}
+
+void TaskLogicTest::triageQueueOldestFirst()
+{
+    const QDate today(2026, 10, 14);
+    const QDateTime sep19(QDate(2026, 9, 19), QTime(12, 0));
+    const QDateTime sep21(QDate(2026, 9, 21), QTime(12, 0));
+
+    TaskEntry low = makeTask(QStringLiteral("B low"));
+    low.dueDate = sep19;
+    low.priority = 9;
+    TaskEntry high = makeTask(QStringLiteral("C high"));
+    high.dueDate = sep19;
+    high.priority = 1;
+    TaskEntry none = makeTask(QStringLiteral("A none"));
+    none.dueDate = sep19;
+    TaskEntry younger = makeTask(QStringLiteral("D younger"));
+    younger.dueDate = sep21;
+    younger.priority = 1;
+    TaskEntry done = makeTask(QStringLiteral("E done"));
+    done.dueDate = sep19;
+    done.completed = true;
+    TaskEntry todayTask = makeTask(QStringLiteral("F today"));
+    todayTask.dueDate = QDateTime(today, QTime(8, 0));
+    TaskEntry undated = makeTask(QStringLiteral("G undated"));
+
+    const QList<TaskEntry> queue =
+        TaskLogic::triageQueue({younger, none, done, low, todayTask, high, undated}, today);
+
+    QCOMPARE(queue.size(), 4);
+    QCOMPARE(queue.at(0).summary, high.summary);
+    QCOMPARE(queue.at(1).summary, low.summary);
+    QCOMPARE(queue.at(2).summary, none.summary);
+    QCOMPARE(queue.at(3).summary, younger.summary);
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)
