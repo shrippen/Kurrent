@@ -1,25 +1,46 @@
-# Checks bei jedem Pull Request und auf main/1.0.
+# Checks bei jedem Push, auf allen Branches.
 #
-# Dieselbe Datei liegt in .gitea/workflows und .github/workflows: Gitea liest nur .gitea/workflows,
-# sobald es das gibt, GitHub nur .github/workflows. Zwei Dateien, damit eine Änderung hier daran
-# erinnert, die andere mitzuziehen.
+# Öffentlicher Spiegel: Gitea pusht jeden Branch und Tag bei jedem Commit hierher. Dieser
+# Workflow prüft und meldet das Ergebnis an den Commit auf Gitea zurück, als Status
+# "github / test"; dort liegen die Pull Requests. Auf GitHub gibt es keine Pull Requests,
+# darum läuft alles auf push.
+#
+# Braucht das Secret GITEA_TOKEN: ein Gitea-Token mit Schreibrecht auf das Repo
+# (Commit-Status).
 name: Tests
 
 on:
   push:
-    branches: [main, "1.0"]
-  pull_request:
+    branches: ["**"]
 
-# Ein Runner arbeitet die Warteschlange der Reihe nach ab. Ein neuerer Push auf denselben
-# Branch oder PR ersetzt den älteren Lauf, statt sich dahinter einzureihen.
-concurrency:
-  group: tests-${{ github.ref }}
-  cancel-in-progress: true
+# Keine Concurrency-Gruppe: Jeder Commit läuft zu Ende und behält seinen Status, ein neuerer
+# Push bricht einen älteren Lauf nicht ab.
+
+permissions:
+  contents: read
+
+env:
+  GITEA_STATUS: https://git.arianw.de/api/v1/repos/shrippen/kurrent/statuses/${{ github.sha }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   unit:
     runs-on: ubuntu-latest
+    outputs:
+      started: ${{ steps.start.outputs.t }}
     steps:
+      # Ein fehlender Status ist kein Grund, die Checks scheitern zu lassen.
+      - id: start
+        name: Report pending to Gitea
+        run: |
+          echo "t=$(date +%s)" >> "$GITHUB_OUTPUT"
+          curl -fsS -X POST "$GITEA_STATUS" \
+            -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"state\":\"pending\",\"context\":\"github / test\",\"description\":\"running\",\"target_url\":\"$RUN_URL\"}" \
+            || echo "::warning::Gitea status not reported"
+        env:
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -45,3 +66,28 @@ jobs:
           assert any(n.startswith("contents/") for n in names)
           print("packaged", zips[0], "entries", len(names))
           PY
+
+  # Läuft auch, wenn unit scheiterte oder abgebrochen wurde, damit auf Gitea kein veraltetes
+  # "pending" stehen bleibt.
+  report:
+    needs: unit
+    if: always()
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report result to Gitea
+        run: |
+          case "$RESULT" in
+            success) state=success ;;
+            failure) state=failure ;;
+            *) state=error ;;
+          esac
+          desc=$RESULT
+          if [ -n "$STARTED" ]; then desc="$RESULT in $(( ($(date +%s) - STARTED) / 60 )) min"; fi
+          curl -fsS -X POST "$GITEA_STATUS" \
+            -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
+            -d "{\"state\":\"$state\",\"context\":\"github / test\",\"description\":\"$desc\",\"target_url\":\"$RUN_URL\"}"
+        env:
+          RESULT: ${{ needs.unit.result }}
+          STARTED: ${{ needs.unit.outputs.started }}
+          GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
