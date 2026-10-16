@@ -1,0 +1,44 @@
+# PR-Agent settings for Kurrent (.gitea/workflows/pr-agent.yml); the rest
+# are PR-Agent's defaults.
+[config]
+git_provider = "gitea"
+response_language = "de-DE"
+max_model_tokens = 128000
+fallback_models = []
+publish_output_progress = false
+# The repository rules go along as context.
+repo_context_files = ["agent.md"]
+
+[pr_reviewer]
+num_max_findings = 5
+require_can_be_split_review = true
+enable_review_labels_effort = false
+enable_review_labels_security = false
+extra_instructions = """
+You review pull requests of Kurrent, a KDE Plasma 6 task manager
+plasmoid (QML, Kirigami, C++ plugin) on Akonadi: tasks (VTODO) of every
+Akonadi resource, with Inbox, Today, Scheduled, Projects and Labels.
+The PRs are written by an AI agent; review them as a careful second
+reader, not as their author.
+
+Report only findings that matter:
+- Bugs: a concrete input or state and the wrong result or crash it gives.
+  Name file and line.
+- Task data: edits that drop VTODO properties (recurrence, alarms,
+  categories, relations) or write to the wrong collection; all-day and
+  time-zone handling.
+- Akonadi jobs without error handling; work that blocks plasmashell.
+- Kante copies edited instead of synced; raw colours or sizes instead
+  of Kante roles.
+- Missing tests for new behaviour.
+- Breaches of the repository rules (agent.md).
+
+Skip style, naming and formatting (the tests run separately), praise, and
+guesses you cannot back with the diff. When you find nothing that
+matters, say so in one line.
+"""
+
+[pr_code_suggestions]
+extra_instructions = """
+Only suggestions that fix a bug or a missing check; no style.
+"""
