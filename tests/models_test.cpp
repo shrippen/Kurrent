@@ -114,6 +114,9 @@ void ModelsTest::taskListExposesAllRoles()
     QCOMPARE(model.data(idx, TaskListModel::BucketRole).toString(), QStringLiteral("morning"));
     QCOMPARE(model.data(idx, TaskListModel::SyncingRole).toBool(), true);
     QCOMPARE(model.data(idx, TaskListModel::PendingDeleteRole).toBool(), true);
+    // Done tasks are never overdue (TaskLogic::overdueDays).
+    QCOMPARE(model.data(idx, TaskListModel::OverdueDaysRole).toInt(), 0);
+    QCOMPARE(model.roleNames().value(TaskListModel::OverdueDaysRole), QByteArray("overdueDays"));
 
     QVERIFY(model.roleNames().contains(TaskListModel::SummaryRole));
     QCOMPARE(model.roleNames().value(TaskListModel::SummaryRole), QByteArray("summary"));

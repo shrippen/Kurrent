@@ -180,10 +180,8 @@ ConfigPageBase {
                 visible: root.cfg_newTaskProjectMode === "fixed"
                 Layout.fillWidth: true
                 Layout.maximumWidth: Kirigami.Units.gridUnit * 20
-                collectionModel: settingsController ? settingsController.collectionModel : null
-                hiddenProjects: plasmoid.configuration.hiddenProjects || ""
-                includeEmptyProjects: true
-                includeHiddenProjects: true
+                controller: settingsController
+                scope: "all"
                 collectionId: {
                     var n = Number(root.cfg_newTaskDefaultCollectionId)
                     return n > 0 ? n : -1
@@ -283,21 +281,9 @@ ConfigPageBase {
         id: settingsControllerLoader
         onLoaded: {
             refresh()
-            var raw = plasmoid.configuration.enabledCollections || ""
-            if (!raw.trim()) {
-                defaultProjectPicker.rebuild()
-                return
-            }
-            var parts = raw.split(",")
-            var ids = []
-            for (var i = 0; i < parts.length; ++i) {
-                var value = parseInt(parts[i].trim(), 10)
-                if (!isNaN(value)) {
-                    ids.push(value)
-                }
-            }
-            if (controller && ids.length > 0) {
-                controller.setEnabledCollectionIds(ids)
+            // Same enabled projects as the widget, so counts and the default-project picker match.
+            if (controller) {
+                controller.loadEnabledCollections()
             }
             defaultProjectPicker.rebuild()
         }

@@ -11,68 +11,11 @@ Item {
     visible: false
 
     property alias controller: taskController
-    readonly property var settings: SharedSettings
 
+    // The controller owns the settings: it bridges Plasmoid.configuration (settings pages)
+    // with kurrentrc, restores the start view and refreshes.
     TaskController {
         id: taskController
-        showCompleted: Plasmoid.configuration.showCompleted
-        catchUpEnabled: Plasmoid.configuration.catchUpEnabled !== false
-        catchUpDays: Plasmoid.configuration.catchUpDays || 14
-        morningHour: Plasmoid.configuration.morningHour !== undefined ? Plasmoid.configuration.morningHour : 6
-        afternoonHour: Plasmoid.configuration.afternoonHour !== undefined ? Plasmoid.configuration.afternoonHour : 12
-        eveningHour: Plasmoid.configuration.eveningHour !== undefined ? Plasmoid.configuration.eveningHour : 18
-        defaultDueMode: Plasmoid.configuration.defaultDueMode || "none"
-        searchTitleOnly: Plasmoid.configuration.searchTitleOnly === true
-        searchCaseSensitive: Plasmoid.configuration.searchCaseSensitive === true
-        completeChildren: Plasmoid.configuration.completeChildren === true
-        countsExcludeCollapsed: Plasmoid.configuration.countsExcludeCollapsed === true
-        notificationsEnabled: Plasmoid.configuration.notificationsEnabled !== false
-        defaultReminderMinutes: Plasmoid.configuration.defaultReminderMinutes !== undefined
-                ? Plasmoid.configuration.defaultReminderMinutes : -1
-        quietHoursEnabled: Plasmoid.configuration.quietHoursEnabled === true
-        quietHoursStart: Plasmoid.configuration.quietHoursStart !== undefined ? Plasmoid.configuration.quietHoursStart : 22
-        quietHoursEnd: Plasmoid.configuration.quietHoursEnd !== undefined ? Plasmoid.configuration.quietHoursEnd : 7
-        suppressRemindersDuringEvents: Plasmoid.configuration.suppressRemindersDuringEvents === true
-        busyCalendarIds: Plasmoid.configuration.busyCalendarIds || ""
-        smartViewsJson: Plasmoid.configuration.smartViews || "[]"
-        kanbanColumnSource: Plasmoid.configuration.kanbanColumnSource || "status"
-        kanbanWriteMode: Plasmoid.configuration.kanbanWriteMode || "fields"
-        swimlaneLaneAxis: Plasmoid.configuration.swimlaneLaneAxis || "project"
-        swimlaneTimeBucket: Plasmoid.configuration.swimlaneTimeBucket || "week"
-        swimlaneHorizon: Plasmoid.configuration.swimlaneHorizon || 0
-        planTimeBucket: Plasmoid.configuration.planTimeBucket || "week"
-        planHorizon: Plasmoid.configuration.planHorizon !== undefined ? Plasmoid.configuration.planHorizon : 8
-        planShowUndated: Plasmoid.configuration.planShowUndated !== undefined ? Plasmoid.configuration.planShowUndated : true
-        planShowCompleted: Plasmoid.configuration.planShowCompleted === true
-        multiSelectEnabled: Plasmoid.configuration.multiSelectEnabled === true
-
-        Component.onCompleted: {
-            var view = Plasmoid.configuration.defaultView || "inbox"
-            if (Plasmoid.configuration.rememberLastView && Plasmoid.configuration.lastView) {
-                view = Plasmoid.configuration.lastView
-            }
-            currentView = view
-
-            selectedCollectionId = -1
-            selectedLabel = ""
-            selectedPriority = -1
-            managementView = ""
-
-            var raw = Plasmoid.configuration.enabledCollections || ""
-            if (raw.trim()) {
-                var parts = raw.split(",")
-                var ids = []
-                for (var i = 0; i < parts.length; ++i) {
-                    var value = parseInt(parts[i].trim(), 10)
-                    if (!isNaN(value)) {
-                        ids.push(value)
-                    }
-                }
-                if (ids.length > 0) {
-                    setEnabledCollectionIds(ids)
-                }
-            }
-            Qt.callLater(function() { refresh() })
-        }
+        Component.onCompleted: startSession(Plasmoid.configuration)
     }
 }

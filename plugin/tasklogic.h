@@ -179,6 +179,7 @@ struct ProjectCandidate {
     qint64 id = -1;
     bool enabled = true;
     int taskCount = 0;
+    bool writable = true;
 };
 
 struct NewTaskTarget {
@@ -323,6 +324,15 @@ QString emptyKind(LoadState loading,
                   ErrorPresence error);
 
 int panelBadgeCount(const QString &mode, int openRoots, const QVariantMap &viewCounts);
+
+/** Panel badge in the alert colour (colorMode "negative"): it counts overdue tasks, or
+ *  today's while some are overdue. */
+bool panelBadgeAlert(const QString &mode, const QString &colorMode, const QVariantMap &viewCounts);
+
+/** Sidebar filters the layout already shows as columns, lanes or rows, which would leave a
+ *  single one: key ("project", "label", …, "view:unlabeled") → layout ("kanban", …). */
+QVariantMap blockedSidebarFilters(const QString &mainPaneMode, const QString &kanbanSource,
+                                  const QString &laneAxis);
 
 QDateTime defaultDueForMode(const QString &mode, const QDate &today);
 
@@ -609,5 +619,127 @@ QVariantMap buildPlanMatrixGrid(const QList<TaskEntry> &tasks,
                                 bool showCompleted,
                                 const QStringList &rowOrder,
                                 const QDate &today);
+
+
+// Main-pane layouts (ROADMAP "Layouts"): values of the `layout` key.
+namespace LayoutId
+{
+inline const QString Classic = QStringLiteral("classic");
+inline const QString Focus = QStringLiteral("focus");
+inline const QString Board = QStringLiteral("board");
+inline const QString Week = QStringLiteral("week");
+inline const QString Stack = QStringLiteral("stack");
+inline const QString Flow = QStringLiteral("flow");
+}
+
+/** Stored layout if known, else LayoutId::Classic (old or newer configs never blank the pane). */
+QString normalizeLayout(const QString &layout);
+
+/** When an open task is due: today or before, later, never. Completed tasks are Done. */
+enum class Horizon { Now, Soon, Someday, Done };
+
+/** Horizon of a task; the Focus layout's sections, the Flow layout's banks. */
+Horizon horizonOf(const TaskEntry &task, const QDate &today);
+
+/** Whole days an open task is overdue; 0 when due today or later, undated or done. */
+int overdueDays(const TaskEntry &task, const QDate &today);
+
+/** Fields for a new VTODO status (sidebar drop): Completed (3) also completes the task at
+ *  100 %, any other status reopens it. Example: 6 → {status: 6, completed: false}. */
+QVariantMap statusChangeFields(int status);
+
+/** Percent complete a progress band stands for when a task is dropped on it ("26-50" → 38). */
+int progressMidpoint(const QString &band);
+
+/** Kanban status columns without "Canceled" when the setting hides it. */
+enum class CanceledColumn { Show, Hide };
+QStringList shownKanbanColumns(const QStringList &keys, const QString &source, CanceledColumn canceled);
+
+/** Heatmap figures for the shown period. Counts in display order (selected year first), so
+ *  the best day is the first day with the highest count. perDay averages over the days of
+ *  the period up to `now` (part days count as whole ones). */
+struct HeatmapSummary {
+    int total = 0;
+    double perDay = 0.0;
+    int bestCount = 0;
+    QString bestKey;
+};
+HeatmapSummary summarizeHeatmap(const QList<QVariantMap> &countsInOrder, const QDateTime &start,
+                                const QDateTime &end, const QDateTime &now);
+
+/** Open overdue tasks for the Stack layout: oldest first, then higher priority, then title. */
+QList<TaskEntry> triageQueue(const QList<TaskEntry> &tasks, const QDate &today);
+
+// Sort modes are comma lists of keys, most significant first ("priority,due,title").
+namespace SortMode
+{
+inline const QString Default = QStringLiteral("priority,due,title");
+inline const QString Custom = QStringLiteral("custom");
+}
+
+// Values of the `sortScope` setting: one sort for all views, or one per view.
+namespace SortScope
+{
+inline const QString Global = QStringLiteral("global");
+inline const QString PerView = QStringLiteral("perView");
+}
+
+/** Value of `key` in a JSON object string; empty when missing or the JSON is broken. */
+QString jsonMapValue(const QString &json, const QString &key);
+
+/** The JSON object string with `key` set to `value`; an empty value removes the key. */
+QString jsonMapWith(const QString &json, const QString &key, const QString &value);
+
+/** Sort a view opens with: its `sortModeByView` entry (per-view scope) or the global
+ *  `sortMode`, else SortMode::Default. */
+QString sortModeForView(const QString &scope, const QString &globalMode,
+                        const QString &byViewJson, const QString &viewId);
+
+// The sort menu: up to three levels of keys; "none" ends the list.
+namespace SortKey
+{
+inline const QString None = QStringLiteral("none");
+inline const QString Priority = QStringLiteral("priority");
+inline const QString Due = QStringLiteral("due");
+inline const QString DueDesc = QStringLiteral("dueDesc");
+inline const QString Title = QStringLiteral("title");
+inline const QString Completed = QStringLiteral("completed");
+}
+constexpr int kSortLevels = 3;
+
+/** Every key the sort menu knows, in menu order (Custom first). */
+QStringList sortKeyIds();
+
+/** Field a key sorts by: "dueDesc" → "due". Two directions of one field exclude each other. */
+QString sortFamily(const QString &key);
+
+bool sortKeysConflict(const QString &a, const QString &b);
+
+/** The menu levels of a mode, padded with "none", later duplicates of a field dropped.
+ *  Example: "due,dueDesc,title" → due, none, none. */
+QStringList sortLevels(const QString &mode);
+
+/** Mode from menu levels: the first defaults to priority, "none" levels are skipped. */
+QString joinSortLevels(const QStringList &levels);
+
+/** Mode after picking `key` at `level`; later levels of the same field drop out. */
+QString withSortLevel(const QString &mode, int level, const QString &key);
+
+/** Mode without keys of `family` (the list is grouped by it); empty when nothing changes.
+ *  Example: "priority,due" without "priority" → "due"; nothing left → "due,title". */
+QString withoutSortFamily(const QString &mode, const QString &family);
+
+/** Keys the current layout allows: Custom only in Kanban; never the Kanban column or the
+ *  list group field (the order inside a column or group would be constant). */
+QStringList allowedSortKeys(const QString &mainPaneMode, const QString &kanbanSource, const QString &listGroup);
+
+/** Keys a menu level may offer: allowed ones, "none" below the first level, no field twice. */
+QStringList sortLevelKeys(const QStringList &levels, int level, const QStringList &allowed);
+
+/** Key of the remembered Kanban sort: "view|columnSource" (e.g. "today|status"). */
+QString kanbanSortKey(const QString &viewId, const QString &source);
+
+/** Ids from the `enabledCollections` setting ("12, 15" → 12, 15); junk entries are skipped. */
+QList<qint64> collectionIdsFromCsv(const QString &csv);
 
 } // namespace TaskLogic

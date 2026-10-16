@@ -470,7 +470,7 @@ Item {
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
                         Layout.alignment: Qt.AlignVCenter
-                        onClicked: Qt.openUrlExternally(task.joinUrl)
+                        onClicked: root.controller.openJoinLink(task.itemId)
                         QQC2.ToolTip.text: i18n("Open / Join")
                         QQC2.ToolTip.visible: joinHover.hovered && !root.listMoving
                         HoverHandler { id: joinHover }
@@ -724,7 +724,8 @@ Item {
                             if (!visible) {
                                 return Kirigami.Theme.textColor
                             }
-                            if (DateTime.isDueBeforeToday(task.dueDate)) {
+                            // One overdue rule for the whole widget (TaskLogic::overdueDays).
+                            if (task.overdueDays > 0) {
                                 return Kirigami.Theme.negativeTextColor
                             }
                             return KanteStyle.themed ? KanteStyle.mutedTextColor : Kirigami.Theme.highlightColor

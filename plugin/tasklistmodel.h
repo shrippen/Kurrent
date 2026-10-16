@@ -83,6 +83,7 @@ public:
         GeoUrlRole,
         SyncingRole,
         PendingDeleteRole,
+        OverdueDaysRole,
     };
     Q_ENUM(Roles)
 

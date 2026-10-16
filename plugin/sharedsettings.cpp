@@ -101,6 +101,10 @@ const SharedSettings::KeySpec *SharedSettings::specs()
         {"swimlaneLaneAxis", ValueType::String, QStringLiteral("project")},
         {"swimlaneTimeBucket", ValueType::String, QStringLiteral("week")},
         {"swimlaneHorizon", ValueType::Int, 0},
+        {"planTimeBucket", ValueType::String, QStringLiteral("week")},
+        {"planHorizon", ValueType::Int, 8},
+        {"planShowUndated", ValueType::Bool, true},
+        {"planShowCompleted", ValueType::Bool, false},
         {"multiSelectEnabled", ValueType::Bool, false},
         {"verboseJournalLogging", ValueType::Bool, false},
         {"infoJournalLogging", ValueType::Bool, true},
@@ -117,6 +121,17 @@ int SharedSettings::specCount()
         ++n;
     }
     return n;
+}
+
+const SharedSettings::KeySpec *SharedSettings::specFor(const QString &key)
+{
+    const KeySpec *keySpecs = specs();
+    for (int i = 0; keySpecs[i].name; ++i) {
+        if (QLatin1String(keySpecs[i].name) == key) {
+            return &keySpecs[i];
+        }
+    }
+    return nullptr;
 }
 
 SharedSettings *SharedSettings::instance()
@@ -349,6 +364,39 @@ void SharedSettings::seedFromIfEmpty(QObject *configuration)
     copyFrom(configuration);
 }
 
+void SharedSettings::seedMissingFrom(QObject *configuration)
+{
+    if (m_syncing || !configuration) {
+        return;
+    }
+
+    // Example: planHorizon lived only in the widget's own config before; keep the user's value.
+    bool dirty = false;
+    const KeySpec *keySpecs = specs();
+    for (int i = 0; i < specCount(); ++i) {
+        const QString name = QLatin1String(keySpecs[i].name);
+        if (m_group.hasKey(name)) {
+            continue;
+        }
+        const QVariant raw = readConfigProperty(configuration, name);
+        if (!raw.isValid()) {
+            continue;
+        }
+        const QVariant incoming = typedValue(raw, keySpecs[i].type);
+        if (sameValue(m_cache.value(name), incoming, keySpecs[i].type)) {
+            continue;
+        }
+        m_cache.insert(name, incoming);
+        writeStored(keySpecs[i], incoming);
+        dirty = true;
+    }
+    if (!dirty) {
+        return;
+    }
+    m_config->sync();
+    Q_EMIT changed();
+}
+
 void SharedSettings::copyFrom(QObject *configuration)
 {
     if (m_syncing || !configuration) {
@@ -394,19 +442,21 @@ void SharedSettings::applyTo(QObject *configuration)
 
 void SharedSettings::storeString(const QString &key, const QString &value)
 {
-    const KeySpec *keySpecs = specs();
-    const int count = specCount();
-    for (int i = 0; i < count; ++i) {
-        if (QLatin1String(keySpecs[i].name) != key) {
-            continue;
-        }
-        if (m_cache.value(key).toString() == value) {
-            return;
-        }
-        m_cache.insert(key, value);
-        writeStored(keySpecs[i], value);
-        m_config->sync();
-        Q_EMIT changed();
+    store(key, value);
+}
+
+void SharedSettings::store(const QString &key, const QVariant &value)
+{
+    const KeySpec *spec = specFor(key);
+    if (!spec) {
         return;
     }
+    const QVariant typed = typedValue(value, spec->type);
+    if (m_cache.contains(key) && sameValue(m_cache.value(key), typed, spec->type)) {
+        return;
+    }
+    m_cache.insert(key, typed);
+    writeStored(*spec, typed);
+    m_config->sync();
+    Q_EMIT changed();
 }

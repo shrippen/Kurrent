@@ -36,10 +36,13 @@ add_executable(kurrent-models-test
     ${CMAKE_SOURCE_DIR}/plugin/tasklistmodel.h
     ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.cpp
     ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
 )
 target_include_directories(kurrent-models-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
 target_link_libraries(kurrent-models-test PRIVATE
     Qt6::Core
+    Qt6::Gui
     Qt6::Test
     KPim6::AkonadiCore
 )
@@ -57,6 +60,15 @@ target_link_libraries(kurrent-calendar-test PRIVATE
     KF6::CalendarCore
 )
 add_test(NAME kurrent-calendar COMMAND kurrent-calendar-test)
+
+add_executable(kurrent-tui-screens-test
+    tui_screens_test.cpp
+    ${CMAKE_SOURCE_DIR}/tui/screens.cpp
+    ${CMAKE_SOURCE_DIR}/tui/screens.h
+)
+target_include_directories(kurrent-tui-screens-test PRIVATE ${CMAKE_SOURCE_DIR}/tui)
+target_link_libraries(kurrent-tui-screens-test PRIVATE Qt6::Core Qt6::Test)
+add_test(NAME kurrent-tui-screens COMMAND kurrent-tui-screens-test)
 
 add_executable(kurrent-taskstore-test
     taskstore_test.cpp

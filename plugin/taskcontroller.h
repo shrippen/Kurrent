@@ -16,6 +16,7 @@
 #include <QHash>
 #include <QObject>
 #include <QPointF>
+#include <QPointer>
 #include <QSet>
 #include <QStringList>
 #include <QTimer>
@@ -64,12 +65,17 @@ class TaskController : public QObject
     Q_PROPERTY(int selectedSecrecy READ selectedSecrecy WRITE setSelectedSecrecy NOTIFY selectedSecrecyChanged)
     Q_PROPERTY(QString selectedLocation READ selectedLocation WRITE setSelectedLocation NOTIFY selectedLocationChanged)
     Q_PROPERTY(QString sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
+    // Sort menu: the three levels of sortMode and, per level, the keys it may offer.
+    Q_PROPERTY(QStringList sortKeys READ sortKeys NOTIFY sortModeChanged)
+    Q_PROPERTY(QVariantList sortLevelOptions READ sortLevelOptions NOTIFY sortOptionsChanged)
     Q_PROPERTY(QString listGroupMode READ listGroupMode WRITE setListGroupMode NOTIFY listGroupModeChanged)
     Q_PROPERTY(QString mainPaneMode READ mainPaneMode WRITE setMainPaneMode NOTIFY mainPaneModeChanged)
     Q_PROPERTY(QString kanbanColumnSource READ kanbanColumnSource WRITE setKanbanColumnSource NOTIFY kanbanColumnSourceChanged)
     Q_PROPERTY(QString kanbanWriteMode READ kanbanWriteMode WRITE setKanbanWriteMode NOTIFY kanbanWriteModeChanged)
     Q_PROPERTY(QString kanbanManualOrderJson READ kanbanManualOrderJson WRITE setKanbanManualOrderJson NOTIFY kanbanManualOrderJsonChanged)
     Q_PROPERTY(QStringList kanbanColumnKeys READ kanbanColumnKeys NOTIFY kanbanLayoutChanged)
+    // Columns the board shows: kanbanColumnKeys without "Canceled" when kanbanHideCanceled is on.
+    Q_PROPERTY(QStringList shownKanbanColumns READ shownKanbanColumns NOTIFY shownKanbanColumnsChanged)
     Q_PROPERTY(int kanbanRevision READ kanbanRevision NOTIFY kanbanLayoutChanged)
     Q_PROPERTY(QString swimlaneLaneAxis READ swimlaneLaneAxis WRITE setSwimlaneLaneAxis NOTIFY swimlaneSettingsChanged)
     Q_PROPERTY(QString swimlaneTimeBucket READ swimlaneTimeBucket WRITE setSwimlaneTimeBucket NOTIFY swimlaneSettingsChanged)
@@ -85,6 +91,12 @@ class TaskController : public QObject
     Q_PROPERTY(bool multiSelectEnabled READ multiSelectEnabled WRITE setMultiSelectEnabled NOTIFY multiSelectEnabledChanged)
     Q_PROPERTY(QStringList selectedTaskIds READ selectedTaskIds NOTIFY selectedTaskIdsChanged)
     Q_PROPERTY(QString smartViewsJson READ smartViewsJson WRITE setSmartViewsJson NOTIFY smartViewsJsonChanged)
+    Q_PROPERTY(QVariantList smartViews READ smartViewsList NOTIFY smartViewsJsonChanged)
+    // Sidebar filters the main-pane layout already shows (TaskLogic::blockedSidebarFilters).
+    Q_PROPERTY(QVariantMap blockedFilters READ blockedFilters NOTIFY blockedFiltersChanged)
+    // Panel icon badge: number for the "panelBadge" setting, alert colour for overdue.
+    Q_PROPERTY(int badgeCount READ badgeCount NOTIFY badgeChanged)
+    Q_PROPERTY(bool badgeAlert READ badgeAlert NOTIFY badgeChanged)
     Q_PROPERTY(qint64 conflictItemId READ conflictItemId NOTIFY conflictItemIdChanged)
     Q_PROPERTY(bool catchUpEnabled READ catchUpEnabled WRITE setCatchUpEnabled NOTIFY catchUpSettingsChanged)
     Q_PROPERTY(int catchUpDays READ catchUpDays WRITE setCatchUpDays NOTIFY catchUpSettingsChanged)
@@ -130,6 +142,11 @@ public:
     explicit TaskController(QObject *parent = nullptr);
     ~TaskController() override;
 
+    /** Session-wide services: the D-Bus name and global shortcuts. Off for the terminal client. */
+    enum class SessionServices { On, Off };
+    /** Call before the first controller is built. */
+    static void setSessionServices(SessionServices services);
+
     int buildNumber() const;
     QString pluginVersion() const;
     bool devBuild() const;
@@ -160,12 +177,15 @@ public:
     int selectedSecrecy() const { return m_selectedSecrecy; }
     QString selectedLocation() const { return m_selectedLocation; }
     QString sortMode() const { return m_sortMode; }
+    QStringList sortKeys() const;
+    QVariantList sortLevelOptions() const;
     QString listGroupMode() const { return m_listGroupMode; }
     QString mainPaneMode() const { return m_mainPaneMode; }
     QString kanbanColumnSource() const { return m_kanbanColumnSource; }
     QString kanbanWriteMode() const { return m_kanbanWriteMode; }
     QString kanbanManualOrderJson() const { return m_kanbanManualOrderJson; }
     QStringList kanbanColumnKeys() const { return m_kanbanColumnKeys; }
+    QStringList shownKanbanColumns() const;
     int kanbanRevision() const { return m_kanbanRevision; }
     QString swimlaneLaneAxis() const { return m_swimlaneLaneAxis; }
     QString swimlaneTimeBucket() const { return m_swimlaneTimeBucket; }
@@ -181,6 +201,9 @@ public:
     bool multiSelectEnabled() const { return m_multiSelectEnabled; }
     QStringList selectedTaskIds() const { return m_selectedTaskIds; }
     QString smartViewsJson() const { return m_smartViewsJson; }
+    QVariantMap blockedFilters() const;
+    int badgeCount() const;
+    bool badgeAlert() const;
     qint64 conflictItemId() const { return m_conflictItemId; }
     bool catchUpEnabled() const { return m_catchUpEnabled; }
     int catchUpDays() const { return m_catchUpDays; }
@@ -290,14 +313,21 @@ public:
     Q_INVOKABLE void setMatrixDrilldown(const QString &source, const QString &laneKey,
                                         const QString &timeKey, const QString &label);
     Q_INVOKABLE void clearMatrixDrilldown();
-    /** Ask the shell to switch the main-pane mode (persists like the toolbar does). */
+    /** Switch the main-pane mode from a view (cell drill-down, heatmap day); persists. */
     Q_INVOKABLE void requestMainPaneMode(const QString &mode);
     Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
     Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
     Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
+    /** The same tasks by ISO day ("2026-10-12"): done ones on their completion day; open
+     *  tasks before done ones. */
+    Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const;
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
+    /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest
+     *  first). {counts, total, perDay, bestCount, bestKey} (TaskLogic::summarizeHeatmap). */
+    Q_INVOKABLE QVariantMap heatmapPeriod(const QDate &monthStart, const QVariantList &years,
+                                          const QString &mode) const;
     /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
     Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
     /** Installed task app for the settings ("KOrganizer" / "Merkuro"); empty if none. */
@@ -318,6 +348,19 @@ public:
     Q_INVOKABLE void reloadTask(qint64 itemId);
     Q_INVOKABLE void dismissConflict();
     Q_INVOKABLE QVariantList smartViewsList() const;
+    /** Sidebar rows: projects with tasks (or all with showEmptyProjects), labels and
+     *  locations, without the hidden ones. Projects as {collectionId, name, taskCount}. */
+    Q_INVOKABLE QVariantList sidebarProjects() const;
+    Q_INVOKABLE QStringList sidebarLabels() const;
+    Q_INVOKABLE QStringList sidebarLocations() const;
+    /** Projects a new task can go to: enabled, writable, not hidden; {collectionId, name}. */
+    Q_INVOKABLE QVariantList writableProjects() const;
+    /** Project for a new task without a Quick Add project: the selected one, else the
+     *  newTaskProjectMode rule, else the only writable one. {collectionId, ask, choices}. */
+    Q_INVOKABLE QVariantMap newTaskTarget() const;
+    /** Project picker rows; scope "sidebar" (writable, not hidden, with tasks) or "all"
+     *  (every writable one). The current project always stays listed. */
+    Q_INVOKABLE QVariantList projectChoices(qint64 currentId, const QString &scope) const;
     void setCatchUpEnabled(bool enabled);
     void setCatchUpDays(int days);
     void setMorningHour(int hour);
@@ -335,7 +378,36 @@ public:
     void setQuietHoursEnd(int hour);
     void setSuppressRemindersDuringEvents(bool enabled);
     void setBusyCalendarIds(const QString &ids);
+    /** Agenda menu: show / hide one calendar's events as busy time; persists. */
+    Q_INVOKABLE void toggleBusyCalendar(qint64 calendarId);
     Q_INVOKABLE void setEnabledCollectionIds(const QVariantList &ids);
+
+    // ── Settings (kurrentrc via SharedSettings) ──
+    //
+    //   KCM pages ─cfg_*─▶ Plasmoid.configuration ◀──── applyTo ────────┐
+    //                            │ any key changed                      │
+    //                            ▼ copyFrom                             │
+    //   views ─select*/storeSetting─▶ TaskController ─store─▶ SharedSettings (kurrentrc)
+    //                                       ▲                           │ changed
+    //                                       └──── loadSettings ◀────────┘
+    //
+    // The widget's controller owns the bridge; views never write the configuration.
+    /** Widget start: bridge `configuration`, load settings, restore the start view, refresh. */
+    Q_INVOKABLE void startSession(QObject *configuration);
+    /** Read-only: apply the stored `enabledCollections` (settings pages). */
+    Q_INVOKABLE void loadEnabledCollections();
+    /** Toolbar / menu choices: apply and persist. */
+    Q_INVOKABLE void selectMainPaneMode(const QString &mode);
+    Q_INVOKABLE void selectSort(const QString &mode);
+    /** Sort menu radio: `key` at level 0–2; later levels of the same field drop out. */
+    Q_INVOKABLE void selectSortLevel(int level, const QString &key);
+    Q_INVOKABLE void selectListGroup(const QString &mode);
+    Q_INVOKABLE void selectKanbanSource(const QString &source);
+    /** Bucket / look-ahead of the active matrix mode (Swimlanes or Project plan). */
+    Q_INVOKABLE void selectMatrixBucket(const QString &bucket);
+    Q_INVOKABLE void selectMatrixHorizon(int periods);
+    /** Persist a plain preference (e.g. "planShowUndated", "sidebarWidthUnits"). */
+    Q_INVOKABLE void storeSetting(const QString &key, const QVariant &value);
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void syncNow();
     Q_INVOKABLE void createTask(const QString &summary, qint64 collectionId);
@@ -348,6 +420,9 @@ public:
                                             const QVariantList &projects) const;
     Q_INVOKABLE void rescheduleTask(qint64 itemId, const QString &preset);
     Q_INVOKABLE QString joinUrlFor(const QString &description, const QString &location) const;
+    /** Opens a task's meeting link or map location in the default app; false without one. */
+    Q_INVOKABLE bool openJoinLink(qint64 itemId) const;
+    Q_INVOKABLE bool openMapLink(qint64 itemId) const;
     Q_INVOKABLE void updateTask(qint64 itemId,
                                 const QString &summary,
                                 const QString &description,
@@ -363,6 +438,9 @@ public:
     Q_INVOKABLE void addTaskCategory(qint64 itemId, const QString &category);
     Q_INVOKABLE void removeTaskCategory(qint64 itemId, const QString &category);
     Q_INVOKABLE void setTaskPriority(qint64 itemId, int priority);
+    /** Sidebar drops: status (Completed also completes) and progress band (its midpoint). */
+    Q_INVOKABLE void setTaskStatus(qint64 itemId, int status);
+    Q_INVOKABLE void setTaskProgressBand(qint64 itemId, const QString &band);
     Q_INVOKABLE void moveTaskToCollection(qint64 itemId, qint64 collectionId);
     Q_INVOKABLE void setTaskCompleted(qint64 itemId, bool completed);
     Q_INVOKABLE void deleteTask(qint64 itemId);
@@ -445,15 +523,18 @@ signals:
     void selectedSecrecyChanged();
     void selectedLocationChanged();
     void sortModeChanged();
+    void sortOptionsChanged();
+    void blockedFiltersChanged();
+    void badgeChanged();
     void listGroupModeChanged();
     void mainPaneModeChanged();
     void kanbanColumnSourceChanged();
     void kanbanWriteModeChanged();
     void kanbanManualOrderJsonChanged();
     void kanbanLayoutChanged();
+    void shownKanbanColumnsChanged();
     void swimlaneSettingsChanged();
     void matrixDrillChanged();
-    void mainPaneModeRequested(const QString &mode);
     void planSettingsChanged();
     void multiSelectEnabledChanged();
     void selectedTaskIdsChanged();
@@ -482,6 +563,12 @@ signals:
     void dbusAddTaskRequested(const QString &summary);
     void dbusOpenViewRequested(const QString &view);
     void dbusSearchRequested(const QString &query);
+    /** kurrentrc changed (any key); the bound configuration is already up to date. */
+    void settingsChanged();
+
+private Q_SLOTS:
+    void onConfigEdited();
+    void onSettingsStored();
 
 private:
 enum class SyncResult { Error, Ok };
@@ -499,6 +586,18 @@ enum class SyncResult { Error, Ok };
         qint64 revertCollectionId = -1;
     };
 
+    void bindConfiguration(QObject *configuration);
+    void loadSettings();
+    void followView();
+    void persist(const QString &key, const QVariant &value);
+    void persistSort(const QString &mode);
+    void applyViewSort();
+    QString setting(const QString &key) const;
+    enum class TaskLink { Join, Map };
+    QString taskLink(qint64 itemId, TaskLink link) const;
+    QVariant liveSetting(const QString &key) const;
+    bool isProjectHidden(qint64 collectionId) const;
+    const TaskLogic::SmartViewDef *smartViewFor(const QString &viewId) const;
     TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
     QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
     void setLoading(bool loading);
@@ -586,6 +685,12 @@ enum class SyncResult { Error, Ok };
 
     bool m_akonadiAvailable = false;
     bool m_demo = false;
+    // Settings: bound Plasmoid.configuration, last loaded kurrentrc values.
+    QPointer<QObject> m_configuration;
+    QVariantMap m_settings;
+    bool m_session = false;
+    bool m_loadingSettings = false;
+    TaskLogic::CanceledColumn m_canceledColumn = TaskLogic::CanceledColumn::Show;
     bool m_loading = false;
     bool m_listReorganizing = false;
     double m_rebuildMsPerTask = 0.08;
@@ -736,6 +841,7 @@ enum class SyncResult { Error, Ok };
     static QStringList s_extraLabels;
     static QStringList s_extraLocations;
     static QList<TaskController *> s_instances;
+    static SessionServices s_sessionServices;
     static qint64 s_nextTempId;
     static int s_smokeStep;
     static bool s_smokeFinished;

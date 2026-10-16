@@ -93,6 +93,23 @@ private Q_SLOTS:
     void planMatrixGridOverdueConsolidationAndHorizon();
     void swimlanePlanHeatmapHelpers();
     void matrixBucketsAndSwimlane();
+
+    void normalizeLayoutFallsBack();
+    void horizonAndOverdueDays();
+    void triageQueueOldestFirst();
+    void sortModeForViewScopes();
+    void jsonMapEditsKeepOthers();
+    void collectionIdsFromCsvSkipsJunk();
+    void sortLevelsParseAndJoin();
+    void sortLevelPickDropsConflicts();
+    void sortWithoutGroupFamily();
+    void sortKeysAllowedPerLayout();
+    void panelBadgeAlertRule();
+    void blockedSidebarFiltersPerLayout();
+    void firstSidebarProjectSkipsReadOnly();
+    void statusAndProgressDrops();
+    void kanbanCanceledColumnHidden();
+    void heatmapSummaryFigures();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1412,6 +1429,8 @@ void TaskLogicTest::smartViewFilterJson()
     QCOMPARE(views.size(), 1);
     QCOMPARE(views.first().id, QStringLiteral("work"));
     QCOMPARE(views.first().defaultMode, QStringLiteral("kanban"));
+    // No "mode": the view keeps the current main-pane mode.
+    QVERIFY(TaskLogic::parseSmartViews(QStringLiteral(R"([{"id":"x"}])")).first().defaultMode.isEmpty());
 
     TaskEntry match;
     match.categories = {QStringLiteral("work")};
@@ -1632,6 +1651,272 @@ void TaskLogicTest::swimlanePlanHeatmapHelpers()
     task.completedDate = QDateTime(today, QTime(12, 0));
     const QVariantMap heat = TaskLogic::heatmapCounts({task}, QStringLiteral("completed"), today);
     QVERIFY(heat.contains(today.toString(Qt::ISODate)));
+}
+
+void TaskLogicTest::normalizeLayoutFallsBack()
+{
+    QCOMPARE(TaskLogic::normalizeLayout(TaskLogic::LayoutId::Stack), TaskLogic::LayoutId::Stack);
+    QCOMPARE(TaskLogic::normalizeLayout(QStringLiteral("flow")), TaskLogic::LayoutId::Flow);
+    QCOMPARE(TaskLogic::normalizeLayout(QString()), TaskLogic::LayoutId::Classic);
+    QCOMPARE(TaskLogic::normalizeLayout(QStringLiteral("kanban")), TaskLogic::LayoutId::Classic);
+}
+
+void TaskLogicTest::horizonAndOverdueDays()
+{
+    const QDate today(2026, 10, 14);
+    TaskEntry task = makeTask(QStringLiteral("Rohschnitt Folge 4"));
+
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Someday);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 0);
+
+    task.dueDate = QDateTime(QDate(2026, 9, 21), QTime(18, 0));
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Now);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 23);
+
+    // Due later today is Now, not overdue.
+    task.dueDate = QDateTime(today, QTime(23, 0));
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Now);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 0);
+
+    task.dueDate = QDateTime(today.addDays(1), QTime(9, 0));
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Soon);
+
+    task.dueDate = QDateTime(QDate(2026, 9, 21), QTime(18, 0));
+    task.completed = true;
+    QCOMPARE(TaskLogic::horizonOf(task, today), TaskLogic::Horizon::Done);
+    QCOMPARE(TaskLogic::overdueDays(task, today), 0);
+}
+
+void TaskLogicTest::triageQueueOldestFirst()
+{
+    const QDate today(2026, 10, 14);
+    const QDateTime sep19(QDate(2026, 9, 19), QTime(12, 0));
+    const QDateTime sep21(QDate(2026, 9, 21), QTime(12, 0));
+
+    TaskEntry low = makeTask(QStringLiteral("B low"));
+    low.dueDate = sep19;
+    low.priority = 9;
+    TaskEntry high = makeTask(QStringLiteral("C high"));
+    high.dueDate = sep19;
+    high.priority = 1;
+    TaskEntry none = makeTask(QStringLiteral("A none"));
+    none.dueDate = sep19;
+    TaskEntry younger = makeTask(QStringLiteral("D younger"));
+    younger.dueDate = sep21;
+    younger.priority = 1;
+    TaskEntry done = makeTask(QStringLiteral("E done"));
+    done.dueDate = sep19;
+    done.completed = true;
+    TaskEntry todayTask = makeTask(QStringLiteral("F today"));
+    todayTask.dueDate = QDateTime(today, QTime(8, 0));
+    TaskEntry undated = makeTask(QStringLiteral("G undated"));
+
+    const QList<TaskEntry> queue =
+        TaskLogic::triageQueue({younger, none, done, low, todayTask, high, undated}, today);
+
+    QCOMPARE(queue.size(), 4);
+    QCOMPARE(queue.at(0).summary, high.summary);
+    QCOMPARE(queue.at(1).summary, low.summary);
+    QCOMPARE(queue.at(2).summary, none.summary);
+    QCOMPARE(queue.at(3).summary, younger.summary);
+}
+
+void TaskLogicTest::sortModeForViewScopes()
+{
+    const QString byView = QStringLiteral("{\"today\":\"due,title\"}");
+
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::Global, QString(), byView, QStringLiteral("today")),
+             TaskLogic::SortMode::Default);
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::Global, QStringLiteral("title"), byView,
+                                        QStringLiteral("today")),
+             QStringLiteral("title"));
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::PerView, QStringLiteral("title"), byView,
+                                        QStringLiteral("today")),
+             QStringLiteral("due,title"));
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::PerView, QStringLiteral("title"), byView,
+                                        QStringLiteral("inbox")),
+             TaskLogic::SortMode::Default);
+    QCOMPARE(TaskLogic::sortModeForView(TaskLogic::SortScope::PerView, QString(), QStringLiteral("broken"),
+                                        QStringLiteral("inbox")),
+             TaskLogic::SortMode::Default);
+    QCOMPARE(TaskLogic::kanbanSortKey(QStringLiteral("today"), QStringLiteral("status")), QStringLiteral("today|status"));
+}
+
+void TaskLogicTest::jsonMapEditsKeepOthers()
+{
+    const QString start = QStringLiteral("{\"inbox\":\"title\"}");
+    const QString added = TaskLogic::jsonMapWith(start, QStringLiteral("today"), QStringLiteral("due"));
+
+    QCOMPARE(TaskLogic::jsonMapValue(added, QStringLiteral("inbox")), QStringLiteral("title"));
+    QCOMPARE(TaskLogic::jsonMapValue(added, QStringLiteral("today")), QStringLiteral("due"));
+    QCOMPARE(TaskLogic::jsonMapWith(added, QStringLiteral("today"), QString()), start);
+    QCOMPARE(TaskLogic::jsonMapWith(QStringLiteral("[1]"), QStringLiteral("a"), QStringLiteral("b")),
+             QStringLiteral("{\"a\":\"b\"}"));
+    QVERIFY(TaskLogic::jsonMapValue(QString(), QStringLiteral("a")).isEmpty());
+}
+
+void TaskLogicTest::collectionIdsFromCsvSkipsJunk()
+{
+    QCOMPARE(TaskLogic::collectionIdsFromCsv(QStringLiteral("12, 15,,x,7")), (QList<qint64>{12, 15, 7}));
+    QVERIFY(TaskLogic::collectionIdsFromCsv(QString()).isEmpty());
+}
+
+void TaskLogicTest::sortLevelsParseAndJoin()
+{
+    using L = QStringList;
+    QCOMPARE(TaskLogic::sortLevels(QString()), (L{"priority", "due", "title"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("default")), (L{"priority", "due", "title"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("custom")), (L{"custom", "none", "none"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral(" due , title ")), (L{"due", "title", "none"}));
+    // Same field twice: the later level drops; an empty second level clears the third.
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("due,dueDesc,title")), (L{"due", "none", "none"}));
+    QCOMPARE(TaskLogic::sortLevels(QStringLiteral("default,title")), (L{"priority", "title", "none"}));
+
+    QCOMPARE(TaskLogic::joinSortLevels({"none", "due", "none"}), QStringLiteral("priority,due"));
+    QCOMPARE(TaskLogic::joinSortLevels({"title", "none", "due"}), QStringLiteral("title,due"));
+    QCOMPARE(TaskLogic::sortFamily(QStringLiteral("projectDesc")), QStringLiteral("project"));
+    QVERIFY(!TaskLogic::sortKeysConflict(QStringLiteral("none"), QStringLiteral("none")));
+}
+
+void TaskLogicTest::sortLevelPickDropsConflicts()
+{
+    QCOMPARE(TaskLogic::withSortLevel(QStringLiteral("priority,due,title"), 0, QStringLiteral("dueDesc")),
+             QStringLiteral("dueDesc,title"));
+    QCOMPARE(TaskLogic::withSortLevel(QStringLiteral("priority,due,title"), 1, QStringLiteral("none")),
+             QStringLiteral("priority"));
+    QCOMPARE(TaskLogic::withSortLevel(QStringLiteral("priority,due"), 2, QStringLiteral("titleDesc")),
+             QStringLiteral("priority,due,titleDesc"));
+}
+
+void TaskLogicTest::sortWithoutGroupFamily()
+{
+    QCOMPARE(TaskLogic::withoutSortFamily(QStringLiteral("priority,due,title"), QStringLiteral("priority")),
+             QStringLiteral("due,title"));
+    QCOMPARE(TaskLogic::withoutSortFamily(QStringLiteral("project"), QStringLiteral("project")),
+             QStringLiteral("due,title"));
+    QVERIFY(TaskLogic::withoutSortFamily(QStringLiteral("due,title"), QStringLiteral("label")).isEmpty());
+    QVERIFY(TaskLogic::withoutSortFamily(QStringLiteral("priority"), QString()).isEmpty());
+}
+
+void TaskLogicTest::sortKeysAllowedPerLayout()
+{
+    const QString list = TaskLogic::MainPaneMode::List;
+    const QString kanban = TaskLogic::MainPaneMode::Kanban;
+    const QStringList listKeys = TaskLogic::allowedSortKeys(list, TaskLogic::KanbanSource::Priority, QString());
+    QVERIFY(!listKeys.contains(QStringLiteral("custom")));
+    QVERIFY(listKeys.contains(QStringLiteral("priority")));
+
+    const QStringList kanbanKeys = TaskLogic::allowedSortKeys(kanban, TaskLogic::KanbanSource::Due, QString());
+    QVERIFY(kanbanKeys.contains(QStringLiteral("custom")));
+    QVERIFY(!kanbanKeys.contains(QStringLiteral("due")));
+    QVERIFY(!kanbanKeys.contains(QStringLiteral("dueDesc")));
+    QVERIFY(!TaskLogic::allowedSortKeys(kanban, TaskLogic::KanbanSource::Completion, QString())
+                 .contains(QStringLiteral("completed")));
+
+    const QStringList grouped = TaskLogic::allowedSortKeys(list, QString(), QStringLiteral("label"));
+    QVERIFY(!grouped.contains(QStringLiteral("label")));
+    QVERIFY(!grouped.contains(QStringLiteral("labelDesc")));
+    QCOMPARE(TaskLogic::allowedSortKeys(list, QString(), QStringLiteral("none")).size(),
+             TaskLogic::sortKeyIds().size() - 1);
+
+    // Level 1 offers "none" and nothing of the first level's field.
+    const QStringList second = TaskLogic::sortLevelKeys({"due", "title", "none"}, 1, listKeys);
+    QVERIFY(second.contains(QStringLiteral("none")));
+    QVERIFY(!second.contains(QStringLiteral("dueDesc")));
+    QVERIFY(second.contains(QStringLiteral("title")));
+    QVERIFY(!TaskLogic::sortLevelKeys({"due", "title", "none"}, 0, listKeys).contains(QStringLiteral("none")));
+}
+
+void TaskLogicTest::panelBadgeAlertRule()
+{
+    const QVariantMap overdue{{QStringLiteral("overdue"), 2}};
+    const QString negative = QStringLiteral("negative");
+    QVERIFY(TaskLogic::panelBadgeAlert(QStringLiteral("overdue"), negative, {}));
+    QVERIFY(TaskLogic::panelBadgeAlert(QStringLiteral("today"), negative, overdue));
+    QVERIFY(!TaskLogic::panelBadgeAlert(QStringLiteral("today"), negative, {}));
+    QVERIFY(!TaskLogic::panelBadgeAlert(QStringLiteral("open"), negative, overdue));
+    QVERIFY(!TaskLogic::panelBadgeAlert(QStringLiteral("overdue"), QStringLiteral("highlight"), overdue));
+}
+
+void TaskLogicTest::blockedSidebarFiltersPerLayout()
+{
+    using namespace TaskLogic;
+    const QVariantMap labels = blockedSidebarFilters(MainPaneMode::Kanban, KanbanSource::Label, QString());
+    QCOMPARE(labels.keys(), (QStringList{"label", "view:unlabeled"}));
+    QCOMPARE(labels.value(QStringLiteral("label")).toString(), MainPaneMode::Kanban);
+    QCOMPARE(blockedSidebarFilters(MainPaneMode::Kanban, KanbanSource::Completion, QString()).keys(),
+             QStringList{"progress"});
+    QVERIFY(blockedSidebarFilters(MainPaneMode::Kanban, KanbanSource::Due, QString()).isEmpty());
+    QCOMPARE(blockedSidebarFilters(MainPaneMode::Swimlane, KanbanSource::Label, QStringLiteral("priority")).keys(),
+             QStringList{"priority"});
+    QVERIFY(blockedSidebarFilters(MainPaneMode::Swimlane, QString(), QStringLiteral("parent")).isEmpty());
+    QCOMPARE(blockedSidebarFilters(MainPaneMode::Plan, QString(), QString()).keys(), QStringList{"project"});
+    QVERIFY(blockedSidebarFilters(MainPaneMode::List, KanbanSource::Label, QStringLiteral("label")).isEmpty());
+}
+
+void TaskLogicTest::firstSidebarProjectSkipsReadOnly()
+{
+    TaskLogic::ProjectCandidate readOnly;
+    readOnly.id = 1;
+    readOnly.taskCount = 3;
+    readOnly.writable = false;
+    TaskLogic::ProjectCandidate empty;
+    empty.id = 2;
+    TaskLogic::ProjectCandidate busy;
+    busy.id = 3;
+    busy.taskCount = 1;
+
+    QCOMPARE(TaskLogic::firstSidebarProjectId({readOnly, empty, busy}, {}), qint64(3));
+    QCOMPARE(TaskLogic::firstSidebarProjectId({readOnly, empty}, {}), qint64(2));
+}
+
+void TaskLogicTest::statusAndProgressDrops()
+{
+    const QVariantMap done = TaskLogic::statusChangeFields(3);
+    QCOMPARE(done.value(QStringLiteral("completed")).toBool(), true);
+    QCOMPARE(done.value(QStringLiteral("percentComplete")).toInt(), 100);
+    const QVariantMap running = TaskLogic::statusChangeFields(6);
+    QCOMPARE(running.value(QStringLiteral("status")).toInt(), 6);
+    QCOMPARE(running.value(QStringLiteral("completed")).toBool(), false);
+    QVERIFY(!running.contains(QStringLiteral("percentComplete")));
+
+    QCOMPARE(TaskLogic::progressMidpoint(QStringLiteral("26-50")), 38);
+    QCOMPARE(TaskLogic::progressMidpoint(QStringLiteral("76-100")), 88);
+    QCOMPARE(TaskLogic::progressMidpoint(QStringLiteral("x")), 0);
+}
+
+void TaskLogicTest::kanbanCanceledColumnHidden()
+{
+    const QStringList keys{"4", "6", "3", "5", "cancelled"};
+    QCOMPARE(TaskLogic::shownKanbanColumns(keys, TaskLogic::KanbanSource::Status, TaskLogic::CanceledColumn::Hide),
+             (QStringList{"4", "6", "3"}));
+    QCOMPARE(TaskLogic::shownKanbanColumns(keys, TaskLogic::KanbanSource::Status, TaskLogic::CanceledColumn::Show),
+             keys);
+    QCOMPARE(TaskLogic::shownKanbanColumns(keys, TaskLogic::KanbanSource::Label, TaskLogic::CanceledColumn::Hide),
+             keys);
+}
+
+void TaskLogicTest::heatmapSummaryFigures()
+{
+    const QDateTime start(QDate(2026, 10, 1), QTime(0, 0));
+    const QDateTime end(QDate(2026, 11, 1), QTime(0, 0));
+    const QVariantMap october{{"2026-10-02", 3}, {"2026-10-05", 4}, {"2026-10-07", 4}};
+
+    // Ten and a half days in: part days count, so 11 days.
+    const auto running = TaskLogic::summarizeHeatmap({october}, start, end, QDateTime(QDate(2026, 10, 11), QTime(12, 0)));
+    QCOMPARE(running.total, 11);
+    QCOMPARE(running.perDay, 1.0);
+    QCOMPARE(running.bestCount, 4);
+    QCOMPARE(running.bestKey, QStringLiteral("2026-10-05"));
+
+    // Past period: all 31 days; future period: no average.
+    QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, QDateTime(QDate(2027, 1, 1), QTime(0, 0))).perDay,
+             11.0 / 31);
+    QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, QDateTime(QDate(2026, 9, 1), QTime(0, 0))).perDay, 0.0);
+
+    // Several years: the first map (the selected year) wins ties.
+    const QVariantMap older{{"2025-03-01", 4}};
+    QCOMPARE(TaskLogic::summarizeHeatmap({october, older}, start, end, end).bestKey, QStringLiteral("2026-10-05"));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

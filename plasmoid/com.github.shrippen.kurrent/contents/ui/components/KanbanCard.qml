@@ -316,7 +316,7 @@ Kirigami.AbstractCard {
                          && !!(task.joinUrl && String(task.joinUrl).length)
                 icon.name: "internet-services"
                 display: QQC2.AbstractButton.IconOnly
-                onClicked: Qt.openUrlExternally(task.joinUrl)
+                onClicked: controller.openJoinLink(task.itemId)
                 QQC2.ToolTip.text: i18n("Open / Join")
                 QQC2.ToolTip.visible: hovered
             }
