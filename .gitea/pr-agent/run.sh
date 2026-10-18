@@ -6,8 +6,8 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
-# The workflow passes only /review (owner, 18.10.2026). Actions compares case-insensitively,
-# so /Review arrives too; PR-Agent gets it as /review.
+# Only /review (owner, 18.10.2026); the workflow's step Command checks the same before
+# installing anything, this check is for runs by hand. /Review becomes /review for PR-Agent.
 first="${COMMAND%%[[:space:]]*}"
 if [[ "${first,,}" != /review ]]; then
     echo "not a PR-Agent command here: $first"

@@ -17,8 +17,8 @@ on:
 
 # A newer /review (alone or with options after a space) replaces a running one. Every other
 # comment gets a group of its own and cancels nothing: one that skips, and one that starts with
-# /review but goes on otherwise (a line break: it still runs, run.sh splits at any space;
-# /reviewed: run.sh skips it).
+# /review but goes on otherwise (a line break: it still runs, the check splits at any space;
+# /reviewed: the step Command ends the job before anything is installed).
 concurrency:
   group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review '))) && 'review' || github.run_id }}
   cancel-in-progress: true
@@ -33,18 +33,36 @@ jobs:
     runs-on: ubuntu-latest
     container: python:3.12-slim
     steps:
+      # The job starts on any comment that begins with /review (a line break after it too); only
+      # /review itself goes on, so /reviewed installs nothing. Actions compares case-insensitively.
+      - name: Command
+        id: command
+        shell: bash
+        env:
+          COMMAND: ${{ github.event.comment.body }}
+        run: |
+          first="${COMMAND%%[[:space:]]*}"
+          if [[ "${first,,}" == /review ]]; then
+              echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+              echo "not a PR-Agent command here: $first"
+          fi
+
       # actions/checkout runs on Node.
       - name: Tools
+        if: steps.command.outputs.run == 'true'
         run: |
           apt-get update -qq
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git nodejs >/dev/null
           pip install -q pr-agent==0.47.0
 
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - if: steps.command.outputs.run == 'true'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           sparse-checkout: .gitea/pr-agent
 
       - name: PR-Agent
+        if: steps.command.outputs.run == 'true'
         env:
           PR_URL: ${{ github.server_url }}/${{ github.repository }}/pulls/${{ github.event.issue.number }}
           COMMAND: ${{ github.event.comment.body }}
