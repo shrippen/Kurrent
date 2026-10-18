@@ -15,10 +15,12 @@ on:
   issue_comment:
     types: [created]
 
-# A newer /review replaces a running one. Every other comment starts a run that skips;
-# it gets a group of its own, so it cancels nothing.
+# A newer /review (alone or with options after a space) replaces a running one. Every other
+# comment gets a group of its own and cancels nothing: one that skips, and one that starts with
+# /review but goes on otherwise (a line break: it still runs, run.sh splits at any space;
+# /reviewed: run.sh skips it).
 concurrency:
-  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && startsWith(github.event.comment.body, '/review')) && 'review' || github.run_id }}
+  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review '))) && 'review' || github.run_id }}
   cancel-in-progress: true
 
 jobs:
