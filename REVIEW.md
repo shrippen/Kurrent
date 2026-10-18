@@ -30,8 +30,9 @@ matters is one the user loses data to or sees:
 - Layers: QML calls `TaskController`, rules live in `TaskLogic`, writes go
   through `AbstractTaskStore`; QML never touches `SharedSettings`.
 - Bug fixes: a test in `tests/` that fails without the fix; the cause
-  removed, not hidden. CI only packages, it runs no unit tests: the PR names the result of
-  `bash install.sh` on its latest commit; report a missing result.
+  removed, not hidden. CI only packages, it runs no unit tests: a PR that changes code (not only
+  docs) names the result of `bash install.sh` on its latest commit;
+  report a missing result.
 - Kante GUI rule: no own colours, sizes or raw `#hex`; `ui/Kante*` only
   via `scripts/sync-kante.sh`. Visual changes update `Design.md` and
   `Design.qml`; new strings run `python3 po/generate_po.py`.
