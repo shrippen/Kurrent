@@ -16,9 +16,10 @@ on:
     types: [created]
 
 # A newer /review replaces a running one. Every other comment starts a run that skips;
-# it gets a group of its own, so it cancels nothing.
+# it gets a group of its own, so it cancels nothing. /review counts alone or with options
+# after a space, so /reviewed cancels nothing either.
 concurrency:
-  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && startsWith(github.event.comment.body, '/review')) && 'review' || github.run_id }}
+  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review '))) && 'review' || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -26,7 +27,7 @@ jobs:
     if: >-
       github.event.issue.pull_request &&
       github.event.comment.user.login == github.repository_owner &&
-      startsWith(github.event.comment.body, '/review')
+      (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review '))
     timeout-minutes: 20
     runs-on: ubuntu-latest
     container: python:3.12-slim

@@ -37,8 +37,3 @@ Skip style, naming and formatting (the tests run separately), praise, and
 guesses you cannot back with the diff. When you find nothing that
 matters, say so in one line.
 """
-
-[pr_code_suggestions]
-extra_instructions = """
-Only suggestions that fix a bug or a missing check; no style.
-"""
