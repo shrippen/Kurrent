@@ -7,7 +7,9 @@ this file. The owner does not read code; this review is the second reader.
 
 ## What failure looks like here
 
-Kurrent is a Plasma 6 widget over the user's Akonadi tasks. A bug that
+Kurrent is a Plasma 6 widget over the user's Akonadi tasks, plus a
+KRunner plugin (`krunner/`) and a terminal UI (`tui/`); the list applies
+to all three. A bug that
 matters is one the user loses data to or sees:
 
 - **Loses data:** a write drops foreign `X-*` properties, the RRULE, a
@@ -28,7 +30,8 @@ matters is one the user loses data to or sees:
 - Layers: QML calls `TaskController`, rules live in `TaskLogic`, writes go
   through `AbstractTaskStore`; QML never touches `SharedSettings`.
 - Bug fixes: a test in `tests/` that fails without the fix; the cause
-  removed, not hidden. CI only packages: `bash install.sh` must pass.
+  removed, not hidden. CI only packages, it runs no unit tests: the PR names the result of
+  `bash install.sh` on its latest commit; report a missing result.
 - Kante GUI rule: no own colours, sizes or raw `#hex`; `ui/Kante*` only
   via `scripts/sync-kante.sh`. Visual changes update `Design.md` and
   `Design.qml`; new strings run `python3 po/generate_po.py`.
@@ -36,6 +39,13 @@ matters is one the user loses data to or sees:
   private by default (widening needs the owner's approval).
 - `ReviewClaude.md` lists known findings in Swimlanes and Projektplan
   (15.09.2026); one of those is **Bestand** unless the PR touches it.
+
+## What the owner confirms here
+
+"What is published" (rule in `agent.md`) means here: a release (tag,
+`.github/workflows/release.yml`), the packaging scripts
+(`scripts/package-plasmoid.sh`, `scripts/package-linux-bin.sh`,
+`install-linux.sh`) and the landing page `docs/index.html`.
 
 ## Skip
 
