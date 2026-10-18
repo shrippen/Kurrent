@@ -1,8 +1,8 @@
 name: pr-agent
 
-# A second reader for pull requests: PR-Agent (qodo-ai/pr-agent) reviews
-# each new PR with another LLM and posts its findings as a comment.
-# A comment of the owner runs it again: /review, /improve, /ask "…".
+# A second reader for pull requests: PR-Agent (qodo-ai/pr-agent) reviews a PR
+# with another LLM when the owner comments /review on it, and posts its
+# findings as a comment. No automatic run (owner, 18.10.2026).
 #
 # Needs the secret PR_AGENT_LLM_KEY and the variable PR_AGENT_MODEL (a
 # LiteLLM model name, e.g. gpt-5.6, gemini/gemini-3.5-pro, or through
@@ -12,22 +12,21 @@ name: pr-agent
 # an own user.
 # Settings: .gitea/pr-agent/config.toml.
 on:
-  pull_request:
-    types: [opened, reopened, ready_for_review]
   issue_comment:
     types: [created]
 
+# A newer /review replaces a running one. Every other comment starts a run that skips;
+# it gets a group of its own, so it cancels nothing.
 concurrency:
-  group: pr-agent-${{ github.event.pull_request.number || github.event.issue.number }}
+  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && startsWith(github.event.comment.body, '/review')) && 'review' || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   pr-agent:
     if: >-
-      github.event_name == 'pull_request' ||
-      (github.event.issue.pull_request &&
-       github.event.comment.user.login == github.repository_owner &&
-       startsWith(github.event.comment.body, '/'))
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == github.repository_owner &&
+      startsWith(github.event.comment.body, '/review')
     timeout-minutes: 20
     runs-on: ubuntu-latest
     container: python:3.12-slim
@@ -45,8 +44,8 @@ jobs:
 
       - name: PR-Agent
         env:
-          PR_URL: ${{ github.server_url }}/${{ github.repository }}/pulls/${{ github.event.pull_request.number || github.event.issue.number }}
-          COMMAND: ${{ github.event.comment.body || '/review' }}
+          PR_URL: ${{ github.server_url }}/${{ github.repository }}/pulls/${{ github.event.issue.number }}
+          COMMAND: ${{ github.event.comment.body }}
           MODEL: ${{ vars.PR_AGENT_MODEL }}
           MODEL_TOKENS: ${{ vars.PR_AGENT_MODEL_TOKENS }}
           LLM_KEY: ${{ secrets.PR_AGENT_LLM_KEY }}
