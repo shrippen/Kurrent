@@ -1,9 +1,10 @@
 # Review guide
 
-Every PR is reviewed by a new Claude agent before it is merged (rule in
-`agent.md`, owner 18.10.2026). The agent knows nothing of the session that
-wrote the change: it gets the PR's intent, its diff and the repository, and
-this file. The owner does not read code; this review is the second reader.
+Every PR is reviewed before it is merged (rule in `agent.md`): by PR-Agent
+(owner, 22.10.2026); a new Claude agent checks the **Wichtig** of earlier
+rounds, and reviews when PR-Agent fails. The
+reviewer knows nothing of the session that wrote the change: it gets the
+PR's intent, its diff and the repository, and this file. The owner does not read code; this review is the second reader.
 
 ## What failure looks like here
 
@@ -66,5 +67,7 @@ matters is one the user loses data to or sees:
   one still open, also from an earlier round, e.g. "1 Wichtig (offen aus
   Runde 1)". Only when none is open it says plainly: "Nichts zu beheben."
 - In a later round: say for each open **Wichtig** of the last round whether
-  it is fixed, or whether its answer is accepted, with the reason.
+  it is fixed, or whether its answer is accepted, with the reason. PR-Agent
+  sees no earlier round: it reports only its own findings with their labels,
+  and a new Claude agent closes the open ones (`agent.md`).
 - Findings in German, code names as they are.

@@ -1,13 +1,15 @@
 name: pr-agent
 
-# A second reader for pull requests: PR-Agent (qodo-ai/pr-agent) reviews a PR
-# with another LLM when the owner comments /review on it, and posts its
-# findings as a comment. No automatic run (owner, 18.10.2026).
+# The second reader for pull requests: PR-Agent (qodo-ai/pr-agent) reviews a PR
+# when the owner's account comments /review on it (a session for each review
+# round with new code, agent.md), and posts its findings as a comment. No automatic run
+# (owner, 18.10.2026).
 #
 # Needs the secret PR_AGENT_LLM_KEY and the variable PR_AGENT_MODEL (a
-# LiteLLM model name, e.g. gpt-5.6, gemini/gemini-3.5-pro, or through
-# OpenRouter openrouter/<vendor>/<model>). For a model PR-Agent does not
-# know, the variable PR_AGENT_MODEL_TOKENS gives its context size.
+# LiteLLM model name, e.g. anthropic/claude-opus-5-5, gpt-5.6,
+# gemini/gemini-3.5-pro, or through OpenRouter openrouter/<vendor>/<model>).
+# For a model PR-Agent does not know, the variable PR_AGENT_MODEL_TOKENS
+# gives its context size.
 # Comments come from the Actions bot; the secret PR_AGENT_GITEA_TOKEN sets
 # an own user.
 # Settings: .gitea/pr-agent/config.toml.
@@ -15,12 +17,16 @@ on:
   issue_comment:
     types: [created]
 
-# A newer /review (alone or with options after a space) replaces a running one. Every other
-# comment gets a group of its own and cancels nothing: one that skips, and one that starts with
-# /review but goes on otherwise (a line break: it still runs, the check splits at any space;
-# /reviewed: the step Command ends the job before anything is installed).
+# A newer /review (alone or with options after a space) replaces a running one, also a /review
+# of someone else, which the job's if then skips (only the owner and the bot comment here; the
+# bot's comments never start with /review). Every other comment gets a group of its own and
+# cancels nothing: one that skips, and one that starts with /review but goes on otherwise (a line
+# break: it still runs, the check splits at any space; /reviewed: the step Command ends the job
+# before anything is installed). The group checks only the comment: with the owner and PR check
+# in it too, Gitea 28 created no run at all, without an error (probe repo, 22.10.2026; owner or
+# PR check alone worked, so keep the group as it is).
 concurrency:
-  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.issue.pull_request && github.event.comment.user.login == github.repository_owner && (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review '))) && 'review' || github.run_id }}
+  group: pr-agent-${{ github.event.issue.number }}-${{ (github.event.comment.body == '/review' || startsWith(github.event.comment.body, '/review ')) && 'review' || github.run_id }}
   cancel-in-progress: true
 
 jobs:
