@@ -2,7 +2,7 @@ name: pr-agent
 
 # The second reader for pull requests: PR-Agent (qodo-ai/pr-agent) reviews a PR
 # when the owner's account comments /review on it (a session for each review
-# round with new code, agent.md), and posts its findings as a comment. No automatic run
+# round with new code or a new base, agent.md), and posts its findings as a comment. No automatic run
 # (owner, 18.10.2026).
 #
 # Needs the secret PR_AGENT_LLM_KEY and the variable PR_AGENT_MODEL (a
