@@ -6,8 +6,13 @@ response_language = "de-DE"
 max_model_tokens = 128000
 fallback_models = []
 publish_output_progress = false
-# The repository rules go along as context.
-repo_context_files = ["agent.md"]
+# Claude Opus 4.7+ and Claude 5 take no temperature, only adaptive thinking
+# with an effort (Opus 5.5 defaults to medium); the effort applies to other
+# reasoning models too.
+enable_claude_adaptive_thinking = true
+reasoning_effort = "high"
+# The repository rules and the review guide go along as context.
+repo_context_files = ["agent.md", "REVIEW.md"]
 
 [pr_reviewer]
 num_max_findings = 5
@@ -32,6 +37,9 @@ Report only findings that matter:
   of Kante roles.
 - Missing tests for new behaviour.
 - Breaches of the repository rules (agent.md).
+
+Label each finding **Wichtig**, **Kleinigkeit** or **Bestand** as REVIEW.md
+defines them, at the start of its title.
 
 Skip style, naming and formatting (the tests run separately), praise, and
 guesses you cannot back with the diff. When you find nothing that
