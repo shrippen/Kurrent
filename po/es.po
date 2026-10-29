@@ -710,6 +710,9 @@ msgstr "Oculto"
 msgid "Hide done"
 msgstr "Ocultar hechas"
 
+msgid "Hide overdue"
+msgstr "Ocultar vencidas"
+
 msgid "Hide sidebar"
 msgstr "Ocultar barra lateral"
 

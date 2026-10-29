@@ -710,6 +710,9 @@ msgstr "Masqué"
 msgid "Hide done"
 msgstr "Masquer les terminées"
 
+msgid "Hide overdue"
+msgstr "Masquer les tâches en retard"
+
 msgid "Hide sidebar"
 msgstr "Masquer la barre latérale"
 

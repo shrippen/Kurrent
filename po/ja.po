@@ -710,6 +710,9 @@ msgstr "非表示"
 msgid "Hide done"
 msgstr "完了を隠す"
 
+msgid "Hide overdue"
+msgstr "期限切れを隠す"
+
 msgid "Hide sidebar"
 msgstr "サイドバーを隠す"
 

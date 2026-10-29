@@ -9,8 +9,8 @@ import "../Kante"
 import "../datetime.js" as DateTime
 
 // The Agenda's week board: one column per day with its appointments and open tasks as dense
-// cards, a load bar (appointments plus task lengths against 8 hours) and done tasks folded.
-// Overdue tasks wait in a tray above the week; past days only point there. Weekend columns
+// cards, a load bar (appointments plus task lengths against the workday) and done tasks folded.
+// Overdue tasks wait in a tray above the week; past days fold theirs like the done ones. Weekend columns
 // are narrower. Drop a card on a day to move it there (its time stays).
 ColumnLayout {
     id: view
@@ -30,6 +30,14 @@ ColumnLayout {
     property bool trayOpen: true
     // Days whose done tasks are unfolded, by ISO date.
     property var shownDone: ({})
+    // Past days whose overdue tasks are unfolded, by ISO date.
+    property var shownLate: ({})
+
+    function toggled(map, key) {
+        var next = Object.assign({}, map)
+        next[key] = !next[key]
+        return next
+    }
     // Day with the inline quick-add field open, ISO date or "".
     property string addingOn: ""
 
@@ -364,9 +372,10 @@ ColumnLayout {
                             }
                         }
 
-                        // Open tasks; on past days they are in the overdue tray.
+                        // Open tasks; on past days they are overdue, folded like the done ones
+                        // (they also wait in the tray above).
                         Repeater {
-                            model: column.past ? [] : column.modelData.open
+                            model: column.past && !view.shownLate[column.key] ? [] : column.modelData.open
                             delegate: AgendaCard {
                                 required property var modelData
                                 Layout.fillWidth: true
@@ -379,8 +388,9 @@ ColumnLayout {
                         KanteToolButton {
                             visible: column.past && column.openCount > 0
                             Layout.fillWidth: true
-                            text: i18np("↑ %1 in Overdue", "↑ %1 in Overdue", column.openCount)
-                            onClicked: view.trayOpen = true
+                            text: view.shownLate[column.key] ? i18n("Hide overdue")
+                                                             : i18np("↑ %1 in Overdue", "↑ %1 in Overdue", column.openCount)
+                            onClicked: view.shownLate = view.toggled(view.shownLate, column.key)
                         }
 
                         // Done tasks, folded.
@@ -400,11 +410,7 @@ ColumnLayout {
                             Layout.fillWidth: true
                             text: view.shownDone[column.key] ? i18n("Hide done")
                                                              : i18np("✓ %1 done", "✓ %1 done", column.modelData.done.length)
-                            onClicked: {
-                                var next = Object.assign({}, view.shownDone)
-                                next[column.key] = !next[column.key]
-                                view.shownDone = next
-                            }
+                            onClicked: view.shownDone = view.toggled(view.shownDone, column.key)
                         }
 
                         QQC2.Label {

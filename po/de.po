@@ -710,6 +710,9 @@ msgstr "Ausgeblendet"
 msgid "Hide done"
 msgstr "Erledigte ausblenden"
 
+msgid "Hide overdue"
+msgstr "Überfällige ausblenden"
+
 msgid "Hide sidebar"
 msgstr "Seitenleiste ausblenden"
 

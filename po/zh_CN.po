@@ -710,6 +710,9 @@ msgstr "隐藏"
 msgid "Hide done"
 msgstr "隐藏已完成"
 
+msgid "Hide overdue"
+msgstr "隐藏已逾期"
+
 msgid "Hide sidebar"
 msgstr "隐藏侧边栏"
 
