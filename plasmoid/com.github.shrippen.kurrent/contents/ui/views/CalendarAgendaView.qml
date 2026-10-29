@@ -405,19 +405,10 @@ ColumnLayout {
             anchors.fill: parent
             sourceComponent: root.mode === "week" ? weekView : root.mode === "month" ? monthView : dayView
         }
-        // Over the views, passive: the press still reaches what is under it.
-        Item {
+        FocusTaker {
             id: focusTaker
-            anchors.fill: parent
-            z: 1000
-            TapHandler {
-                gesturePolicy: TapHandler.DragThreshold
-                onPressedChanged: {
-                    if (pressed && !root.ownsKeys) {
-                        root.forceActiveFocus()
-                    }
-                }
-            }
+            target: root
+            enabled: !root.ownsKeys
         }
     }
 
