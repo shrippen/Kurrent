@@ -201,8 +201,8 @@ ColumnLayout {
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 1
-                    spacing: 2
+                    anchors.bottomMargin: Design.agendaHairline
+                    spacing: Design.spaceTiny
                     visible: !!modelData.marks
                     Repeater {
                         model: {

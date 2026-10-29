@@ -116,8 +116,8 @@ Item {
             required property var modelData
             x: grid.gutter + Design.spaceTiny
             width: grid.width - grid.gutter - Design.spaceTiny * 2
-            y: grid.yOf(modelData.start) + 1
-            height: (modelData.end - modelData.start) * grid.px - 2
+            y: grid.yOf(modelData.start) + Design.agendaHairline
+            height: (modelData.end - modelData.start) * grid.px - Design.agendaHairline * 2
             radius: Design.inputRadius
             color: KanteStyle.tint(KanteStyle.positiveTextColor, Design.agendaFreeFill)
             border.width: Design.agendaHairline
@@ -199,7 +199,7 @@ Item {
             readonly property int shownEnd: Math.min(liveEnd, grid.gridEnd)
             visible: shownEnd > shownStart
             y: grid.yOf(shownStart)
-            height: Math.max(Kirigami.Units.gridUnit, (shownEnd - shownStart) * grid.px - 2)
+            height: Math.max(Kirigami.Units.gridUnit, (shownEnd - shownStart) * grid.px - Design.agendaHairline * 2)
             z: selected ? 3 : 2
             radius: Design.inputRadius
             clip: true
