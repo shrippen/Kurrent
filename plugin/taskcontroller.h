@@ -355,7 +355,8 @@ public:
     Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute);
     /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
     Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
-    /** Put a task on `day` without a time (all-day, start cleared). Undoable. */
+    /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier
+     *  start day stays. Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
      *  the same number of days; a task without a date becomes all-day on `day`. Undoable. */

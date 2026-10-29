@@ -42,6 +42,7 @@ private Q_SLOTS:
     void heatmapTasksForDay();
     void agendaPlacesTasksInFreeTime();
     void agendaDayShowsBlocksOutsideTheGrid();
+    void agendaMoveToDayKeepsAnEarlierStart();
     void agendaBoardsShiftAndCount();
     void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
@@ -486,6 +487,35 @@ void TaskControllerStoreTest::heatmapTasksForDay()
     QCOMPARE(done.at(1).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("b done"));
     QVERIFY(m_controller->heatmapTasksForDay(QDate::currentDate().addDays(-1), QStringLiteral("completed")).isEmpty());
     QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
+}
+
+void TaskControllerStoreTest::agendaMoveToDayKeepsAnEarlierStart()
+{
+    const QDate today = QDate::currentDate();
+    m_controller->installTestTask(1, QStringLiteral("long run"), 10);
+    m_controller->installTestTask(2, QStringLiteral("starts later"), 10);
+    m_controller->installTestTask(3, QStringLiteral("block"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->updateTaskFull(1, {{QStringLiteral("allDay"), true},
+                                     {QStringLiteral("startDate"), QDateTime(today.addDays(1), QTime(0, 0))},
+                                     {QStringLiteral("dueDate"), QDateTime(today.addDays(10), QTime(0, 0))}});
+    m_controller->updateTaskFull(2, {{QStringLiteral("allDay"), true},
+                                     {QStringLiteral("startDate"), QDateTime(today.addDays(8), QTime(0, 0))},
+                                     {QStringLiteral("dueDate"), QDateTime(today.addDays(10), QTime(0, 0))}});
+    m_controller->agendaSetBlock(3, today.addDays(2), 10 * 60, 11 * 60);
+    waitStore(spy, 3);
+
+    // "→ day" moves the due day; a start before it stays, it is not a time block.
+    m_controller->agendaMoveToDay(1, today.addDays(5));
+    m_controller->agendaMoveToDay(2, today.addDays(5));
+    m_controller->agendaMoveToDay(3, today.addDays(5));
+    waitStore(spy, 6);
+    const QVariantMap kept = m_controller->taskSnapshotById(1);
+    QCOMPARE(kept.value(QStringLiteral("startDate")).toDateTime().date(), today.addDays(1));
+    QCOMPARE(kept.value(QStringLiteral("dueDate")).toDateTime().date(), today.addDays(5));
+    // A start after the new day, or the start of a block, goes.
+    QVERIFY(!m_controller->taskSnapshotById(2).value(QStringLiteral("startDate")).toDateTime().isValid());
+    QVERIFY(!m_controller->taskSnapshotById(3).value(QStringLiteral("startDate")).toDateTime().isValid());
 }
 
 void TaskControllerStoreTest::agendaDayShowsBlocksOutsideTheGrid()
