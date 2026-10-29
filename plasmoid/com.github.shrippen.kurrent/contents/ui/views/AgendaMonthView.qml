@@ -303,11 +303,14 @@ RowLayout {
         }
 
         QQC2.ScrollView {
+            id: detailScroll
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
+            contentWidth: availableWidth
+            // The scroll view's own width: inside it, `parent` is the flickable's content item.
             ColumnLayout {
-                width: parent.width
+                width: detailScroll.availableWidth
                 spacing: Design.spaceTiny
 
                 Repeater {

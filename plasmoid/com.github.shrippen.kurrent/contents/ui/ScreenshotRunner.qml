@@ -63,6 +63,8 @@ Item {
         var picker = planValue("picker", ["0"])[0] === "1"
         // The day view's task ghost (tap on empty time) on the first day: ghost=1 at 12:00,
         // or ghost=<minute of day>.
+        // Agenda days to pick before each calendar shot, e.g. days=2026-09-30,2026-10-01.
+        var days = planValue("days", [])
         var ghostValue = Number(planValue("ghost", ["0"])[0])
         var ghost = ghostValue > 0
         var ghostMinute = ghostValue === 1 ? 12 * 60 : ghostValue
@@ -83,6 +85,13 @@ Item {
                 q.push({ act: "style", value: styles[s] })
                 for (var m = 0; m < modes.length; ++m) {
                     q.push({ act: "mode", value: modes[m] })
+                    if (days.length > 0 && modes[m].indexOf("calendar") === 0) {
+                        for (var d = 0; d < days.length; ++d) {
+                            q.push({ act: "day", value: days[d] })
+                            q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-" + modes[m] + "-" + days[d] })
+                        }
+                        continue
+                    }
                     q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-" + modes[m] })
                 }
                 if (ghost) {
@@ -183,6 +192,14 @@ Item {
                     ? fullRoot.taskList.firstTaskSnapshot() : null
             if (first) {
                 fullRoot.inspectTask(first.itemId)
+            }
+            wait = 900
+            break
+        }
+        case "day": {
+            var p = item.value.split("-").map(Number)
+            if (fullRoot.calendarView) {
+                fullRoot.calendarView.jumpTo(new Date(p[0], p[1] - 1, p[2]))
             }
             wait = 900
             break
