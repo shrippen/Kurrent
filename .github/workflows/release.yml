@@ -50,23 +50,8 @@ jobs:
         run: |
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 && exit 0
           version="${TAG#v}"
-          # Section "## [X.Y.Z]", "## X.Y.Z" or "## vX.Y.Z" (then a space or the end of the line).
-          # No section, or an empty one: fail. Every release needs its notes in CHANGELOG.md.
-          awk -v v="$version" '
-            /^## / {
-              if (on) exit
-              h = substr($0, 4); sub(/^\[/, "", h); sub(/^v/, "", h)
-              if (substr(h, 1, length(v)) == v) {
-                rest = substr(h, length(v) + 1)
-                if (rest == "" || rest ~ /^[] ]/) { on = 1; next }
-              }
-            }
-            on
-          ' CHANGELOG.md > notes.md
-          if ! grep -q '[^[:space:]]' notes.md; then
-            echo "::error::CHANGELOG.md has no notes for $version (## [$version] — YYYY-MM-DD)"
-            exit 1
-          fi
+          # Section "## [X.Y.Z] — YYYY-MM-DD"; no section, or an empty one: fail.
+          scripts/release-notes.sh "$version" > notes.md
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Kurrent $version" --notes-file notes.md --verify-tag
 
   plasmoid:
