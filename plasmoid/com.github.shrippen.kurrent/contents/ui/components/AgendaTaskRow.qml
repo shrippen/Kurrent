@@ -58,9 +58,9 @@ Rectangle {
     }
 
     Rectangle {
-        width: 3
+        width: Design.agendaEdge
         height: parent.height
-        radius: 1
+        radius: Design.agendaEdgeRadius
         color: Design.colorForKey(String(row.task.collectionId))
     }
 

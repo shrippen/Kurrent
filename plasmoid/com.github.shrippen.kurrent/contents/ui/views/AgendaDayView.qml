@@ -23,6 +23,10 @@ RowLayout {
     property date listStart: new Date()
     /** Bumped by the Agenda when tasks or events change. */
     property int revision: 0
+    /** Minutes since midnight, ticked while shown: the now line and today's free time follow it. */
+    property int nowMinute: minuteNow()
+    /** Today's date; when it turns, the days are built anew (today, past, free time). */
+    property string todayKey: DateTime.isoDateKey(new Date())
     signal pickTarget(date day)
     signal jump(date day)
 
@@ -33,6 +37,20 @@ RowLayout {
         var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
         r.setDate(r.getDate() + n)
         return r
+    }
+    function minuteNow() {
+        var now = new Date()
+        return now.getHours() * 60 + now.getMinutes()
+    }
+    Timer {
+        interval: 60 * 1000
+        repeat: true
+        running: view.visible
+        triggeredOnStart: true
+        onTriggered: {
+            view.nowMinute = view.minuteNow()
+            view.todayKey = DateTime.isoDateKey(new Date())
+        }
     }
     function today() {
         var now = new Date()
@@ -59,7 +77,7 @@ RowLayout {
     }
 
     readonly property var days: {
-        var _rev = view.revision
+        var _rev = view.revision + view.todayKey
         return controller ? controller.agendaDays(listStart, dayCount) : []
     }
 
@@ -168,9 +186,9 @@ RowLayout {
                     required property var modelData
                     spacing: Design.spaceTiny
                     Rectangle {
-                        width: 6
-                        height: 6
-                        radius: 3
+                        width: Design.agendaDot
+                        height: Design.agendaDot
+                        radius: Design.agendaDotRadius
                         anchors.verticalCenter: parent.verticalCenter
                         color: modelData.color
                     }
@@ -309,8 +327,8 @@ RowLayout {
             readonly property var day: parent ? parent.entry.day : null
             readonly property Item timeline: dayTimeline
             readonly property bool isTarget: !!day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(view.targetDay)
-            readonly property bool isToday: !!day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(view.today())
-            readonly property bool past: !!day && DateTime.isoDateKey(day.date) < DateTime.isoDateKey(view.today())
+            readonly property bool isToday: !!day && DateTime.isoDateKey(day.date) === view.todayKey
+            readonly property bool past: !!day && DateTime.isoDateKey(day.date) < view.todayKey
             readonly property int openCount: {
                 if (!day) {
                     return 0
@@ -446,6 +464,7 @@ RowLayout {
                 dragHost: view.dragHost
                 interactionsSuspended: view.interactionsSuspended
                 day: dayCol.day
+                nowMinute: view.nowMinute
                 showFree: !dayCol.past
                 selectedItemId: view.selectedBlock
                 onBlockClicked: function(task) {

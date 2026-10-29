@@ -11,8 +11,7 @@ ColumnLayout {
 
     property date selectedDate: new Date()
     signal dateSelected(date date)
-    /** Dots per day, by ISO date: {"2026-10-29": {event: true, task: true, late: false}}.
-     *  With markers the grid always uses the plain cells (the Kante grid has no dots). */
+    /** Dots per day, by ISO date: {"2026-10-29": {event: true, task: true, late: false}}. */
     property var markers: null
     /** Days from rangeStart to rangeEnd get a tint (the Agenda's shown days); null for none. */
     property var rangeStart: null
@@ -20,7 +19,49 @@ ColumnLayout {
 
     property date _monthStart: new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
     readonly property date shownMonth: _monthStart
-    readonly property bool _kanteGrid: KanteStyle.active && !markers
+    readonly property bool _kanteGrid: KanteStyle.active
+
+    // The shown month's markers and range for the Kante grid, by day number.
+    function _dotTones(marks) {
+        var out = []
+        if (marks && marks.event) {
+            out.push("muted")
+        }
+        if (marks && marks.task) {
+            out.push(marks.late ? "negative" : "accent")
+        }
+        return out
+    }
+    readonly property var _kanteDots: {
+        var out = {}
+        if (!markers) {
+            return out
+        }
+        var year = _monthStart.getFullYear()
+        var month = _monthStart.getMonth()
+        for (var d = 1; d <= daysInMonth(year, month); ++d) {
+            var tones = _dotTones(markers[DateTime.isoDateKey(new Date(year, month, d))])
+            if (tones.length > 0) {
+                out[d] = tones
+            }
+        }
+        return out
+    }
+    function _rangeDay(last) {
+        if (!rangeStart || !rangeEnd) {
+            return 0
+        }
+        var first = new Date(_monthStart.getFullYear(), _monthStart.getMonth(), 1)
+        var end = new Date(_monthStart.getFullYear(), _monthStart.getMonth() + 1, 0)
+        var from = DateTime.isoDateKey(rangeStart), to = DateTime.isoDateKey(rangeEnd)
+        if (to < DateTime.isoDateKey(first) || from > DateTime.isoDateKey(end)) {
+            return 0
+        }
+        if (last) {
+            return to > DateTime.isoDateKey(end) ? end.getDate() : rangeEnd.getDate()
+        }
+        return from < DateTime.isoDateKey(first) ? 1 : rangeStart.getDate()
+    }
 
     /** Re-anchor the visible month to the selected date (call when opening the picker). */
     function resetToSelected() {
@@ -75,6 +116,9 @@ ColumnLayout {
                      ? root.selectedDate.getDate() : 0
         dayNames: [i18n("Mo"), i18n("Tu"), i18n("We"), i18n("Th"), i18n("Fr"), i18n("Sa"), i18n("Su")]
                   .map(function(n) { return n.toUpperCase() })
+        dots: root._kanteDots
+        rangeFrom: root._rangeDay(false)
+        rangeTo: root._rangeDay(true)
         onDayClicked: function(day) { root.dateSelected(new Date(year, month - 1, day)) }
     }
 
@@ -162,24 +206,15 @@ ColumnLayout {
                     visible: !!modelData.marks
                     Repeater {
                         model: {
-                            var m = modelData.marks
-                            if (!m) {
-                                return []
-                            }
-                            var out = []
-                            if (m.event) {
-                                out.push(KanteStyle.mutedTextColor)
-                            }
-                            if (m.task) {
-                                out.push(m.late ? KanteStyle.negativeTextColor : KanteStyle.accentColor)
-                            }
-                            return out
+                            var roles = { muted: KanteStyle.mutedTextColor, accent: KanteStyle.accentColor,
+                                          negative: KanteStyle.negativeTextColor }
+                            return root._dotTones(modelData.marks).map(function(t) { return roles[t] })
                         }
                         delegate: Rectangle {
                             required property color modelData
-                            width: 4
-                            height: 4
-                            radius: 2
+                            width: Design.agendaDot
+                            height: Design.agendaDot
+                            radius: Design.agendaDotRadius
                             color: modelData
                         }
                     }

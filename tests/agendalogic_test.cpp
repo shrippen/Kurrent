@@ -50,6 +50,9 @@ private Q_SLOTS:
     void largestSlotFirstOnTie();
     void fitFreeMovesPastBusy();
     void resizeStopsAtNeighbours();
+    void resizeNeverCutsTheBlock();
+    void fitFreeStepsBackBeforeTheGridEnd();
+    void gridWidensForBlocksOutsideIt();
     void lanesForOverlaps();
     void suggestionsRankedWithReasons();
     void suggestionsSkipPastTargetOverdueAndOwnDay();
@@ -146,6 +149,32 @@ void AgendaLogicTest::resizeStopsAtNeighbours()
     const QList<Span> busy{{hm(9), hm(10)}, {hm(12), hm(13)}, {hm(15), hm(16)}};
     QCOMPARE(resizeLimits(busy, {hm(10, 30), hm(11)}), (Span{hm(10), hm(12)}));
     QCOMPARE(resizeLimits({}, {hm(10), hm(11)}), (Span{kGridStart, kGridEnd}));
+}
+
+void AgendaLogicTest::resizeNeverCutsTheBlock()
+{
+    // A block past the grid keeps its edges; the first drag of a grip must not move them.
+    QCOMPARE(resizeLimits({}, {hm(21), hm(23)}), (Span{kGridStart, hm(23)}));
+    QCOMPARE(resizeLimits({}, {hm(6), hm(6, 45)}), (Span{hm(6), kGridEnd}));
+}
+
+void AgendaLogicTest::fitFreeStepsBackBeforeTheGridEnd()
+{
+    // No room after 22:00 for the event 21:00–22:00: the free half hour before it.
+    QCOMPARE(fitFree({{hm(21), hm(22)}}, hm(21), 30), hm(20, 30));
+    QCOMPARE(fitFree({{hm(20), hm(20, 30)}, {hm(21), hm(22)}}, hm(21), 45), hm(19, 15));
+    // A full day has no free room: the asked start stays.
+    QCOMPARE(fitFree({{kGridStart, kGridEnd}}, hm(10), 30), hm(10));
+}
+
+void AgendaLogicTest::gridWidensForBlocksOutsideIt()
+{
+    QCOMPARE(gridRange({}), (Span{kGridStart, kGridEnd}));
+    QCOMPARE(gridRange({{hm(10), hm(11)}}), (Span{kGridStart, kGridEnd}));
+    // To whole hours around early and late blocks, never past the day.
+    QCOMPARE(gridRange({{hm(6, 20), hm(6, 45)}}), (Span{hm(6), kGridEnd}));
+    QCOMPARE(gridRange({{hm(22, 30), hm(23, 15)}}), (Span{kGridStart, hm(24)}));
+    QCOMPARE(gridRange({{hm(20), hm(24)}, {hm(0), hm(1)}}), (Span{hm(0), hm(24)}));
 }
 
 void AgendaLogicTest::lanesForOverlaps()

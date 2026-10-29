@@ -20,15 +20,18 @@ Item {
     required property var day
     property Item dragHost: null
     property bool interactionsSuspended: false
-    property real px: 0.45 * Kirigami.Units.gridUnit / 18
+    property real px: Design.agendaMinutePx
     property bool showFree: true
+    /** Minutes since midnight now; the Agenda ticks it, so the now line moves. */
+    property int nowMinute: new Date().getHours() * 60 + new Date().getMinutes()
     /** Item id of the selected block; its edges get grips. */
     property var selectedItemId: -1
     signal blockClicked(var task)
 
-    // Same bounds as AgendaLogic (kGridStart, kGridEnd, kWorkStart, kWorkEnd, kStep).
-    readonly property int gridStart: 7 * 60
-    readonly property int gridEnd: 22 * 60
+    // The day's hours (AgendaLogic::gridRange: 07–22, wider for blocks outside), then the same
+    // bounds as AgendaLogic (kWorkStart, kWorkEnd, kStep).
+    readonly property int gridStart: day && day.gridStart !== undefined ? day.gridStart : 7 * 60
+    readonly property int gridEnd: day && day.gridEnd !== undefined ? day.gridEnd : 22 * 60
     readonly property int workStart: 8 * 60
     readonly property int workEnd: 18 * 60
     readonly property int step: 15
@@ -74,6 +77,24 @@ Item {
         }
     }
 
+    // Free gaps as of now: today they start at the next quarter hour, like AgendaLogic::planFrom
+    // (kStep, kMinGap). Clipped here, so the minute tick needs no rebuild of the day.
+    readonly property var freeNow: {
+        var gaps = day && day.free ? day.free : []
+        if (!isToday) {
+            return gaps
+        }
+        var from = Math.ceil(nowMinute / step) * step
+        var out = []
+        for (var i = 0; i < gaps.length; ++i) {
+            var start = Math.max(gaps[i].start, from)
+            if (gaps[i].end - start >= 30) {
+                out.push({ start: start, end: gaps[i].end })
+            }
+        }
+        return out
+    }
+
     function yOf(minute) {
         return (minute - gridStart) * px
     }
@@ -99,7 +120,7 @@ Item {
         y: grid.yOf(grid.workStart)
         height: (grid.workEnd - grid.workStart) * grid.px
         color: KanteStyle.tint1Color
-        opacity: 0.5
+        opacity: Design.agendaWorkHoursOpacity
     }
     Repeater {
         model: (grid.gridEnd - grid.gridStart) / 30 + 1
@@ -111,7 +132,7 @@ Item {
             Rectangle {
                 x: grid.gutter
                 width: parent.width - grid.gutter
-                height: 1
+                height: Design.agendaHairline
                 color: KanteStyle.ruleColor
                 opacity: parent.full ? 1 : 0.4
             }
@@ -129,7 +150,7 @@ Item {
 
     // Free gaps of at least 30 minutes, from now (today) or 08:00.
     Repeater {
-        model: grid.showFree && grid.day ? grid.day.free : []
+        model: grid.showFree && grid.day ? grid.freeNow : []
         delegate: Rectangle {
             required property var modelData
             x: grid.gutter + Design.spaceTiny
@@ -137,9 +158,9 @@ Item {
             y: grid.yOf(modelData.start) + 1
             height: (modelData.end - modelData.start) * grid.px - 2
             radius: Design.inputRadius
-            color: KanteStyle.tint(KanteStyle.positiveTextColor, 0.12)
-            border.width: 1
-            border.color: KanteStyle.tint(KanteStyle.positiveTextColor, 0.4)
+            color: KanteStyle.tint(KanteStyle.positiveTextColor, Design.agendaFreeFill)
+            border.width: Design.agendaHairline
+            border.color: KanteStyle.tint(KanteStyle.positiveTextColor, Design.agendaFreeEdge)
             QQC2.Label {
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -193,7 +214,7 @@ Item {
         x: grid.gutter
         width: grid.width - grid.gutter
         y: grid.yOf(drop.minute)
-        height: 2
+        height: Design.agendaMarkLine
         color: KanteStyle.accentColor
     }
 
@@ -221,7 +242,7 @@ Item {
             z: selected ? 3 : 2
             radius: Design.inputRadius
             clip: true
-            color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), 0.22) : KanteStyle.sunkenColor
+            color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), Design.agendaBlockFill) : KanteStyle.sunkenColor
             border.width: selected ? 2 : 1
             border.color: selected ? KanteStyle.accentColor
                                    : (isTask ? Design.colorForKey(String(modelData.collectionId)) : KanteStyle.frameColor)
@@ -290,6 +311,10 @@ Item {
                             startY = mapToItem(grid, mouse.x, mouse.y).y
                         }
                         onPositionChanged: function(mouse) {
+                            // Hovering reports positions too; only a drag moves the edge.
+                            if (!pressed) {
+                                return
+                            }
                             var dy = mapToItem(grid, mouse.x, mouse.y).y - startY
                             var delta = Math.round(dy / grid.px / grid.step) * grid.step
                             var m = block.modelData
@@ -429,12 +454,12 @@ Item {
 
     // Now line on today.
     Rectangle {
-        readonly property int now: new Date().getHours() * 60 + new Date().getMinutes()
+        readonly property int now: grid.nowMinute
         visible: grid.isToday && now >= grid.gridStart && now <= grid.gridEnd
         x: grid.gutter
         width: grid.width - grid.gutter
         y: grid.yOf(now)
-        height: 2
+        height: Design.agendaMarkLine
         z: 4
         color: KanteStyle.negativeTextColor
     }
