@@ -23,8 +23,17 @@ msgstr "%3: %1 %2"
 msgid "%1 completed"
 msgstr "%1 件完了"
 
+msgid "%1 h"
+msgstr "%1 時間"
+
+msgid "%1 h %2"
+msgstr "%1 時間 %2 分"
+
 msgid "%1 high priority"
 msgstr "優先度高 %1 件"
+
+msgid "%1 min"
+msgstr "%1 分"
 
 msgid "%1 open"
 msgstr "未完了 %1"
@@ -35,8 +44,17 @@ msgstr "期限切れ %1"
 msgid "%1 px"
 msgstr "%1 px"
 
+msgid "%1 to %2: nothing planned"
+msgstr "%1〜%2：予定なし"
+
+msgid "%1: nothing planned"
+msgstr "%1：予定なし"
+
 msgid "%1:00"
 msgstr "%1:00"
+
+msgid "%1–%2 %3 · %4 (fixed)"
+msgstr "%1–%2 %3 · %4（固定）"
 
 msgid "(Untitled)"
 msgstr "(無題)"
@@ -172,6 +190,9 @@ msgstr "バッジが期限超過の件数を表示するときに適用されま
 
 msgid "Applies when the badge shows today and there are overdue tasks."
 msgstr "バッジが今日を表示し、期限超過のタスクがあるときに適用されます。"
+
+msgid "Appointment"
+msgstr "予定"
 
 msgid "Ask before deleting a task"
 msgstr "タスク削除前に確認する"
@@ -503,11 +524,20 @@ msgstr "完了"
 msgid "Dot"
 msgstr "ドット"
 
+msgid "Drag to change the end"
+msgstr "ドラッグで終了時刻を変更"
+
+msgid "Drag to change the start"
+msgstr "ドラッグで開始時刻を変更"
+
 msgid "Drag to reorder, switch to show or hide."
 msgstr "ドラッグで並べ替え、スイッチで表示/非表示。"
 
 msgid "Drop here"
 msgstr "ここにドロップ"
+
+msgid "Drop here for no time on this day"
+msgstr "ここにドロップ：この日に時刻なしで"
 
 msgid "Drop here to make a top-level task"
 msgstr "ここにドロップして最上位タスクにします"
@@ -532,6 +562,9 @@ msgstr "期限"
 
 msgid "Due on %1"
 msgstr "%1 が期限"
+
+msgid "Due the day after"
+msgstr "翌日が期限"
 
 msgid "Duplicate built-in view…"
 msgstr "組み込みビューを複製…"
@@ -614,8 +647,14 @@ msgstr "期限で絞り込みます。「すべての期限」で期限に関係
 msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
 msgstr "タイトルか説明にこの文字列を含むタスクに絞り込みます。空欄ですべて表示します。"
 
+msgid "First"
+msgstr "最初に"
+
 msgid "First sort"
 msgstr "第1ソート"
+
+msgid "Fits %1–%2"
+msgstr "%1–%2 に収まる"
 
 msgid "Flag"
 msgstr "旗"
@@ -688,6 +727,9 @@ msgstr "サイドバーでスマートビューの横に表示するアイコン
 
 msgid "Icon:"
 msgstr "アイコン:"
+
+msgid "If time allows"
+msgstr "時間があれば"
 
 msgid "In 1 hour"
 msgstr "1時間後"
@@ -836,6 +878,12 @@ msgstr "ビュー › スマートビューで管理します。"
 msgid "Many"
 msgstr "多"
 
+msgid "Mark as done"
+msgstr "完了にする"
+
+msgid "Mark as not done"
+msgstr "未完了に戻す"
+
 msgid "Medium"
 msgstr "中"
 
@@ -865,6 +913,9 @@ msgstr "詳細…"
 
 msgid "Morning"
 msgstr "朝"
+
+msgid "Most important first. Click a day on the right to pick it; drag onto a green gap to give a time."
+msgstr "重要なものから順に表示します。右の日付をクリックすると選択、緑の空き時間にドラッグすると時刻が決まります。"
 
 msgid "Motion"
 msgstr "モーション"
@@ -974,11 +1025,17 @@ msgstr "この時間帯は通知しない"
 msgid "No status"
 msgstr "状態なし"
 
+msgid "No suggestions for this day."
+msgstr "この日の提案はありません。"
+
 msgid "No task lists"
 msgstr "タスクリストがありません"
 
 msgid "No tasks in this view."
 msgstr "このビューにタスクはありません。"
+
+msgid "No time"
+msgstr "時刻なし"
 
 msgid "None"
 msgstr "なし"
@@ -1091,6 +1148,9 @@ msgstr "期限超過バッジの色"
 msgid "Overdue only"
 msgstr "期限超過のみ"
 
+msgid "Overdue since yesterday"
+msgstr "昨日から期限切れ"
+
 msgid "Panel"
 msgstr "パネル"
 
@@ -1117,6 +1177,9 @@ msgstr "現在の期間より先に表示する期間数。0 = 自動（14日、
 
 msgid "Pick date"
 msgstr "日付を選択"
+
+msgid "Plan at %1 or the next free time"
+msgstr "%1 または次の空き時間に予定"
 
 msgid "Planning horizon"
 msgstr "計画期間"
@@ -1427,6 +1490,9 @@ msgstr "期限切れを表示 (タイル・チップ・通知)"
 msgid "Show sidebar"
 msgstr "サイドバーを表示"
 
+msgid "Show suggestions for this day"
+msgstr "この日の提案を表示"
+
 msgid "Show task counts"
 msgstr "タスク件数を表示"
 
@@ -1514,6 +1580,9 @@ msgstr "日"
 msgid "Subtasks"
 msgstr "サブタスク"
 
+msgid "Suggestions for"
+msgstr "提案の対象日"
+
 msgid "Swimlane options"
 msgstr "スイムレーンのオプション"
 
@@ -1531,6 +1600,12 @@ msgstr "同期中…"
 
 msgid "Tag"
 msgstr "タグ"
+
+msgid "Target"
+msgstr "対象"
+
+msgid "Task"
+msgstr "タスク"
 
 msgid "Tasks"
 msgstr "タスク"
@@ -1561,6 +1636,9 @@ msgstr "フライアウトの準備完了。サーバー応答後にタスクが
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "このスマートビューが有効なときのメイン領域の表示モード。"
+
+msgid "Then"
+msgstr "次に"
 
 msgid "Third sort"
 msgstr "第3ソート"
@@ -1715,6 +1793,12 @@ msgstr "昨日"
 msgid "You can also drag the edge of the sidebar."
 msgstr "サイドバーの端をドラッグしても変えられます。"
 
+msgid "due %1"
+msgstr "期限 %1"
+
+msgid "free %1–%2 · %3"
+msgstr "空き %1–%2 · %3"
+
 msgid "high priority"
 msgstr "優先度高"
 
@@ -1810,3 +1894,15 @@ msgstr[0] "%1 日後"
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 日前"
+
+msgid "%1 day overdue"
+msgid_plural "%1 days overdue"
+msgstr[0] "%1 日超過"
+
+msgid "Due %1 day later"
+msgid_plural "Due %1 days later"
+msgstr[0] "%1 日後が期限"
+
+msgid "%1 appointment"
+msgid_plural "%1 appointments"
+msgstr[0] "%1 件の予定"

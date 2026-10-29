@@ -23,8 +23,17 @@ msgstr "%3：%1 %2"
 msgid "%1 completed"
 msgstr "%1 个已完成"
 
+msgid "%1 h"
+msgstr "%1 小时"
+
+msgid "%1 h %2"
+msgstr "%1 小时 %2 分"
+
 msgid "%1 high priority"
 msgstr "%1 个高优先级"
+
+msgid "%1 min"
+msgstr "%1 分钟"
 
 msgid "%1 open"
 msgstr "%1 个未完成"
@@ -35,8 +44,17 @@ msgstr "%1 个逾期"
 msgid "%1 px"
 msgstr "%1 像素"
 
+msgid "%1 to %2: nothing planned"
+msgstr "%1 至 %2：无计划"
+
+msgid "%1: nothing planned"
+msgstr "%1：无计划"
+
 msgid "%1:00"
 msgstr "%1:00"
+
+msgid "%1–%2 %3 · %4 (fixed)"
+msgstr "%1–%2 %3 · %4（固定）"
 
 msgid "(Untitled)"
 msgstr "（无标题）"
@@ -172,6 +190,9 @@ msgstr "适用于徽章显示逾期数量时。"
 
 msgid "Applies when the badge shows today and there are overdue tasks."
 msgstr "适用于徽章显示今天且存在逾期任务时。"
+
+msgid "Appointment"
+msgstr "日程"
 
 msgid "Ask before deleting a task"
 msgstr "删除任务前询问"
@@ -503,11 +524,20 @@ msgstr "完成"
 msgid "Dot"
 msgstr "圆点"
 
+msgid "Drag to change the end"
+msgstr "拖动以更改结束时间"
+
+msgid "Drag to change the start"
+msgstr "拖动以更改开始时间"
+
 msgid "Drag to reorder, switch to show or hide."
 msgstr "拖动以排序，开关用于显示或隐藏。"
 
 msgid "Drop here"
 msgstr "拖放到此处"
+
+msgid "Drop here for no time on this day"
+msgstr "放到这里：当天不设时间"
 
 msgid "Drop here to make a top-level task"
 msgstr "拖到此处设为顶级任务"
@@ -532,6 +562,9 @@ msgstr "截止日期"
 
 msgid "Due on %1"
 msgstr "%1 到期"
+
+msgid "Due the day after"
+msgstr "次日到期"
 
 msgid "Duplicate built-in view…"
 msgstr "复制内置视图…"
@@ -614,8 +647,14 @@ msgstr "按截止时间筛选。“任意截止日期”显示所有任务。"
 msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
 msgstr "筛选标题或描述包含此文本的任务。留空显示全部。"
 
+msgid "First"
+msgstr "首先"
+
 msgid "First sort"
 msgstr "第一排序"
+
+msgid "Fits %1–%2"
+msgstr "可放入 %1–%2"
 
 msgid "Flag"
 msgstr "旗帜"
@@ -688,6 +727,9 @@ msgstr "侧边栏中智能视图旁显示的图标。"
 
 msgid "Icon:"
 msgstr "图标："
+
+msgid "If time allows"
+msgstr "有空再做"
 
 msgid "In 1 hour"
 msgstr "1 小时后"
@@ -836,6 +878,12 @@ msgstr "在 视图 › 智能视图 中管理。"
 msgid "Many"
 msgstr "多"
 
+msgid "Mark as done"
+msgstr "标记为已完成"
+
+msgid "Mark as not done"
+msgstr "标记为未完成"
+
 msgid "Medium"
 msgstr "中"
 
@@ -865,6 +913,9 @@ msgstr "更多…"
 
 msgid "Morning"
 msgstr "上午"
+
+msgid "Most important first. Click a day on the right to pick it; drag onto a green gap to give a time."
+msgstr "最重要的排在前面。点击右侧的某一天来选择它；拖到绿色空档即可设定时间。"
 
 msgid "Motion"
 msgstr "动效"
@@ -974,11 +1025,17 @@ msgstr "这些时段不提醒"
 msgid "No status"
 msgstr "无状态"
 
+msgid "No suggestions for this day."
+msgstr "这一天没有建议。"
+
 msgid "No task lists"
 msgstr "没有任务列表"
 
 msgid "No tasks in this view."
 msgstr "此视图中没有任务。"
+
+msgid "No time"
+msgstr "无时间"
 
 msgid "None"
 msgstr "无"
@@ -1091,6 +1148,9 @@ msgstr "逾期徽章颜色"
 msgid "Overdue only"
 msgstr "仅逾期"
 
+msgid "Overdue since yesterday"
+msgstr "昨天起已逾期"
+
 msgid "Panel"
 msgstr "面板"
 
@@ -1117,6 +1177,9 @@ msgstr "在当前时间段之后显示的时间段数量。0 = 自动（14 天�
 
 msgid "Pick date"
 msgstr "选择日期"
+
+msgid "Plan at %1 or the next free time"
+msgstr "安排在 %1 或下一个空闲时间"
 
 msgid "Planning horizon"
 msgstr "计划范围"
@@ -1427,6 +1490,9 @@ msgstr "显示逾期任务（磁贴、标签或提示）"
 msgid "Show sidebar"
 msgstr "显示侧边栏"
 
+msgid "Show suggestions for this day"
+msgstr "显示这一天的建议"
+
 msgid "Show task counts"
 msgstr "显示任务计数"
 
@@ -1514,6 +1580,9 @@ msgstr "日"
 msgid "Subtasks"
 msgstr "子任务"
 
+msgid "Suggestions for"
+msgstr "建议日期"
+
 msgid "Swimlane options"
 msgstr "泳道选项"
 
@@ -1531,6 +1600,12 @@ msgstr "正在同步…"
 
 msgid "Tag"
 msgstr "标签"
+
+msgid "Target"
+msgstr "目标"
+
+msgid "Task"
+msgstr "任务"
 
 msgid "Tasks"
 msgstr "任务"
@@ -1561,6 +1636,9 @@ msgstr "弹出窗口已就绪；服务器响应后显示任务。"
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "此智能视图激活时主区域使用的视图模式。"
+
+msgid "Then"
+msgstr "然后"
 
 msgid "Third sort"
 msgstr "第三排序"
@@ -1715,6 +1793,12 @@ msgstr "昨天"
 msgid "You can also drag the edge of the sidebar."
 msgstr "也可以拖动侧边栏边缘。"
 
+msgid "due %1"
+msgstr "%1 到期"
+
+msgid "free %1–%2 · %3"
+msgstr "空闲 %1–%2 · %3"
+
 msgid "high priority"
 msgstr "高优先级"
 
@@ -1810,3 +1894,15 @@ msgstr[0] "%1 天后"
 msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "%1 天前"
+
+msgid "%1 day overdue"
+msgid_plural "%1 days overdue"
+msgstr[0] "逾期 %1 天"
+
+msgid "Due %1 day later"
+msgid_plural "Due %1 days later"
+msgstr[0] "%1 天后到期"
+
+msgid "%1 appointment"
+msgid_plural "%1 appointments"
+msgstr[0] "%1 个日程"

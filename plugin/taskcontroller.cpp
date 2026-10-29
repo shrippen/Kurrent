@@ -1,4 +1,5 @@
 #include "taskcontroller.h"
+#include "agendalogic.h"
 #include "akonaditaskstore.h"
 #include "kurrentlogging.h"
 #ifdef KURRENT_WITH_DEMO
@@ -407,7 +408,7 @@ void TaskController::loadDemoData()
         }
     }
     m_busyIntervals = data.events;
-    m_agendaSelectedDate = data.monday;
+    m_agendaSelectedDate = data.today;
     m_akonadiAvailable = true;
     Q_EMIT akonadiAvailableChanged();
     scheduleRebuildAll();
@@ -2166,6 +2167,214 @@ QVariantMap TaskController::agendaTasksByDay(const QDate &from, const QDate &to)
         out.insert(day, open.value(day) + done.value(day));
     }
     return out;
+}
+
+QList<TaskEntry> TaskController::agendaEntries() const
+{
+    QList<TaskEntry> tasks;
+    tasks.reserve(s_tasks.size());
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (!it->todo || it->pendingDelete) {
+            continue;
+        }
+        tasks.append(makeTaskEntry(*it, 0, false));
+    }
+    return tasks;
+}
+
+namespace
+{
+// Day of a task in the Agenda: a block's day, else AgendaLogic::taskDay.
+QDate agendaDayOf(const TaskEntry &task, const AgendaLogic::Span &block)
+{
+    return block.isValid() ? task.dueDate.toLocalTime().date() : AgendaLogic::taskDay(task);
+}
+
+int minutesInto(const QDate &day, const QDateTime &when)
+{
+    const QDateTime local = when.toLocalTime();
+    if (local.date() < day) {
+        return 0;
+    }
+    if (local.date() > day) {
+        return 24 * 60;
+    }
+    return local.time().hour() * 60 + local.time().minute();
+}
+
+QDateTime atMinute(const QDate &day, int minute)
+{
+    return QDateTime(day, QTime(minute / 60, minute % 60));
+}
+}
+
+QList<AgendaLogic::Span> TaskController::agendaBusy(const QDate &day, const QList<TaskEntry> &tasks,
+                                                    qint64 skipItemId) const
+{
+    QList<AgendaLogic::Span> busy;
+    const QVariantList events = agendaEventsForDay(day);
+    for (const QVariant &value : events) {
+        const QVariantMap event = value.toMap();
+        if (event.value(QStringLiteral("allDay")).toBool()) {
+            continue;
+        }
+        busy.append({minutesInto(day, event.value(QStringLiteral("start")).toDateTime()),
+                     minutesInto(day, event.value(QStringLiteral("end")).toDateTime())});
+    }
+    for (const TaskEntry &task : tasks) {
+        if (task.completed || task.itemId == skipItemId) {
+            continue;
+        }
+        const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
+        if (block.isValid() && agendaDayOf(task, block) == day) {
+            busy.append(block);
+        }
+    }
+    return busy;
+}
+
+QVariantList TaskController::agendaDays(const QDate &from, int count) const
+{
+    QVariantList out;
+    if (!from.isValid() || count <= 0) {
+        return out;
+    }
+    const QDate today = QDate::currentDate();
+    const QTime now = QTime::currentTime();
+    const QList<TaskEntry> tasks = agendaEntries();
+    for (int i = 0; i < count; ++i) {
+        const QDate day = from.addDays(i);
+        QVariantList allDayEvents;
+        QVariantList items;
+        QList<AgendaLogic::Span> spans;
+        for (const QVariant &value : agendaEventsForDay(day)) {
+            QVariantMap event = value.toMap();
+            if (event.value(QStringLiteral("allDay")).toBool()) {
+                allDayEvents.append(event);
+                continue;
+            }
+            const AgendaLogic::Span span{minutesInto(day, event.value(QStringLiteral("start")).toDateTime()),
+                                         minutesInto(day, event.value(QStringLiteral("end")).toDateTime())};
+            event.insert(QStringLiteral("kind"), QStringLiteral("event"));
+            items.append(event);
+            spans.append(span);
+        }
+        const QList<AgendaLogic::Span> busy = agendaBusy(day, tasks, -1);
+        QVariantList openLoose;
+        QVariantList doneLoose;
+        for (const TaskEntry &task : tasks) {
+            const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
+            if (agendaDayOf(task, block) != day) {
+                continue;
+            }
+            QVariantMap row = taskEntryToVariantMap(task);
+            if (!block.isValid()) {
+                (task.completed ? doneLoose : openLoose).append(row);
+                continue;
+            }
+            QList<AgendaLogic::Span> others = agendaBusy(day, tasks, task.itemId);
+            const AgendaLogic::Span limits = AgendaLogic::resizeLimits(others, block);
+            row.insert(QStringLiteral("kind"), QStringLiteral("task"));
+            row.insert(QStringLiteral("lo"), limits.start);
+            row.insert(QStringLiteral("hi"), limits.end);
+            items.append(row);
+            spans.append(block);
+        }
+        const QList<AgendaLogic::Lane> lanes = AgendaLogic::lanes(spans);
+        for (int k = 0; k < items.size(); ++k) {
+            QVariantMap item = items.at(k).toMap();
+            item.insert(QStringLiteral("start"), spans.at(k).start);
+            item.insert(QStringLiteral("end"), spans.at(k).end);
+            item.insert(QStringLiteral("lane"), lanes.at(k).lane);
+            item.insert(QStringLiteral("lanes"), lanes.at(k).lanes);
+            items[k] = item;
+        }
+        const int planFrom = AgendaLogic::planFrom(day, today, now);
+        QVariantList free;
+        for (const AgendaLogic::Span &gap : AgendaLogic::freeSlots(busy, planFrom, AgendaLogic::kWorkEnd)) {
+            free.append(QVariantMap{{QStringLiteral("start"), gap.start}, {QStringLiteral("end"), gap.end}});
+        }
+        out.append(QVariantMap{
+            {QStringLiteral("date"), day},
+            {QStringLiteral("planFrom"), planFrom},
+            {QStringLiteral("allDayEvents"), allDayEvents},
+            {QStringLiteral("items"), items},
+            {QStringLiteral("loose"), openLoose + doneLoose},
+            {QStringLiteral("free"), free},
+        });
+    }
+    return out;
+}
+
+QVariantList TaskController::agendaSuggestions(const QDate &target) const
+{
+    QVariantList out;
+    if (!target.isValid()) {
+        return out;
+    }
+    const QDate today = QDate::currentDate();
+    const QList<TaskEntry> tasks = agendaEntries();
+    const QList<AgendaLogic::Span> gaps = AgendaLogic::freeSlots(
+        agendaBusy(target, tasks, -1), AgendaLogic::planFrom(target, today, QTime::currentTime()), AgendaLogic::kWorkEnd);
+    const QList<AgendaLogic::Suggestion> ranked =
+        AgendaLogic::rankSuggestions(tasks, target, today, AgendaLogic::largestSlot(gaps));
+    for (const AgendaLogic::Suggestion &suggestion : ranked) {
+        QVariantList reasons;
+        for (const AgendaLogic::Reason &reason : suggestion.reasons) {
+            reasons.append(QVariantMap{
+                {QStringLiteral("kind"), AgendaLogic::reasonKey(reason.kind)},
+                {QStringLiteral("days"), reason.days},
+                {QStringLiteral("start"), reason.gap.start},
+                {QStringLiteral("end"), reason.gap.end},
+            });
+        }
+        out.append(QVariantMap{
+            {QStringLiteral("task"), taskEntryToVariantMap(suggestion.task)},
+            {QStringLiteral("score"), suggestion.score},
+            {QStringLiteral("tier"), AgendaLogic::tierKey(suggestion.tier)},
+            {QStringLiteral("reasons"), reasons},
+        });
+    }
+    return out;
+}
+
+void TaskController::agendaPlaceTask(qint64 itemId, const QDate &day, int minute)
+{
+    const auto it = s_tasks.constFind(itemId);
+    if (it == s_tasks.cend() || !it->todo || !day.isValid()) {
+        return;
+    }
+    const TaskEntry task = makeTaskEntry(*it, 0, false);
+    const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
+    const int minutes = block.isValid() ? block.length() : AgendaLogic::defaultMinutes(task.priority);
+    const int from = qBound(AgendaLogic::kGridStart, minute / AgendaLogic::kStep * AgendaLogic::kStep,
+                            AgendaLogic::kGridEnd - minutes);
+    const int start = AgendaLogic::fitFree(agendaBusy(day, agendaEntries(), itemId), from, minutes);
+    agendaSetBlock(itemId, day, start, start + minutes);
+}
+
+void TaskController::agendaSetBlock(qint64 itemId, const QDate &day, int start, int end)
+{
+    if (!day.isValid() || start < 0 || end > 24 * 60 || end <= start) {
+        return;
+    }
+    updateTaskFull(itemId, {
+        {QStringLiteral("allDay"), false},
+        {QStringLiteral("startDate"), atMinute(day, start)},
+        {QStringLiteral("dueDate"), atMinute(day, end)},
+    });
+}
+
+void TaskController::agendaMoveToDay(qint64 itemId, const QDate &day)
+{
+    if (!day.isValid()) {
+        return;
+    }
+    updateTaskFull(itemId, {
+        {QStringLiteral("allDay"), true},
+        {QStringLiteral("clearStart"), true},
+        {QStringLiteral("dueDate"), QDateTime(day, QTime(0, 0))},
+    });
 }
 
 QVariantMap TaskController::heatmapPeriod(const QDate &monthStart, const QVariantList &years,

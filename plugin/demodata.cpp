@@ -30,12 +30,15 @@ QString text(const QJsonValue &value, const QString &lang)
     return value.toString();
 }
 
+QDate demoToday()
+{
+    const QDate today = QDate::fromString(QString::fromLocal8Bit(qgetenv("DEMO_TODAY")), Qt::ISODate);
+    return today.isValid() ? today : QDate::currentDate();
+}
+
 QDate anchor()
 {
-    QDate today = QDate::fromString(QString::fromLocal8Bit(qgetenv("DEMO_TODAY")), Qt::ISODate);
-    if (!today.isValid()) {
-        today = QDate::currentDate();
-    }
+    const QDate today = demoToday();
     return today.addDays(1 - today.dayOfWeek());
 }
 }
@@ -66,6 +69,7 @@ Data load()
     const QDate monday = anchor();
     Data data;
     data.monday = monday;
+    data.today = demoToday();
 
     QHash<QString, qint64> collectionIds;
     const QJsonArray collections = tasks.value(QStringLiteral("collections")).toArray();
@@ -104,7 +108,14 @@ Data load()
         if (t.contains(QStringLiteral("start"))) {
             todo->setDtStart(QDateTime(monday.addDays(t.value(QStringLiteral("start")).toInt()), QTime(0, 0), zone));
         }
-        if (t.contains(QStringLiteral("due"))) {
+        // "time": "10:00-11:00" gives the task a block on its due day (the Agenda's day view).
+        const QStringList time = t.value(QStringLiteral("time")).toString().split(QLatin1Char('-'));
+        if (t.contains(QStringLiteral("due")) && time.size() == 2) {
+            const QDate day = monday.addDays(t.value(QStringLiteral("due")).toInt());
+            todo->setDtStart(QDateTime(day, QTime::fromString(time.at(0), QStringLiteral("HH:mm")), zone));
+            todo->setDtDue(QDateTime(day, QTime::fromString(time.at(1), QStringLiteral("HH:mm")), zone), true);
+            todo->setAllDay(false);
+        } else if (t.contains(QStringLiteral("due"))) {
             todo->setDtDue(QDateTime(monday.addDays(t.value(QStringLiteral("due")).toInt()), QTime(0, 0), zone), true);
             todo->setAllDay(true);
         }

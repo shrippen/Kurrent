@@ -1,5 +1,6 @@
 #pragma once
 
+#include "agendalogic.h"
 #include "collectionlistmodel.h"
 #include "taskcalendar.h"
 #include "tasklistmodel.h"
@@ -322,6 +323,20 @@ public:
     /** The same tasks by ISO day ("2026-10-12"): done ones on their completion day; open
      *  tasks before done ones. */
     Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const;
+    /** Day view of the Agenda, `count` days from `from` (AgendaLogic): per day {date, planFrom,
+     *  allDayEvents, items (timed events and task blocks with start, end, lane, lanes; blocks
+     *  also lo/hi for resizing), loose (tasks without a block, open first), free [{start, end}]}.
+     *  Times are minutes since midnight. */
+    Q_INVOKABLE QVariantList agendaDays(const QDate &from, int count) const;
+    /** Ranked suggestions for `target`: [{task, score, tier, reasons [{kind, days, start, end}]}]. */
+    Q_INVOKABLE QVariantList agendaSuggestions(const QDate &target) const;
+    /** Give a task a time on `day`: the first free stretch from `minute` that fits its length
+     *  (its block, else AgendaLogic::defaultMinutes). Undoable. */
+    Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute);
+    /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
+    Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
+    /** Put a task on `day` without a time (all-day, start cleared). Undoable. */
+    Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
     /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest
@@ -655,6 +670,10 @@ enum class SyncResult { Error, Ok };
     KCalendarCore::Todo::Ptr todoFromItem(const Akonadi::Item &item) const;
     QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
     TaskEntry makeTaskEntry(const CachedTask &cached, int indentLevel, bool hasChildren) const;
+    /** Every task the Agenda knows (all projects, not only the filtered list). */
+    QList<TaskEntry> agendaEntries() const;
+    /** Busy minutes on `day`: timed events and open task blocks, without `skipItemId`. */
+    QList<AgendaLogic::Span> agendaBusy(const QDate &day, const QList<TaskEntry> &tasks, qint64 skipItemId) const;
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
     static void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset);
     CachedTask *prepareEdit(qint64 itemId);

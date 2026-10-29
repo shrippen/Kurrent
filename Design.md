@@ -104,7 +104,9 @@ Beide teilen sich `components/MatrixGrid.qml`: **ein** `GridLayout` in einer `Fl
 
 ### Kalender + Aufgaben
 
-- **Tages-Ansicht:** Event-Streifen (bestehender Event-Cache, opaque/busy wie Notifications) plus VTODO-Liste für denselben Tag — **kein** Zusammenführen von VEVENT und VTODO in 1.0.
+- **Tages-Ansicht:** 14 Tage ab dem gewählten Datum, jeder als Stundenraster 07–22 Uhr (`AgendaTimeline`): Termine fest (opaque/busy wie Notifications), Aufgaben mit Zeitblock, grüne freie Lücken ab 30 min (heute ab jetzt, später ab 08:00, vergangene Tage keine). Tage ohne Termine und Aufgaben falten sich zu einer Zeile, der Zieltag bleibt offen. Links Monatskalender mit Punkten (Termin, Aufgabe, überfällig; Legende darunter, unter 34 GU ausgeblendet) und Vorschläge für den Zieltag in drei Stufen (Zuerst, Danach, Wenn Zeit bleibt) mit Gründen.
+- **Zeitblock einer Aufgabe:** DTSTART und DUE mit Uhrzeit am selben Tag, Beginn vor Ende (`AgendaLogic::taskBlock`); sonst steht sie unter „Ohne Uhrzeit“. Ablegen auf dem Raster setzt den Block in die nächste freie Strecke (`agendaPlaceTask`, Länge: bisheriger Block oder 60/45/30 min nach Priorität), Ablegen unter „Ohne Uhrzeit“ oder „→ Tag“ macht sie ganztägig (`agendaMoveToDay`). Ein angeklickter Block bekommt Griffe oben und unten (15-min-Schritte, bis zum Nachbarn, `agendaSetBlock`). Alles rückgängig machbar. Rechnen in C++ (`AgendaLogic`, `agendaDays`, `agendaSuggestions`), QML zeichnet nur.
+- **Wochen-Ansicht:** Event-Streifen plus VTODO-Liste je Tag — **kein** Zusammenführen von VEVENT und VTODO.
 - Aufgaben pro Tag kommen gruppiert aus `agendaTasksByDay` (Erledigte am Erledigungstag, offene zuerst); die Kalenderauswahl schaltet `toggleBusyCalendar` (persistiert `busyCalendarIds`).
 - „Block time“ (Task → verknüpftes VEVENT) bewusst **nach 1.0**.
 

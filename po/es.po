@@ -23,8 +23,17 @@ msgstr "%1 %2 el %3"
 msgid "%1 completed"
 msgstr "%1 completadas"
 
+msgid "%1 h"
+msgstr "%1 h"
+
+msgid "%1 h %2"
+msgstr "%1 h %2"
+
 msgid "%1 high priority"
 msgstr "%1 de prioridad alta"
+
+msgid "%1 min"
+msgstr "%1 min"
 
 msgid "%1 open"
 msgstr "%1 abiertas"
@@ -35,8 +44,17 @@ msgstr "%1 vencidas"
 msgid "%1 px"
 msgstr "%1 px"
 
+msgid "%1 to %2: nothing planned"
+msgstr "De %1 a %2: nada planificado"
+
+msgid "%1: nothing planned"
+msgstr "%1: nada planificado"
+
 msgid "%1:00"
 msgstr "%1:00"
+
+msgid "%1–%2 %3 · %4 (fixed)"
+msgstr "%1–%2 %3 · %4 (fijo)"
 
 msgid "(Untitled)"
 msgstr "(Sin título)"
@@ -172,6 +190,9 @@ msgstr "Se aplica cuando la insignia muestra el recuento de vencidas."
 
 msgid "Applies when the badge shows today and there are overdue tasks."
 msgstr "Se aplica cuando la insignia muestra hoy y hay tareas vencidas."
+
+msgid "Appointment"
+msgstr "Cita"
 
 msgid "Ask before deleting a task"
 msgstr "Preguntar antes de eliminar una tarea"
@@ -503,11 +524,20 @@ msgstr "Hecho"
 msgid "Dot"
 msgstr "Punto"
 
+msgid "Drag to change the end"
+msgstr "Arrastra para cambiar el final"
+
+msgid "Drag to change the start"
+msgstr "Arrastra para cambiar el inicio"
+
 msgid "Drag to reorder, switch to show or hide."
 msgstr "Arrastra para reordenar; el interruptor muestra u oculta."
 
 msgid "Drop here"
 msgstr "Soltar aquí"
+
+msgid "Drop here for no time on this day"
+msgstr "Suelta aquí: este día sin hora"
 
 msgid "Drop here to make a top-level task"
 msgstr "Suelta aquí para convertirla en tarea principal"
@@ -532,6 +562,9 @@ msgstr "Fechas de vencimiento"
 
 msgid "Due on %1"
 msgstr "Vencen el %1"
+
+msgid "Due the day after"
+msgstr "Vence al día siguiente"
 
 msgid "Duplicate built-in view…"
 msgstr "Duplicar vista integrada…"
@@ -614,8 +647,14 @@ msgstr "Filtrar por vencimiento. «Cualquier vencimiento» muestra todas sin imp
 msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
 msgstr "Filtrar tareas cuyo título o descripción contenga este texto. Déjalo vacío para mostrar todas."
 
+msgid "First"
+msgstr "Primero"
+
 msgid "First sort"
 msgstr "Primer orden"
+
+msgid "Fits %1–%2"
+msgstr "Cabe en %1–%2"
 
 msgid "Flag"
 msgstr "Bandera"
@@ -688,6 +727,9 @@ msgstr "Icono junto a la vista inteligente en la barra lateral."
 
 msgid "Icon:"
 msgstr "Icono:"
+
+msgid "If time allows"
+msgstr "Si queda tiempo"
 
 msgid "In 1 hour"
 msgstr "En 1 hora"
@@ -836,6 +878,12 @@ msgstr "Se gestionan en Vistas › Vistas inteligentes."
 msgid "Many"
 msgstr "Muchas"
 
+msgid "Mark as done"
+msgstr "Marcar como hecha"
+
+msgid "Mark as not done"
+msgstr "Marcar como no hecha"
+
 msgid "Medium"
 msgstr "Media"
 
@@ -865,6 +913,9 @@ msgstr "Más…"
 
 msgid "Morning"
 msgstr "Mañana"
+
+msgid "Most important first. Click a day on the right to pick it; drag onto a green gap to give a time."
+msgstr "Lo más importante primero. Haz clic en un día a la derecha para elegirlo; arrastra a un hueco verde para darle una hora."
 
 msgid "Motion"
 msgstr "Movimiento"
@@ -974,11 +1025,17 @@ msgstr "Sin recordatorios en estas horas"
 msgid "No status"
 msgstr "Sin estado"
 
+msgid "No suggestions for this day."
+msgstr "No hay sugerencias para este día."
+
 msgid "No task lists"
 msgstr "No hay listas de tareas"
 
 msgid "No tasks in this view."
 msgstr "No hay tareas en esta vista."
+
+msgid "No time"
+msgstr "Sin hora"
 
 msgid "None"
 msgstr "Ninguno"
@@ -1091,6 +1148,9 @@ msgstr "Color de la insignia de vencidas"
 msgid "Overdue only"
 msgstr "Solo vencidas"
 
+msgid "Overdue since yesterday"
+msgstr "Vencida desde ayer"
+
 msgid "Panel"
 msgstr "Panel"
 
@@ -1117,6 +1177,9 @@ msgstr "Períodos que se muestran después del actual. 0 = automático (14 días
 
 msgid "Pick date"
 msgstr "Elegir fecha"
+
+msgid "Plan at %1 or the next free time"
+msgstr "Planificar a las %1 o en el siguiente hueco libre"
 
 msgid "Planning horizon"
 msgstr "Horizonte de planificación"
@@ -1427,6 +1490,9 @@ msgstr "Mostrar vencidas (mosaico, chip o aviso)"
 msgid "Show sidebar"
 msgstr "Mostrar barra lateral"
 
+msgid "Show suggestions for this day"
+msgstr "Mostrar sugerencias para este día"
+
 msgid "Show task counts"
 msgstr "Mostrar recuentos de tareas"
 
@@ -1514,6 +1580,9 @@ msgstr "do"
 msgid "Subtasks"
 msgstr "Subtareas"
 
+msgid "Suggestions for"
+msgstr "Sugerencias para"
+
 msgid "Swimlane options"
 msgstr "Opciones de carriles"
 
@@ -1531,6 +1600,12 @@ msgstr "Sincronizando…"
 
 msgid "Tag"
 msgstr "Etiqueta"
+
+msgid "Target"
+msgstr "Objetivo"
+
+msgid "Task"
+msgstr "Tarea"
 
 msgid "Tasks"
 msgstr "Tareas"
@@ -1561,6 +1636,9 @@ msgstr "El desplegable está listo; las tareas aparecen cuando el servidor respo
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "El modo de vista del panel principal mientras esta vista inteligente está activa."
+
+msgid "Then"
+msgstr "Después"
 
 msgid "Third sort"
 msgstr "Tercer orden"
@@ -1715,6 +1793,12 @@ msgstr "Ayer"
 msgid "You can also drag the edge of the sidebar."
 msgstr "También puedes arrastrar el borde de la barra lateral."
 
+msgid "due %1"
+msgstr "vence %1"
+
+msgid "free %1–%2 · %3"
+msgstr "libre %1–%2 · %3"
+
 msgid "high priority"
 msgstr "prioridad alta"
 
@@ -1825,3 +1909,18 @@ msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "hace %1 día"
 msgstr[1] "hace %1 días"
+
+msgid "%1 day overdue"
+msgid_plural "%1 days overdue"
+msgstr[0] "%1 día de retraso"
+msgstr[1] "%1 días de retraso"
+
+msgid "Due %1 day later"
+msgid_plural "Due %1 days later"
+msgstr[0] "Vence %1 día después"
+msgstr[1] "Vence %1 días después"
+
+msgid "%1 appointment"
+msgid_plural "%1 appointments"
+msgstr[0] "%1 cita"
+msgstr[1] "%1 citas"

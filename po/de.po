@@ -23,8 +23,17 @@ msgstr "%1 %2 am %3"
 msgid "%1 completed"
 msgstr "%1 erledigt"
 
+msgid "%1 h"
+msgstr "%1 h"
+
+msgid "%1 h %2"
+msgstr "%1 h %2"
+
 msgid "%1 high priority"
 msgstr "%1 mit hoher Priorität"
+
+msgid "%1 min"
+msgstr "%1 min"
 
 msgid "%1 open"
 msgstr "%1 offen"
@@ -35,8 +44,17 @@ msgstr "%1 überfällig"
 msgid "%1 px"
 msgstr "%1 px"
 
+msgid "%1 to %2: nothing planned"
+msgstr "%1 bis %2: nichts geplant"
+
+msgid "%1: nothing planned"
+msgstr "%1: nichts geplant"
+
 msgid "%1:00"
 msgstr "%1:00"
+
+msgid "%1–%2 %3 · %4 (fixed)"
+msgstr "%1–%2 %3 · %4 (fest)"
 
 msgid "(Untitled)"
 msgstr "(Ohne Titel)"
@@ -172,6 +190,9 @@ msgstr "Gilt, wenn das Badge die Anzahl überfälliger Aufgaben anzeigt."
 
 msgid "Applies when the badge shows today and there are overdue tasks."
 msgstr "Gilt, wenn das Badge Heute anzeigt und überfällige Aufgaben vorhanden sind."
+
+msgid "Appointment"
+msgstr "Termin"
 
 msgid "Ask before deleting a task"
 msgstr "Vor dem Löschen einer Aufgabe nachfragen"
@@ -503,11 +524,20 @@ msgstr "Erledigt"
 msgid "Dot"
 msgstr "Punkt"
 
+msgid "Drag to change the end"
+msgstr "Ziehen ändert das Ende"
+
+msgid "Drag to change the start"
+msgstr "Ziehen ändert den Beginn"
+
 msgid "Drag to reorder, switch to show or hide."
 msgstr "Ziehen zum Umsortieren, Schalter zum Ein- und Ausblenden."
 
 msgid "Drop here"
 msgstr "Hier ablegen"
+
+msgid "Drop here for no time on this day"
+msgstr "Hier ablegen: an diesem Tag ohne Uhrzeit"
 
 msgid "Drop here to make a top-level task"
 msgstr "Hier ablegen, um eine Hauptaufgabe zu erstellen"
@@ -532,6 +562,9 @@ msgstr "Fälligkeiten"
 
 msgid "Due on %1"
 msgstr "Fällig am %1"
+
+msgid "Due the day after"
+msgstr "Am Tag danach fällig"
 
 msgid "Duplicate built-in view…"
 msgstr "Eingebaute Ansicht kopieren …"
@@ -614,8 +647,14 @@ msgstr "Nach Fälligkeit filtern. „Beliebige Fälligkeit“ zeigt alle unabhä
 msgid "Filter tasks whose title or description contains this text. Leave empty to show all."
 msgstr "Aufgaben filtern, deren Titel oder Beschreibung diesen Text enthält. Leer lassen, um alle zu zeigen."
 
+msgid "First"
+msgstr "Zuerst"
+
 msgid "First sort"
 msgstr "Erste Sortierung"
+
+msgid "Fits %1–%2"
+msgstr "Passt in %1–%2"
 
 msgid "Flag"
 msgstr "Flagge"
@@ -688,6 +727,9 @@ msgstr "Symbol neben der Smart View in der Seitenleiste."
 
 msgid "Icon:"
 msgstr "Symbol:"
+
+msgid "If time allows"
+msgstr "Wenn Zeit bleibt"
 
 msgid "In 1 hour"
 msgstr "In 1 Stunde"
@@ -836,6 +878,12 @@ msgstr "Verwaltet unter Ansichten › Smart Views."
 msgid "Many"
 msgstr "Viele"
 
+msgid "Mark as done"
+msgstr "Als erledigt markieren"
+
+msgid "Mark as not done"
+msgstr "Als nicht erledigt markieren"
+
 msgid "Medium"
 msgstr "Mittel"
 
@@ -865,6 +913,9 @@ msgstr "Mehr …"
 
 msgid "Morning"
 msgstr "Morgen"
+
+msgid "Most important first. Click a day on the right to pick it; drag onto a green gap to give a time."
+msgstr "Wichtigste zuerst. Ein Klick auf einen Tag rechts wählt ihn; Ziehen auf eine grüne Lücke gibt eine Uhrzeit."
 
 msgid "Motion"
 msgstr "Bewegung"
@@ -974,11 +1025,17 @@ msgstr "Keine Erinnerungen in diesen Stunden"
 msgid "No status"
 msgstr "Kein Status"
 
+msgid "No suggestions for this day."
+msgstr "Keine Vorschläge für diesen Tag."
+
 msgid "No task lists"
 msgstr "Keine Aufgabenlisten"
 
 msgid "No tasks in this view."
 msgstr "Keine Aufgaben in dieser Ansicht."
+
+msgid "No time"
+msgstr "Ohne Uhrzeit"
 
 msgid "None"
 msgstr "Keine"
@@ -1091,6 +1148,9 @@ msgstr "Farbe des Überfällig-Badges"
 msgid "Overdue only"
 msgstr "Nur überfällig"
 
+msgid "Overdue since yesterday"
+msgstr "Seit gestern überfällig"
+
 msgid "Panel"
 msgstr "Panel"
 
@@ -1117,6 +1177,9 @@ msgstr "Anzahl der Zeiträume nach dem aktuellen. 0 = automatisch (14 Tage, 8 Wo
 
 msgid "Pick date"
 msgstr "Datum wählen"
+
+msgid "Plan at %1 or the next free time"
+msgstr "Um %1 planen oder zur nächsten freien Zeit"
 
 msgid "Planning horizon"
 msgstr "Planungshorizont"
@@ -1427,6 +1490,9 @@ msgstr "Überfällige anzeigen (Kachel, Chip oder Hinweis)"
 msgid "Show sidebar"
 msgstr "Seitenleiste anzeigen"
 
+msgid "Show suggestions for this day"
+msgstr "Vorschläge für diesen Tag zeigen"
+
 msgid "Show task counts"
 msgstr "Aufgabenzähler anzeigen"
 
@@ -1514,6 +1580,9 @@ msgstr "So"
 msgid "Subtasks"
 msgstr "Unteraufgaben"
 
+msgid "Suggestions for"
+msgstr "Vorschläge für"
+
 msgid "Swimlane options"
 msgstr "Swimlane-Optionen"
 
@@ -1531,6 +1600,12 @@ msgstr "Synchronisiere …"
 
 msgid "Tag"
 msgstr "Tag"
+
+msgid "Target"
+msgstr "Ziel"
+
+msgid "Task"
+msgstr "Aufgabe"
 
 msgid "Tasks"
 msgstr "Aufgaben"
@@ -1561,6 +1636,9 @@ msgstr "Das Flyout ist bereit; Aufgaben erscheinen, sobald der Server antwortet.
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "Die Darstellung des Hauptbereichs, solange diese Smart View aktiv ist."
+
+msgid "Then"
+msgstr "Danach"
 
 msgid "Third sort"
 msgstr "Dritte Sortierung"
@@ -1715,6 +1793,12 @@ msgstr "Gestern"
 msgid "You can also drag the edge of the sidebar."
 msgstr "Du kannst auch den Rand der Seitenleiste ziehen."
 
+msgid "due %1"
+msgstr "fällig %1"
+
+msgid "free %1–%2 · %3"
+msgstr "frei %1–%2 · %3"
+
 msgid "high priority"
 msgstr "hohe Priorität"
 
@@ -1825,3 +1909,18 @@ msgid "%1 day ago"
 msgid_plural "%1 days ago"
 msgstr[0] "vor %1 Tag"
 msgstr[1] "vor %1 Tagen"
+
+msgid "%1 day overdue"
+msgid_plural "%1 days overdue"
+msgstr[0] "%1 Tag überfällig"
+msgstr[1] "%1 Tage überfällig"
+
+msgid "Due %1 day later"
+msgid_plural "Due %1 days later"
+msgstr[0] "%1 Tag danach fällig"
+msgstr[1] "%1 Tage danach fällig"
+
+msgid "%1 appointment"
+msgid_plural "%1 appointments"
+msgstr[0] "%1 Termin"
+msgstr[1] "%1 Termine"

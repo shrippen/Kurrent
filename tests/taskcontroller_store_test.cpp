@@ -40,6 +40,7 @@ private Q_SLOTS:
     void matrixDropWritesLaneAndDue();
     void inspectorSnapshotAndChildren();
     void heatmapTasksForDay();
+    void agendaPlacesTasksInFreeTime();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -484,6 +485,68 @@ void TaskControllerStoreTest::heatmapTasksForDay()
     QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
 }
 
+void TaskControllerStoreTest::agendaPlacesTasksInFreeTime()
+{
+    m_controller->installTestTask(1, QStringLiteral("first"), 10);
+    m_controller->installTestTask(2, QStringLiteral("second"), 10);
+    const QDate day = QDate::currentDate().addDays(3);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    // 10:05 snaps to 10:00; 30 minutes without priority.
+    m_controller->agendaPlaceTask(1, day, 10 * 60 + 5);
+    waitStore(spy);
+    // The second one does not overlap the first.
+    m_controller->agendaPlaceTask(2, day, 10 * 60 + 10);
+    waitStore(spy, 2);
+
+    QVariantList days = m_controller->agendaDays(day, 1);
+    QCOMPARE(days.size(), 1);
+    QVariantMap agenda = days.first().toMap();
+    QCOMPARE(agenda.value(QStringLiteral("planFrom")).toInt(), 8 * 60);
+    QVariantList items = agenda.value(QStringLiteral("items")).toList();
+    QCOMPARE(items.size(), 2);
+    QHash<QString, QVariantMap> bySummary;
+    for (const QVariant &value : items) {
+        bySummary.insert(value.toMap().value(QStringLiteral("summary")).toString(), value.toMap());
+    }
+    QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("start")).toInt(), 10 * 60);
+    QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("end")).toInt(), 10 * 60 + 30);
+    QCOMPARE(bySummary[QStringLiteral("second")].value(QStringLiteral("start")).toInt(), 10 * 60 + 30);
+    // The first may grow up to the second, not into it.
+    QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("hi")).toInt(), 10 * 60 + 30);
+    // Free time 08:00–10:00 and 11:00–18:00.
+    const QVariantList free = agenda.value(QStringLiteral("free")).toList();
+    QCOMPARE(free.size(), 2);
+    QCOMPARE(free.at(1).toMap().value(QStringLiteral("start")).toInt(), 11 * 60);
+
+    // Resize, then back to the day without a time.
+    m_controller->agendaSetBlock(1, day, 9 * 60, 10 * 60 + 30);
+    waitStore(spy, 3);
+    m_controller->agendaMoveToDay(2, day);
+    waitStore(spy, 4);
+    agenda = m_controller->agendaDays(day, 1).first().toMap();
+    items = agenda.value(QStringLiteral("items")).toList();
+    QCOMPARE(items.size(), 1);
+    QCOMPARE(items.first().toMap().value(QStringLiteral("start")).toInt(), 9 * 60);
+    const QVariantList loose = agenda.value(QStringLiteral("loose")).toList();
+    QCOMPARE(loose.size(), 1);
+    QCOMPARE(loose.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("second"));
+    QVERIFY(loose.first().toMap().value(QStringLiteral("allDay")).toBool());
+
+    // Suggestions for the day before: "second" is due the day after.
+    const QVariantList suggestions = m_controller->agendaSuggestions(day.addDays(-1));
+    bool found = false;
+    for (const QVariant &value : suggestions) {
+        const QVariantMap row = value.toMap();
+        if (row.value(QStringLiteral("task")).toMap().value(QStringLiteral("summary")) == QStringLiteral("second")) {
+            found = true;
+            QCOMPARE(row.value(QStringLiteral("reasons")).toList().first().toMap().value(QStringLiteral("kind")).toString(),
+                     QStringLiteral("dueSoon"));
+        }
+    }
+    QVERIFY(found);
+}
+
 void TaskControllerStoreTest::demoModeLoadsWorldTasks()
 {
     qputenv("KURRENT_DEMO", "en");
@@ -500,6 +563,19 @@ void TaskControllerStoreTest::demoModeLoadsWorldTasks()
     const QVariantList events = demo->agendaEventsForDay(QDate(2026, 9, 14));
     QCOMPARE(events.size(), 2);
     QCOMPARE(events.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Weekly planning"));
+
+    // The agenda opens on the demo day; "time" gives a block on the due day (Thursday 10–11).
+    QCOMPARE(demo->agendaSelectedDate(), QDate(2026, 9, 16));
+    const QVariantList thursday = demo->agendaDays(QDate(2026, 9, 17), 1).first().toMap()
+                                      .value(QStringLiteral("items")).toList();
+    bool block = false;
+    for (const QVariant &value : thursday) {
+        const QVariantMap item = value.toMap();
+        if (item.value(QStringLiteral("summary")) == QStringLiteral("Match September receipts")) {
+            block = item.value(QStringLiteral("start")).toInt() == 10 * 60 && item.value(QStringLiteral("end")).toInt() == 11 * 60;
+        }
+    }
+    QVERIFY(block);
 
     // Agenda by day: done tasks on their completion day, open ones first.
     const QVariantMap byDay = demo->agendaTasksByDay(QDate(2026, 9, 7), QDate(2026, 9, 27));
