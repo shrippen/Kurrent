@@ -528,6 +528,11 @@ void TaskControllerStoreTest::agendaDayShowsBlocksOutsideTheGrid()
     // The grid reaches the block, and its grips may not cut it.
     QCOMPARE(agenda.value(QStringLiteral("gridStart")).toInt(), 7 * 60);
     QCOMPARE(agenda.value(QStringLiteral("gridEnd")).toInt(), 24 * 60);
+    // The view snaps and tints with the controller's rules, not copies of them.
+    QCOMPARE(agenda.value(QStringLiteral("workStart")).toInt(), 8 * 60);
+    QCOMPARE(agenda.value(QStringLiteral("workEnd")).toInt(), 18 * 60);
+    QCOMPARE(agenda.value(QStringLiteral("step")).toInt(), 15);
+    QCOMPARE(agenda.value(QStringLiteral("minGap")).toInt(), 30);
     const QVariantList items = agenda.value(QStringLiteral("items")).toList();
     QCOMPARE(items.size(), 1);
     QCOMPARE(items.first().toMap().value(QStringLiteral("start")).toInt(), 22 * 60 + 30);

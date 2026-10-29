@@ -25,20 +25,21 @@ Item {
     property var selectedItemId: -1
     signal blockClicked(var task)
 
-    // The day's hours (AgendaLogic::gridRange: 07–22, wider for blocks outside), then the same
-    // bounds as AgendaLogic (kWorkStart, kWorkEnd, kStep).
-    readonly property int gridStart: day && day.gridStart !== undefined ? day.gridStart : 7 * 60
-    readonly property int gridEnd: day && day.gridEnd !== undefined ? day.gridEnd : 22 * 60
-    readonly property int workStart: 8 * 60
-    readonly property int workEnd: 18 * 60
-    readonly property int step: 15
+    // The day's hours (AgendaLogic::gridRange: 07–22, wider for blocks outside) and the rules
+    // the controller plans with (kWorkStart, kWorkEnd, kStep, kMinGap), from agendaDays.
+    readonly property int gridStart: day ? day.gridStart : 0
+    readonly property int gridEnd: day ? day.gridEnd : 0
+    readonly property int workStart: day ? day.workStart : 0
+    readonly property int workEnd: day ? day.workEnd : 0
+    readonly property int step: day && day.step > 0 ? day.step : 1
+    readonly property int minGap: day ? day.minGap : 0
     readonly property int gutter: Kirigami.Units.gridUnit * 2.5
     readonly property bool isToday: day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(new Date())
 
     implicitHeight: (gridEnd - gridStart) * px
 
-    // Free gaps as of now: today they start at the next quarter hour, like AgendaLogic::planFrom
-    // (kStep, kMinGap). Clipped here, so the minute tick needs no rebuild of the day.
+    // Free gaps as of now: today they start at the next step, like AgendaLogic::planFrom.
+    // Clipped here, so the minute tick needs no rebuild of the day.
     readonly property var freeNow: {
         var gaps = day && day.free ? day.free : []
         if (!isToday) {
@@ -48,7 +49,7 @@ Item {
         var out = []
         for (var i = 0; i < gaps.length; ++i) {
             var start = Math.max(gaps[i].start, from)
-            if (gaps[i].end - start >= 30) {
+            if (gaps[i].end - start >= minGap) {
                 out.push({ start: start, end: gaps[i].end })
             }
         }
@@ -94,7 +95,7 @@ Item {
                 width: parent.width - grid.gutter
                 height: Design.agendaHairline
                 color: KanteStyle.ruleColor
-                opacity: parent.full ? 1 : 0.4
+                opacity: parent.full ? 1 : Design.agendaHalfHourOpacity
             }
             QQC2.Label {
                 visible: parent.full
@@ -203,10 +204,10 @@ Item {
             radius: Design.inputRadius
             clip: true
             color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), Design.agendaBlockFill) : KanteStyle.sunkenColor
-            border.width: selected ? 2 : 1
+            border.width: selected ? Design.agendaMarkLine : Design.agendaHairline
             border.color: selected ? KanteStyle.accentColor
                                    : (isTask ? Design.colorForKey(String(modelData.collectionId)) : KanteStyle.frameColor)
-            opacity: isTask && modelData.completed ? 0.55 : 1
+            opacity: isTask && modelData.completed ? Design.agendaDoneOpacity : 1
 
             QQC2.Label {
                 anchors.fill: parent
@@ -228,7 +229,7 @@ Item {
                                                    modelData.summary, modelData.calendarName)
             QQC2.ToolTip.visible: !isTask && blockHover.hovered
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-            HoverHandler { id: blockHover }
+            HoverHandler { id: blockHover; enabled: !grid.interactionsSuspended }
 
             TapHandler {
                 enabled: block.isTask && !grid.interactionsSuspended
@@ -313,7 +314,7 @@ Item {
                         }
                         QQC2.ToolTip.text: parent.atTop ? i18n("Drag to change the start") : i18n("Drag to change the end")
                         QQC2.ToolTip.visible: containsMouse && !pressed
-                        hoverEnabled: true
+                        hoverEnabled: !grid.interactionsSuspended
                     }
                 }
             }

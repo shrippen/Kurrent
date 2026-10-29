@@ -254,6 +254,8 @@ QtObject {
     readonly property real agendaFreeFill: 0.12
     readonly property real agendaFreeEdge: 0.4
     readonly property real agendaBlockFill: 0.22
+    readonly property real agendaDoneOpacity: 0.6
+    readonly property real agendaHalfHourOpacity: 0.4
 
     // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
     readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small

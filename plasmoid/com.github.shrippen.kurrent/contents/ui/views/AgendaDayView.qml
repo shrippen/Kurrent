@@ -260,11 +260,11 @@ RowLayout {
                 actionText: "→ " + view.relDay(view.targetDay)
                 onActionClicked: view.controller.agendaMoveToDay(modelData.task.itemId, view.targetDay)
             }
-            QQC2.Label {
+            Kirigami.PlaceholderMessage {
                 anchors.centerIn: parent
+                width: parent.width - Design.spaceLarge * 2
                 visible: suggestionList.count === 0
                 text: i18n("No suggestions for this day.")
-                color: KanteStyle.mutedTextColor
             }
             QQC2.ScrollBar.vertical: QQC2.ScrollBar { id: suggestionScroll }
         }
@@ -305,7 +305,10 @@ RowLayout {
                          : i18n("%1 to %2: nothing planned", view.relDay(parent.entry.from), view.relDay(parent.entry.to)))
                 color: KanteStyle.mutedTextColor
             }
-            TapHandler { onTapped: view.pickTarget(parent.entry.from) }
+            TapHandler {
+                enabled: !view.interactionsSuspended && !!parent.entry
+                onTapped: view.pickTarget(parent.entry.from)
+            }
             DropArea {
                 anchors.fill: parent
                 keys: ["application/x-kurrent-task"]
@@ -358,7 +361,7 @@ RowLayout {
                         color: dayCol.isToday ? KanteStyle.accentTextColor : KanteStyle.textColor
                     }
                     QQC2.Label {
-                        visible: dayCol.isToday || view.relDay(dayCol.day.date) === i18n("Tomorrow")
+                        visible: !!dayCol.day && (dayCol.isToday || view.relDay(dayCol.day.date) === i18n("Tomorrow"))
                         text: dayCol.isToday ? i18n("Today") : i18n("Tomorrow")
                         color: KanteStyle.accentTextColor
                         font: Kirigami.Theme.smallFont
@@ -372,8 +375,11 @@ RowLayout {
                         font: Kirigami.Theme.smallFont
                     }
                 }
-                HoverHandler { id: headHover }
-                TapHandler { onTapped: view.pickTarget(dayCol.day.date) }
+                HoverHandler { id: headHover; enabled: !view.interactionsSuspended }
+                TapHandler {
+                    enabled: !view.interactionsSuspended && !!dayCol.day
+                    onTapped: view.pickTarget(dayCol.day.date)
+                }
                 QQC2.ToolTip.text: i18n("Show suggestions for this day")
                 QQC2.ToolTip.visible: headHover.hovered
                 QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
