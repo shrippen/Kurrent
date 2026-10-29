@@ -46,12 +46,22 @@ Rule 7: Use the body to explain what and why vs. how. Assume the code explains t
 
 - Changelogs and release notes are written in English first, regardless of the conversation language, followed by the same notes in German (the landing page is bilingual).
 
-## Release rule
+## Release steps
 
-- Every release gets a detailed release log, written before the tag, as a section `## [X.Y.Z] — YYYY-MM-DD` in `CHANGELOG.md` (newest first, `## [Unreleased]` stays on top): `### English` and `### Deutsch`, each with a lead (what the release is about, one or two sentences), then the changes grouped as New, Improved, Fixed and Note (Neu, Verbessert, Behoben, Hinweis; breaking changes, steps the user must take). Empty groups are left out. Each point says what changed for the user and why, not which code moved. The English part ends with `All changes: https://github.com/shrippen/Kurrent/compare/vA...vB`.
-- The same text goes into the release notes on Gitea and as a new entry at the top of `#changes` on the landing page (`docs/index.html`, Kante `.changelog`, same wording in both languages, compare link); from the fourth entry on, the oldest move into `details.changelog-more`. Bump the version in the footer.
-- The release workflow takes the GitHub release notes from that section and fails without it. A release is done when the landing page shows it.
-- The notes come from `scripts/release-notes.sh X.Y.Z` (release workflow; Gitea: `scripts/release-notes.sh X.Y.Z > notes.md`, then `tea`). CI checks the headings on every push (`scripts/release-notes.sh --check`). The script is a copy of Kante's `tools/release-notes.sh`: change it only there, sync with `../Kante/tools/sync-release-notes.sh`.
+In this order, from the version bump to done:
+
+1. Version `X.Y.Z` (on a branch `release/X.Y.Z`) in `CMakeLists.txt` (`project(kurrent VERSION …)`, the plugin's version) and `plasmoid/com.github.shrippen.kurrent/metadata.json` (`KPlugin.Version`, the widget's; the packages are named after it). The widget compares major.minor of both and warns on a mismatch.
+2. Release log in `CHANGELOG.md`, before the tag: turn what `## [Unreleased]` collected into a section `## [X.Y.Z] — YYYY-MM-DD` below it (newest first; `## [Unreleased]` stays on top, empty), with `### English` and `### Deutsch`, each a lead (what the release is about, one or two sentences), then the groups New, Improved, Fixed and Note (Neu, Verbessert, Behoben, Hinweis; breaking changes, steps the user must take) as `####`. Empty groups are left out. Each point says what changed for the user and why, not which code moved. The English part ends with `All changes: https://github.com/shrippen/Kurrent/compare/vA...vB`. Check with `scripts/release-notes.sh --check` (CI runs it on every push) and read the notes with `scripts/release-notes.sh X.Y.Z`.
+3. Landing page `docs/index.html`: the same text as a new entry at the top of `#changes` (Kante `.changelog`, both languages, compare link); from the fourth entry on, the oldest move into `details.changelog-more`. Bump the version in the footer. Graphics: a screenshot from the demo world per visible change (`demo/shots.json`, `../shrippen.github.io/demo/tools/.venv/bin/python ../shrippen.github.io/demo/tools/screenshots.py kurrent`, saved as `docs/shots/release-X.Y.Z-<name>-<lang>.webp`), a diagram for changes inside. Screenshots are taken only now, for a tagged release.
+4. PR with steps 1–3 (after `bash install.sh` passed), review as the review rule says; the owner confirms the release in words (it publishes); CI green; merge on Gitea.
+5. Tag the merge commit and, with the owner's permission, push the tag to Gitea only (the mirror carries it to GitHub): `git tag -a vX.Y.Z -m "X.Y.Z" <merge commit> && git push origin vX.Y.Z`.
+6. Gitea release, notes only, no files: `scripts/release-notes.sh X.Y.Z > notes.md && tea releases create --login git.arianw.de --repo shrippen/kurrent --tag vX.Y.Z --title "Kurrent X.Y.Z" --note-file notes.md`.
+7. GitHub: the tag starts `.github/workflows/release.yml`, which creates the release with the same notes (it fails without the section) and attaches `com.github.shrippen.kurrent-X.Y.Z.plasmoid`, `install-linux.sh`, `kurrent-X.Y.Z-linux-x86_64.tar.gz` and `kurrent-linux-x86_64.tar.gz` (the one-line installer loads them from the latest release). Check the run (`gh run list -R shrippen/Kurrent -w release.yml`) and the files; if a job failed, fix it and attach with `gh workflow run release.yml -R shrippen/Kurrent -f tag=vX.Y.Z`.
+8. `python3 ../shrippen.github.io/overview/tools/build-versions.py`, then commit `docs/versions.json` in `shrippen.github.io` via a PR there.
+9. No deploy or store step: Kurrent is not on the KDE Store yet (`STORE.md` has the listing text for when it is).
+10. Done when https://shrippen.github.io/Kurrent/ shows the release in `#changes` and the footer, and https://shrippen.github.io/versions.json has it.
+
+The release-notes script is a copy of Kante's `tools/release-notes.sh`: change it only there, then sync with `../Kante/tools/sync-release-notes.sh "$PWD"`.
 
 ## GUI rule
 
