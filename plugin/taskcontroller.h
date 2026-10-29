@@ -364,6 +364,9 @@ public:
     /** Quick Add in the Agenda: the text is read like the list's Quick Add (date, priority,
      *  labels, project); without a date in it the task lands on `day`, as a block from
      *  `start` to `end` (minutes) when given, else all-day. */
+    /** The day view's task ghost for a click at `minute`: {start, end} between the day's
+     *  `items` (agendaDays), -1/-1 on busy time (AgendaLogic::ghostSlot). */
+    Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const;
     Q_INVOKABLE void agendaAddTask(const QString &summary, qint64 collectionId, const QDate &day,
                                    int start = -1, int end = -1);
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with

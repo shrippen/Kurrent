@@ -56,6 +56,7 @@ private Q_SLOTS:
     void modesNormalizeAndStep();
     void dayLoadCountsEventsAndTaskLengths();
     void workMinutesDefaultAndBounds();
+    void ghostSlotStaysBetweenNeighbours();
     void boardOrderTimedThenPriority();
     void monthGridSixWeeksFromMonday();
     void loadTintGrowsAndCaps();
@@ -266,6 +267,22 @@ void AgendaLogicTest::workMinutesDefaultAndBounds()
     QCOMPARE(workMinutes(460), 450);
     QCOMPARE(workMinutes(10), kWorkStep);
     QCOMPARE(workMinutes(24 * 60), kMaxWorkMinutes);
+}
+
+void AgendaLogicTest::ghostSlotStaysBetweenNeighbours()
+{
+    const QList<Span> taken{{hm(10), hm(11)}, {hm(15), hm(16, 30)}};
+    // An hour from the clicked quarter hour.
+    QCOMPARE(ghostSlot(taken, hm(12, 7), 60), (Span{hm(12), hm(13)}));
+    QCOMPARE(ghostSlot(taken, hm(11), 60), (Span{hm(11), hm(12)}));
+    // Up against the next entry: it moves back into the free time instead of covering it.
+    QCOMPARE(ghostSlot(taken, hm(14, 30), 60), (Span{hm(14), hm(15)}));
+    // A gap shorter than the length: the whole gap.
+    const QList<Span> tight{{hm(9), hm(10)}, {hm(10, 30), hm(11)}};
+    QCOMPARE(ghostSlot(tight, hm(10, 15), 60), (Span{hm(10), hm(10, 30)}));
+    // Grid end, and busy time gives nothing.
+    QCOMPARE(ghostSlot({}, hm(21, 40), 60), (Span{hm(21), hm(22)}));
+    QCOMPARE(ghostSlot(taken, hm(10, 30), 60), (Span{-1, -1}));
 }
 
 void AgendaLogicTest::boardOrderTimedThenPriority()

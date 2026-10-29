@@ -11,7 +11,7 @@ import "../datetime.js" as DateTime
 // resized at their edges (15-minute steps, up to the neighbours) and dragged; free gaps
 // show in green. A task dropped on the grid lands in the next free stretch
 // (TaskController::agendaPlaceTask). A tap on empty time opens a task ghost there with Quick
-// Add (an hour, up to the next entry). `day` is one entry of TaskController::agendaDays.
+// Add (an hour between the neighbouring blocks, AgendaLogic::ghostSlot). `day` is one entry of TaskController::agendaDays.
 Item {
     id: grid
 
@@ -41,33 +41,17 @@ Item {
     property int ghostEnd: -1
     readonly property int ghostMinutes: 60
 
-    function busyAt(minute) {
-        var items = day ? day.items : []
-        for (var i = 0; i < items.length; ++i) {
-            if (minute >= items[i].start && minute < items[i].end) {
-                return true
-            }
-        }
-        return false
-    }
     function openGhost(y) {
-        if (ghost.visible && y >= ghost.y && y <= ghost.y + ghost.height) {
+        if (ghostInput.visible && y >= ghostInput.y && y <= ghostInput.y + ghostInput.height) {
             return
         }
-        var start = Math.floor((gridStart + y / px) / step) * step
-        start = Math.max(gridStart, Math.min(start, gridEnd - step))
-        if (busyAt(start)) {
+        // Between the neighbouring blocks (AgendaLogic::ghostSlot).
+        var slot = controller.agendaGhostSlot(day ? day.items : [], Math.floor(gridStart + y / px), ghostMinutes)
+        if (slot.start < 0) {
             return
         }
-        var end = Math.min(start + ghostMinutes, gridEnd)
-        var items = day ? day.items : []
-        for (var i = 0; i < items.length; ++i) {
-            if (items[i].start > start && items[i].start < end) {
-                end = items[i].start
-            }
-        }
-        ghostStart = start
-        ghostEnd = end
+        ghostStart = slot.start
+        ghostEnd = slot.end
         ghostAdd.text = ""
         Qt.callLater(ghostAdd.forceActiveFocus)
     }
@@ -79,7 +63,7 @@ Item {
         ghostEnd = -1
     }
 
-    // Behind the blocks: their own taps pass through too, so busy time is skipped above.
+    // Behind the blocks: their own taps pass through too, so busy time gives no slot.
     TapHandler {
         enabled: !grid.interactionsSuspended && !!grid.controller && !!grid.day
         onTapped: function(eventPoint) {
@@ -327,17 +311,53 @@ Item {
         }
     }
 
+    // The ghost covers its slot exactly; the Quick Add row sits inside when it fits, else as a
+    // small card beside it in free time, so the neighbours stay visible.
     Rectangle {
         id: ghost
         visible: grid.ghostStart >= 0
         x: grid.gutter + Design.spaceTiny
         width: grid.width - grid.gutter - Design.spaceTiny * 2
-        y: grid.yOf(Math.max(grid.ghostStart, grid.gridStart)) + 1
-        height: Math.max((grid.ghostEnd - grid.ghostStart) * grid.px - 2, ghostBody.implicitHeight + Design.spaceTiny * 2)
+        y: grid.yOf(grid.ghostStart) + 1
+        height: Math.max(2, (grid.ghostEnd - grid.ghostStart) * grid.px - 2)
         z: 5
         radius: Design.inputRadius
         color: KanteStyle.tint(KanteStyle.accentColor, 0.15)
         border.width: 1
+        border.color: KanteStyle.accentColor
+    }
+    Rectangle {
+        id: ghostInput
+        readonly property bool inside: ghost.height >= ghostBody.implicitHeight + Design.spaceTiny * 2
+        readonly property real below: ghost.y + ghost.height + Design.spaceTiny
+        readonly property real above: ghost.y - height - Design.spaceTiny
+        // Free room next to the slot, up to the neighbouring blocks (or the grid's edge).
+        readonly property var room: {
+            var before = grid.gridStart
+            var after = grid.gridEnd
+            var items = grid.day ? grid.day.items : []
+            for (var i = 0; i < items.length; ++i) {
+                if (items[i].end <= grid.ghostStart) {
+                    before = Math.max(before, items[i].end)
+                } else if (items[i].start >= grid.ghostEnd) {
+                    after = Math.min(after, items[i].start)
+                }
+            }
+            return { "above": (grid.ghostStart - before) * grid.px, "below": (after - grid.ghostEnd) * grid.px }
+        }
+        visible: ghost.visible
+        x: ghost.x
+        width: ghost.width
+        height: ghostBody.implicitHeight + Design.spaceTiny * 2
+        // Outside the slot: where it covers no block, below first; else where it fits in the grid.
+        y: inside ? ghost.y
+                  : room.below >= height + Design.spaceTiny ? below
+                  : room.above >= height + Design.spaceTiny ? above
+                  : (below + height <= grid.height ? below : above)
+        z: 6
+        radius: Design.inputRadius
+        color: inside ? "transparent" : KanteStyle.cardColor
+        border.width: inside ? 0 : 1
         border.color: KanteStyle.accentColor
 
         RowLayout {

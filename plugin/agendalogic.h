@@ -112,6 +112,12 @@ int workMinutes(int stored);
 /** Planned minutes of a day: appointments plus open tasks (their block, else defaultMinutes). */
 int dayLoad(const QList<Span> &events, const QList<TaskEntry> &openTasks);
 
+/** The task ghost's slot for a click at `minute` (rounded down to kStep): `length` minutes
+ *  within the free stretch around it, moved back when the next entry comes sooner, the whole
+ *  stretch when it is shorter. {-1, -1} when `minute` is taken. `taken`: every block drawn
+ *  on the day (appointments and task blocks). */
+Span ghostSlot(const QList<Span> &taken, int minute, int length);
+
 /** Open tasks of a day in board order: timed ones by start, then the others by priority
  *  (high, medium, low, none), then title. */
 QList<TaskEntry> boardOrder(QList<TaskEntry> tasks);

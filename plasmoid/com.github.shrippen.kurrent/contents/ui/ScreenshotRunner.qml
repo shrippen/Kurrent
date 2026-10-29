@@ -61,8 +61,11 @@ Item {
         var transition = planValue("transition", ["0"])[0] === "1"
         // The Agenda's date picker, opened from the toolbar (after the calendar modes).
         var picker = planValue("picker", ["0"])[0] === "1"
-        // The day view's task ghost (tap on empty time), at 12:00 on the first day.
-        var ghost = planValue("ghost", ["0"])[0] === "1"
+        // The day view's task ghost (tap on empty time) on the first day: ghost=1 at 12:00,
+        // or ghost=<minute of day>.
+        var ghostValue = Number(planValue("ghost", ["0"])[0])
+        var ghost = ghostValue > 0
+        var ghostMinute = ghostValue === 1 ? 12 * 60 : ghostValue
         var q = []
         q.push({ act: "expand" })
         // Settings for the run, e.g. set=agendaWorkMinutes:360,agendaWeekend:false (the config
@@ -84,7 +87,7 @@ Item {
                 }
                 if (ghost) {
                     q.push({ act: "mode", value: "calendar-day" })
-                    q.push({ act: "ghost", value: 12 * 60 })
+                    q.push({ act: "ghost", value: ghostMinute })
                     q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-ghost" })
                 }
                 if (picker) {

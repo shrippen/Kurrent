@@ -2438,6 +2438,17 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
     updateTaskFull(itemId, fields);
 }
 
+QVariantMap TaskController::agendaGhostSlot(const QVariantList &items, int minute, int length) const
+{
+    QList<AgendaLogic::Span> taken;
+    for (const QVariant &value : items) {
+        const QVariantMap item = value.toMap();
+        taken.append({item.value(QStringLiteral("start")).toInt(), item.value(QStringLiteral("end")).toInt()});
+    }
+    const AgendaLogic::Span slot = AgendaLogic::ghostSlot(taken, minute, length);
+    return {{QStringLiteral("start"), slot.start}, {QStringLiteral("end"), slot.end}};
+}
+
 void TaskController::agendaAddTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end)
 {
     if (!day.isValid()) {

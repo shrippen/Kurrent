@@ -284,6 +284,25 @@ QDate stepDate(const QDate &date, const QString &mode, int n)
     return date.addDays(n);
 }
 
+Span ghostSlot(const QList<Span> &taken, int minute, int length)
+{
+    const int at = qBound(kGridStart, minute / kStep * kStep, kGridEnd - kStep);
+    int lo = kGridStart;
+    int hi = kGridEnd;
+    for (const Span &span : taken) {
+        if (span.start <= at && at < span.end) {
+            return {-1, -1};
+        }
+        if (span.end <= at) {
+            lo = qMax(lo, span.end);
+        } else if (span.start > at) {
+            hi = qMin(hi, span.start);
+        }
+    }
+    const int end = qMin(at + length, hi);
+    return {qMax(lo, qMin(at, end - length)), end};
+}
+
 int workMinutes(int stored)
 {
     if (stored <= 0) {
