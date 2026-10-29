@@ -49,7 +49,7 @@ jobs:
 
       - name: Skip full KDE build on Ubuntu
         run: |
-          echo "Arch-native unit tests run locally via ctest (Akonadi/KF6)."
+          echo "Unit tests run in job build (Arch container)."
           echo "This job checks that test sources and the plasmoid packager stay valid."
           test -f tests/tasklogic_test.cpp
           test -f tests/calendar_test.cpp
