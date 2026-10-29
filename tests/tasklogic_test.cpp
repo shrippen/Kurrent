@@ -3,6 +3,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QTime>
+#include <QTimeZone>
 #include <QtTest>
 
 namespace
@@ -110,6 +111,7 @@ private Q_SLOTS:
     void statusAndProgressDrops();
     void kanbanCanceledColumnHidden();
     void heatmapSummaryFigures();
+    void heatmapSummaryAcrossClockChange();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1917,6 +1919,20 @@ void TaskLogicTest::heatmapSummaryFigures()
     // Several years: the first map (the selected year) wins ties.
     const QVariantMap older{{"2025-03-01", 4}};
     QCOMPARE(TaskLogic::summarizeHeatmap({october, older}, start, end, end).bestKey, QStringLiteral("2026-10-05"));
+}
+
+void TaskLogicTest::heatmapSummaryAcrossClockChange()
+{
+    // October 2026 in Berlin is 31 days and one hour long (clocks go back on the 25th).
+    const QTimeZone berlin("Europe/Berlin");
+    const QDateTime start(QDate(2026, 10, 1), QTime(0, 0), berlin);
+    const QDateTime end(QDate(2026, 11, 1), QTime(0, 0), berlin);
+    const QVariantMap october{{"2026-10-02", 3}, {"2026-10-05", 4}, {"2026-10-07", 4}};
+
+    QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, end).perDay, 11.0 / 31);
+    // Midnight after the change: 25 whole days, not 26.
+    const QDateTime after(QDate(2026, 10, 26), QTime(0, 0), berlin);
+    QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, after).perDay, 11.0 / 25);
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)

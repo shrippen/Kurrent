@@ -3593,7 +3593,6 @@ QStringList shownKanbanColumns(const QStringList &keys, const QString &source, C
 HeatmapSummary summarizeHeatmap(const QList<QVariantMap> &countsInOrder, const QDateTime &start,
                                 const QDateTime &end, const QDateTime &now)
 {
-    constexpr double kMsPerDay = 86400000.0;
     HeatmapSummary summary;
     for (const QVariantMap &counts : countsInOrder) {
         for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
@@ -3609,7 +3608,9 @@ HeatmapSummary summarizeHeatmap(const QList<QVariantMap> &countsInOrder, const Q
         return summary;
     }
     const QDateTime until = now < end ? now : end;
-    const int days = qMax(1, int(qCeil(start.msecsTo(until) / kMsPerDay)));
+    // Calendar days, not 24-hour blocks: a month with a clock change is 31 days, not 31 and an hour.
+    // A started day counts in full.
+    const int days = qMax(1, int(start.date().daysTo(until.date())) + (until.time() > start.time() ? 1 : 0));
     summary.perDay = double(summary.total) / days;
     return summary;
 }
