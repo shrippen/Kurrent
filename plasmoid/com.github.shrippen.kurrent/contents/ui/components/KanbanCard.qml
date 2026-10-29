@@ -7,6 +7,7 @@ import com.github.shrippen.kurrent 1.0
 import "../colors.js" as Colors
 import "../datetime.js" as DateTime
 import "../taskmeta.js" as TaskMeta
+import "../taps.js" as Taps
 import ".."
 import "../Kante"
 
@@ -132,18 +133,15 @@ Kirigami.AbstractCard {
     }
 
     // A click shows the task in the inspector when it is active, otherwise opens the editor
-    // (cards have no edit button, k1). Double click always opens the full editor.
+    // (cards have no edit button, k1). Double click always opens the full editor, once
+    // (taps.js: the second tap of a double click is a `tapped` too).
     TapHandler {
         enabled: !root.interactionsSuspended
         onTapped: {
-            if (root.inspectorOn) {
+            var action = Taps.tapAction(tapCount, root.inspectorOn)
+            if (action === "inspect") {
                 root.dragHost.inspectTask(root.task.itemId)
-                return
-            }
-            root.requestFullEditor(root.task)
-        }
-        onDoubleTapped: {
-            if (root.inspectorOn) {
+            } else if (action === "edit") {
                 root.requestFullEditor(root.task)
             }
         }
