@@ -25,7 +25,7 @@
 <nav class="nav"><div class="nav-inner">
   <a class="nav-brand" href="#"><img src="icon.svg" alt="">Kurrent</a>
   <div class="nav-links">
-    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#views"><span lang="en">Views</span><span lang="de">Ansichten</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a><a class="nav-hl" href="https://github.com/shrippen/Kurrent">GitHub</a>
+    <a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#views"><span lang="en">Views</span><span lang="de">Ansichten</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="#changes"><span lang="en">Changes</span><span lang="de">Änderungen</span></a><a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a><a class="nav-hl" href="https://github.com/shrippen/Kurrent">GitHub</a>
     <div class="lang" role="group" aria-label="Language">
       <button type="button" data-lang="en" aria-pressed="true">EN</button>
       <button type="button" data-lang="de" aria-pressed="false">DE</button>
@@ -140,6 +140,149 @@
   <h2 lang="en">Roadmap</h2><h2 lang="de">Roadmap</h2>
   <p lang="en">Toward 1.0: distribution packages (AUR and COPR, then OBS and Debian if cheap), keyboard-first use, an undo control in the header and more polish. Out of scope for 1.0: Markdown notes, attachments, a login of its own and accounts without Akonadi.</p><p lang="de">Auf dem Weg zu 1.0: Distributionspakete (AUR und COPR, danach OBS und Debian, wenn es wenig kostet), Bedienung per Tastatur, ein Rückgängig-Knopf im Kopf und mehr Feinschliff. Nicht Teil von 1.0: Markdown-Notizen, Anhänge, ein eigenes Login und Konten ohne Akonadi.</p><p lang="en">Details in <a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">ROADMAP.md</a> and the <a href="https://github.com/shrippen/Kurrent/blob/main/CHANGELOG.md">changelog</a>.</p><p lang="de">Details in der <a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">ROADMAP.md</a> und im <a href="https://github.com/shrippen/Kurrent/blob/main/CHANGELOG.md">Changelog</a>.</p>
 </section>
+<section class="section" id="changes">
+  <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
+  <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
+  <ol class="changelog">
+    <li class="release" id="v0.4.0">
+      <div class="release-head"><b class="release-version">0.4.0</b><time datetime="2026-09-03"><span lang="en">3 Sep 2026</span><span lang="de">3. Sep. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">Four new ways to look at your tasks: Swimlanes, a Project plan, a Heatmap and Calendar with tasks. Smart Views finally show their results and counts, and edits that clash with a sync now ask you which version to keep.</span><span lang="de">Vier neue Ansichten auf die Aufgaben: Swimlanes, ein Projektplan, eine Heatmap und Kalender mit Aufgaben. Intelligente Ansichten zeigen endlich ihre Treffer und Zähler, und Änderungen, die mit einer Synchronisation kollidieren, fragen jetzt, welche Fassung bleiben soll.</span></p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+          <li><span lang="en">Swimlanes: tasks in a lane × time matrix; rows by project, label, priority or parent task, columns by day, week or month.</span><span lang="de">Swimlanes: Aufgaben in einer Matrix aus Bahnen × Zeit; Zeilen nach Projekt, Label, Priorität oder übergeordneter Aufgabe, Spalten nach Tag, Woche oder Monat.</span></li>
+          <li><span lang="en">Project plan: projects × time, with a planning horizon (0–52 periods), one column for overdue tasks, an optional column for undated tasks and optional completed tasks.</span><span lang="de">Projektplan: Projekte × Zeit, mit Planungshorizont (0–52 Zeiträume), einer Spalte für Überfälliges, wahlweise einer Spalte für Aufgaben ohne Datum und erledigten Aufgaben.</span></li>
+          <li><span lang="en">Heatmap: one cell per day, counting tasks due or tasks completed.</span><span lang="de">Heatmap: eine Zelle je Tag, gezählt nach fälligen oder erledigten Aufgaben.</span></li>
+          <li><span lang="en">Calendar with tasks: the day's events as chips next to its tasks, in a day or week mode.</span><span lang="de">Kalender mit Aufgaben: die Termine des Tages als Chips neben seinen Aufgaben, als Tag oder Woche.</span></li>
+          <li><span lang="en">Smart Views have their own folder in the sidebar, with a count badge, sorted by name.</span><span lang="de">Intelligente Ansichten haben einen eigenen Ordner in der Seitenleiste, mit Zähler und nach Namen sortiert.</span></li>
+          <li><span lang="en">Merge conflict dialog: when a task was changed in Kurrent and elsewhere at the same time, Kurrent goes through the differing fields one at a time and lets you pick the Kurrent or the Akonadi value.</span><span lang="de">Dialog für Konflikte: Wurde eine Aufgabe zugleich in Kurrent und anderswo geändert, geht Kurrent die abweichenden Felder einzeln durch und lässt den Wert aus Kurrent oder aus Akonadi wählen.</span></li>
+          <li><span lang="en">Settings › Views: options for Swimlanes (row and column axis) and the Project plan (time grouping, horizon, undated and completed tasks).</span><span lang="de">Einstellungen › Ansichten: Optionen für Swimlanes (Zeilen- und Spaltenachse) und den Projektplan (Zeiteinteilung, Horizont, Aufgaben ohne Datum und erledigte).</span></li>
+          <li><span lang="en">Task rows show their project when no project filter is active.</span><span lang="de">Aufgabenzeilen zeigen ihr Projekt, solange kein Projektfilter aktiv ist.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+          <li><span lang="en">The Smart View editor offers drop-downs for project, label, status, due date and priority instead of free-text fields.</span><span lang="de">Der Editor für intelligente Ansichten bietet Auswahllisten für Projekt, Label, Status, Fälligkeit und Priorität statt Freitextfeldern.</span></li>
+          <li><span lang="en">Entering a date without a time ticks "All day" automatically.</span><span lang="de">Ein Datum ohne Uhrzeit setzt „Ganztägig“ von selbst.</span></li>
+          <li><span lang="en">Clicking the Quick Add button with an empty field opens the full editor.</span><span lang="de">Ein Klick auf den Schnelleingabe-Knopf bei leerem Feld öffnet den vollen Editor.</span></li>
+          <li><span lang="en">Calendar view: a steady toolbar, an icon-only Today button and an animated Day/Week switch.</span><span lang="de">Kalenderansicht: eine ruhige Werkzeugleiste, ein Heute-Knopf nur mit Symbol und ein animierter Tag/Woche-Schalter.</span></li>
+          <li><span lang="en">Smoother animations when the list changes; the sidebar highlight slides instead of dimming.</span><span lang="de">Flüssigere Animationen, wenn sich die Liste ändert; die Markierung in der Seitenleiste gleitet, statt abzudunkeln.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Smart Views showed no tasks when they had no project rule, and their sidebar counts only appeared after a click.</span><span lang="de">Intelligente Ansichten ohne Projektregel zeigten keine Aufgaben, und ihre Zähler erschienen erst nach einem Klick.</span></li>
+          <li><span lang="en">A stale sync echo could overwrite a task you had just edited; Kurrent now ignores it and refetches before saving.</span><span lang="de">Ein veraltetes Echo der Synchronisation konnte eine gerade bearbeitete Aufgabe überschreiben; Kurrent ignoriert es jetzt und lädt vor dem Speichern neu.</span></li>
+          <li><span lang="en">The Views settings dialog did not fill its space.</span><span lang="de">Der Einstellungsdialog für Ansichten füllte seinen Platz nicht aus.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+          <li><span lang="en">The merge conflict dialog, multi-select bulk actions, KRunner, the global shortcuts and the offline/syncing banner are covered by tests but were not yet checked by hand in a live session.</span><span lang="de">Konfliktdialog, Mehrfachauswahl mit Sammelaktionen, KRunner, die globalen Kürzel und das Offline-/Synchronisierungsbanner sind durch Tests abgedeckt, aber noch nicht von Hand in einer echten Sitzung geprüft.</span></li>
+        </ul></div>
+        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3.1...v0.4.0"><span lang="en">All changes since 0.3.1 →</span><span lang="de">Alle Änderungen seit 0.3.1 →</span></a>
+      </div>
+    </li>
+    <li class="release" id="v0.3.1">
+      <div class="release-head"><b class="release-version">0.3.1</b><time datetime="2026-08-29"><span lang="en">29 Aug 2026</span><span lang="de">29. Aug. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">A translation release: every string of the widget is now translated.</span><span lang="de">Eine Übersetzungsversion: Jeder Text im Widget ist jetzt übersetzt.</span></p>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">All 304 interface strings are translated into German, Spanish, French, Japanese and Simplified Chinese; before, about 158 of them fell back to English.</span><span lang="de">Alle 304 Texte der Oberfläche sind ins Deutsche, Spanische, Französische, Japanische und vereinfachte Chinesisch übersetzt; vorher fielen etwa 158 davon auf Englisch zurück.</span></li>
+        </ul></div>
+        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3...v0.3.1"><span lang="en">All changes since 0.3 →</span><span lang="de">Alle Änderungen seit 0.3 →</span></a>
+      </div>
+    </li>
+    <li class="release" id="v0.3">
+      <div class="release-head"><b class="release-version">0.3</b><time datetime="2026-08-29"><span lang="en">29 Aug 2026</span><span lang="de">29. Aug. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">Sorting you can shape and keep, a faster panel start, and a long list of fixes from daily use. The installer now checks your system before it touches anything.</span><span lang="de">Sortierung, die sich formen und behalten lässt, ein schnellerer Start im Panel und eine lange Liste von Korrekturen aus dem Alltag. Das Installationsskript prüft jetzt das System, bevor es etwas anfasst.</span></p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+          <li><span lang="en">Multi-level sorting (default Priority › Due › A–Z) that is kept globally or per view; new sort keys: due latest first, start date, reminder or recurring first/last, progress.</span><span lang="de">Mehrstufige Sortierung (Standard Priorität › Fälligkeit › A–Z), global oder je Ansicht gespeichert; neue Sortierschlüssel: späteste Fälligkeit zuerst, Startdatum, Erinnerung oder Wiederholung zuerst/zuletzt, Fortschritt.</span></li>
+          <li><span lang="en">Pick any task of the same project as the parent in the full editor.</span><span lang="de">Im vollen Editor lässt sich jede Aufgabe desselben Projekts als übergeordnete wählen.</span></li>
+          <li><span lang="en">Reminders can stay quiet during ongoing calendar events, for the calendars you choose.</span><span lang="de">Erinnerungen können während laufender Kalendertermine schweigen, für die gewählten Kalender.</span></li>
+          <li><span lang="en">More panel badge modes (tomorrow, high priority), a dot instead of a number, the overdue badge colour, and a configurable panel tooltip.</span><span lang="de">Mehr Modi für das Panel-Abzeichen (morgen, hohe Priorität), ein Punkt statt einer Zahl, die Farbe für Überfälliges und ein einstellbarer Panel-Tooltip.</span></li>
+          <li><span lang="en">A warning with a reinstall command when the widget and the installed backend have different versions.</span><span lang="de">Eine Warnung mit Befehl zur Neuinstallation, wenn Widget und installiertes Backend verschiedene Versionen haben.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+          <li><span lang="en">Search and sidebar filters keep the whole open task tree; completed tasks only appear in Completed.</span><span lang="de">Suche und Filter der Seitenleiste behalten den ganzen offenen Aufgabenbaum; erledigte Aufgaben erscheinen nur unter Erledigt.</span></li>
+          <li><span lang="en">The panel icon and flyout appear at once and show a loading indicator while Akonadi connects; the badge no longer flashes empty.</span><span lang="de">Panel-Symbol und Ausklappfenster erscheinen sofort und zeigen eine Ladeanzeige, solange Akonadi verbindet; das Abzeichen blinkt nicht mehr leer.</span></li>
+          <li><span lang="en">Today's "Still open" shows every overdue task, the same set as the Overdue view.</span><span lang="de">„Noch offen“ unter Heute zeigt alle überfälligen Aufgaben, dieselben wie die Ansicht Überfällig.</span></li>
+          <li><span lang="en">Due date and time sit right-aligned in the task row; Quick Add wraps long text (Enter adds, Shift+Enter starts a new line).</span><span lang="de">Fälligkeit und Uhrzeit stehen rechtsbündig in der Aufgabenzeile; die Schnelleingabe bricht lange Texte um (Enter fügt hinzu, Umschalt+Enter beginnt eine neue Zeile).</span></li>
+          <li><span lang="en">Scrolling in the task list and the sort menu works like in other Kirigami apps, with overshoot on touchpads; the scroll bar matches the visible rows when subtasks are collapsed.</span><span lang="de">Scrollen in der Aufgabenliste und im Sortiermenü verhält sich wie in anderen Kirigami-Apps, mit Nachfedern auf dem Touchpad; die Bildlaufleiste passt zu den sichtbaren Zeilen, wenn Unteraufgaben eingeklappt sind.</span></li>
+          <li><span lang="en">Sidebar sections share their height better and can be reordered across several positions by dragging.</span><span lang="de">Die Abschnitte der Seitenleiste teilen sich die Höhe besser und lassen sich per Ziehen über mehrere Positionen umsortieren.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Due dates were missing in the task row and the editor (#2).</span><span lang="de">Fälligkeiten fehlten in der Aufgabenzeile und im Editor (#2).</span></li>
+          <li><span lang="en">The sort menu stuck on "None" for the second and third level.</span><span lang="de">Das Sortiermenü blieb für die zweite und dritte Stufe auf „Keine“ hängen.</span></li>
+          <li><span lang="en">The inline editor stayed open after changing the view, filter, search or sort.</span><span lang="de">Der Inline-Editor blieb nach einem Wechsel von Ansicht, Filter, Suche oder Sortierung offen.</span></li>
+          <li><span lang="en"><code>install-linux.sh</code> asked for a wrong Kirigami package on Debian/Ubuntu (#1), could leave root-owned files in <code>~/.local</code>, and missed Akonadi runtime packages on Debian/Ubuntu and Fedora.</span><span lang="de"><code>install-linux.sh</code> verlangte unter Debian/Ubuntu ein falsches Kirigami-Paket (#1), konnte Dateien in <code>~/.local</code> root gehörend hinterlassen und vergaß Akonadi-Laufzeitpakete unter Debian/Ubuntu und Fedora.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+          <li><span lang="en"><code>install-linux.sh</code> now stops on systems without Plasma 6 / Qt 6 / KF6, asks before continuing on unknown distributions and explains the options on immutable systems (rpm-ostree, transactional-update, Toolbx/Distrobox).</span><span lang="de"><code>install-linux.sh</code> bricht jetzt auf Systemen ohne Plasma 6 / Qt 6 / KF6 ab, fragt bei unbekannten Distributionen nach und erklärt auf unveränderlichen Systemen die Wege (rpm-ostree, transactional-update, Toolbx/Distrobox).</span></li>
+        </ul></div>
+        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.2.2...v0.3"><span lang="en">All changes since 0.2.2 →</span><span lang="de">Alle Änderungen seit 0.2.2 →</span></a>
+      </div>
+    </li>
+  </ol>
+  <details class="changelog-more"><summary><span lang="en">Older releases</span><span lang="de">Ältere Versionen</span></summary>
+    <ol class="changelog">
+      <li class="release" id="v0.2.2">
+        <div class="release-head"><b class="release-version">0.2.2</b><time datetime="2026-08-22"><span lang="en">22 Aug 2026</span><span lang="de">22. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">An installer fix: updating no longer removes the widget.</span><span lang="de">Eine Korrektur am Installationsskript: Ein Update entfernt das Widget nicht mehr.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Updating with <code>install-linux.sh</code> deleted the widget; updates now copy the files in place.</span><span lang="de">Ein Update mit <code>install-linux.sh</code> löschte das Widget; Updates kopieren die Dateien jetzt an Ort und Stelle.</span></li>
+            <li><span lang="en">Installing with <code>sudo bash</code> left files under <code>~/.local</code> owned by root.</span><span lang="de">Eine Installation mit <code>sudo bash</code> hinterließ Dateien unter <code>~/.local</code>, die root gehörten.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.2.1...v0.2.2"><span lang="en">All changes since 0.2.1 →</span><span lang="de">Alle Änderungen seit 0.2.1 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v0.2.1">
+        <div class="release-head"><b class="release-version">0.2.1</b><time datetime="2026-08-19"><span lang="en">19 Aug 2026</span><span lang="de">19. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A bug-fix release for Quick Add.</span><span lang="de">Eine Fehlerkorrektur für die Schnelleingabe.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">The highlighting in Quick Add shifted left while typing.</span><span lang="de">Die Hervorhebung in der Schnelleingabe verrutschte beim Tippen nach links.</span></li>
+            <li><span lang="en">Selecting text in Quick Add (Ctrl+A) showed the text twice.</span><span lang="de">Markierter Text in der Schnelleingabe (Strg+A) erschien doppelt.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.2.0...v0.2.1"><span lang="en">All changes since 0.2.0 →</span><span lang="de">Alle Änderungen seit 0.2.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v0.2.0">
+        <div class="release-head"><b class="release-version">0.2.0</b><time datetime="2026-08-18"><span lang="en">18 Aug 2026</span><span lang="de">18. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A planner-style task flow, a full settings dialog, reminders and a faster panel start.</span><span lang="de">Ein Aufgabenfluss wie in einem Planer, ein vollständiger Einstellungsdialog, Erinnerungen und ein schnellerer Start im Panel.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Today no longer mixes in overdue tasks; a "Still open" catch-up and an Overdue view in the sidebar take them.</span><span lang="de">Heute mischt keine überfälligen Aufgaben mehr hinein; dafür gibt es „Noch offen“ und eine Ansicht Überfällig in der Seitenleiste.</span></li>
+            <li><span lang="en">Reschedule from the task row (15 min, 1 h, 4 h, tomorrow, next week) and one-step undo for complete, reschedule, move and delete.</span><span lang="de">Verschieben direkt aus der Aufgabenzeile (15 Min., 1 Std., 4 Std., morgen, nächste Woche) und Rückgängig in einem Schritt für Erledigen, Verschieben, Umhängen und Löschen.</span></li>
+            <li><span lang="en">Morning, afternoon and evening groups, and a list section field in the editor.</span><span lang="de">Gruppen für Morgen, Nachmittag und Abend sowie ein Feld für den Listenabschnitt im Editor.</span></li>
+            <li><span lang="en">Quick Add understands dates, priorities and labels (<code>tomorrow 18:00 !high #tag</code>); a Join button opens meeting links.</span><span lang="de">Die Schnelleingabe versteht Datum, Priorität und Labels (<code>tomorrow 18:00 !high #tag</code>); ein Beitreten-Knopf öffnet Meeting-Links.</span></li>
+            <li><span lang="en">Reminders (VALARM) in the editor and as Plasma notifications with snooze, with optional quiet hours.</span><span lang="de">Erinnerungen (VALARM) im Editor und als Plasma-Benachrichtigungen mit Schlummern, wahlweise mit Ruhezeiten.</span></li>
+            <li><span lang="en">A settings dialog with pages for appearance, sidebar, tasks, editor, panel, notifications, projects and labels, each with its own reset; the sidebar order is set by dragging.</span><span lang="de">Ein Einstellungsdialog mit Seiten für Darstellung, Seitenleiste, Aufgaben, Editor, Panel, Benachrichtigungen, Projekte und Labels, jede mit eigenem Zurücksetzen; die Reihenfolge der Seitenleiste wird per Ziehen festgelegt.</span></li>
+            <li><span lang="en">Panel badge (open, today or overdue), a default due date, colours per project and label, renaming labels, collapsible subtask trees.</span><span lang="de">Panel-Abzeichen (offen, heute oder überfällig), ein Standard-Fälligkeitsdatum, Farben je Projekt und Label, Labels umbenennen, einklappbare Unteraufgaben.</span></li>
+            <li><span lang="en">Keyboard control in the widget, plus the global shortcuts Meta+Shift+K and Meta+Shift+N.</span><span lang="de">Tastatursteuerung im Widget und die globalen Kürzel Meta+Umschalt+K und Meta+Umschalt+N.</span></li>
+            <li><span lang="en">Empty states when Akonadi is offline, no calendar exists or a view is empty.</span><span lang="de">Hinweise, wenn Akonadi offline ist, kein Kalender existiert oder eine Ansicht leer ist.</span></li>
+            <li><span lang="en">GitHub releases carry <code>kurrent-linux-x86_64.tar.gz</code> and <code>install-linux.sh</code>; the one-line installer puts the plugin into <code>~/.local</code> (<code>--from-source</code> builds it when the binary does not match the distribution).</span><span lang="de">GitHub-Releases enthalten <code>kurrent-linux-x86_64.tar.gz</code> und <code>install-linux.sh</code>; der Einzeiler installiert das Plugin nach <code>~/.local</code> (<code>--from-source</code> baut es, wenn die Binärdatei nicht zur Distribution passt).</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">Completing a recurring task moves the series on and keeps its recurrence rule.</span><span lang="de">Das Erledigen einer wiederkehrenden Aufgabe rückt die Serie weiter und behält ihre Wiederholungsregel.</span></li>
+            <li><span lang="en">The panel starts without waiting for Akonadi and fills the badge and list from the cache at once.</span><span lang="de">Das Panel startet, ohne auf Akonadi zu warten, und füllt Abzeichen und Liste sofort aus dem Zwischenspeicher.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.1.0...v0.2.0"><span lang="en">All changes since 0.1.0 →</span><span lang="de">Alle Änderungen seit 0.1.0 →</span></a>
+        </div>
+      </li>
+      <li class="release" id="v0.1.0">
+        <div class="release-head"><b class="release-version">0.1.0</b><time datetime="2026-08-17"><span lang="en">17 Aug 2026</span><span lang="de">17. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">The first public release of Kurrent, a task manager for KDE Plasma 6 on your Akonadi tasks.</span><span lang="de">Die erste öffentliche Version von Kurrent, einer Aufgabenverwaltung für KDE Plasma 6 auf deinen Akonadi-Aufgaben.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled and Completed views.</span><span lang="de">Ansichten Eingang, Heute, Morgen, Geplant, Jederzeit, Wiederkehrend, Ohne Label und Erledigt.</span></li>
+            <li><span lang="en">Projects, labels and priorities from Akonadi, for example a Nextcloud CalDAV account.</span><span lang="de">Projekte, Labels und Prioritäten aus Akonadi, etwa aus einem Nextcloud-CalDAV-Konto.</span></li>
+            <li><span lang="en">Create, edit, complete and delete tasks, with subtasks and drag and drop.</span><span lang="de">Aufgaben anlegen, bearbeiten, erledigen und löschen, mit Unteraufgaben und Ziehen und Ablegen.</span></li>
+            <li><span lang="en">A full editor inside the widget and a compact inline editor.</span><span lang="de">Ein voller Editor im Widget und ein kompakter Inline-Editor.</span></li>
+            <li><span lang="en">The desktop widget and the panel flyout share their settings.</span><span lang="de">Desktop-Widget und Panel-Ausklappfenster teilen sich ihre Einstellungen.</span></li>
+            <li><span lang="en">Optional wallpaper blur behind the widget.</span><span lang="de">Wahlweise unscharfer Hintergrundbild-Effekt hinter dem Widget.</span></li>
+            <li><span lang="en">Translations into German, Spanish, French, Japanese and Simplified Chinese.</span><span lang="de">Übersetzungen ins Deutsche, Spanische, Französische, Japanische und vereinfachte Chinesisch.</span></li>
+          </ul></div>
+        </div>
+      </li>
+    </ol>
+  </details>
+</section>
 </main>
 
 <footer class="foot">
@@ -149,11 +292,11 @@
       <div><span class="foot-name">Kurrent</span><span class="foot-tag"><span lang="en">A KDE Plasma 6 task manager</span><span lang="de">Ein KDE-Plasma-6-Aufgabenmanager</span></span></div>
     </div>
     <nav class="foot-cols" aria-label="Footer">
-      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#views"><span lang="en">Views</span><span lang="de">Ansichten</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a></div>
+      <div><h4><span lang="en">Project</span><span lang="de">Projekt</span></h4><a href="#features"><span lang="en">Features</span><span lang="de">Funktionen</span></a><a href="#views"><span lang="en">Views</span><span lang="de">Ansichten</span></a><a href="#install"><span lang="en">Install</span><span lang="de">Installation</span></a><a href="#faq"><span lang="en">FAQ</span><span lang="de">FAQ</span></a><a href="#changes"><span lang="en">Changes</span><span lang="de">Änderungen</span></a><a href="https://github.com/shrippen/Kurrent/blob/main/ROADMAP.md">Roadmap</a></div>
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Kurrent">GitHub</a><a href="https://github.com/shrippen/Kurrent/issues">Issues</a><a href="https://github.com/shrippen/Kurrent/releases">Releases</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · v0.4.0</p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v0.4.0</a></p></div>
 </footer>
 
 </body>

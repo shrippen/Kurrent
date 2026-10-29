@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [Unreleased]
 
 ### Added
 
@@ -103,202 +103,254 @@
 - Heatmap day click switched the main-pane mode in a way that was reset immediately.
 - "KCURRENT" typo in five KCM strings (the property namespace is `KURRENT`).
 
-## 0.4.0 — 2026-09-03
+## [0.4.0] — 2026-09-03
 
-### Added
+### English
 
-#### View modes
-- **Swimlanes**: lane × time matrix with configurable axes (Project, Label, Priority, Parent task × Day/Week/Month)
-- **Project plan**: project × time grid with configurable time bucket (Day/Week/Month), planning horizon (0–52), consolidated overdue column, undated tasks column, optional completed task display
-- **Heatmap**: day cells toggled by due date / completions
-- **Calendar + tasks**: event chips + tasks for selected day; Day/Week mode
+Four new ways to look at your tasks: Swimlanes, a Project plan, a Heatmap and Calendar with tasks. Smart Views finally show their results and counts, and edits that clash with a sync now ask you which version to keep.
 
-#### Smart Views
-- Filter bug fixed: `projectId` parsed to 0 instead of -1 when key was missing → smart views showed no results
-- Smart views count correctly in sidebar badges (computed on load, not on click)
-- Dedicated "Smart Views" folder in sidebar (below Maintenance) with badge and navigation
-- Alphabetical sorting of smart views in sidebar and KCM
-- KCM Views: section order corrected — Smart Views above Kanban
+#### New
+- Swimlanes: tasks in a lane × time matrix; rows by project, label, priority or parent task, columns by day, week or month.
+- Project plan: projects × time, with a planning horizon (0–52 periods), one column for overdue tasks, an optional column for undated tasks and optional completed tasks.
+- Heatmap: one cell per day, counting tasks due or tasks completed.
+- Calendar with tasks: the day's events as chips next to its tasks, in a day or week mode.
+- Smart Views have their own folder in the sidebar, with a count badge, sorted by name.
+- Merge conflict dialog: when a task was changed in Kurrent and elsewhere at the same time, Kurrent goes through the differing fields one at a time and lets you pick the Kurrent or the Akonadi value.
+- Settings › Views: options for Swimlanes (row and column axis) and the Project plan (time grouping, horizon, undated and completed tasks).
+- Task rows show their project when no project filter is active.
 
-#### KCM Views — Swimlanes
-- Row axis: Project / Label / Priority / Parent task
-- Column axis: Day / Week / Month
+#### Improved
+- The Smart View editor offers drop-downs for project, label, status, due date and priority instead of free-text fields.
+- Entering a date without a time ticks "All day" automatically.
+- Clicking the Quick Add button with an empty field opens the full editor.
+- Calendar view: a steady toolbar, an icon-only Today button and an animated Day/Week switch.
+- Smoother animations when the list changes; the sidebar highlight slides instead of dimming.
 
-#### KCM Views — Project plan
-- Time grouping: Day / Week / Month
-- Planning horizon: 0–52 periods (0 = unlimited)
-- Show undated tasks (own column)
-- Show completed tasks (optional)
+#### Fixed
+- Smart Views showed no tasks when they had no project rule, and their sidebar counts only appeared after a click.
+- A stale sync echo could overwrite a task you had just edited; Kurrent now ignores it and refetches before saving.
+- The Views settings dialog did not fill its space.
 
-#### Merge conflict dialog
-- Wizard style: one field at a time, Kurrent/Akonadi columns, chip rendering
-- Overlay card (like FullEditor), D-Bus `testMergeConflict` for testing
-- Null guards, auto-resolve, stale echo guard
+#### Note
+- The merge conflict dialog, multi-select bulk actions, KRunner, the global shortcuts and the offline/syncing banner are covered by tests but were not yet checked by hand in a live session.
 
-#### Other
-- Project chip in task delegate (visible when no project filter active)
-- Diagnostics KCM visible in dev builds only (`DevBuildMarker.qml` generated via CMake)
-- Auto-check allDay when date is entered without a time
-- Quick-add: full editor opens when button is clicked with empty text
+All changes: https://github.com/shrippen/Kurrent/compare/v0.3.1...v0.4.0
 
-### Fixed
+### Deutsch
 
-- Smart View editor: replaced free-text fields with dropdowns (Project, Label, Status, Due, Priority)
-- `upsertTask`: reject revision-0 monitor updates when cache has a real revision
-- `persistTodo`: refetch before modify when revision is 0
-- `configViews.qml`: dialog content fills dialog space correctly (anchors.fill instead of Layout)
-- Sidebar: smart view counts precomputed (not only on click)
-- `computeCounts`: smart view badge count calculated correctly; `matchesViewFilter` delegates to smart rules
+Vier neue Ansichten auf die Aufgaben: Swimlanes, ein Projektplan, eine Heatmap und Kalender mit Aufgaben. Intelligente Ansichten zeigen endlich ihre Treffer und Zähler, und Änderungen, die mit einer Synchronisation kollidieren, fragen jetzt, welche Fassung bleiben soll.
 
-### Changed
+#### Neu
+- Swimlanes: Aufgaben in einer Matrix aus Bahnen × Zeit; Zeilen nach Projekt, Label, Priorität oder übergeordneter Aufgabe, Spalten nach Tag, Woche oder Monat.
+- Projektplan: Projekte × Zeit, mit Planungshorizont (0–52 Zeiträume), einer Spalte für Überfälliges, wahlweise einer Spalte für Aufgaben ohne Datum und erledigten Aufgaben.
+- Heatmap: eine Zelle je Tag, gezählt nach fälligen oder erledigten Aufgaben.
+- Kalender mit Aufgaben: die Termine des Tages als Chips neben seinen Aufgaben, als Tag oder Woche.
+- Intelligente Ansichten haben einen eigenen Ordner in der Seitenleiste, mit Zähler und nach Namen sortiert.
+- Dialog für Konflikte: Wurde eine Aufgabe zugleich in Kurrent und anderswo geändert, geht Kurrent die abweichenden Felder einzeln durch und lässt den Wert aus Kurrent oder aus Akonadi wählen.
+- Einstellungen › Ansichten: Optionen für Swimlanes (Zeilen- und Spaltenachse) und den Projektplan (Zeiteinteilung, Horizont, Aufgaben ohne Datum und erledigte).
+- Aufgabenzeilen zeigen ihr Projekt, solange kein Projektfilter aktiv ist.
 
-- CalendarAgendaView: stable toolbar with fixed label width, icon-only Today button, animated Day/Week toggle
-- Chunked model application for smoother animations
-- Sidebar highlight animation, dimming removed
-- Calendar event integration (opaque/busy events)
-- Version 0.4.0 (CMakeLists.txt + metadata.json)
+#### Verbessert
+- Der Editor für intelligente Ansichten bietet Auswahllisten für Projekt, Label, Status, Fälligkeit und Priorität statt Freitextfeldern.
+- Ein Datum ohne Uhrzeit setzt „Ganztägig“ von selbst.
+- Ein Klick auf den Schnelleingabe-Knopf bei leerem Feld öffnet den vollen Editor.
+- Kalenderansicht: eine ruhige Werkzeugleiste, ein Heute-Knopf nur mit Symbol und ein animierter Tag/Woche-Schalter.
+- Flüssigere Animationen, wenn sich die Liste ändert; die Markierung in der Seitenleiste gleitet, statt abzudunkeln.
 
-### Tests
+#### Behoben
+- Intelligente Ansichten ohne Projektregel zeigten keine Aufgaben, und ihre Zähler erschienen erst nach einem Klick.
+- Ein veraltetes Echo der Synchronisation konnte eine gerade bearbeitete Aufgabe überschreiben; Kurrent ignoriert es jetzt und lädt vor dem Speichern neu.
+- Der Einstellungsdialog für Ansichten füllte seinen Platz nicht aus.
 
-- `planMatrixGridOverdueConsolidationAndHorizon`: overdue consolidation, horizon clipping, showCompleted, undated, day-bucket
-- `smartViewFilterAppliesInComputeCounts`: smart view rules affect sidebar counts
-- All 69 tests passing (100%)
+#### Hinweis
+- Konfliktdialog, Mehrfachauswahl mit Sammelaktionen, KRunner, die globalen Kürzel und das Offline-/Synchronisierungsbanner sind durch Tests abgedeckt, aber noch nicht von Hand in einer echten Sitzung geprüft.
 
-### Not yet manually tested
+## [0.3.1] — 2026-08-29
 
-> The following features are implemented and unit-tested but have not been manually verified in a live environment.
+### English
 
-- **Merge conflict dialog**: wizard flow, DBus test, editor integration
-- **Multi-select + bulk actions**: complete/delete/reschedule/move/copy UIDs
-- **KRunner**: `task today`, `task <search>`, add task
-- **Global shortcuts**: Meta+Shift+K/N, D-Bus show/addTask
-- **Offline/syncing banner**: Akonadi offline (red), Syncing… (yellow)
-- **i18n**: German strings for new swimlanes/plan options; fallback checks in de/es/fr/ja/zh_CN
+A translation release: every string of the widget is now translated.
 
-## 0.3.1 — 2026-08-29
+#### Fixed
+- All 304 interface strings are translated into German, Spanish, French, Japanese and Simplified Chinese; before, about 158 of them fell back to English.
 
-### Fixed
+All changes: https://github.com/shrippen/Kurrent/compare/v0.3...v0.3.1
 
-- i18n catalog completion: all 304 QML strings now translated for de, es, fr, ja, zh_CN (was ~166; ~158 fell back to English at runtime)
-- `generate_po.py` auto-extracts msgids from QML and fails on missing per-locale translations
+### Deutsch
 
-## 0.3 — 2026-08-29
+Eine Übersetzungsversion: Jeder Text im Widget ist jetzt übersetzt.
 
-### Added
+#### Behoben
+- Alle 304 Texte der Oberfläche sind ins Deutsche, Spanische, Französische, Japanische und vereinfachte Chinesisch übersetzt; vorher fielen etwa 158 davon auf Englisch zurück.
 
-- Search/sidebar filters keep the full *open* task tree; completed tasks only in Completed view (with open parents rescued)
-- Sort popup stays open for multi-level edits; default Priority › Due › A–Z; opposite directions mutually exclusive; removed opaque “Default”
-- Sort persistence: global or per-view scope (Tasks KCM); stored in `Plasmoid.configuration` / shared `kurrentrc`; default `priority,due,title` when unset
-- Sort keys: due latest-first, start date, reminder/recurring first|last, progress % low|high
-- Overdue view: `chronometer` icon (replaces missing `appointment-missed`); “Overdue” translated
-- Due date/time in task row chip line: right-aligned accent text (overdue stays negative)
-- Full editor: pick any same-project task as parent (`ParentPicker` search field like labels)
-- Notifications KCM: optionally suppress reminders during ongoing calendar events; pick which Akonadi event calendars count (opaque/busy events only)
-- Panel KCM: badge modes tomorrow and high priority; dot instead of number; overdue badge color (accent vs negative); configurable panel tooltip (open, today, today+overdue, overdue, high, all views)
-- Panel flyout preloads at applet startup (`preloadFullRepresentation: true`; `FullView.qml` loads async once the plugin is ready)
-- Boot loader: Breeze gear icon (`boot-gear.svg`, from `process-working-symbolic`) while plugin / FullView load
-- Backend version mismatch banner: widget compares `metadata.json` to `TaskController.pluginVersion`; warning in FullView and General KCM with reinstall one-liner (KDE Store widget + outdated `~/.local` plugin)
-- i18n catalog gap fill: ~129 UI/C++ strings (sort keys, ParentPicker, settings pages, notifications, parent errors) for de/es/fr/ja/zh_CN
+## [0.3] — 2026-08-29
 
-### Fixed
+### English
 
-- Panel startup: load `PluginBackend` asynchronously so the compact icon is not blocked on `libkurrentplugin.so`; keep task cache during Akonadi fetch (no empty badge flash)
-- Flyout opens immediately with boot loader; FullView loads async; indeterminate progress while Akonadi connects / tasks load
-- Today Catch-up (“Still open”) includes all overdue incomplete tasks (same set as the Overdue view), not only those within the former catch-up lookback window
-- Sort menu radios no longer stick on “None” for levels 2–3
-- Due dates missing in list chip and editor (#2): Qt 6 Date has no `isValid`; use `DateTime.isValidDate()` (`getTime()` / format fallback) instead of `task.dueDate.isValid === true`
-- `install-linux.sh` Debian/Ubuntu build deps (#1): `libkirigami-dev` (not `libkf6kirigami-dev`)
-- Panel KCM category icon: `plasmashell` (Breeze has no generic `panel` icon)
-- Remove Panel KCM flyout width/height (Plasma persists popup size via drag-resize)
-- Full editor project radios: folder icon sits beside the name (not under the radio circle)
-- Quick Add: long text wraps and the field grows (capped at `quickAddMaxLines`); scrolls internally beyond that; Enter still adds, Shift+Enter inserts a newline
-- Parent picker: TextField stays focusable for typing; label vertically centered; suggestions open upward (height clamped to space above); priority/tag chips before task name
-- Sidebar KCM reorder: keep dragging across multiple positions; persist order on drop
-- Inline editor: closes on view/filter/search/sort change, drag start, or when the task leaves the list
-- Inline editor: full delegate width flush with row hover; short unfold animation on open
-- Task list scroll: `Kirigami.WheelHandler` (same as Kirigami apps); removed custom `KineticScrollHandler`
-- Sort popup scroll: same `Kirigami.WheelHandler` + `OvershootBounds` / `returnToBounds` as the task list
-- Join button: first chip in the status row (before date/labels/priority); tooltip „Open / Join“ (+ translations)
-- Task list: touchpad overshoot rebounds (`OvershootBounds` + `returnToBounds` after wheel/flick)
-- Collapse: omit descendants from flat list so scrollbar matches visible rows; reserved collapse-arrow column + indent hierarchy
-- Task list: `reuseItems`, larger `cacheBuffer`; hover suppressed via `wheelScrolling`
-- Smoke test: process-wide step/leader so recreated FullView continues; faster ticks; 30s timeout; lib64 QML path
-- Sidebar near-fit: grant full natural height when shortfall is at most one row; steal from sections that overflow more
-- Sidebar scrollbars visible on overflow; bar fits in fixed `spaceSmall` margin
-- Sidebar section heights: proportional when short; `sectionsAllocated` instead of `-1` sentinel
-- Sidebar task counts stable when collapsing (default); optional “Exclude collapsed subtasks from counts”
+Sorting you can shape and keep, a faster panel start, and a long list of fixes from daily use. The installer now checks your system before it touches anything.
 
-### Architecture
+#### New
+- Multi-level sorting (default Priority › Due › A–Z) that is kept globally or per view; new sort keys: due latest first, start date, reminder or recurring first/last, progress.
+- Pick any task of the same project as the parent in the full editor.
+- Reminders can stay quiet during ongoing calendar events, for the calendars you choose.
+- More panel badge modes (tomorrow, high priority), a dot instead of a number, the overdue badge colour, and a configurable panel tooltip.
+- A warning with a reinstall command when the widget and the installed backend have different versions.
 
-- `AbstractTaskStore` boundary for task CRUD: `AkonadiTaskStore` (live) and `MemoryTaskStore` (unit tests, no Akonadi server). Optimistic UI + rollback stay in `TaskController` (cache, inflight, revertTodo)
-- Unit test `kurrent-taskstore` covers create/modify/move/delete and forced failure
+#### Improved
+- Search and sidebar filters keep the whole open task tree; completed tasks only appear in Completed.
+- The panel icon and flyout appear at once and show a loading indicator while Akonadi connects; the badge no longer flashes empty.
+- Today's "Still open" shows every overdue task, the same set as the Overdue view.
+- Due date and time sit right-aligned in the task row; Quick Add wraps long text (Enter adds, Shift+Enter starts a new line).
+- Scrolling in the task list and the sort menu works like in other Kirigami apps, with overshoot on touchpads; the scroll bar matches the visible rows when subtasks are collapsed.
+- Sidebar sections share their height better and can be reordered across several positions by dragging.
 
-### Code quality (agent.md)
+#### Fixed
+- Due dates were missing in the task row and the editor (#2).
+- The sort menu stuck on "None" for the second and third level.
+- The inline editor stayed open after changing the view, filter, search or sort.
+- `install-linux.sh` asked for a wrong Kirigami package on Debian/Ubuntu (#1), could leave root-owned files in `~/.local`, and missed Akonadi runtime packages on Debian/Ubuntu and Fedora.
 
-- View ids, reschedule presets, priority bands as named constants; DaySpan/CursorKind/LoadState enums instead of bool params in TaskLogic
-- `TaskListModel::dataDiffRoles` always uses braces
-- QML spacing uses `Design.space*` / pads instead of raw `Kirigami.Units.*Spacing`
+#### Note
+- `install-linux.sh` now stops on systems without Plasma 6 / Qt 6 / KF6, asks before continuing on unknown distributions and explains the options on immutable systems (rpm-ostree, transactional-update, Toolbx/Distrobox).
 
-### Installer
+All changes: https://github.com/shrippen/Kurrent/compare/v0.2.2...v0.3
 
-- `install-linux.sh`: chown `~/.local` before copy; drop `kpackagetool6` for plasmoid install/update; legacy cleanup via `rm -rf`; verify file ownership after install; warn when not run via `sudo`; clearer fallback messages for incompatible prebuilt plugins
-- `install-linux.sh`: hard Plasma 6 / Qt 6 / KF6 gate (`check_plasma6_env`) before deps or binary install; unknown distros warn and ask to continue (`confirm_unknown_distro`; auto-continues when non-interactive)
-- `install-linux.sh`: immutable/atomic distro detection (`warn_immutable_distro`) with rpm-ostree, transactional-update, and Toolbx/Distrobox guidance; interactive continue prompt (auto-continues when non-interactive)
-- `install-linux.sh`: Debian/Ubuntu Akonadi runtime packages; Fedora `akonadi-server`/`akonadi-calendar` without silent failure; `lib64/qml` in QML env (Fedora/RHEL source installs)
-- `install.sh`: same plasmoid install path as the release installer (cmake install + verify, no `kpackagetool6`); `lib64/qml` in QML env helper
+### Deutsch
 
-## 0.2.2 — 2026-08-22
+Sortierung, die sich formen und behalten lässt, ein schnellerer Start im Panel und eine lange Liste von Korrekturen aus dem Alltag. Das Installationsskript prüft jetzt das System, bevor es etwas anfasst.
 
-Installer fix release.
+#### Neu
+- Mehrstufige Sortierung (Standard Priorität › Fälligkeit › A–Z), global oder je Ansicht gespeichert; neue Sortierschlüssel: späteste Fälligkeit zuerst, Startdatum, Erinnerung oder Wiederholung zuerst/zuletzt, Fortschritt.
+- Im vollen Editor lässt sich jede Aufgabe desselben Projekts als übergeordnete wählen.
+- Erinnerungen können während laufender Kalendertermine schweigen, für die gewählten Kalender.
+- Mehr Modi für das Panel-Abzeichen (morgen, hohe Priorität), ein Punkt statt einer Zahl, die Farbe für Überfälliges und ein einstellbarer Panel-Tooltip.
+- Eine Warnung mit Befehl zur Neuinstallation, wenn Widget und installiertes Backend verschiedene Versionen haben.
 
-- Fix `install-linux.sh` updates deleting the plasmoid (`kpackagetool6 -u` on the install path removed the widget; updates now copy files in place)
-- Fix root-owned files under `~/.local` when installing via `sudo bash` (`cp --no-preserve=ownership` + `chown`)
+#### Verbessert
+- Suche und Filter der Seitenleiste behalten den ganzen offenen Aufgabenbaum; erledigte Aufgaben erscheinen nur unter Erledigt.
+- Panel-Symbol und Ausklappfenster erscheinen sofort und zeigen eine Ladeanzeige, solange Akonadi verbindet; das Abzeichen blinkt nicht mehr leer.
+- „Noch offen“ unter Heute zeigt alle überfälligen Aufgaben, dieselben wie die Ansicht Überfällig.
+- Fälligkeit und Uhrzeit stehen rechtsbündig in der Aufgabenzeile; die Schnelleingabe bricht lange Texte um (Enter fügt hinzu, Umschalt+Enter beginnt eine neue Zeile).
+- Scrollen in der Aufgabenliste und im Sortiermenü verhält sich wie in anderen Kirigami-Apps, mit Nachfedern auf dem Touchpad; die Bildlaufleiste passt zu den sichtbaren Zeilen, wenn Unteraufgaben eingeklappt sind.
+- Die Abschnitte der Seitenleiste teilen sich die Höhe besser und lassen sich per Ziehen über mehrere Positionen umsortieren.
 
-## 0.2.1 — 2026-08-19
+#### Behoben
+- Fälligkeiten fehlten in der Aufgabenzeile und im Editor (#2).
+- Das Sortiermenü blieb für die zweite und dritte Stufe auf „Keine“ hängen.
+- Der Inline-Editor blieb nach einem Wechsel von Ansicht, Filter, Suche oder Sortierung offen.
+- `install-linux.sh` verlangte unter Debian/Ubuntu ein falsches Kirigami-Paket (#1), konnte Dateien in `~/.local` root gehörend hinterlassen und vergaß Akonadi-Laufzeitpakete unter Debian/Ubuntu und Fedora.
 
-Bug-fix release.
+#### Hinweis
+- `install-linux.sh` bricht jetzt auf Systemen ohne Plasma 6 / Qt 6 / KF6 ab, fragt bei unbekannten Distributionen nach und erklärt auf unveränderlichen Systemen die Wege (rpm-ostree, transactional-update, Toolbx/Distrobox).
 
-- Fix QuickAdd highlight overlay shifting left when typing
-- Fix double-text ghost layer when selecting text in QuickAdd (Ctrl+A)
-- Fix smoke test never starting (QML scope shadowing made backend null)
-- Fix smoke test skipping the first post-view step (off-by-one in switch cases)
-- Landing page: Rajdhani heading font
-- Design.md: reference shared DesignDefault repo
+## [0.2.2] — 2026-08-22
 
-## 0.2.0 — 2026-08-18
+### English
 
-Catch-up on the 1.0 branch: planner-style task flow, a full settings dialog, notifications, and a faster panel startup.
+An installer fix: updating no longer removes the widget.
 
-- GitHub Releases attach `kurrent-linux-x86_64.tar.gz` and `install-linux.sh` next to the `.plasmoid`; the one-liner installs the plugin into `~/.local` (`--from-source` if the `.so` does not match the distro)
+#### Fixed
+- Updating with `install-linux.sh` deleted the widget; updates now copy the files in place.
+- Installing with `sudo bash` left files under `~/.local` owned by root.
 
-- Today no longer mixes overdue into “due today”; Catch-up (“Still open”) and an Overdue sidebar view
-- Reschedule from the task row (15m / 1h / 4h / tomorrow / next week)
-- Morning / afternoon / evening grouping and a list section field in the editor
-- Join button for http(s) links; quick add (`tomorrow 18:00 !high #tag`)
-- Completing a recurring task advances the series without dropping the RRULE
-- Sort mode, catch-up, day-part hours, and Join persist in shared settings
-- Settings shell: Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, and Labels pages; per-page reset; density and sidebar width tokens
-- Settings forms use `ConfigFormShell` (centered, width-capped). `SimpleKCM` scrolls; no nested Flickable
-- Shortcuts live in Plasma System Settings (no dedicated KCM); sync is manual (interval setting removed)
-- Sidebar section/view order in settings via drag-and-drop
-- Empty states for Akonadi offline, no calendars, and empty views
-- One-step undo (complete / reschedule / move / delete), collapse subtask trees
-- Panel badge (open / today / overdue) and flyout size; default due date; confirm row delete
-- VALARM reminders in the editor, Plasma notifications with snooze, optional quiet hours
-- Rename labels; complete parent can complete children; per-project and per-label color overrides
-- Keyboard in the widget plus global Meta+Shift+K / Meta+Shift+N (D-Bus `org.github.shrippen.Kurrent`)
-- Relative due chips
-- Panel startup: non-blocking Akonadi start (`ServerManager::start()`, never `Control::start()`); cache can fill the badge/list immediately
-- Panel flyout preloads at applet startup (`preloadFullRepresentation: true`; `FullView.qml` loads async once the plugin is ready, not on first click)
+All changes: https://github.com/shrippen/Kurrent/compare/v0.2.1...v0.2.2
 
-## 0.1.0 — 2026-08-17
+### Deutsch
 
-First public release of **Kurrent**, a KDE Plasma 6 task manager plasmoid.
+Eine Korrektur am Installationsskript: Ein Update entfernt das Widget nicht mehr.
 
-- Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled, and Completed views
-- Projects, labels, and priorities from Akonadi / Nextcloud CalDAV
-- Create, edit, complete, delete, subtasks, and drag-and-drop
-- Full editor overlay inside the widget and compact inline editor
-- Shared settings between desktop widget and panel flyout (`~/.config/com.github.shrippen.kurrent/kurrentrc`)
-- Optional Plasma wallpaper blur on desktop and panel popup
-- German, Spanish, French, Japanese, and Simplified Chinese translations
+#### Behoben
+- Ein Update mit `install-linux.sh` löschte das Widget; Updates kopieren die Dateien jetzt an Ort und Stelle.
+- Eine Installation mit `sudo bash` hinterließ Dateien unter `~/.local`, die root gehörten.
+
+## [0.2.1] — 2026-08-19
+
+### English
+
+A bug-fix release for Quick Add.
+
+#### Fixed
+- The highlighting in Quick Add shifted left while typing.
+- Selecting text in Quick Add (Ctrl+A) showed the text twice.
+
+All changes: https://github.com/shrippen/Kurrent/compare/v0.2.0...v0.2.1
+
+### Deutsch
+
+Eine Fehlerkorrektur für die Schnelleingabe.
+
+#### Behoben
+- Die Hervorhebung in der Schnelleingabe verrutschte beim Tippen nach links.
+- Markierter Text in der Schnelleingabe (Strg+A) erschien doppelt.
+
+## [0.2.0] — 2026-08-18
+
+### English
+
+A planner-style task flow, a full settings dialog, reminders and a faster panel start.
+
+#### New
+- Today no longer mixes in overdue tasks; a "Still open" catch-up and an Overdue view in the sidebar take them.
+- Reschedule from the task row (15 min, 1 h, 4 h, tomorrow, next week) and one-step undo for complete, reschedule, move and delete.
+- Morning, afternoon and evening groups, and a list section field in the editor.
+- Quick Add understands dates, priorities and labels (`tomorrow 18:00 !high #tag`); a Join button opens meeting links.
+- Reminders (VALARM) in the editor and as Plasma notifications with snooze, with optional quiet hours.
+- A settings dialog with pages for appearance, sidebar, tasks, editor, panel, notifications, projects and labels, each with its own reset; the sidebar order is set by dragging.
+- Panel badge (open, today or overdue), a default due date, colours per project and label, renaming labels, collapsible subtask trees.
+- Keyboard control in the widget, plus the global shortcuts Meta+Shift+K and Meta+Shift+N.
+- Empty states when Akonadi is offline, no calendar exists or a view is empty.
+- GitHub releases carry `kurrent-linux-x86_64.tar.gz` and `install-linux.sh`; the one-line installer puts the plugin into `~/.local` (`--from-source` builds it when the binary does not match the distribution).
+
+#### Improved
+- Completing a recurring task moves the series on and keeps its recurrence rule.
+- The panel starts without waiting for Akonadi and fills the badge and list from the cache at once.
+
+All changes: https://github.com/shrippen/Kurrent/compare/v0.1.0...v0.2.0
+
+### Deutsch
+
+Ein Aufgabenfluss wie in einem Planer, ein vollständiger Einstellungsdialog, Erinnerungen und ein schnellerer Start im Panel.
+
+#### Neu
+- Heute mischt keine überfälligen Aufgaben mehr hinein; dafür gibt es „Noch offen“ und eine Ansicht Überfällig in der Seitenleiste.
+- Verschieben direkt aus der Aufgabenzeile (15 Min., 1 Std., 4 Std., morgen, nächste Woche) und Rückgängig in einem Schritt für Erledigen, Verschieben, Umhängen und Löschen.
+- Gruppen für Morgen, Nachmittag und Abend sowie ein Feld für den Listenabschnitt im Editor.
+- Die Schnelleingabe versteht Datum, Priorität und Labels (`tomorrow 18:00 !high #tag`); ein Beitreten-Knopf öffnet Meeting-Links.
+- Erinnerungen (VALARM) im Editor und als Plasma-Benachrichtigungen mit Schlummern, wahlweise mit Ruhezeiten.
+- Ein Einstellungsdialog mit Seiten für Darstellung, Seitenleiste, Aufgaben, Editor, Panel, Benachrichtigungen, Projekte und Labels, jede mit eigenem Zurücksetzen; die Reihenfolge der Seitenleiste wird per Ziehen festgelegt.
+- Panel-Abzeichen (offen, heute oder überfällig), ein Standard-Fälligkeitsdatum, Farben je Projekt und Label, Labels umbenennen, einklappbare Unteraufgaben.
+- Tastatursteuerung im Widget und die globalen Kürzel Meta+Umschalt+K und Meta+Umschalt+N.
+- Hinweise, wenn Akonadi offline ist, kein Kalender existiert oder eine Ansicht leer ist.
+- GitHub-Releases enthalten `kurrent-linux-x86_64.tar.gz` und `install-linux.sh`; der Einzeiler installiert das Plugin nach `~/.local` (`--from-source` baut es, wenn die Binärdatei nicht zur Distribution passt).
+
+#### Verbessert
+- Das Erledigen einer wiederkehrenden Aufgabe rückt die Serie weiter und behält ihre Wiederholungsregel.
+- Das Panel startet, ohne auf Akonadi zu warten, und füllt Abzeichen und Liste sofort aus dem Zwischenspeicher.
+
+## [0.1.0] — 2026-08-17
+
+### English
+
+The first public release of Kurrent, a task manager for KDE Plasma 6 on your Akonadi tasks.
+
+#### New
+- Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled and Completed views.
+- Projects, labels and priorities from Akonadi, for example a Nextcloud CalDAV account.
+- Create, edit, complete and delete tasks, with subtasks and drag and drop.
+- A full editor inside the widget and a compact inline editor.
+- The desktop widget and the panel flyout share their settings.
+- Optional wallpaper blur behind the widget.
+- Translations into German, Spanish, French, Japanese and Simplified Chinese.
+
+### Deutsch
+
+Die erste öffentliche Version von Kurrent, einer Aufgabenverwaltung für KDE Plasma 6 auf deinen Akonadi-Aufgaben.
+
+#### Neu
+- Ansichten Eingang, Heute, Morgen, Geplant, Jederzeit, Wiederkehrend, Ohne Label und Erledigt.
+- Projekte, Labels und Prioritäten aus Akonadi, etwa aus einem Nextcloud-CalDAV-Konto.
+- Aufgaben anlegen, bearbeiten, erledigen und löschen, mit Unteraufgaben und Ziehen und Ablegen.
+- Ein voller Editor im Widget und ein kompakter Inline-Editor.
+- Desktop-Widget und Panel-Ausklappfenster teilen sich ihre Einstellungen.
+- Wahlweise unscharfer Hintergrundbild-Effekt hinter dem Widget.
+- Übersetzungen ins Deutsche, Spanische, Französische, Japanische und vereinfachte Chinesisch.
