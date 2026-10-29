@@ -1,7 +1,8 @@
 #!/bin/sh
 # Release notes from CHANGELOG.md, shared by all projects (rule: shrippen.github.io/overview/PROJECTS.md,
-# "Changelog on every landing page"). The source is here; projects carry a copy made by
-# tools/sync-release-notes.sh, so change it here, never in a copy.
+# "Changelog on every landing page"). Source: tools/release-notes.sh in Kante, tested by
+# tools/release-notes.test.sh. Projects carry an unchanged copy as scripts/release-notes.sh, made by
+# Kante's tools/sync-release-notes.sh: change it only in Kante, then sync, never in a copy.
 #
 #   release-notes.sh 1.2.0 [CHANGELOG.md]   print the section of 1.2.0 (the release notes);
 #                                            exit 1 if it is missing or empty
