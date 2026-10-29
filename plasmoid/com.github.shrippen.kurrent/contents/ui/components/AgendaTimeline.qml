@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
+import QtQuick.Shapes 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import ".."
@@ -42,7 +43,7 @@ Item {
     readonly property int ghostMinutes: 60
 
     function openGhost(y) {
-        if (ghostInput.visible && y >= ghostInput.y && y <= ghostInput.y + ghostInput.height) {
+        if (ghost.visible && y >= ghost.y && y <= ghost.y + ghost.height) {
             return
         }
         // Between the neighbouring blocks (AgendaLogic::ghostSlot).
@@ -311,54 +312,79 @@ Item {
         }
     }
 
-    // The ghost covers its slot exactly; the Quick Add row sits inside when it fits, else as a
-    // small card beside it in free time, so the neighbours stay visible.
+    // The ghost: one card from its start, always tall enough for the Quick Add row. When the
+    // card then reaches into the next entry (or past the grid's end), the end time turns red
+    // and the lower half of the outline is dashed.
     Rectangle {
         id: ghost
+        readonly property real slotHeight: (grid.ghostEnd - grid.ghostStart) * grid.px - 2
+        readonly property real rowHeight: ghostBody.implicitHeight + Design.spaceTiny * 2
+        // Start of the next entry after the slot, or the grid's end.
+        readonly property int nextStart: {
+            var next = grid.gridEnd
+            var items = grid.day ? grid.day.items : []
+            for (var i = 0; i < items.length; ++i) {
+                if (items[i].start >= grid.ghostEnd) {
+                    next = Math.min(next, items[i].start)
+                }
+            }
+            return next
+        }
+        readonly property bool cramped: rowHeight > slotHeight
+                                        && grid.yOf(grid.ghostStart) + 1 + rowHeight > grid.yOf(nextStart)
         visible: grid.ghostStart >= 0
         x: grid.gutter + Design.spaceTiny
         width: grid.width - grid.gutter - Design.spaceTiny * 2
         y: grid.yOf(grid.ghostStart) + 1
-        height: Math.max(2, (grid.ghostEnd - grid.ghostStart) * grid.px - 2)
+        height: Math.max(slotHeight, rowHeight)
         z: 5
         radius: Design.inputRadius
-        color: KanteStyle.tint(KanteStyle.accentColor, 0.15)
-        border.width: 1
+        // Opaque, so a block it reaches into does not show through.
+        color: KanteStyle.cardColor
+        border.width: cramped ? 0 : 1
         border.color: KanteStyle.accentColor
-    }
-    Rectangle {
-        id: ghostInput
-        readonly property bool inside: ghost.height >= ghostBody.implicitHeight + Design.spaceTiny * 2
-        readonly property real below: ghost.y + ghost.height + Design.spaceTiny
-        readonly property real above: ghost.y - height - Design.spaceTiny
-        // Free room next to the slot, up to the neighbouring blocks (or the grid's edge).
-        readonly property var room: {
-            var before = grid.gridStart
-            var after = grid.gridEnd
-            var items = grid.day ? grid.day.items : []
-            for (var i = 0; i < items.length; ++i) {
-                if (items[i].end <= grid.ghostStart) {
-                    before = Math.max(before, items[i].end)
-                } else if (items[i].start >= grid.ghostEnd) {
-                    after = Math.min(after, items[i].start)
-                }
-            }
-            return { "above": (grid.ghostStart - before) * grid.px, "below": (after - grid.ghostEnd) * grid.px }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: KanteStyle.tint(KanteStyle.accentColor, 0.15)
         }
-        visible: ghost.visible
-        x: ghost.x
-        width: ghost.width
-        height: ghostBody.implicitHeight + Design.spaceTiny * 2
-        // Outside the slot: where it covers no block, below first; else where it fits in the grid.
-        y: inside ? ghost.y
-                  : room.below >= height + Design.spaceTiny ? below
-                  : room.above >= height + Design.spaceTiny ? above
-                  : (below + height <= grid.height ? below : above)
-        z: 6
-        radius: Design.inputRadius
-        color: inside ? "transparent" : KanteStyle.cardColor
-        border.width: inside ? 0 : 1
-        border.color: KanteStyle.accentColor
+
+        Shape {
+            id: outline
+            anchors.fill: parent
+            visible: ghost.cramped
+            antialiasing: true
+            readonly property real r: ghost.radius
+            readonly property real w: width - 0.5
+            readonly property real h: height - 0.5
+            ShapePath {
+                fillColor: "transparent"
+                strokeColor: KanteStyle.accentColor
+                strokeWidth: 1
+                startX: 0.5
+                startY: outline.height / 2
+                PathLine { x: 0.5; y: outline.r }
+                PathArc { x: outline.r; y: 0.5; radiusX: outline.r; radiusY: outline.r }
+                PathLine { x: outline.w - outline.r; y: 0.5 }
+                PathArc { x: outline.w; y: outline.r; radiusX: outline.r; radiusY: outline.r }
+                PathLine { x: outline.w; y: outline.height / 2 }
+            }
+            ShapePath {
+                fillColor: "transparent"
+                strokeColor: KanteStyle.accentColor
+                strokeWidth: 1
+                strokeStyle: ShapePath.DashLine
+                dashPattern: [3, 2]
+                startX: outline.w
+                startY: outline.height / 2
+                PathLine { x: outline.w; y: outline.h - outline.r }
+                PathArc { x: outline.w - outline.r; y: outline.h; radiusX: outline.r; radiusY: outline.r }
+                PathLine { x: outline.r; y: outline.h }
+                PathArc { x: 0.5; y: outline.h - outline.r; radiusX: outline.r; radiusY: outline.r }
+                PathLine { x: 0.5; y: outline.height / 2 }
+            }
+        }
 
         RowLayout {
             id: ghostBody
@@ -368,10 +394,17 @@ Item {
             anchors.margins: Design.spaceTiny
             spacing: Design.spaceSmall
 
-            QQC2.Label {
-                text: grid.ghostStart >= 0 ? grid.hm(grid.ghostStart) + "–" + grid.hm(grid.ghostEnd) : ""
-                color: KanteStyle.accentTextColor
-                font: Kirigami.Theme.smallFont
+            Row {
+                QQC2.Label {
+                    text: grid.ghostStart >= 0 ? grid.hm(grid.ghostStart) + "–" : ""
+                    color: KanteStyle.accentTextColor
+                    font: Kirigami.Theme.smallFont
+                }
+                QQC2.Label {
+                    text: grid.ghostStart >= 0 ? grid.hm(grid.ghostEnd) : ""
+                    color: ghost.cramped ? KanteStyle.negativeTextColor : KanteStyle.accentTextColor
+                    font: Kirigami.Theme.smallFont
+                }
             }
             TaskQuickAdd {
                 id: ghostAdd
