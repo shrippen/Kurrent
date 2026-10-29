@@ -5,6 +5,9 @@
 # "github / test"; dort liegen die Pull Requests. Auf GitHub gibt es keine Pull Requests,
 # darum läuft alles auf push.
 #
+# Lokal bleibt der plasmoidviewer-Test (tests/plasmoidviewer_smoke.sh, braucht ein Display und das
+# installierte Plugin) und alles, was echte Akonadi-Daten braucht.
+#
 # Braucht das Secret GITEA_TOKEN: ein Gitea-Token mit Schreibrecht auf das Repo
 # (Commit-Status).
 name: Tests
@@ -67,10 +70,33 @@ jobs:
           print("packaged", zips[0], "entries", len(names))
           PY
 
-  # Läuft auch, wenn unit scheiterte oder abgebrochen wurde, damit auf Gitea kein veraltetes
-  # "pending" stehen bleibt.
+  # Bauen und alle ctest-Tests, im Arch-Container (aktuelles Qt 6, KF6 und Akonadi wie auf dem
+  # Entwicklungsrechner). TZ=Europe/Berlin: In UTC fallen Fehler um die Zeitumstellung nicht auf
+  # (der Heatmap-Schnitt zählte den Oktober als 32 Tage). Lokal bleibt der plasmoidviewer-Test
+  # (braucht ein Display und das installierte Plugin) und alles mit echten Akonadi-Daten.
+  build:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    env:
+      TZ: Europe/Berlin
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Tools
+        run: |
+          pacman -Syu --noconfirm --needed git nodejs base-devel cmake extra-cmake-modules tzdata \
+            gettext qt6-base qt6-declarative qt6-svg kcalendarcore ki18n kconfig knotifications \
+            kglobalaccel krunner akonadi kirigami libplasma
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+      # Das Ziel kurrent-check (in all) führt die Unit-Tests aus.
+      - name: Build and unit tests
+        run: cmake --build build -j"$(nproc)"
+
+  # Läuft auch, wenn unit oder build scheiterte oder abgebrochen wurde, damit auf Gitea kein
+  # veraltetes "pending" stehen bleibt.
   report:
-    needs: unit
+    needs: [unit, build]
     if: always()
     timeout-minutes: 5
     runs-on: ubuntu-latest
@@ -88,6 +114,6 @@ jobs:
             -H "Authorization: token $GITEA_TOKEN" -H "Content-Type: application/json" \
             -d "{\"state\":\"$state\",\"context\":\"github / test\",\"description\":\"$desc\",\"target_url\":\"$RUN_URL\"}"
         env:
-          RESULT: ${{ needs.unit.result }}
+          RESULT: ${{ contains(needs.*.result, 'failure') && 'failure' || (contains(needs.*.result, 'cancelled') && 'cancelled' || needs.unit.result) }}
           STARTED: ${{ needs.unit.outputs.started }}
           GITEA_TOKEN: ${{ secrets.GITEA_TOKEN }}
