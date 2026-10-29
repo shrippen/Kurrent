@@ -46,10 +46,15 @@ QList<Span> freeSlots(const QList<Span> &busy, int from, int to);
 /** The longest gap; the first one on a tie, invalid when there is none. */
 Span largestSlot(const QList<Span> &gaps);
 
-/** First start at or after `start` where `minutes` overlap nothing busy; never past the grid. */
+/** First start at or after `start` where `minutes` overlap nothing busy and end by 22:00; else
+ *  the latest such start before it; `start` itself when the day has no room. */
 int fitFree(const QList<Span> &busy, int start, int minutes);
 
-/** How far a block's edges may be dragged: up to the neighbouring busy spans, inside the grid. */
+/** Hours the day's grid shows: 07–22, widened to whole hours around anything outside. */
+Span gridRange(const QList<Span> &spans);
+
+/** How far a block's edges may be dragged: up to the neighbouring busy spans, inside the grid,
+ *  never tighter than the block itself. */
 Span resizeLimits(const QList<Span> &busy, const Span &block);
 
 /** Side-by-side columns for overlapping spans: lane of each span (input order) and the

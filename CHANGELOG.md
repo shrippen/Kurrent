@@ -27,10 +27,10 @@
 - Quick Add tokens render as **tinted pills**.
 
 #### Agenda: day view with hour grids
-- **Calendar › Day** shows 14 days from the picked date, each as an hour grid (07–22): appointments stay fixed, tasks with a start and end time on the same day are blocks, free gaps of 30 minutes and more show in green (today from now on). Days with nothing on them fold into one line.
-- **Plan by dragging**: drop a task on a day's grid and it lands in the next free stretch long enough for it (a block keeps its length; otherwise 60, 45 or 30 minutes by priority). Drop it under "No time" or use "→ day" to keep it on the day without a time. Click a block to get grips at its top and bottom edge; they move in 15-minute steps and stop at the neighbouring appointment or task. Everything can be undone.
+- **Calendar › Day** shows 14 days from the picked date, each as an hour grid (07–22, longer on a day with something earlier or later, such as a night shoot until midnight): appointments stay fixed, tasks with a start and end time on the same day are blocks, free gaps of 30 minutes and more show in green (today from now on, and the now line moves with the clock). Days with nothing on them fold into one line.
+- **Plan by dragging**: drop a task on a day's grid and it lands in the next free stretch long enough for it (late in the evening, in the free time just before) (a block keeps its length; otherwise 60, 45 or 30 minutes by priority). Drop it under "No time" or use "→ day" to keep it on the day without a time. Click a block to get grips at its top and bottom edge; they move in 15-minute steps and stop at the neighbouring appointment or task. Everything can be undone.
 - **Suggestions** for the target day (click a day's header to pick it), most relevant first in three tiers: overdue tasks (the longer, the higher), tasks due within a week after the day (the sooner, the higher), undated top-level tasks; high priority and "fits the largest gap" add to it. Each suggestion says why.
-- A month calendar with dots for appointments, tasks and overdue tasks (with a legend) picks the first day; it hides in a narrow widget.
+- A month calendar with dots for appointments, tasks and overdue tasks (with a legend, also in the Kante style) picks the first day; it hides in a narrow widget.
 
 #### Tiles and inspector (redesign direction B)
 - **Tiles** above the task pane (wide layout): Overdue, Today, Tomorrow, Scheduled, Completed with counts and tone bars; a click switches the view. Per view: the heatmap shows its figures (total, per day, best day, overdue) in the tiles instead of a second row. Setting: Appearance › Wide layout.

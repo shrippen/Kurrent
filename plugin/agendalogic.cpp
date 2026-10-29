@@ -111,23 +111,47 @@ Span largestSlot(const QList<Span> &gaps)
 
 int fitFree(const QList<Span> &busy, int start, int minutes)
 {
-    int at = start;
-    bool moved = true;
-    while (moved) {
-        moved = false;
+    const auto overlap = [&busy, minutes](int at) -> const Span * {
         for (const Span &span : busy) {
             if (at < span.end && at + minutes > span.start) {
-                at = span.end;
-                moved = true;
+                return &span;
             }
         }
+        return nullptr;
+    };
+    // Later first, up to the end of the grid.
+    int at = start;
+    while (const Span *span = overlap(at)) {
+        at = span->end;
     }
-    return qMin(at, kGridEnd - minutes);
+    if (at + minutes <= kGridEnd) {
+        return at;
+    }
+    // Then the free room before it.
+    at = qMin(start, kGridEnd - minutes);
+    while (const Span *span = overlap(at)) {
+        at = span->start - minutes;
+    }
+    return at >= kGridStart ? at : start;
+}
+
+Span gridRange(const QList<Span> &spans)
+{
+    Span range{kGridStart, kGridEnd};
+    for (const Span &span : spans) {
+        if (!span.isValid()) {
+            continue;
+        }
+        range.start = qMin(range.start, span.start / 60 * 60);
+        range.end = qMax(range.end, (span.end + 59) / 60 * 60);
+    }
+    return {qMax(0, range.start), qMin(24 * 60, range.end)};
 }
 
 Span resizeLimits(const QList<Span> &busy, const Span &block)
 {
-    Span limits{kGridStart, kGridEnd};
+    // Never tighter than the block itself, which may reach past the grid.
+    Span limits{qMin(kGridStart, block.start), qMax(kGridEnd, block.end)};
     for (const Span &span : busy) {
         if (span.end <= block.start) {
             limits.start = qMax(limits.start, span.end);

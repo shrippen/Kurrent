@@ -41,6 +41,7 @@ private Q_SLOTS:
     void inspectorSnapshotAndChildren();
     void heatmapTasksForDay();
     void agendaPlacesTasksInFreeTime();
+    void agendaDayShowsBlocksOutsideTheGrid();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -483,6 +484,24 @@ void TaskControllerStoreTest::heatmapTasksForDay()
     QCOMPARE(done.at(1).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("b done"));
     QVERIFY(m_controller->heatmapTasksForDay(QDate::currentDate().addDays(-1), QStringLiteral("completed")).isEmpty());
     QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
+}
+
+void TaskControllerStoreTest::agendaDayShowsBlocksOutsideTheGrid()
+{
+    m_controller->installTestTask(1, QStringLiteral("late"), 10);
+    const QDate day = QDate::currentDate().addDays(3);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->agendaSetBlock(1, day, 22 * 60 + 30, 23 * 60 + 15);
+    waitStore(spy);
+
+    const QVariantMap agenda = m_controller->agendaDays(day, 1).first().toMap();
+    // The grid reaches the block, and its grips may not cut it.
+    QCOMPARE(agenda.value(QStringLiteral("gridStart")).toInt(), 7 * 60);
+    QCOMPARE(agenda.value(QStringLiteral("gridEnd")).toInt(), 24 * 60);
+    const QVariantList items = agenda.value(QStringLiteral("items")).toList();
+    QCOMPARE(items.size(), 1);
+    QCOMPARE(items.first().toMap().value(QStringLiteral("start")).toInt(), 22 * 60 + 30);
+    QCOMPARE(items.first().toMap().value(QStringLiteral("hi")).toInt(), 23 * 60 + 15);
 }
 
 void TaskControllerStoreTest::agendaPlacesTasksInFreeTime()
