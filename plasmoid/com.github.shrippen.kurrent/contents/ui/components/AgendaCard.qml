@@ -29,7 +29,7 @@ Rectangle {
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
     border.width: inspected ? 1 : 0
     border.color: KanteStyle.accentColor
-    opacity: task.completed ? 0.55 : 1
+    opacity: task.completed ? Design.agendaDoneOpacity : 1
 
     QQC2.ToolTip.text: (task.summary || i18n("(Untitled)")) + (task.collectionName ? " · " + task.collectionName : "")
     QQC2.ToolTip.visible: hover.hovered && titleLabel.truncated

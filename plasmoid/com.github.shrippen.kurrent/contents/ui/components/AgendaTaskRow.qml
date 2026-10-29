@@ -30,9 +30,9 @@ Rectangle {
     implicitHeight: body.implicitHeight + Design.padInner * 2
     radius: Design.inputRadius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
-    border.width: inspected ? 1 : 0
+    border.width: inspected ? Design.agendaHairline : 0
     border.color: KanteStyle.accentColor
-    opacity: task.completed ? 0.6 : 1
+    opacity: task.completed ? Design.agendaDoneOpacity : 1
 
     function toneColor(tone) {
         if (tone === "late") {
@@ -71,7 +71,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: Design.padInner + 3
+        anchors.leftMargin: Design.padInner + Design.agendaEdge
         anchors.rightMargin: Design.padInner
         spacing: Design.spaceSmall
 
@@ -87,7 +87,7 @@ Rectangle {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: Design.spaceTiny
 
             QQC2.Label {
                 Layout.fillWidth: true

@@ -254,6 +254,8 @@ QtObject {
     readonly property real agendaFreeFill: 0.12
     readonly property real agendaFreeEdge: 0.4
     readonly property real agendaBlockFill: 0.22
+    readonly property real agendaDoneOpacity: 0.6
+    readonly property real agendaHalfHourOpacity: 0.4
     // Week load bar, the overdue tray, the task ghost (fill over the window colour, dashed edge
     // where it runs into the next entry) and the month's tint legend.
     readonly property int agendaBar: Math.max(3, Math.round(Kirigami.Units.gridUnit / 5))
