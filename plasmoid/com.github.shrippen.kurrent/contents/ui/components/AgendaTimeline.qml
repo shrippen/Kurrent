@@ -442,6 +442,7 @@ Item {
                 startMinute: grid.ghostStart
                 endMinute: grid.ghostEnd
                 onCreated: grid.closeGhost()
+                takesEscape: true
                 onEscaped: grid.closeGhost()
                 onFieldFocusChanged: {
                     if (!fieldFocus && !asking && text.trim() === "") {

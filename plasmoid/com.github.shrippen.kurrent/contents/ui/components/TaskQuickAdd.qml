@@ -27,6 +27,8 @@ Item {
     readonly property bool asking: projectAskPopup.visible
     signal created()
     signal escaped()
+    /** See QuickAddField.takesEscape. */
+    property bool takesEscape: false
 
     property string pendingText: ""
     property var askProjects: []
@@ -96,6 +98,7 @@ Item {
         projects: root.writableProjects
         popupHost: root.popupHost || root
         onAccepted: root.submit()
+        takesEscape: root.takesEscape
         onEscaped: root.escaped()
     }
 

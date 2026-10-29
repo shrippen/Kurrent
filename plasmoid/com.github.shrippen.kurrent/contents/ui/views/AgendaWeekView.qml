@@ -324,6 +324,7 @@ ColumnLayout {
                                 }
                             }
                             onCreated: view.addingOn = ""
+                            takesEscape: true
                             onEscaped: view.addingOn = ""
                             onFieldFocusChanged: {
                                 if (!fieldFocus && !asking && text.trim() === "") {
