@@ -335,40 +335,10 @@ ColumnLayout {
                         // Appointments.
                         Repeater {
                             model: column.modelData.events
-                            delegate: Rectangle {
+                            delegate: AgendaEventRow {
                                 required property var modelData
                                 Layout.fillWidth: true
-                                implicitHeight: evCol.implicitHeight + Design.spaceTiny * 2
-                                radius: Design.inputRadius
-                                color: "transparent"
-                                border.width: 1
-                                border.color: KanteStyle.frameColor
-                                ColumnLayout {
-                                    id: evCol
-                                    anchors.fill: parent
-                                    anchors.margins: Design.spaceTiny
-                                    anchors.leftMargin: Design.spaceSmall
-                                    spacing: 0
-                                    QQC2.Label {
-                                        text: modelData.allDay ? i18n("All day")
-                                              : DateTime.pad2(Math.floor(modelData.start / 60)) + ":" + DateTime.pad2(modelData.start % 60)
-                                                + "–" + DateTime.pad2(Math.floor(modelData.end / 60)) + ":" + DateTime.pad2(modelData.end % 60)
-                                        color: KanteStyle.mutedTextColor
-                                        font: Kirigami.Theme.smallFont
-                                    }
-                                    QQC2.Label {
-                                        Layout.fillWidth: true
-                                        text: modelData.summary
-                                        wrapMode: Text.Wrap
-                                        maximumLineCount: 2
-                                        elide: Text.ElideRight
-                                        color: KanteStyle.mutedTextColor
-                                    }
-                                }
-                                HoverHandler { id: evHover }
-                                QQC2.ToolTip.text: modelData.summary + (modelData.calendarName ? " · " + modelData.calendarName : "")
-                                QQC2.ToolTip.visible: evHover.hovered
-                                QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                                event: modelData
                             }
                         }
 

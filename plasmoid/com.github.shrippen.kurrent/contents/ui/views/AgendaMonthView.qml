@@ -215,20 +215,21 @@ RowLayout {
                                     implicitHeight: 6
                                     color: Design.colorForKey(String(entry.modelData.data.collectionId))
                                 }
-                                QQC2.Label {
-                                    visible: entry.modelData.event && !entry.modelData.data.allDay
-                                    text: entry.modelData.event && !entry.modelData.data.allDay ? view.hm(entry.modelData.data.start) : ""
-                                    color: KanteStyle.mutedTextColor
-                                    font: Kirigami.Theme.smallFont
+                                AgendaEventRow {
+                                    visible: entry.modelData.event
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    compact: true
+                                    event: entry.modelData.data
                                 }
                                 QQC2.Label {
+                                    visible: !entry.modelData.event
                                     Layout.fillWidth: true
                                     text: entry.modelData.data.summary || i18n("(Untitled)")
                                     elide: Text.ElideRight
                                     font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                    font.strikeout: !entry.modelData.event && entry.modelData.data.completed
-                                    color: entry.late ? KanteStyle.negativeTextColor
-                                                      : (entry.modelData.event ? KanteStyle.mutedTextColor : KanteStyle.textColor)
+                                    font.strikeout: !!entry.modelData.data.completed
+                                    color: entry.late ? KanteStyle.negativeTextColor : KanteStyle.textColor
                                 }
                                 AgendaTaskDrag {
                                     task: entry.modelData.event ? null : entry.modelData.data
@@ -315,21 +316,11 @@ RowLayout {
 
                 Repeater {
                     model: view.selected ? view.selected.events : []
-                    delegate: RowLayout {
+                    delegate: AgendaEventRow {
                         required property var modelData
                         Layout.fillWidth: true
-                        spacing: Design.spaceSmall
-                        QQC2.Label {
-                            text: modelData.allDay ? i18n("All day") : view.hm(modelData.start) + "–" + view.hm(modelData.end)
-                            color: KanteStyle.mutedTextColor
-                            font: Kirigami.Theme.smallFont
-                        }
-                        QQC2.Label {
-                            Layout.fillWidth: true
-                            text: modelData.summary
-                            wrapMode: Text.Wrap
-                            color: KanteStyle.mutedTextColor
-                        }
+                        event: modelData
+                        maximumLineCount: 0
                     }
                 }
                 Repeater {
