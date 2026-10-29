@@ -20,6 +20,12 @@ msgstr ""
 msgid "%1 %2 on %3"
 msgstr "%3：%1 %2"
 
+msgid "%1 (key %2)"
+msgstr "%1（按键 %2）"
+
+msgid "%1 / %2"
+msgstr "%1 / %2"
+
 msgid "%1 completed"
 msgstr "%1 个已完成"
 
@@ -143,6 +149,9 @@ msgstr "全部"
 msgid "All day"
 msgstr "全天"
 
+msgid "All to today"
+msgstr "全部移到今天"
+
 msgid "All views"
 msgstr "所有视图"
 
@@ -193,6 +202,9 @@ msgstr "适用于徽章显示今天且存在逾期任务时。"
 
 msgid "Appointment"
 msgstr "日程"
+
+msgid "Appointments plus estimated task time, against a %1 workday (Settings → Views)"
+msgstr "日程加上任务预计用时，对照 %1 的工作日（设置 → 视图）"
 
 msgid "Ask before deleting a task"
 msgstr "删除任务前询问"
@@ -455,12 +467,6 @@ msgstr "时段："
 msgid "Day sections"
 msgstr "时段"
 
-msgid "Days side by side"
-msgstr "日期并排"
-
-msgid "Days stacked"
-msgstr "日期堆叠"
-
 msgid "Debug info"
 msgstr "调试信息"
 
@@ -599,12 +605,6 @@ msgstr "跑腿"
 msgid "Evening"
 msgstr "晚上"
 
-msgid "Events"
-msgstr "事件"
-
-msgid "Events this week"
-msgstr "本周事件"
-
 msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
 msgstr "其余一切（界面、文字、选中、按钮）都来自你的 Plasma 配色方案。"
 
@@ -659,6 +659,9 @@ msgstr "可放入 %1–%2"
 msgid "Flag"
 msgstr "旗帜"
 
+msgid "Fold"
+msgstr "折叠"
+
 msgid "Folder"
 msgstr "文件夹"
 
@@ -676,6 +679,9 @@ msgstr "常规"
 
 msgid "Give tasks a due or start date to see them planned by project and period."
 msgstr "为任务设置截止或开始日期，即可按项目和时间段查看计划。"
+
+msgid "Go to today (H)"
+msgstr "转到今天 (H)"
 
 msgid "Group tasks"
 msgstr "任务分组"
@@ -701,11 +707,17 @@ msgstr "热力图"
 msgid "Hidden"
 msgstr "隐藏"
 
+msgid "Hide done"
+msgstr "隐藏已完成"
+
 msgid "Hide sidebar"
 msgstr "隐藏侧边栏"
 
 msgid "Hide the Canceled column"
 msgstr "隐藏“已取消”列"
+
+msgid "Hide weekend"
+msgstr "隐藏周末"
 
 msgid "High"
 msgstr "高"
@@ -718,6 +730,9 @@ msgstr "高优先级 (%1)"
 
 msgid "Home"
 msgstr "家"
+
+msgid "Hours a day holds in the week view: appointments plus estimated task time beyond it mark the day as full."
+msgstr "周视图中一天可容纳的时长：日程与任务预计用时超过它时，该天标记为已满。"
 
 msgid "How tasks are ordered in this view. Leave at Default to use Priority → Due → Title."
 msgstr "此视图中任务的排序方式。“默认”按 优先级 → 截止 → 标题 排序。"
@@ -754,9 +769,6 @@ msgstr "全部包含"
 
 msgid "Include this calendar when checking for ongoing events"
 msgstr "检查进行中的事件时包含此日历"
-
-msgid "Include weekend"
-msgstr "包含周末"
 
 msgid "Info journal"
 msgstr "信息日志"
@@ -923,6 +935,9 @@ msgstr "动效"
 msgid "Move all to today"
 msgstr "全部移到今天"
 
+msgid "Move to %1"
+msgstr "移到 %1"
+
 msgid "Move to project"
 msgstr "移动到项目"
 
@@ -953,20 +968,26 @@ msgstr "新地点"
 msgid "New task"
 msgstr "新任务"
 
+msgid "New task, Enter saves"
+msgstr "新任务，回车保存"
+
 msgid "New tasks"
 msgstr "新任务"
 
 msgid "Next"
 msgstr "下一个"
 
-msgid "Next event"
-msgstr "下一个事件"
+msgid "Next day (→)"
+msgstr "后一天 (→)"
 
-msgid "Next event · %1"
-msgstr "下一个事件 · %1"
+msgid "Next month (→)"
+msgstr "下个月 (→)"
 
 msgid "Next week"
 msgstr "下周"
+
+msgid "Next week (→)"
+msgstr "下一周 (→)"
 
 msgid "No Smart Views yet. Create one or copy a built-in view."
 msgstr "还没有智能视图。新建一个或复制内置视图。"
@@ -982,9 +1003,6 @@ msgstr "无到期日"
 
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "未找到事件日历。请确认 Akonadi 正在运行且已配置 CalDAV 日历。"
-
-msgid "No events or tasks."
-msgstr "没有事件或任务。"
 
 msgid "No high priority tasks"
 msgstr "没有高优先级任务"
@@ -1055,6 +1073,9 @@ msgstr "今天无到期任务"
 msgid "Nothing on this day."
 msgstr "这一天没有内容。"
 
+msgid "Nothing planned."
+msgstr "没有计划。"
+
 msgid "Notifications"
 msgstr "通知"
 
@@ -1108,6 +1129,12 @@ msgstr "打开 / 加入"
 
 msgid "Open GitHub"
 msgstr "打开 GitHub"
+
+msgid "Open day"
+msgstr "打开这一天"
+
+msgid "Open day →"
+msgstr "打开这一天 →"
 
 msgid "Open first"
 msgstr "未完成优先"
@@ -1193,6 +1220,15 @@ msgstr "预览"
 msgid "Previous"
 msgstr "上一个"
 
+msgid "Previous day (←)"
+msgstr "前一天 (←)"
+
+msgid "Previous month (←)"
+msgstr "上个月 (←)"
+
+msgid "Previous week (←)"
+msgstr "上一周 (←)"
+
 msgid "Priorities"
 msgstr "优先级"
 
@@ -1207,9 +1243,6 @@ msgstr "优先级"
 
 msgid "Priority %1"
 msgstr "优先级 %1"
-
-msgid "Priority %1 (%2)"
-msgstr "优先级 %1（%2）"
 
 msgid "Priority colours (red · yellow · blue)"
 msgstr "优先级颜色（红 · 黄 · 蓝）"
@@ -1288,6 +1321,9 @@ msgstr "重复最后"
 
 msgid "Recurring tasks only"
 msgstr "仅重复任务"
+
+msgid "Red: overdue"
+msgstr "红色：已逾期"
 
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "减少动效（无加载动画，更安静的悬停）"
@@ -1511,6 +1547,9 @@ msgstr "在截止标签上显示时间"
 msgid "Show undated tasks"
 msgstr "显示无日期任务"
 
+msgid "Show weekend"
+msgstr "显示周末"
+
 msgid "Sidebar"
 msgstr "侧栏"
 
@@ -1607,17 +1646,14 @@ msgstr "目标"
 msgid "Task"
 msgstr "任务"
 
+msgid "Task for this day, Enter saves"
+msgstr "这一天的任务，回车保存"
+
 msgid "Tasks"
 msgstr "任务"
 
 msgid "Tasks appear here by row and period once they match the current view."
 msgstr "符合当前视图的任务将按行和时间段显示在这里。"
-
-msgid "Tasks due"
-msgstr "到期任务"
-
-msgid "Tasks this week"
-msgstr "本周任务"
 
 msgid "Th"
 msgstr "四"
@@ -1667,6 +1703,9 @@ msgstr "时间"
 msgid "Time grouping"
 msgstr "时间分组"
 
+msgid "Tint: how full the day is"
+msgstr "色调：这一天有多满"
+
 msgid "Title"
 msgstr "标题"
 
@@ -1702,6 +1741,9 @@ msgstr "重试"
 
 msgid "Tu"
 msgstr "二"
+
+msgid "Unfold"
+msgstr "展开"
 
 msgid "Unlabeled"
 msgstr "无标签"
@@ -1754,6 +1796,9 @@ msgstr "周"
 msgid "Week %1"
 msgstr "第 %1 周"
 
+msgid "Week %1 · %2 – %3"
+msgstr "第 %1 周 · %2 – %3"
+
 msgid "Weekly"
 msgstr "每周"
 
@@ -1778,6 +1823,9 @@ msgstr "有磁贴时，逾期磁贴提供“全部移到今天”；窄布局在
 msgid "Work"
 msgstr "工作"
 
+msgid "Workday"
+msgstr "工作日时长"
+
 msgid "Writes and sync state"
 msgstr "写入与同步状态"
 
@@ -1793,8 +1841,14 @@ msgstr "昨天"
 msgid "You can also drag the edge of the sidebar."
 msgstr "也可以拖动侧边栏边缘。"
 
+msgid "drag onto a day"
+msgstr "拖到某一天"
+
 msgid "due %1"
 msgstr "%1 到期"
+
+msgid "free"
+msgstr "空闲"
 
 msgid "free %1–%2 · %3"
 msgstr "空闲 %1–%2 · %3"
@@ -1906,3 +1960,15 @@ msgstr[0] "%1 天后到期"
 msgid "%1 appointment"
 msgid_plural "%1 appointments"
 msgstr[0] "%1 个日程"
+
+msgid "✓ %1 done"
+msgid_plural "✓ %1 done"
+msgstr[0] "✓ 已完成 %1 个"
+
+msgid "↑ %1 in Overdue"
+msgid_plural "↑ %1 in Overdue"
+msgstr[0] "↑ 逾期中有 %1 个"
+
+msgid "+%1 more"
+msgid_plural "+%1 more"
+msgstr[0] "另有 %1 个"

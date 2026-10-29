@@ -18,6 +18,7 @@ Item {
     readonly property var backend: plasmoidRoot.backend
     readonly property alias taskListItem: mainPaneHost.taskList
     readonly property alias taskList: mainPaneHost.taskList
+    readonly property alias calendarView: mainPaneHost.calendarView
 
     clip: false
     anchors.fill: parent
@@ -1672,12 +1673,13 @@ Item {
             ViewTiles {
                 id: viewTiles
                 Layout.fillWidth: true
+                // The Agenda has its own date bar and shows overdue tasks itself: no tiles there.
                 visible: KurrentUi.Design.showViewTiles && !fullRoot.compactLayout && !!backend
+                         && backend.mainPaneMode !== KurrentUi.Design.viewModeCalendar
                 controller: backend
-                // Per view: heatmap and calendar show their own figures here instead of the view tiles.
+                // Per view: the heatmap shows its own figures here instead of the view tiles.
                 facts: !backend ? null
                      : backend.mainPaneMode === KurrentUi.Design.viewModeHeatmap ? mainPaneHost.heatmapTileFacts
-                     : backend.mainPaneMode === KurrentUi.Design.viewModeCalendar ? mainPaneHost.calendarTileFacts
                      : null
                 onViewPicked: function(viewId) { fullRoot.pickView(viewId) }
             }
@@ -1686,6 +1688,7 @@ Item {
                 Layout.fillWidth: true
                 controller: backend
                 suppressed: viewTiles.visible || fullRoot.compactLayout
+                            || (!!backend && backend.mainPaneMode === KurrentUi.Design.viewModeCalendar)
                 onShowOverdue: fullRoot.pickView("overdue")
             }
 

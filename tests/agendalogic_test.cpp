@@ -53,6 +53,12 @@ private Q_SLOTS:
     void lanesForOverlaps();
     void suggestionsRankedWithReasons();
     void suggestionsSkipPastTargetOverdueAndOwnDay();
+    void modesNormalizeAndStep();
+    void dayLoadCountsEventsAndTaskLengths();
+    void workMinutesDefaultAndBounds();
+    void boardOrderTimedThenPriority();
+    void monthGridSixWeeksFromMonday();
+    void loadTintGrowsAndCaps();
 };
 
 void AgendaLogicTest::blockNeedsTimedStartAndDueOnOneDay()
@@ -225,6 +231,93 @@ void AgendaLogicTest::suggestionsSkipPastTargetOverdueAndOwnDay()
     QVERIFY(find(later, QStringLiteral("Überfällig")));
     QVERIFY(!find(later, QStringLiteral("Am Ziel fällig")));
     QCOMPARE(find(later, QStringLiteral("Danach fällig"))->score, 36);
+}
+
+void AgendaLogicTest::modesNormalizeAndStep()
+{
+    QCOMPARE(normalizeMode(QStringLiteral("week")), Mode::Week);
+    QCOMPARE(normalizeMode(QStringLiteral("year")), Mode::Day);
+    QCOMPARE(normalizeMode(QString()), Mode::Day);
+
+    QCOMPARE(stepDate(kToday, Mode::Day, -1), kToday.addDays(-1));
+    QCOMPARE(stepDate(kToday, Mode::Week, 2), kToday.addDays(14));
+    QCOMPARE(stepDate(QDate(2026, 1, 31), Mode::Month, 1), QDate(2026, 2, 28));
+    QCOMPARE(stepDate(QDate(2026, 3, 31), Mode::Month, -1), QDate(2026, 2, 28));
+    QCOMPARE(stepDate(QDate(2026, 12, 15), Mode::Month, 1), QDate(2027, 1, 15));
+}
+
+void AgendaLogicTest::dayLoadCountsEventsAndTaskLengths()
+{
+    TaskEntry timed = task(QStringLiteral("Block"), {});
+    timed.startDate = QDateTime(kToday, QTime(10, 0));
+    timed.dueDate = QDateTime(kToday, QTime(11, 30));
+    const QList<TaskEntry> open{timed, task(QStringLiteral("Hoch"), kToday, 1), task(QStringLiteral("Ohne"), kToday)};
+    // 45 + 90 + 60 + 30
+    QCOMPARE(dayLoad({{hm(9), hm(9, 45)}}, open), 225);
+    QCOMPARE(dayLoad({}, {}), 0);
+}
+
+void AgendaLogicTest::workMinutesDefaultAndBounds()
+{
+    QCOMPARE(workMinutes(0), kDefaultWorkMinutes);
+    QCOMPARE(workMinutes(-30), kDefaultWorkMinutes);
+    QCOMPARE(workMinutes(450), 450);
+    // Half-hour steps, one to sixteen hours.
+    QCOMPARE(workMinutes(460), 450);
+    QCOMPARE(workMinutes(10), kWorkStep);
+    QCOMPARE(workMinutes(24 * 60), kMaxWorkMinutes);
+}
+
+void AgendaLogicTest::boardOrderTimedThenPriority()
+{
+    TaskEntry late = task(QStringLiteral("Spät"), {});
+    late.startDate = QDateTime(kToday, QTime(15, 0));
+    late.dueDate = QDateTime(kToday, QTime(16, 0));
+    TaskEntry early = late;
+    early.summary = QStringLiteral("Früh");
+    early.startDate = QDateTime(kToday, QTime(9, 0));
+    early.dueDate = QDateTime(kToday, QTime(9, 30));
+    const QList<TaskEntry> tasks{
+        task(QStringLiteral("Ohne Priorität"), kToday),
+        late,
+        task(QStringLiteral("Niedrig"), kToday, 9),
+        task(QStringLiteral("B hoch"), kToday, 1),
+        early,
+        task(QStringLiteral("A hoch"), kToday, 2),
+        task(QStringLiteral("Mittel"), kToday, 5),
+    };
+    QStringList order;
+    for (const TaskEntry &t : boardOrder(tasks)) {
+        order << t.summary;
+    }
+    QCOMPARE(order, (QStringList{QStringLiteral("Früh"), QStringLiteral("Spät"), QStringLiteral("A hoch"),
+                                 QStringLiteral("B hoch"), QStringLiteral("Mittel"), QStringLiteral("Niedrig"),
+                                 QStringLiteral("Ohne Priorität")}));
+}
+
+void AgendaLogicTest::monthGridSixWeeksFromMonday()
+{
+    // October 2026 starts on a Thursday: the grid starts on Monday 28 September.
+    const QList<QDate> all = monthGrid(kToday, Weekend::Show);
+    QCOMPARE(all.size(), 42);
+    QCOMPARE(all.first(), QDate(2026, 9, 28));
+    QCOMPARE(all.last(), QDate(2026, 11, 8));
+    const QList<QDate> workdays = monthGrid(kToday, Weekend::Hide);
+    QCOMPARE(workdays.size(), 30);
+    QCOMPARE(workdays.at(5), QDate(2026, 10, 5));
+    for (const QDate &d : workdays) {
+        QVERIFY(d.dayOfWeek() <= 5);
+    }
+    // A month starting on a Monday starts the grid on its 1st.
+    QCOMPARE(monthGrid(QDate(2026, 6, 20), Weekend::Show).first(), QDate(2026, 6, 1));
+}
+
+void AgendaLogicTest::loadTintGrowsAndCaps()
+{
+    QCOMPARE(loadTint(0), 0.0);
+    QCOMPARE(loadTint(1), 0.11);
+    QCOMPARE(loadTint(3), 0.21);
+    QCOMPARE(loadTint(10), 0.30);
 }
 
 QTEST_GUILESS_MAIN(AgendaLogicTest)

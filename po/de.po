@@ -20,6 +20,12 @@ msgstr ""
 msgid "%1 %2 on %3"
 msgstr "%1 %2 am %3"
 
+msgid "%1 (key %2)"
+msgstr "%1 (Taste %2)"
+
+msgid "%1 / %2"
+msgstr "%1 / %2"
+
 msgid "%1 completed"
 msgstr "%1 erledigt"
 
@@ -143,6 +149,9 @@ msgstr "Alle"
 msgid "All day"
 msgstr "Ganztägig"
 
+msgid "All to today"
+msgstr "Alle auf heute"
+
 msgid "All views"
 msgstr "Alle Ansichten"
 
@@ -193,6 +202,9 @@ msgstr "Gilt, wenn das Badge Heute anzeigt und überfällige Aufgaben vorhanden 
 
 msgid "Appointment"
 msgstr "Termin"
+
+msgid "Appointments plus estimated task time, against a %1 workday (Settings → Views)"
+msgstr "Termine plus geschätzte Aufgabenzeit, gemessen an einem Arbeitstag von %1 (Einstellungen → Ansichten)"
 
 msgid "Ask before deleting a task"
 msgstr "Vor dem Löschen einer Aufgabe nachfragen"
@@ -455,12 +467,6 @@ msgstr "Tagesabschnitt:"
 msgid "Day sections"
 msgstr "Tagesabschnitte"
 
-msgid "Days side by side"
-msgstr "Tage nebeneinander"
-
-msgid "Days stacked"
-msgstr "Tage untereinander"
-
 msgid "Debug info"
 msgstr "Debug-Info"
 
@@ -599,12 +605,6 @@ msgstr "Besorgungen"
 msgid "Evening"
 msgstr "Abend"
 
-msgid "Events"
-msgstr "Termine"
-
-msgid "Events this week"
-msgstr "Termine diese Woche"
-
 msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
 msgstr "Alles andere — Flächen, Text, Auswahl, Buttons — kommt aus deinem Plasma-Farbschema."
 
@@ -659,6 +659,9 @@ msgstr "Passt in %1–%2"
 msgid "Flag"
 msgstr "Flagge"
 
+msgid "Fold"
+msgstr "Einklappen"
+
 msgid "Folder"
 msgstr "Ordner"
 
@@ -676,6 +679,9 @@ msgstr "Allgemein"
 
 msgid "Give tasks a due or start date to see them planned by project and period."
 msgstr "Gib Aufgaben ein Fälligkeits- oder Startdatum, um sie nach Projekt und Zeitraum geplant zu sehen."
+
+msgid "Go to today (H)"
+msgstr "Zu heute (H)"
 
 msgid "Group tasks"
 msgstr "Aufgaben gruppieren"
@@ -701,11 +707,17 @@ msgstr "Heatmap"
 msgid "Hidden"
 msgstr "Ausgeblendet"
 
+msgid "Hide done"
+msgstr "Erledigte ausblenden"
+
 msgid "Hide sidebar"
 msgstr "Seitenleiste ausblenden"
 
 msgid "Hide the Canceled column"
 msgstr "Spalte „Abgebrochen“ ausblenden"
+
+msgid "Hide weekend"
+msgstr "Wochenende ausblenden"
 
 msgid "High"
 msgstr "Hoch"
@@ -718,6 +730,9 @@ msgstr "Hohe Priorität (%1)"
 
 msgid "Home"
 msgstr "Zuhause"
+
+msgid "Hours a day holds in the week view: appointments plus estimated task time beyond it mark the day as full."
+msgstr "So viele Stunden fasst ein Tag in der Wochenansicht: Termine plus geschätzte Aufgabenzeit darüber hinaus markieren den Tag als voll."
 
 msgid "How tasks are ordered in this view. Leave at Default to use Priority → Due → Title."
 msgstr "Reihenfolge der Aufgaben in dieser Ansicht. „Standard“ sortiert nach Priorität → Fälligkeit → Titel."
@@ -754,9 +769,6 @@ msgstr "Alle einbeziehen"
 
 msgid "Include this calendar when checking for ongoing events"
 msgstr "Diesen Kalender bei laufenden Terminen einbeziehen"
-
-msgid "Include weekend"
-msgstr "Wochenende einbeziehen"
 
 msgid "Info journal"
 msgstr "Info-Journal"
@@ -923,6 +935,9 @@ msgstr "Bewegung"
 msgid "Move all to today"
 msgstr "Alle auf heute"
 
+msgid "Move to %1"
+msgstr "Auf %1 verschieben"
+
 msgid "Move to project"
 msgstr "In Projekt verschieben"
 
@@ -953,20 +968,26 @@ msgstr "Neuer Ort"
 msgid "New task"
 msgstr "Neue Aufgabe"
 
+msgid "New task, Enter saves"
+msgstr "Neue Aufgabe, Enter speichert"
+
 msgid "New tasks"
 msgstr "Neue Aufgaben"
 
 msgid "Next"
 msgstr "Weiter"
 
-msgid "Next event"
-msgstr "Nächster Termin"
+msgid "Next day (→)"
+msgstr "Nächster Tag (→)"
 
-msgid "Next event · %1"
-msgstr "Nächster Termin · %1"
+msgid "Next month (→)"
+msgstr "Nächster Monat (→)"
 
 msgid "Next week"
 msgstr "Nächste Woche"
+
+msgid "Next week (→)"
+msgstr "Nächste Woche (→)"
 
 msgid "No Smart Views yet. Create one or copy a built-in view."
 msgstr "Noch keine Smart Views. Lege eine an oder kopiere eine eingebaute Ansicht."
@@ -982,9 +1003,6 @@ msgstr "Kein Fälligkeitsdatum"
 
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "Keine Terminkalender gefunden. Stelle sicher, dass Akonadi läuft und CalDAV-Kalender eingerichtet sind."
-
-msgid "No events or tasks."
-msgstr "Keine Termine oder Aufgaben."
 
 msgid "No high priority tasks"
 msgstr "Keine Aufgaben mit hoher Priorität"
@@ -1055,6 +1073,9 @@ msgstr "Heute nichts fällig"
 msgid "Nothing on this day."
 msgstr "An diesem Tag nichts."
 
+msgid "Nothing planned."
+msgstr "Nichts geplant."
+
 msgid "Notifications"
 msgstr "Benachrichtigungen"
 
@@ -1108,6 +1129,12 @@ msgstr "Öffnen / Beitreten"
 
 msgid "Open GitHub"
 msgstr "GitHub öffnen"
+
+msgid "Open day"
+msgstr "Tag öffnen"
+
+msgid "Open day →"
+msgstr "Tag öffnen →"
 
 msgid "Open first"
 msgstr "Offene zuerst"
@@ -1193,6 +1220,15 @@ msgstr "Vorschau"
 msgid "Previous"
 msgstr "Zurück"
 
+msgid "Previous day (←)"
+msgstr "Voriger Tag (←)"
+
+msgid "Previous month (←)"
+msgstr "Voriger Monat (←)"
+
+msgid "Previous week (←)"
+msgstr "Vorige Woche (←)"
+
 msgid "Priorities"
 msgstr "Prioritäten"
 
@@ -1207,9 +1243,6 @@ msgstr "Priorität"
 
 msgid "Priority %1"
 msgstr "Priorität %1"
-
-msgid "Priority %1 (%2)"
-msgstr "Priorität %1 (%2)"
 
 msgid "Priority colours (red · yellow · blue)"
 msgstr "Prioritätsfarben (Rot · Gelb · Blau)"
@@ -1288,6 +1321,9 @@ msgstr "Wiederkehrende zuletzt"
 
 msgid "Recurring tasks only"
 msgstr "Nur wiederkehrende Aufgaben"
+
+msgid "Red: overdue"
+msgstr "Rot: überfällig"
 
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "Reduzierte Bewegung (kein Spinner, dezenteres Hover)"
@@ -1511,6 +1547,9 @@ msgstr "Uhrzeit auf dem Fälligkeits-Chip anzeigen"
 msgid "Show undated tasks"
 msgstr "Undatierte Aufgaben anzeigen"
 
+msgid "Show weekend"
+msgstr "Wochenende zeigen"
+
 msgid "Sidebar"
 msgstr "Seitenleiste"
 
@@ -1607,17 +1646,14 @@ msgstr "Ziel"
 msgid "Task"
 msgstr "Aufgabe"
 
+msgid "Task for this day, Enter saves"
+msgstr "Aufgabe für diesen Tag, Enter speichert"
+
 msgid "Tasks"
 msgstr "Aufgaben"
 
 msgid "Tasks appear here by row and period once they match the current view."
 msgstr "Aufgaben erscheinen hier nach Zeile und Zeitraum, sobald sie zur aktuellen Ansicht passen."
-
-msgid "Tasks due"
-msgstr "Fällige Aufgaben"
-
-msgid "Tasks this week"
-msgstr "Aufgaben diese Woche"
 
 msgid "Th"
 msgstr "Do"
@@ -1667,6 +1703,9 @@ msgstr "Uhrzeit"
 msgid "Time grouping"
 msgstr "Zeiteinteilung"
 
+msgid "Tint: how full the day is"
+msgstr "Farbton: wie voll der Tag ist"
+
 msgid "Title"
 msgstr "Titel"
 
@@ -1702,6 +1741,9 @@ msgstr "Erneut versuchen"
 
 msgid "Tu"
 msgstr "Di"
+
+msgid "Unfold"
+msgstr "Aufklappen"
 
 msgid "Unlabeled"
 msgstr "Ohne Label"
@@ -1754,6 +1796,9 @@ msgstr "Woche"
 msgid "Week %1"
 msgstr "KW %1"
 
+msgid "Week %1 · %2 – %3"
+msgstr "KW %1 · %2 – %3"
+
 msgid "Weekly"
 msgstr "Wöchentlich"
 
@@ -1778,6 +1823,9 @@ msgstr "Mit Kacheln bietet die Überfällig-Kachel „Alle auf heute“; das sch
 msgid "Work"
 msgstr "Arbeit"
 
+msgid "Workday"
+msgstr "Arbeitstag"
+
 msgid "Writes and sync state"
 msgstr "Schreibvorgänge und Sync-Status"
 
@@ -1793,8 +1841,14 @@ msgstr "Gestern"
 msgid "You can also drag the edge of the sidebar."
 msgstr "Du kannst auch den Rand der Seitenleiste ziehen."
 
+msgid "drag onto a day"
+msgstr "auf einen Tag ziehen"
+
 msgid "due %1"
 msgstr "fällig %1"
+
+msgid "free"
+msgstr "frei"
 
 msgid "free %1–%2 · %3"
 msgstr "frei %1–%2 · %3"
@@ -1924,3 +1978,18 @@ msgid "%1 appointment"
 msgid_plural "%1 appointments"
 msgstr[0] "%1 Termin"
 msgstr[1] "%1 Termine"
+
+msgid "✓ %1 done"
+msgid_plural "✓ %1 done"
+msgstr[0] "✓ %1 erledigt"
+msgstr[1] "✓ %1 erledigt"
+
+msgid "↑ %1 in Overdue"
+msgid_plural "↑ %1 in Overdue"
+msgstr[0] "↑ %1 in Überfällig"
+msgstr[1] "↑ %1 in Überfällig"
+
+msgid "+%1 more"
+msgid_plural "+%1 more"
+msgstr[0] "+%1 weitere"
+msgstr[1] "+%1 weitere"

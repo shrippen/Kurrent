@@ -219,33 +219,10 @@ Item {
                 }
             }
 
-            DragHandler {
-                target: null
-                enabled: block.isTask && !block.modelData.completed && !!grid.dragHost && !grid.interactionsSuspended
-                dragThreshold: Math.round(Kirigami.Units.gridUnit * 0.6)
-                onActiveChanged: {
-                    if (active) {
-                        grid.dragHost.beginTaskDrag({
-                            "itemId": block.modelData.itemId,
-                            "uid": block.modelData.uid,
-                            "summary": block.modelData.summary || "",
-                            "parentUid": block.modelData.parentUid || "",
-                            "categories": block.modelData.categories || [],
-                            "collectionId": block.modelData.collectionId,
-                            "priority": block.modelData.priority
-                        })
-                        var g = block.mapToGlobal(centroid.position.x, centroid.position.y)
-                        grid.dragHost.updateTaskDragPosition(g.x, g.y)
-                    } else {
-                        grid.dragHost.endTaskDrag()
-                    }
-                }
-                onCentroidChanged: {
-                    if (active) {
-                        var g = block.mapToGlobal(centroid.position.x, centroid.position.y)
-                        grid.dragHost.updateTaskDragPosition(g.x, g.y)
-                    }
-                }
+            AgendaTaskDrag {
+                task: block.modelData
+                dragHost: grid.dragHost
+                suspended: !block.isTask || grid.interactionsSuspended
             }
 
             // Grips at the top and bottom edge of the selected block.

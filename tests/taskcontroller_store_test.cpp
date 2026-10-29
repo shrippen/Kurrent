@@ -41,6 +41,7 @@ private Q_SLOTS:
     void inspectorSnapshotAndChildren();
     void heatmapTasksForDay();
     void agendaPlacesTasksInFreeTime();
+    void agendaBoardsShiftAndCount();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -547,6 +548,56 @@ void TaskControllerStoreTest::agendaPlacesTasksInFreeTime()
     QVERIFY(found);
 }
 
+void TaskControllerStoreTest::agendaBoardsShiftAndCount()
+{
+    m_controller->installTestTask(1, QStringLiteral("block"), 10);
+    m_controller->installTestTask(2, QStringLiteral("loose"), 10);
+    m_controller->installTestTask(3, QStringLiteral("late"), 10);
+    const QDate day = QDate::currentDate().addDays(2);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->agendaSetBlock(1, day, 9 * 60, 10 * 60);
+    m_controller->agendaMoveToDay(2, day);
+    m_controller->agendaMoveToDay(3, QDate::currentDate().addDays(-3));
+    waitStore(spy, 3);
+
+    // Board fields: open tasks with the block first, load 60 + 30 minutes.
+    QVariantMap board = m_controller->agendaDays(day, 1).first().toMap();
+    QVariantList open = board.value(QStringLiteral("open")).toList();
+    QCOMPARE(open.size(), 2);
+    QCOMPARE(open.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("block"));
+    QCOMPARE(open.first().toMap().value(QStringLiteral("start")).toInt(), 9 * 60);
+    QCOMPARE(board.value(QStringLiteral("load")).toInt(), 90);
+
+    // Moving a day on keeps the time; a task without a date becomes all-day there.
+    m_controller->agendaShiftToDay(1, day.addDays(1));
+    waitStore(spy, 4);
+    const QVariantMap moved = m_controller->agendaDays(day.addDays(1), 1).first().toMap();
+    QCOMPARE(moved.value(QStringLiteral("items")).toList().size(), 1);
+    QCOMPARE(moved.value(QStringLiteral("items")).toList().first().toMap().value(QStringLiteral("start")).toInt(), 9 * 60);
+    m_controller->installTestTask(4, QStringLiteral("undated"), 10);
+    m_controller->agendaShiftToDay(4, day);
+    waitStore(spy, 5);
+    board = m_controller->agendaDays(day, 1).first().toMap();
+    QCOMPARE(board.value(QStringLiteral("loose")).toList().size(), 2);
+
+    // Overdue tray holds the late task only.
+    const QVariantList overdue = m_controller->agendaOverdue();
+    QCOMPARE(overdue.size(), 1);
+    QCOMPARE(overdue.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("late"));
+
+    // Month: six weeks, or six times five workdays; counts include open tasks.
+    QCOMPARE(m_controller->agendaMonth(day, true).size(), 42);
+    const QVariantList workdays = m_controller->agendaMonth(day, false);
+    QCOMPARE(workdays.size(), 30);
+    for (const QVariant &value : m_controller->agendaMonth(day, true)) {
+        const QVariantMap cell = value.toMap();
+        if (cell.value(QStringLiteral("date")).toDate() == day) {
+            QCOMPARE(cell.value(QStringLiteral("count")).toInt(), 2);
+            QVERIFY(cell.value(QStringLiteral("tint")).toDouble() > 0);
+        }
+    }
+}
+
 void TaskControllerStoreTest::demoModeLoadsWorldTasks()
 {
     qputenv("KURRENT_DEMO", "en");
@@ -666,6 +717,20 @@ void TaskControllerStoreTest::sessionBridgesConfiguration()
     m_controller->storeSetting(QStringLiteral("planShowUndated"), false);
     QCOMPARE(m_controller->planShowUndated(), false);
     QCOMPARE(config.value(QStringLiteral("planShowUndated")).toBool(), false);
+    m_controller->selectAgendaMode(QStringLiteral("month"));
+    m_controller->selectAgendaWeekend(false);
+    QCOMPARE(stored(QStringLiteral("agendaMode")).toString(), QStringLiteral("month"));
+    QCOMPARE(stored(QStringLiteral("agendaWeekend")).toBool(), false);
+    QCOMPARE(m_controller->agendaMode(), QStringLiteral("month"));
+    QVERIFY(!m_controller->agendaWeekend());
+    m_controller->selectAgendaMode(QStringLiteral("nonsense"));
+    QCOMPARE(m_controller->agendaMode(), QStringLiteral("day"));
+    // Workday length from the settings page; unset or nonsense means 8 hours.
+    QCOMPARE(m_controller->agendaWorkMinutes(), 480);
+    SharedSettings::instance()->store(QStringLiteral("agendaWorkMinutes"), 450);
+    QCOMPARE(m_controller->agendaWorkMinutes(), 450);
+    SharedSettings::instance()->store(QStringLiteral("agendaWorkMinutes"), 0);
+    QCOMPARE(m_controller->agendaWorkMinutes(), 480);
 
     // Kanban columns: the matching sidebar filter is cleared.
     m_controller->setSelectedLabel(QStringLiteral("work"));

@@ -16,10 +16,10 @@ Item {
     property bool multiSelectEnabled: false
 
     property alias taskList: taskListView
+    readonly property Item calendarView: calendarLoader.item
     // Heatmap figures move into the tiles above the pane while those are shown.
     property bool heatmapFactsInTiles: false
     readonly property var heatmapTileFacts: heatmapLoader.item ? heatmapLoader.item.tileFacts : null
-    readonly property var calendarTileFacts: calendarLoader.item ? calendarLoader.item.tileFacts : null
 
     // Master switch for the editor-style dim + gear over main pane (not sidebar).
     // Disabled — kept as code path: flip to true to re-enable dimming during

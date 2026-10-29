@@ -84,4 +84,46 @@ QList<Suggestion> rankSuggestions(const QList<TaskEntry> &tasks, const QDate &ta
 QString tierKey(Tier tier);
 QString reasonKey(ReasonKind kind);
 
+// The Agenda's three views; `agendaMode` setting.
+namespace Mode
+{
+inline const QString Day = QStringLiteral("day");
+inline const QString Week = QStringLiteral("week");
+inline const QString Month = QStringLiteral("month");
+}
+
+/** A known mode, else Mode::Day. */
+QString normalizeMode(const QString &mode);
+
+/** The date `n` days, weeks or months on; a month step keeps the day where the month has it
+ *  (31 January + 1 month = 28 February). */
+QDate stepDate(const QDate &date, const QString &mode, int n);
+
+/** Minutes a workday holds before the week board marks it as full (setting
+ *  agendaWorkMinutes): half-hour steps from 30 minutes to 16 hours, 8 hours by default. */
+constexpr int kDefaultWorkMinutes = 8 * 60;
+constexpr int kWorkStep = 30;
+constexpr int kMaxWorkMinutes = 16 * 60;
+
+/** The stored workday length made valid: 0 or less is the default, otherwise rounded down
+ *  to a half hour and kept within the bounds. */
+int workMinutes(int stored);
+
+/** Planned minutes of a day: appointments plus open tasks (their block, else defaultMinutes). */
+int dayLoad(const QList<Span> &events, const QList<TaskEntry> &openTasks);
+
+/** Open tasks of a day in board order: timed ones by start, then the others by priority
+ *  (high, medium, low, none), then title. */
+QList<TaskEntry> boardOrder(QList<TaskEntry> tasks);
+
+enum class Weekend { Show, Hide };
+
+/** Days of the month grid around `anyDay`: six weeks from the Monday on or before the 1st,
+ *  without Saturdays and Sundays when they are hidden. */
+QList<QDate> monthGrid(const QDate &anyDay, Weekend weekend);
+
+/** Tint of a month cell for `count` appointments and open tasks: none for 0, then 6 % and
+ *  5 % more per item, at most 30 %. */
+double loadTint(int count);
+
 } // namespace AgendaLogic

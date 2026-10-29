@@ -140,33 +140,9 @@ Rectangle {
         }
     }
 
-    DragHandler {
-        id: drag
-        target: null
-        enabled: !!row.dragHost && !row.task.completed && !row.interactionsSuspended
-        dragThreshold: Math.round(Kirigami.Units.gridUnit * 0.6)
-        onActiveChanged: {
-            if (active) {
-                row.dragHost.beginTaskDrag({
-                    "itemId": row.task.itemId,
-                    "uid": row.task.uid,
-                    "summary": row.task.summary || "",
-                    "parentUid": row.task.parentUid || "",
-                    "categories": row.task.categories || [],
-                    "collectionId": row.task.collectionId,
-                    "priority": row.task.priority
-                })
-                var g = row.mapToGlobal(centroid.position.x, centroid.position.y)
-                row.dragHost.updateTaskDragPosition(g.x, g.y)
-            } else {
-                row.dragHost.endTaskDrag()
-            }
-        }
-        onCentroidChanged: {
-            if (active) {
-                var g = row.mapToGlobal(centroid.position.x, centroid.position.y)
-                row.dragHost.updateTaskDragPosition(g.x, g.y)
-            }
-        }
+    AgendaTaskDrag {
+        task: row.task
+        dragHost: row.dragHost
+        suspended: row.interactionsSuspended
     }
 }

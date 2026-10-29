@@ -177,6 +177,12 @@ KCM.SimpleKCM {
     property bool cfg_planShowUndatedDefault
     property bool cfg_planShowCompleted
     property bool cfg_planShowCompletedDefault
+    property string cfg_agendaMode
+    property string cfg_agendaModeDefault
+    property bool cfg_agendaWeekend
+    property bool cfg_agendaWeekendDefault
+    property int cfg_agendaWorkMinutes
+    property int cfg_agendaWorkMinutesDefault
     property bool cfg_multiSelectEnabled
     property bool cfg_multiSelectEnabledDefault
     property bool cfg_verboseJournalLogging
