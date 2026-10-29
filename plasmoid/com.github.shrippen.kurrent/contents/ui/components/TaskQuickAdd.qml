@@ -117,13 +117,6 @@ Item {
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - implicitHeight) / 2)
 
-    background: Rectangle {
-        radius: 4
-        color: Kirigami.Theme.backgroundColor
-        border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.25)
-        border.width: 1
-    }
-
     contentItem: ColumnLayout {
         spacing: Design.spaceSmall
 

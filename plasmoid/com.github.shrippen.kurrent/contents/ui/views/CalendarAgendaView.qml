@@ -1,11 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import "../components"
 import ".."
 import "../datetime.js" as DateTime
+import "../focus.js" as Focus
 import "../Kante"
 
 // The Agenda: day (hour grids and suggestions), week board and month, switched in the date
@@ -167,35 +169,38 @@ ColumnLayout {
         return Qt.locale().toString(d, "ddd d. MMM") + " · " + i18n("Week %1", week)
     }
 
-    // Keys while the Agenda is shown (text fields keep their letters and arrows).
+    // Keys while the Agenda is shown (text fields keep their letters and arrows). On the desktop
+    // Kurrent shares its window with the folder view and other widgets, so the keys only count
+    // while the focus is inside Kurrent; a press in the Agenda takes it there (see focusTaker).
+    readonly property bool ownsKeys: Focus.inside(Window.activeFocusItem, root.dragHost || root)
     Shortcut {
         sequence: "T"
-        enabled: root.visible && !root.interactionsSuspended
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
         onActivated: root.go("day")
     }
     Shortcut {
         sequence: "W"
-        enabled: root.visible && !root.interactionsSuspended
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
         onActivated: root.go("week")
     }
     Shortcut {
         sequence: "M"
-        enabled: root.visible && !root.interactionsSuspended
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
         onActivated: root.go("month")
     }
     Shortcut {
         sequence: "H"
-        enabled: root.visible && !root.interactionsSuspended
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
         onActivated: root.step(0)
     }
     Shortcut {
         sequence: "Left"
-        enabled: root.visible && !root.interactionsSuspended
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
         onActivated: root.step(-1)
     }
     Shortcut {
         sequence: "Right"
-        enabled: root.visible && !root.interactionsSuspended
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
         onActivated: root.step(1)
     }
 
@@ -205,12 +210,12 @@ ColumnLayout {
         spacing: Design.spaceTiny
 
         Item {
-            Layout.preferredWidth: modeRow.implicitWidth + 4
-            Layout.preferredHeight: modeRow.implicitHeight + 4
+            Layout.preferredWidth: modeRow.implicitWidth + Design.spaceTiny * 2
+            Layout.preferredHeight: modeRow.implicitHeight + Design.spaceTiny * 2
             Rectangle {
                 anchors.fill: parent
                 radius: Design.inputRadius
-                color: Design.withAlpha(Kirigami.Theme.textColor, 0.08)
+                color: Design.withAlpha(Kirigami.Theme.textColor, Design.viewModeToolbarFillOpacity)
             }
             Row {
                 id: modeRow
@@ -399,6 +404,20 @@ ColumnLayout {
             id: modeLoader
             anchors.fill: parent
             sourceComponent: root.mode === "week" ? weekView : root.mode === "month" ? monthView : dayView
+        }
+        // Over the views, passive: the press still reaches what is under it.
+        Item {
+            id: focusTaker
+            anchors.fill: parent
+            z: 1000
+            TapHandler {
+                gesturePolicy: TapHandler.DragThreshold
+                onPressedChanged: {
+                    if (pressed && !root.ownsKeys) {
+                        root.forceActiveFocus()
+                    }
+                }
+            }
         }
     }
 

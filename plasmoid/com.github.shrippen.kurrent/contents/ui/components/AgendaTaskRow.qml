@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import ".."
 import "../Kante"
+import "../taps.js" as Taps
 
 // One task in the Agenda's day view (loose tasks, suggestions): project as colour edge, a
 // check box, the title and one meta line. Drag it onto a day's hour grid to give it a time.
@@ -46,13 +47,14 @@ Rectangle {
         return KanteStyle.mutedTextColor
     }
 
-    function open() {
+    function open(tapCount) {
         if (!dragHost) {
             return
         }
-        if (dragHost.inspectorActive) {
+        var action = Taps.tapAction(tapCount, !!dragHost.inspectorActive)
+        if (action === "inspect") {
             dragHost.inspectTask(task.itemId)
-        } else if (dragHost.openFullEditor) {
+        } else if (action === "edit" && dragHost.openFullEditor) {
             dragHost.openFullEditor(controller.taskSnapshotById(task.itemId))
         }
     }
@@ -132,12 +134,7 @@ Rectangle {
 
     TapHandler {
         enabled: !row.interactionsSuspended
-        onTapped: row.open()
-        onDoubleTapped: {
-            if (row.dragHost && row.dragHost.openFullEditor) {
-                row.dragHost.openFullEditor(row.controller.taskSnapshotById(row.task.itemId))
-            }
-        }
+        onTapped: row.open(tapCount)
     }
 
     AgendaTaskDrag {

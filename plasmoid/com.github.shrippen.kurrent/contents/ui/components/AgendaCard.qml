@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import ".."
 import "../Kante"
+import "../taps.js" as Taps
 import "../datetime.js" as DateTime
 
 // A task as a dense card for narrow week columns: project as colour edge, the title up to
@@ -39,9 +40,9 @@ Rectangle {
     }
 
     Rectangle {
-        width: 3
+        width: Design.agendaEdge
         height: parent.height
-        radius: 1
+        radius: Design.agendaEdgeRadius
         color: card.projectColor
     }
 
@@ -51,7 +52,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: Design.spaceSmall
-        anchors.leftMargin: Design.spaceSmall + 3
+        anchors.leftMargin: Design.spaceSmall + Design.agendaEdge
         spacing: Design.spaceTiny
 
         QQC2.CheckBox {
@@ -136,14 +137,10 @@ Rectangle {
             if (!card.dragHost) {
                 return
             }
-            if (card.dragHost.inspectorActive) {
+            var action = Taps.tapAction(tapCount, !!card.dragHost.inspectorActive)
+            if (action === "inspect") {
                 card.dragHost.inspectTask(card.task.itemId)
-            } else if (card.dragHost.openFullEditor) {
-                card.dragHost.openFullEditor(card.controller.taskSnapshotById(card.task.itemId))
-            }
-        }
-        onDoubleTapped: {
-            if (card.dragHost && card.dragHost.openFullEditor) {
+            } else if (action === "edit" && card.dragHost.openFullEditor) {
                 card.dragHost.openFullEditor(card.controller.taskSnapshotById(card.task.itemId))
             }
         }

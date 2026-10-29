@@ -211,8 +211,9 @@ RowLayout {
                                 spacing: Design.spaceTiny
                                 Rectangle {
                                     visible: !entry.modelData.event
-                                    implicitWidth: 6
-                                    implicitHeight: 6
+                                    implicitWidth: Design.agendaDot
+                                    implicitHeight: Design.agendaDot
+                                    radius: Design.agendaDotRadius
                                     color: Design.colorForKey(String(entry.modelData.data.collectionId))
                                 }
                                 AgendaEventRow {
@@ -259,7 +260,7 @@ RowLayout {
                     model: [1, 3, 5]
                     delegate: Rectangle {
                         required property int modelData
-                        width: Kirigami.Units.gridUnit * 0.7
+                        width: Design.agendaSwatch
                         height: width
                         color: KanteStyle.tint(KanteStyle.accentColor, view.controller ? view.controller.agendaTint(modelData) : 0)
                     }

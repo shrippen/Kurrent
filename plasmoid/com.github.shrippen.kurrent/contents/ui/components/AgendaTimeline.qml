@@ -371,8 +371,8 @@ Item {
         // Opaque (the window colour with a touch of accent), so neither the grid nor a block
         // it reaches into shows through.
         readonly property color base: Kirigami.Theme.backgroundColor
-        color: Qt.tint(Qt.rgba(base.r, base.g, base.b, 1), KanteStyle.tint(KanteStyle.accentColor, 0.15))
-        border.width: cramped ? 0 : 1
+        color: Qt.tint(Qt.rgba(base.r, base.g, base.b, 1), KanteStyle.tint(KanteStyle.accentColor, Design.agendaGhostFill))
+        border.width: cramped ? 0 : Design.agendaHairline
         border.color: KanteStyle.accentColor
 
         Shape {
@@ -386,7 +386,7 @@ Item {
             ShapePath {
                 fillColor: "transparent"
                 strokeColor: KanteStyle.accentColor
-                strokeWidth: 1
+                strokeWidth: Design.agendaHairline
                 startX: 0.5
                 startY: outline.height / 2
                 PathLine { x: 0.5; y: outline.r }
@@ -398,9 +398,9 @@ Item {
             ShapePath {
                 fillColor: "transparent"
                 strokeColor: KanteStyle.accentColor
-                strokeWidth: 1
+                strokeWidth: Design.agendaHairline
                 strokeStyle: ShapePath.DashLine
-                dashPattern: [6, 4]
+                dashPattern: Design.agendaDash
                 startX: outline.w
                 startY: outline.height / 2
                 PathLine { x: outline.w; y: outline.h - outline.r }

@@ -41,10 +41,10 @@ Item {
     }
 
     Rectangle {
-        width: 3
+        width: Design.agendaEdge
         height: row.compact ? Math.round(line.implicitHeight * 0.75) : parent.height
         anchors.verticalCenter: parent.verticalCenter
-        radius: 1
+        radius: Design.agendaEdgeRadius
         color: row.calendarColor
     }
 
@@ -54,7 +54,7 @@ Item {
         anchors.fill: parent
         anchors.topMargin: Design.spaceTiny
         anchors.bottomMargin: Design.spaceTiny
-        anchors.leftMargin: 3 + Design.spaceSmall
+        anchors.leftMargin: Design.agendaEdge + Design.spaceSmall
         spacing: Design.spaceSmall
 
         ColumnLayout {
@@ -103,7 +103,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: 3 + Design.spaceTiny
+        anchors.leftMargin: Design.agendaEdge + Design.spaceTiny
         spacing: Design.spaceTiny
         QQC2.Label {
             visible: !row.event.allDay

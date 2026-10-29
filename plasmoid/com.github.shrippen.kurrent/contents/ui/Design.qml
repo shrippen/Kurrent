@@ -254,6 +254,15 @@ QtObject {
     readonly property real agendaFreeFill: 0.12
     readonly property real agendaFreeEdge: 0.4
     readonly property real agendaBlockFill: 0.22
+    // Week load bar, the overdue tray, the task ghost (fill over the window colour, dashed edge
+    // where it runs into the next entry) and the month's tint legend.
+    readonly property int agendaBar: Math.max(3, Math.round(Kirigami.Units.gridUnit / 5))
+    readonly property int agendaBarRadius: KanteStyle.themed ? 0 : agendaBar / 2
+    readonly property real agendaTrayFill: 0.06
+    readonly property real agendaTrayEdge: 0.3
+    readonly property real agendaGhostFill: 0.15
+    readonly property var agendaDash: [6, 4]
+    readonly property int agendaSwatch: Math.round(Kirigami.Units.gridUnit * 0.7)
 
     // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
     readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small

@@ -80,9 +80,9 @@ ColumnLayout {
         visible: view.overdue.length > 0
         implicitHeight: trayCol.implicitHeight + Design.spaceSmall * 2
         radius: Design.inputRadius
-        color: KanteStyle.tint(KanteStyle.negativeTextColor, 0.06)
-        border.width: 1
-        border.color: KanteStyle.tint(KanteStyle.negativeTextColor, 0.3)
+        color: KanteStyle.tint(KanteStyle.negativeTextColor, Design.agendaTrayFill)
+        border.width: Design.agendaHairline
+        border.color: KanteStyle.tint(KanteStyle.negativeTextColor, Design.agendaTrayEdge)
 
         ColumnLayout {
             id: trayCol
@@ -289,13 +289,13 @@ ColumnLayout {
                             spacing: Design.spaceTiny
                             Rectangle {
                                 Layout.fillWidth: true
-                                implicitHeight: 4
-                                radius: 2
+                                implicitHeight: Design.agendaBar
+                                radius: Design.agendaBarRadius
                                 color: KanteStyle.tint2Color
                                 Rectangle {
                                     width: parent.width * Math.min(1, column.modelData.load / view.workMinutes)
                                     height: parent.height
-                                    radius: 2
+                                    radius: Design.agendaBarRadius
                                     color: column.full ? KanteStyle.warningColor : KanteStyle.accentColor
                                 }
                             }
