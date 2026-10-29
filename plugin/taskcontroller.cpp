@@ -2373,11 +2373,22 @@ void TaskController::agendaMoveToDay(qint64 itemId, const QDate &day)
     if (!day.isValid()) {
         return;
     }
-    updateTaskFull(itemId, {
+    QVariantMap fields{
         {QStringLiteral("allDay"), true},
-        {QStringLiteral("clearStart"), true},
         {QStringLiteral("dueDate"), QDateTime(day, QTime(0, 0))},
-    });
+    };
+    // Only a time block loses its start; an earlier start day (a long run, a recurrence) stays.
+    const auto it = s_tasks.constFind(itemId);
+    const TaskEntry task = it != s_tasks.cend() && it->todo ? makeTaskEntry(*it, 0, false) : TaskEntry{};
+    const QDate startDay = task.startDate.isValid()
+                               ? (task.allDay ? task.startDate.date() : task.startDate.toLocalTime().date())
+                               : QDate();
+    if (AgendaLogic::taskBlock(task).isValid() || !startDay.isValid() || startDay > day) {
+        fields.insert(QStringLiteral("clearStart"), true);
+    } else {
+        fields.insert(QStringLiteral("startDate"), QDateTime(startDay, QTime(0, 0)));
+    }
+    updateTaskFull(itemId, fields);
 }
 
 QVariantMap TaskController::heatmapPeriod(const QDate &monthStart, const QVariantList &years,

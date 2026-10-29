@@ -335,7 +335,8 @@ public:
     Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute);
     /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
     Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
-    /** Put a task on `day` without a time (all-day, start cleared). Undoable. */
+    /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier
+     *  start day stays. Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
