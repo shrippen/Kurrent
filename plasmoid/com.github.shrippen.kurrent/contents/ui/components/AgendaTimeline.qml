@@ -231,15 +231,17 @@ Item {
                 anchors.fill: parent
                 anchors.margins: Design.spaceTiny
                 anchors.leftMargin: Design.spaceSmall
+                // Below the ghost where it reaches into this block.
+                anchors.topMargin: Design.spaceTiny
+                                   + (ghost.cramped && block.modelData.start === ghost.nextStart ? ghost.overhang : 0)
                 text: grid.hm(block.liveStart) + "–" + grid.hm(block.liveEnd)
                       + (block.liveEnd - block.liveStart !== block.modelData.end - block.modelData.start
                          ? " · " + grid.duration(block.liveEnd - block.liveStart) : "")
                       + "  " + (block.modelData.summary || i18n("(Untitled)"))
                 wrapMode: Text.Wrap
                 elide: Text.ElideRight
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
                 font.strikeout: block.isTask && block.modelData.completed
-                color: block.isTask ? KanteStyle.textColor : KanteStyle.mutedTextColor
+                color: KanteStyle.textColor
             }
 
             QQC2.ToolTip.text: isTask ? "" : i18n("%1–%2 %3 · %4 (fixed)",
@@ -330,8 +332,10 @@ Item {
             }
             return next
         }
-        readonly property bool cramped: rowHeight > slotHeight
-                                        && grid.yOf(grid.ghostStart) + 1 + rowHeight > grid.yOf(nextStart)
+        readonly property bool cramped: overhang > 0
+        // How far the card reaches past the next entry's start.
+        readonly property real overhang: rowHeight > slotHeight
+                                         ? Math.max(0, grid.yOf(grid.ghostStart) + 1 + rowHeight - grid.yOf(nextStart)) : 0
         visible: grid.ghostStart >= 0
         x: grid.gutter + Design.spaceTiny
         width: grid.width - grid.gutter - Design.spaceTiny * 2
@@ -339,16 +343,12 @@ Item {
         height: Math.max(slotHeight, rowHeight)
         z: 5
         radius: Design.inputRadius
-        // Opaque, so a block it reaches into does not show through.
-        color: KanteStyle.cardColor
+        // Opaque (the window colour with a touch of accent), so neither the grid nor a block
+        // it reaches into shows through.
+        readonly property color base: Kirigami.Theme.backgroundColor
+        color: Qt.tint(Qt.rgba(base.r, base.g, base.b, 1), KanteStyle.tint(KanteStyle.accentColor, 0.15))
         border.width: cramped ? 0 : 1
         border.color: KanteStyle.accentColor
-
-        Rectangle {
-            anchors.fill: parent
-            radius: parent.radius
-            color: KanteStyle.tint(KanteStyle.accentColor, 0.15)
-        }
 
         Shape {
             id: outline
@@ -375,7 +375,7 @@ Item {
                 strokeColor: KanteStyle.accentColor
                 strokeWidth: 1
                 strokeStyle: ShapePath.DashLine
-                dashPattern: [3, 2]
+                dashPattern: [6, 4]
                 startX: outline.w
                 startY: outline.height / 2
                 PathLine { x: outline.w; y: outline.h - outline.r }
@@ -391,19 +391,20 @@ Item {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
+            // As the blocks' label.
             anchors.margins: Design.spaceTiny
+            anchors.leftMargin: Design.spaceSmall
             spacing: Design.spaceSmall
 
             Row {
                 QQC2.Label {
                     text: grid.ghostStart >= 0 ? grid.hm(grid.ghostStart) + "–" : ""
-                    color: KanteStyle.accentTextColor
-                    font: Kirigami.Theme.smallFont
+                    color: KanteStyle.textColor
                 }
                 QQC2.Label {
                     text: grid.ghostStart >= 0 ? grid.hm(grid.ghostEnd) : ""
-                    color: ghost.cramped ? KanteStyle.negativeTextColor : KanteStyle.accentTextColor
-                    font: Kirigami.Theme.smallFont
+                    color: ghost.cramped ? KanteStyle.negativeTextColor : KanteStyle.textColor
+                    font.bold: ghost.cramped
                 }
             }
             TaskQuickAdd {
