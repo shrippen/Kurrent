@@ -337,6 +337,11 @@ ColumnLayout {
                 + " button=" + Math.round(b.x) + "," + Math.round(b.y) + " " + Math.round(pickerBtn.width) + "x" + Math.round(pickerBtn.height)
                 + " view=" + Math.round(root.width) + "x" + Math.round(root.height)
     }
+    function openTaskGhost(minute) {
+        if (modeLoader.item && modeLoader.item.openGhostAt) {
+            modeLoader.item.openGhostAt(minute)
+        }
+    }
     function closeDatePicker() {
         datePicker.close()
     }
@@ -391,6 +396,7 @@ ColumnLayout {
         }
 
         Loader {
+            id: modeLoader
             anchors.fill: parent
             sourceComponent: root.mode === "week" ? weekView : root.mode === "month" ? monthView : dayView
         }

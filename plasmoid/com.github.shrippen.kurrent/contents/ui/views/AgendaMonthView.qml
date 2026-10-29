@@ -349,14 +349,13 @@ RowLayout {
             }
         }
 
-        QQC2.TextField {
+        TaskQuickAdd {
             id: quickAdd
             Layout.fillWidth: true
             placeholderText: i18n("Task for this day, Enter saves")
-            onAccepted: {
-                view.controller.agendaAddTask(text, view.day)
-                text = ""
-            }
+            controller: view.controller
+            popupHost: view.dragHost
+            day: view.day
         }
     }
 }

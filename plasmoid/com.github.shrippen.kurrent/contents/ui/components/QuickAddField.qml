@@ -18,6 +18,9 @@ Item {
     property string uiLanguage: Qt.locale().name
 
     signal accepted()
+    /** Escape while no suggestion is open. */
+    signal escaped()
+    readonly property alias fieldFocus: field.activeFocus
 
     implicitHeight: field.implicitHeight
     implicitWidth: field.implicitWidth
@@ -286,6 +289,11 @@ Item {
                     event.accepted = true
                     return
                 }
+            }
+            if (event.key === Qt.Key_Escape) {
+                root.escaped()
+                event.accepted = true
+                return
             }
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 var token = root.currentToken()

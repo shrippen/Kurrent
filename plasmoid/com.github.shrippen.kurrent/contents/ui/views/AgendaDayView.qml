@@ -307,6 +307,7 @@ RowLayout {
         ColumnLayout {
             id: dayCol
             readonly property var day: parent ? parent.entry.day : null
+            readonly property Item timeline: dayTimeline
             readonly property bool isTarget: !!day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(view.targetDay)
             readonly property bool isToday: !!day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(view.today())
             readonly property bool past: !!day && DateTime.isoDateKey(day.date) < DateTime.isoDateKey(view.today())
@@ -438,6 +439,7 @@ RowLayout {
             }
 
             AgendaTimeline {
+                id: dayTimeline
                 Layout.fillWidth: true
                 Layout.preferredHeight: implicitHeight
                 controller: view.controller
@@ -453,6 +455,14 @@ RowLayout {
                     }
                 }
             }
+        }
+    }
+
+    /** For the screenshot runner: the task ghost on the first day at `minute`. */
+    function openGhostAt(minute) {
+        var first = dayList.itemAtIndex(0)
+        if (first && first.item && first.item.timeline) {
+            first.item.timeline.openGhostAt(minute)
         }
     }
 

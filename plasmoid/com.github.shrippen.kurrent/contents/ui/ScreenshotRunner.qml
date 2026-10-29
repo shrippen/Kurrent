@@ -61,6 +61,8 @@ Item {
         var transition = planValue("transition", ["0"])[0] === "1"
         // The Agenda's date picker, opened from the toolbar (after the calendar modes).
         var picker = planValue("picker", ["0"])[0] === "1"
+        // The day view's task ghost (tap on empty time), at 12:00 on the first day.
+        var ghost = planValue("ghost", ["0"])[0] === "1"
         var q = []
         q.push({ act: "expand" })
         // Settings for the run, e.g. set=agendaWorkMinutes:360,agendaWeekend:false (the config
@@ -79,6 +81,11 @@ Item {
                 for (var m = 0; m < modes.length; ++m) {
                     q.push({ act: "mode", value: modes[m] })
                     q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-" + modes[m] })
+                }
+                if (ghost) {
+                    q.push({ act: "mode", value: "calendar-day" })
+                    q.push({ act: "ghost", value: 12 * 60 })
+                    q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-ghost" })
                 }
                 if (picker) {
                     q.push({ act: "mode", value: "calendar-day" })
@@ -177,6 +184,12 @@ Item {
             wait = 900
             break
         }
+        case "ghost":
+            if (fullRoot.calendarView) {
+                fullRoot.calendarView.openTaskGhost(item.value)
+            }
+            wait = 700
+            break
         case "picker":
             if (fullRoot.calendarView) {
                 fullRoot.calendarView.openDatePicker()

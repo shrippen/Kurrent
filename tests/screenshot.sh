@@ -9,7 +9,8 @@
 # Environment:
 #   KURRENT_SCREENSHOT_PLAN  "styles=plasma,kante,kanteLight;modes=list,kanban,swimlane,plan,heatmap,calendar,calendar-week,calendar-month;widths=30,60,80;editor=1;inspector=1;transition=0"
 #                            (any part may be left out; empty = everything). Also picker=1 (the
-#                            Agenda date picker's position, logged) and set=key:value,… (settings)
+#                            Agenda date picker's position, logged), ghost=1 (the day view's task ghost) and
+#                            set=key:value,… (settings)
 #   KURRENT_SCREENSHOT_TIMEOUT  seconds before giving up (default 240)
 #   KURRENT_SCREENSHOT_ONSCREEN=1  render on the real platform instead (a viewer window shows
 #                            briefly; still only the widget is grabbed). For checking colour-theme

@@ -42,6 +42,7 @@ private Q_SLOTS:
     void heatmapTasksForDay();
     void agendaPlacesTasksInFreeTime();
     void agendaBoardsShiftAndCount();
+    void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -546,6 +547,35 @@ void TaskControllerStoreTest::agendaPlacesTasksInFreeTime()
         }
     }
     QVERIFY(found);
+}
+
+void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
+{
+    const QDate day = QDate::currentDate().addDays(2);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    // Like the list's Quick Add: priority and label from the text; the slot gives the time.
+    m_controller->agendaAddTask(QStringLiteral("Call the harbour !high #calls"), 10, day, 10 * 60, 10 * 60 + 45);
+    // No time: an all-day task on the day.
+    m_controller->agendaAddTask(QStringLiteral("Whole day"), 10, day);
+    // A date in the text wins over the day.
+    m_controller->agendaAddTask(QStringLiteral("Elsewhere tomorrow"), 10, day);
+    waitStore(spy, 3);
+
+    const QVariantMap board = m_controller->agendaDays(day, 1).first().toMap();
+    const QVariantList items = board.value(QStringLiteral("items")).toList();
+    QCOMPARE(items.size(), 1);
+    const QVariantMap timed = items.first().toMap();
+    QCOMPARE(timed.value(QStringLiteral("summary")).toString(), QStringLiteral("Call the harbour"));
+    QCOMPARE(timed.value(QStringLiteral("start")).toInt(), 10 * 60);
+    QCOMPARE(timed.value(QStringLiteral("end")).toInt(), 10 * 60 + 45);
+    QCOMPARE(timed.value(QStringLiteral("priority")).toInt(), 1);
+    QCOMPARE(timed.value(QStringLiteral("categories")).toStringList(), QStringList{QStringLiteral("calls")});
+    const QVariantList loose = board.value(QStringLiteral("loose")).toList();
+    QCOMPARE(loose.size(), 1);
+    QCOMPARE(loose.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Whole day"));
+    const QVariantMap tomorrow = m_controller->agendaDays(QDate::currentDate().addDays(1), 1).first().toMap();
+    QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
 }
 
 void TaskControllerStoreTest::agendaBoardsShiftAndCount()

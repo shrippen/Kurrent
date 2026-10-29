@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
+import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import ".."
@@ -9,7 +10,8 @@ import "../datetime.js" as DateTime
 // One day as an hour grid (07–22): appointments stay fixed, task blocks can be selected,
 // resized at their edges (15-minute steps, up to the neighbours) and dragged; free gaps
 // show in green. A task dropped on the grid lands in the next free stretch
-// (TaskController::agendaPlaceTask). `day` is one entry of TaskController::agendaDays.
+// (TaskController::agendaPlaceTask). A tap on empty time opens a task ghost there with Quick
+// Add (an hour, up to the next entry). `day` is one entry of TaskController::agendaDays.
 Item {
     id: grid
 
@@ -33,6 +35,59 @@ Item {
     readonly property bool isToday: day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(new Date())
 
     implicitHeight: (gridEnd - gridStart) * px
+
+    // The task ghost: -1 while closed.
+    property int ghostStart: -1
+    property int ghostEnd: -1
+    readonly property int ghostMinutes: 60
+
+    function busyAt(minute) {
+        var items = day ? day.items : []
+        for (var i = 0; i < items.length; ++i) {
+            if (minute >= items[i].start && minute < items[i].end) {
+                return true
+            }
+        }
+        return false
+    }
+    function openGhost(y) {
+        if (ghost.visible && y >= ghost.y && y <= ghost.y + ghost.height) {
+            return
+        }
+        var start = Math.floor((gridStart + y / px) / step) * step
+        start = Math.max(gridStart, Math.min(start, gridEnd - step))
+        if (busyAt(start)) {
+            return
+        }
+        var end = Math.min(start + ghostMinutes, gridEnd)
+        var items = day ? day.items : []
+        for (var i = 0; i < items.length; ++i) {
+            if (items[i].start > start && items[i].start < end) {
+                end = items[i].start
+            }
+        }
+        ghostStart = start
+        ghostEnd = end
+        ghostAdd.text = ""
+        Qt.callLater(ghostAdd.forceActiveFocus)
+    }
+    function openGhostAt(minute) {
+        openGhost(yOf(minute))
+    }
+    function closeGhost() {
+        ghostStart = -1
+        ghostEnd = -1
+    }
+
+    // Behind the blocks: their own taps pass through too, so busy time is skipped above.
+    TapHandler {
+        enabled: !grid.interactionsSuspended && !!grid.controller && !!grid.day
+        onTapped: function(eventPoint) {
+            if (eventPoint.position.x >= grid.gutter) {
+                grid.openGhost(eventPoint.position.y)
+            }
+        }
+    }
 
     function yOf(minute) {
         return (minute - gridStart) * px
@@ -266,6 +321,52 @@ Item {
                         QQC2.ToolTip.text: parent.atTop ? i18n("Drag to change the start") : i18n("Drag to change the end")
                         QQC2.ToolTip.visible: containsMouse && !pressed
                         hoverEnabled: true
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        id: ghost
+        visible: grid.ghostStart >= 0
+        x: grid.gutter + Design.spaceTiny
+        width: grid.width - grid.gutter - Design.spaceTiny * 2
+        y: grid.yOf(Math.max(grid.ghostStart, grid.gridStart)) + 1
+        height: Math.max((grid.ghostEnd - grid.ghostStart) * grid.px - 2, ghostBody.implicitHeight + Design.spaceTiny * 2)
+        z: 5
+        radius: Design.inputRadius
+        color: KanteStyle.tint(KanteStyle.accentColor, 0.15)
+        border.width: 1
+        border.color: KanteStyle.accentColor
+
+        RowLayout {
+            id: ghostBody
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Design.spaceTiny
+            spacing: Design.spaceSmall
+
+            QQC2.Label {
+                text: grid.ghostStart >= 0 ? grid.hm(grid.ghostStart) + "–" + grid.hm(grid.ghostEnd) : ""
+                color: KanteStyle.accentTextColor
+                font: Kirigami.Theme.smallFont
+            }
+            TaskQuickAdd {
+                id: ghostAdd
+                Layout.fillWidth: true
+                placeholderText: i18n("New task, Enter saves")
+                controller: grid.controller
+                popupHost: grid.dragHost
+                day: grid.day ? grid.day.date : null
+                startMinute: grid.ghostStart
+                endMinute: grid.ghostEnd
+                onCreated: grid.closeGhost()
+                onEscaped: grid.closeGhost()
+                onFieldFocusChanged: {
+                    if (!fieldFocus && !asking && text.trim() === "") {
+                        grid.closeGhost()
                     }
                 }
             }

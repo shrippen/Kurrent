@@ -302,23 +302,23 @@ ColumnLayout {
                             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
 
-                        QQC2.TextField {
+                        TaskQuickAdd {
                             Layout.fillWidth: true
                             visible: view.addingOn === column.key
                             placeholderText: i18n("New task, Enter saves")
+                            controller: view.controller
+                            popupHost: view.dragHost
+                            day: column.date
                             onVisibleChanged: {
                                 if (visible) {
                                     text = ""
                                     forceActiveFocus()
                                 }
                             }
-                            onAccepted: {
-                                view.controller.agendaAddTask(text, column.date)
-                                view.addingOn = ""
-                            }
-                            Keys.onEscapePressed: view.addingOn = ""
-                            onActiveFocusChanged: {
-                                if (!activeFocus && text.trim() === "") {
+                            onCreated: view.addingOn = ""
+                            onEscaped: view.addingOn = ""
+                            onFieldFocusChanged: {
+                                if (!fieldFocus && !asking && text.trim() === "") {
                                     view.addingOn = ""
                                 }
                             }

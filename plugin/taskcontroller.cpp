@@ -2438,16 +2438,12 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
     updateTaskFull(itemId, fields);
 }
 
-void TaskController::agendaAddTask(const QString &summary, const QDate &day)
+void TaskController::agendaAddTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end)
 {
-    if (summary.trimmed().isEmpty() || !day.isValid()) {
+    if (!day.isValid()) {
         return;
     }
-    createTaskFull({
-        {QStringLiteral("summary"), summary},
-        {QStringLiteral("allDay"), true},
-        {QStringLiteral("dueDate"), QDateTime(day, QTime(0, 0))},
-    });
+    createQuickTask(summary, collectionId, day, start, end);
 }
 
 QVariantList TaskController::agendaMonth(const QDate &anyDay, bool weekend) const
@@ -3473,6 +3469,11 @@ void TaskController::syncNow()
 
 void TaskController::createTask(const QString &summary, qint64 collectionId)
 {
+    createQuickTask(summary, collectionId, QDate(), -1, -1);
+}
+
+void TaskController::createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end)
+{
     if (!m_akonadiAvailable || summary.trimmed().isEmpty()) {
         return;
     }
@@ -3504,6 +3505,13 @@ void TaskController::createTask(const QString &summary, qint64 collectionId)
     if (parsed.hasDue) {
         todo->setDtDue(parsed.due);
         todo->setAllDay(parsed.allDay);
+    } else if (day.isValid() && start >= 0 && end > start) {
+        todo->setDtStart(atMinute(day, start));
+        todo->setDtDue(atMinute(day, end));
+        todo->setAllDay(false);
+    } else if (day.isValid()) {
+        todo->setDtDue(QDateTime(day, QTime(0, 0)));
+        todo->setAllDay(true);
     } else {
         const QDateTime fallback = TaskLogic::defaultDueForMode(m_defaultDueMode, QDate::currentDate());
         if (fallback.isValid()) {

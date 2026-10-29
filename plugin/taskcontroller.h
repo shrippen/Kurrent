@@ -361,7 +361,11 @@ public:
      *  the same number of days; a task without a date becomes all-day on `day`. Undoable. */
     Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
     /** New all-day task on `day` in the default project. */
-    Q_INVOKABLE void agendaAddTask(const QString &summary, const QDate &day);
+    /** Quick Add in the Agenda: the text is read like the list's Quick Add (date, priority,
+     *  labels, project); without a date in it the task lands on `day`, as a block from
+     *  `start` to `end` (minutes) when given, else all-day. */
+    Q_INVOKABLE void agendaAddTask(const QString &summary, qint64 collectionId, const QDate &day,
+                                   int start = -1, int end = -1);
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
      *  inMonth, count (appointments and open tasks) and tint (AgendaLogic::loadTint). */
     Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
@@ -655,6 +659,8 @@ enum class SyncResult { Error, Ok };
     void pushUndo(TaskLogic::UndoRecord record);
     void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
+    /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */
+    void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
     void checkReminders();
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
     void refreshBusyEvents();
