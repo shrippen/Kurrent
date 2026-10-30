@@ -504,7 +504,8 @@ void TaskControllerStoreTest::agendaBlockUntilMidnightStaysOnTheDay()
     const QVariantList items = m_controller->agendaDays(day, 1).first().toMap().value(QStringLiteral("items")).toList();
     QCOMPARE(items.size(), 1);
     QCOMPARE(items.first().toMap().value(QStringLiteral("start")).toInt(), 22 * 60);
-    QCOMPARE(items.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60 - 1);
+    // Stored as 23:59, read back as 24:00 (AgendaLogic::taskBlock), so the grips stay on quarter hours.
+    QCOMPARE(items.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60);
 }
 
 void TaskControllerStoreTest::agendaMoveToDayKeepsAnEarlierStart()
