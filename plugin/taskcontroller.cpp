@@ -3533,12 +3533,13 @@ void TaskController::createQuickTask(const QString &summary, qint64 collectionId
         }
     }
     todo->setSummary(parsed.summary.isEmpty() ? summary.trimmed() : parsed.summary);
-    // A time without a date stays on the day; a slot keeps its length from that time.
+    // A time without a date stays on the day; a slot keeps its length from that time, cut at
+    // the day's end.
     const bool timeOnDay = day.isValid() && parsed.hasDue && !parsed.hasDate && !parsed.allDay;
     const int textMinute = parsed.due.time().hour() * 60 + parsed.due.time().minute();
-    if (timeOnDay && start >= 0 && end > start && textMinute + (end - start) <= 24 * 60) {
+    if (timeOnDay && start >= 0 && end > start) {
         todo->setDtStart(atMinute(day, textMinute));
-        todo->setDtDue(atMinute(day, textMinute + (end - start)));
+        todo->setDtDue(atMinute(day, qMin(textMinute + (end - start), 24 * 60)));
         todo->setAllDay(false);
     } else if (timeOnDay) {
         todo->setDtDue(atMinute(day, textMinute));

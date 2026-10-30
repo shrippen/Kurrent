@@ -635,17 +635,23 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     // A time without a date stays on the day: due then, or the slot moved to it.
     m_controller->agendaAddTask(QStringLiteral("Ring the port 15:00"), 10, day);
     m_controller->agendaAddTask(QStringLiteral("Ghost call 16:00"), 10, day, 10 * 60, 10 * 60 + 45);
-    waitStore(spy, 5);
+    // Late in the evening the block ends at midnight's last minute, still on the day.
+    m_controller->agendaAddTask(QStringLiteral("Late call 23:30"), 10, day, 21 * 60, 22 * 60);
+    waitStore(spy, 6);
 
     const QVariantMap board = m_controller->agendaDays(day, 1).first().toMap();
     const QVariantList items = board.value(QStringLiteral("items")).toList();
-    QCOMPARE(items.size(), 2);
-    QVariantMap timed;
-    QVariantMap moved;
+    QCOMPARE(items.size(), 3);
+    QMap<QString, QVariantMap> byName;
     for (const QVariant &item : items) {
         const QVariantMap map = item.toMap();
-        (map.value(QStringLiteral("summary")).toString() == QStringLiteral("Ghost call") ? moved : timed) = map;
+        byName.insert(map.value(QStringLiteral("summary")).toString(), map);
     }
+    const QVariantMap timed = byName.value(QStringLiteral("Call the harbour"));
+    const QVariantMap moved = byName.value(QStringLiteral("Ghost call"));
+    const QVariantMap late = byName.value(QStringLiteral("Late call"));
+    QCOMPARE(late.value(QStringLiteral("start")).toInt(), 23 * 60 + 30);
+    QCOMPARE(late.value(QStringLiteral("end")).toInt(), 24 * 60 - 1);
     QCOMPARE(timed.value(QStringLiteral("summary")).toString(), QStringLiteral("Call the harbour"));
     QCOMPARE(timed.value(QStringLiteral("start")).toInt(), 10 * 60);
     QCOMPARE(timed.value(QStringLiteral("end")).toInt(), 10 * 60 + 45);
