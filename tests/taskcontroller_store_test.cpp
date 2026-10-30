@@ -43,6 +43,7 @@ private Q_SLOTS:
     void agendaPlacesTasksInFreeTime();
     void agendaDayShowsBlocksOutsideTheGrid();
     void agendaMoveToDayKeepsAnEarlierStart();
+    void agendaBlockUntilMidnightStaysOnTheDay();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -485,6 +486,23 @@ void TaskControllerStoreTest::heatmapTasksForDay()
     QCOMPARE(done.at(1).toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("b done"));
     QVERIFY(m_controller->heatmapTasksForDay(QDate::currentDate().addDays(-1), QStringLiteral("completed")).isEmpty());
     QVERIFY(m_controller->heatmapTasksForDay(QDate(), QStringLiteral("completed")).isEmpty());
+}
+
+void TaskControllerStoreTest::agendaBlockUntilMidnightStaysOnTheDay()
+{
+    const QDate day = QDate::currentDate().addDays(2);
+    m_controller->installTestTask(1, QStringLiteral("night shoot"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    // A grid widened to midnight lets a grip reach 24:00; the block ends on the same day.
+    m_controller->agendaSetBlock(1, day, 22 * 60, 24 * 60);
+    waitStore(spy, 1);
+    const QVariantMap task = m_controller->taskSnapshotById(1);
+    QVERIFY(task.value(QStringLiteral("dueDate")).toDateTime().isValid());
+    QCOMPARE(task.value(QStringLiteral("dueDate")).toDateTime().date(), day);
+    const QVariantList items = m_controller->agendaDays(day, 1).first().toMap().value(QStringLiteral("items")).toList();
+    QCOMPARE(items.size(), 1);
+    QCOMPARE(items.first().toMap().value(QStringLiteral("start")).toInt(), 22 * 60);
+    QCOMPARE(items.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60 - 1);
 }
 
 void TaskControllerStoreTest::agendaMoveToDayKeepsAnEarlierStart()

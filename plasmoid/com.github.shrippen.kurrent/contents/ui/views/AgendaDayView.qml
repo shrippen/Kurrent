@@ -30,7 +30,8 @@ RowLayout {
     signal pickTarget(date day)
     signal jump(date day)
 
-    readonly property int dayCount: 14
+    /** Days shown from listStart. */
+    property int dayCount: 14
     /** Room for the left column (month calendar, legend, suggestions); without it a day's
      *  header picks nothing, since there are no suggestions to show. */
     readonly property bool wide: width >= Kirigami.Units.gridUnit * 34
