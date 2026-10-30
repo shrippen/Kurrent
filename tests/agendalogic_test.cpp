@@ -54,6 +54,7 @@ private Q_SLOTS:
     void fitFreeStepsBackBeforeTheGridEnd();
     void gridWidensForBlocksOutsideIt();
     void lanesForOverlaps();
+    void blockUntilMidnightEndsAt24();
     void suggestionsRankedWithReasons();
     void suggestionsSkipPastTargetOverdueAndOwnDay();
 };
@@ -80,6 +81,25 @@ void AgendaLogicTest::blockNeedsTimedStartAndDueOnOneDay()
     TaskEntry backwards = t;
     backwards.startDate = QDateTime(kToday, QTime(12, 0));
     QVERIFY(!taskBlock(backwards).isValid());
+}
+
+// Midnight two ways: another app ends a block at the next day's 00:00, Kurrent writes 23:59.
+// Both are a block until 24:00 on the start day, so the grips step in quarter hours.
+void AgendaLogicTest::blockUntilMidnightEndsAt24()
+{
+    TaskEntry t = task(QStringLiteral("Spätschicht"), {});
+    t.startDate = QDateTime(kToday, QTime(23, 0));
+    t.dueDate = QDateTime(kToday.addDays(1), QTime(0, 0));
+    QCOMPARE(taskBlock(t), (Span{hm(23, 0), 24 * 60}));
+    QCOMPARE(taskDay(t), kToday);
+
+    TaskEntry written = t;
+    written.dueDate = QDateTime(kToday, QTime(23, 59));
+    QCOMPARE(taskBlock(written), (Span{hm(23, 0), 24 * 60}));
+
+    TaskEntry later = t;
+    later.dueDate = QDateTime(kToday.addDays(1), QTime(0, 15));
+    QVERIFY(!taskBlock(later).isValid());
 }
 
 void AgendaLogicTest::dayIsCompletionOrDue()

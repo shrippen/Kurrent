@@ -29,16 +29,25 @@ Span taskBlock(const TaskEntry &task)
     }
     const QDateTime start = task.startDate.toLocalTime();
     const QDateTime due = task.dueDate.toLocalTime();
+    // Until midnight: the next day's 00:00 (other apps) or 23:59 (Kurrent writes it so, 24:00
+    // is no QTime) both end the block at 24:00 of its day.
+    if (due.date() == start.date().addDays(1) && due.time() == QTime(0, 0)) {
+        return {minuteOfDay(start.time()), 24 * 60};
+    }
     if (start.date() != due.date() || start >= due) {
         return {};
     }
-    return {minuteOfDay(start.time()), minuteOfDay(due.time())};
+    const int end = due.time() == QTime(23, 59) ? 24 * 60 : minuteOfDay(due.time());
+    return {minuteOfDay(start.time()), end};
 }
 
 QDate taskDay(const TaskEntry &task)
 {
     if (task.completed && task.completedDate.isValid()) {
         return task.completedDate.toLocalTime().date();
+    }
+    if (taskBlock(task).isValid()) {
+        return task.startDate.toLocalTime().date();
     }
     return task.dueDate.isValid() ? localDate(task.dueDate, task.allDay) : QDate();
 }

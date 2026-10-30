@@ -241,7 +241,7 @@ RowLayout {
                 required property string section
                 width: ListView.view.width
                 height: tierLabel.implicitHeight + Design.spaceSmall
-                color: Kirigami.Theme.backgroundColor
+                color: KanteStyle.backgroundColor
                 QQC2.Label {
                     id: tierLabel
                     anchors.verticalCenter: parent.verticalCenter
@@ -298,7 +298,8 @@ RowLayout {
             readonly property var entry: parent ? parent.entry : null
             implicitHeight: quietLabel.implicitHeight + Design.spaceSmall * 2
             radius: Design.radius
-            color: KanteStyle.sunkenColor
+            // A task dropped here lands on the first of the folded days.
+            color: quietDrop.containsDrag ? KanteStyle.selectionColor : KanteStyle.sunkenColor
             QQC2.Label {
                 id: quietLabel
                 anchors.verticalCenter: parent.verticalCenter
@@ -314,6 +315,7 @@ RowLayout {
                 onTapped: view.pickTarget(parent.entry.from)
             }
             DropArea {
+                id: quietDrop
                 anchors.fill: parent
                 keys: ["application/x-kurrent-task"]
                 onDropped: function(event) {
