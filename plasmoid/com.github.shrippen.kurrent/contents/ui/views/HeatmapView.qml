@@ -296,7 +296,6 @@ ColumnLayout {
 
         QQC2.Label {
             Layout.fillWidth: true
-            Layout.minimumWidth: 0
             text: root.showYear
                   ? (root.visibleYearNumbers.length > 1
                      ? root.visibleYearNumbers[root.visibleYearNumbers.length - 1] + " \u2013 " + root.visibleYearNumbers[0]
@@ -323,7 +322,8 @@ ColumnLayout {
 
         QQC2.ComboBox {
             KanteFieldSkin { control: parent }
-            // In a narrow popup it gives way (and elides) before the row runs out of the view.
+            // In a narrow popup it gives way (and elides) together with the title, down to 4 GU, instead of
+            // running out of the view.
             Layout.fillWidth: true
             Layout.maximumWidth: implicitWidth
             Layout.minimumWidth: Kirigami.Units.gridUnit * 4
