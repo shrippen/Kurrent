@@ -359,7 +359,8 @@ public:
      *  start day stays. Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
-     *  the same number of days; a task without a date becomes all-day on `day`. Undoable. */
+     *  the same number of days (a recurring task: only this occurrence's due, the series stays);
+     *  a task without a date becomes all-day on `day`. Undoable. */
     Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's
      *  `items` (agendaDays), -1/-1 on busy time or outside 07-22 (AgendaLogic::ghostSlot). */
@@ -372,8 +373,8 @@ public:
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
      *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
     Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
-    /** Open overdue tasks of all projects for the week board's tray, oldest first; also an open
-     *  block from an earlier day until midnight, which a past day's column counts. */
+    /** Open tasks on a past day (local time, as the week's columns) for the week board's tray:
+     *  overdue ones oldest first, then blocks from an earlier day until midnight. */
     Q_INVOKABLE QVariantList agendaOverdue() const;
     /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
     Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }

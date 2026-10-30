@@ -46,6 +46,7 @@ private Q_SLOTS:
     void agendaBlockUntilMidnightStaysOnTheDay();
     void agendaBlockUntilNextMidnightStaysOnItsDay();
     void agendaBoardsShiftAndCount();
+    void agendaShiftToTodayKeepsSeriesAndLocalDays();
     void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
@@ -717,6 +718,36 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     QCOMPARE(looseNames, (QStringList{QStringLiteral("Ring the port"), QStringLiteral("Whole day")}));
     const QVariantMap tomorrow = m_controller->agendaDays(QDate::currentDate().addDays(1), 1).first().toMap();
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
+}
+
+void TaskControllerStoreTest::agendaShiftToTodayKeepsSeriesAndLocalDays()
+{
+    const QDate today = QDate::currentDate();
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    // A weekly task three days late: "All to today" moves this occurrence, not the series.
+    m_controller->installTestTask(1, QStringLiteral("weekly"), 10);
+    m_controller->updateTaskFull(1, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-3), QTime(10, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today.addDays(-3), QTime(11, 0))},
+        {QStringLiteral("recurrencePreset"), QStringLiteral("weekly")},
+    });
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    m_controller->agendaShiftToDay(1, today);
+    waitStore(spy, 2);
+    QVERIFY(m_controller->agendaOverdue().isEmpty());
+    const QVariantMap moved = m_controller->taskSnapshotById(1);
+    QCOMPARE(moved.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(11, 0)));
+    QVERIFY(moved.value(QStringLiteral("startDate")).toDateTime() <= moved.value(QStringLiteral("dueDate")).toDateTime());
+
+    // DUE in UTC on the day before but today in local time: on today's column, not in the tray.
+    const QDateTime utc = QDateTime(today, QTime(0, 30)).toUTC();
+    if (utc.date() < today) {
+        m_controller->installTestTask(2, QStringLiteral("utc"), 10);
+        m_controller->updateTaskFull(2, {{QStringLiteral("dueDate"), utc}});
+        waitStore(spy, 3);
+        QVERIFY(m_controller->agendaOverdue().isEmpty());
+    }
 }
 
 void TaskControllerStoreTest::agendaBoardsShiftAndCount()
