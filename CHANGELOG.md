@@ -10,13 +10,13 @@ Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to
 
 #### New
 - Agenda, Day: 14 days as hour grids (07–22, longer when something is earlier or later) with your appointments, tasks with a time as blocks and free gaps in green. Drop a task on a day and it lands in the next free time long enough for it; drag a block's edges to change its time. Suggestions for the picked day say why each task fits (overdue, due soon, high priority, fits the largest gap).
-- Agenda, Week: one column per day with appointments, open tasks as cards and a load bar against your workday (8 hours by default, Settings › Views › Agenda). Overdue tasks wait in a tray above the week, and "All to today" moves them to today with their times. Done and overdue tasks of a day fold away and open with a click. Drop a card on another day to move it; its time stays. Recurring tasks are moved in the editor for now.
-- Agenda, Month: six weeks tinted by how full each day is, with a panel for the picked day. Day | Week | Month share one date; keys T, W, M, ← → and H.
+- Agenda, Week: one column per day with appointments, open tasks as cards and a load bar against your workday (8 hours by default, Settings › Views › Agenda). Overdue tasks wait in a tray above the week, and "All to today" moves them to today with their times. Done and overdue tasks of a day fold away and open with a click. Drop a card on another day to move it; its time stays. Recurring tasks are not moved here yet, neither by dragging nor by "All to today"; move them in the editor.
+- Agenda, Month: six weeks tinted by how full each day is, with a panel for the picked day. Day | Week | Month share one date; keys T, W and M switch the view, ← → step, H jumps to today.
 - Add tasks in the Agenda with the same Quick Add as the list. In the day view, click free time and type: the task is planned in that hour.
 - Appointments in week and month show a stripe in their calendar's colour and a time column, so they read differently from tasks.
 - Tiles above the task pane (Overdue, Today, Tomorrow, Scheduled, Completed) and an inspector beside it that shows a task's details and quick actions without opening the editor (wide layout).
 - Styles: Plasma (default), Kante and Kante Light, picked with preview cards in Settings › Appearance.
-- `kurrent-tui`: Kurrent in a terminal, installed with the widget.
+- `kurrent-tui`: Kurrent in a terminal, installed by source builds (`install.sh`, or the installer with `--from-source`).
 - A narrow layout with view tabs, used by default in the panel popup.
 
 #### Improved
@@ -31,7 +31,7 @@ Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to
 - The heatmap's average per day was off in a month with a clock change.
 - Overdue means the same everywhere: an open task due before today.
 - Tasks completed in Kurrent had no completion date, so the heatmap did not count them.
-- Several settings switched the wrong option ("Ask before deleting", "Complete only with Shift or Ctrl", "Reduced motion").
+- Several settings switched the wrong option ("Ask before deleting a task", "Only with Shift or Ctrl held", "Reduced motion").
 - Week keys around New Year, the "today" drop in Kanban, and the refresh of Swimlanes and the Project plan after changes.
 
 #### Note
@@ -46,13 +46,13 @@ Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster
 
 #### Neu
 - Agenda, Tag: 14 Tage als Stundenraster (07–22 Uhr, länger, wenn etwas früher oder später liegt) mit deinen Terminen, Aufgaben mit Uhrzeit als Blöcke und freien Lücken in Grün. Eine abgelegte Aufgabe landet in der nächsten freien Zeit, die lang genug ist; an den Kanten eines Blocks ziehst du seine Zeit. Vorschläge für den gewählten Tag sagen, warum eine Aufgabe passt (überfällig, bald fällig, hohe Priorität, passt in die größte Lücke).
-- Agenda, Woche: eine Spalte je Tag mit Terminen, offenen Aufgaben als Karten und einem Auslastungsbalken gegen deinen Arbeitstag (Standard 8 Stunden, Einstellungen › Ansichten › Agenda). Überfällige Aufgaben warten in einem Fach über der Woche, und „Alle auf heute“ legt sie mit ihren Uhrzeiten auf heute. Erledigte und überfällige Aufgaben eines Tages klappen sich ein und öffnen per Klick. Eine Karte auf einem anderen Tag ablegen verschiebt sie; die Uhrzeit bleibt. Wiederkehrende Aufgaben verschiebst du vorerst im Editor.
-- Agenda, Monat: sechs Wochen, je Tag nach Auslastung getönt, mit einer Leiste für den gewählten Tag. Tag | Woche | Monat teilen sich ein Datum; Tasten T, W, M, ← → und H.
+- Agenda, Woche: eine Spalte je Tag mit Terminen, offenen Aufgaben als Karten und einem Auslastungsbalken gegen deinen Arbeitstag (Standard 8 Stunden, Einstellungen › Ansichten › Agenda). Überfällige Aufgaben warten in einem Fach über der Woche, und „Alle auf heute“ legt sie mit ihren Uhrzeiten auf heute. Erledigte und überfällige Aufgaben eines Tages klappen sich ein und öffnen per Klick. Eine Karte auf einem anderen Tag ablegen verschiebt sie; die Uhrzeit bleibt. Wiederkehrende Aufgaben werden hier noch nicht verschoben, weder per Ziehen noch mit „Alle auf heute“; verschiebe sie im Editor.
+- Agenda, Monat: sechs Wochen, je Tag nach Auslastung getönt, mit einer Leiste für den gewählten Tag. Tag | Woche | Monat teilen sich ein Datum; die Tasten T, W und M wechseln die Ansicht, ← → blättern, H springt auf heute.
 - Aufgaben in der Agenda mit derselben Schnelleingabe wie in der Liste anlegen. In der Tagesansicht auf freie Zeit klicken und tippen: Die Aufgabe wird in dieser Stunde geplant.
 - Termine in Woche und Monat zeigen einen Streifen in der Farbe ihres Kalenders und eine Zeitspalte, so unterscheiden sie sich von Aufgaben.
 - Kacheln über der Aufgabenliste (Überfällig, Heute, Morgen, Geplant, Erledigt) und ein Inspektor daneben, der die Details einer Aufgabe und schnelle Aktionen zeigt, ohne den Editor zu öffnen (breites Layout).
 - Stile: Plasma (Standard), Kante und Kante Light, gewählt mit Vorschaukarten unter Einstellungen › Erscheinungsbild.
-- `kurrent-tui`: Kurrent im Terminal, wird mit dem Widget installiert.
+- `kurrent-tui`: Kurrent im Terminal, wird bei Quellbuilds mitinstalliert (`install.sh` oder der Installer mit `--from-source`).
 - Ein schmales Layout mit Ansichts-Tabs, im Panel-Popup als Standard.
 
 #### Verbessert
@@ -67,7 +67,7 @@ Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster
 - Der Tagesschnitt der Heatmap stimmte in einem Monat mit Zeitumstellung nicht.
 - Überfällig heißt überall dasselbe: eine offene Aufgabe, die vor heute fällig war.
 - In Kurrent erledigte Aufgaben hatten kein Erledigungsdatum, darum zählte die Heatmap sie nicht.
-- Mehrere Einstellungen schalteten die falsche Option („Vor dem Löschen fragen“, „Nur mit Umschalt oder Strg erledigen“, „Reduzierte Bewegung“).
+- Mehrere Einstellungen schalteten die falsche Option („Vor dem Löschen einer Aufgabe nachfragen“, „Nur mit gedrückter Umschalt- oder Strg-Taste“, „Reduzierte Bewegung“).
 - Kalenderwochen um Neujahr, das Ablegen in der Kanban-Spalte „Heute“ und das Auffrischen von Swimlanes und Projektplan nach Änderungen.
 
 #### Hinweis
