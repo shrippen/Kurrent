@@ -282,7 +282,7 @@ ColumnLayout {
                             }
                         }
 
-                        // Load: appointments plus task lengths against 8 hours.
+                        // Load: appointments plus task lengths against the working day (agendaWorkMinutes).
                         RowLayout {
                             Layout.fillWidth: true
                             visible: !column.past

@@ -321,7 +321,11 @@ QDate stepDate(const QDate &date, const QString &mode, int n)
 
 Span ghostSlot(const QList<Span> &taken, int minute, int length)
 {
-    const int at = qBound(kGridStart, minute / kStep * kStep, kGridEnd - kStep);
+    // Only on the 07-22 grid, where drops land too; a widened grid adds no slots.
+    if (minute < kGridStart || minute >= kGridEnd) {
+        return {-1, -1};
+    }
+    const int at = minute / kStep * kStep;
     int lo = kGridStart;
     int hi = kGridEnd;
     for (const Span &span : taken) {

@@ -132,8 +132,10 @@ RowLayout {
                     readonly property bool isSelected: !!view.selected && key === DateTime.isoDateKey(view.selected.date)
                     readonly property bool past: key < DateTime.isoDateKey(view.today())
                     readonly property var entries: view.entriesOf(modelData)
-                    readonly property int shown: Math.max(0, Math.min(entries.length,
-                                                  Math.floor((height - dayRow.height - Design.spaceTiny * 2) / entryHeight) - (entries.length > 3 ? 1 : 0), 3))
+                    // Rows that fit; when not all entries do, one of them is "+n more".
+                    readonly property int fits: Math.floor((height - dayRow.height - Design.spaceTiny * 2) / entryHeight)
+                    readonly property int shown: entries.length <= Math.min(fits, 3)
+                                                 ? entries.length : Math.max(0, Math.min(fits - 1, 3))
                     readonly property real entryHeight: KanteStyle.calendarEntryHeight
 
                     Layout.fillWidth: true

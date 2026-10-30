@@ -332,6 +332,11 @@ void AgendaLogicTest::ghostSlotStaysBetweenNeighbours()
     // Grid end, and busy time gives nothing.
     QCOMPARE(ghostSlot({}, hm(21, 40), 60), (Span{hm(21), hm(22)}));
     QCOMPARE(ghostSlot(taken, hm(10, 30), 60), (Span{-1, -1}));
+    // Outside 07-22 (a grid widened for a late or early block) there is no slot, busy or free.
+    const QList<Span> late{{hm(22, 30), hm(24)}};
+    QCOMPARE(ghostSlot(late, hm(23), 60), (Span{-1, -1}));
+    QCOMPARE(ghostSlot(late, hm(22), 60), (Span{-1, -1}));
+    QCOMPARE(ghostSlot({{hm(6), hm(6, 30)}}, hm(6, 15), 60), (Span{-1, -1}));
 }
 
 void AgendaLogicTest::boardOrderTimedThenPriority()
