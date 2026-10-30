@@ -12,11 +12,11 @@ trap 'rm -rf "${RAW}" "${CONFIG}"' EXIT
 demo_config "${CONFIG}"
 
 KURRENT_SCREENSHOT_PLUGIN="${DEMO_PLUGIN}" XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
-KURRENT_SCREENSHOT_PLAN="styles=kante;modes=list,kanban,plan,heatmap,calendar;widths=60;editor=1;inspector=1" \
+KURRENT_SCREENSHOT_PLAN="styles=kante;modes=list,kanban,plan,heatmap,calendar,calendar-week,calendar-month;widths=60;editor=1;inspector=1" \
     "${ROOT}/tests/screenshot.sh" "${RAW}"
 
 mkdir -p "${OUT}"
-for pair in list:tasks kanban:kanban plan:plan heatmap:heatmap calendar:agenda editor:editor inspector:inspector; do
+for pair in list:tasks kanban:kanban plan:plan heatmap:heatmap calendar:agenda calendar-week:agenda-week calendar-month:agenda-month editor:editor inspector:inspector; do
     cp "${RAW}/kante-60gu-${pair%%:*}.png" "${OUT}/${pair##*:}.png"
 done
 

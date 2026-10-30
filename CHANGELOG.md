@@ -2,119 +2,77 @@
 
 ## [Unreleased]
 
-### Added
+## [0.5.0] — 2026-10-30
 
-#### Terminal client
-- **`kurrent-tui`**: Kurrent in a terminal, installed next to the widget. Now, Soon and Someday as one list; `x` done, `t` today, `m` tomorrow, `d` someday, `a` adds with Quick Add, `/` searches, `g` goes through overdue tasks one at a time (↑ done, → today, ← tomorrow, ↓ someday). Same tasks through Akonadi as the widget; the widget keeps the D-Bus name and the global shortcuts.
+### English
 
-#### Sidebar
-- The views (Inbox, Today, Overdue, …, Maintenance) always get their full height; projects, labels and the other sections share the rest and scroll. Before, every section got an equal share and the last views were only reachable by scrolling.
-- **Settings › Sidebar › Row size › Dense (more rows)**: Kante's dense list rows (24 px) for long sidebars, opt-in.
+Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to your appointments, a week as a board and a month at a glance, and you drag tasks into free time. The widget gets a new look with tiles, an inspector and the optional Kante style, and there is now a terminal client.
 
-#### Styles: Plasma by default, Kante and Kante Light opt-in
-- **Settings › Appearance › Style** with three preview cards: **Plasma (default)** follows the Plasma colour scheme like any KDE app; **Kante** applies the Kante palette (Gruvbox dark, or Leinen on a light colour scheme) with square controls, cut corners, Rajdhani titles and mono figures; **Kante Light** keeps Plasma's colours and controls and adds only Kante shapes and type.
-- Built on the **Kante** QML module from shrippen.github.io (vendored under `contents/ui/Kante` and `contents/ui/KantePlasma`, fonts under SIL OFL): `KanteScope` for the widget, skins for menus, popups, dialogs, inline messages and check boxes, `KanteHeading` for view titles and Kanban columns, `KanteCard` for cards and the full editor.
-- Kante 1.6: narrow-layout tabs (`KanteTabBar`), multi-select bar (`KanteBulkBar`), date picker (`KanteCalendarGrid`) and colour override swatches (`KanteSwatch`) come from the module.
-- Kante 1.7: labels in task rows and picked labels in the editor (removable) are `KanteChip` in Kante and Kante Light.
-- Kante 1.8: header filter chips are `KanteChip` with the filter icon (the name elides, then drops); Kanban cards and the agenda show labels as compact chips.
-- Kante 1.9: the whole sidebar draws `KanteListRow`s (red Overdue count, chevron on folder rows); labels in the editor use `KanteTagPicker` (suggestions open above the field and stay in the window). Fix: Kanban card titles were near-black with Kante dark on a light desktop.
-- Kante 1.56: the module is current again (it was on 1.13). In the Kante style combo boxes draw their arrow as a shape, set their value in from the frame and are wide enough for their longest entry (the editor's project picker keeps the full width); the heatmap's mode box gives way in a narrow popup. Leinen's positive green is a little darker, disabled controls take Kante's colours, and menus and inline messages draw their card behind the platform frame. In Kante Light the primary buttons (add at quick add, Done/Reopen and Save while editing in the inspector, Copy command when the plugin is missing, the chosen version in the conflict dialog) are filled in the accent with cut corners, so they stand out. Return presses a focused Kante button, not only Space.
-- **Translucency in every style**: Kurrent never paints its own background, so a translucent / blurred Plasma background always shows through; Kante surfaces are tints on top. Only the panel flyout with blur off is opaque.
-- **Accent switches** for project/label colours and priority colours.
-- **Narrow layout**: below sidebar width + 24 grid units, views become tabs above the task pane with counters, and the sidebar opens on demand. The panel flyout now opens narrow by default (30 × 36 grid units).
-- **Overdue notice** (inline message) in other views with "Move all to today" and "Show overdue"; can be turned off.
-- Sidebar and tab **counters are badges** (red for overdue); Kanban column headers show the card count.
-- **Panel badge** is a filled counter like Plasma's notification badge (negative colour for overdue).
-- Quick Add tokens render as **tinted pills**.
+#### New
+- Agenda, Day: 14 days as hour grids (07–22, longer when something is earlier or later) with your appointments, tasks with a time as blocks and free gaps in green. Drop a task on a day and it lands in the next free time long enough for it; drag a block's edges to change its time. Suggestions for the picked day say why each task fits (overdue, due soon, high priority, fits the largest gap).
+- Agenda, Week: one column per day with appointments, open tasks as cards and a load bar against your workday (8 hours by default, Settings › Views › Agenda). Overdue tasks wait in a tray above the week, and "All to today" moves them to today with their times. Done and overdue tasks of a day fold away and open with a click. Drop a card on another day to move it; its time stays. Recurring tasks are moved in the editor for now.
+- Agenda, Month: six weeks tinted by how full each day is, with a panel for the picked day. Day | Week | Month share one date; keys T, W, M, ← → and H.
+- Add tasks in the Agenda with the same Quick Add as the list. In the day view, click free time and type: the task is planned in that hour.
+- Appointments in week and month show a stripe in their calendar's colour and a time column, so they read differently from tasks.
+- Tiles above the task pane (Overdue, Today, Tomorrow, Scheduled, Completed) and an inspector beside it that shows a task's details and quick actions without opening the editor (wide layout).
+- Styles: Plasma (default), Kante and Kante Light, picked with preview cards in Settings › Appearance.
+- `kurrent-tui`: Kurrent in a terminal, installed with the widget.
+- A narrow layout with view tabs, used by default in the panel popup.
 
-#### Agenda: day view with hour grids
-- **Calendar › Day** shows 14 days from the picked date, each as an hour grid (07–22, longer on a day with something earlier or later, such as a night shoot until midnight): appointments stay fixed, tasks with a start and end time on the same day are blocks, free gaps of 30 minutes and more until 18:00 show in green (today from now on, and the now line moves with the clock). Days with nothing on them fold into one line; dropping a task there puts it on the first of those days. A block that another app ends at midnight (00:00 the next day) stays on its day.
-- **Plan by dragging**: drop a task on a day's grid and it lands in the next free stretch long enough for it (late in the evening, in the free time just before) (a block keeps its length; otherwise 60, 45 or 30 minutes by priority). Drop it under "No time" or use "→ day" to keep it on the day without a time. Click a block to get grips at its top and bottom edge; they move in 15-minute steps and stop at the neighbouring appointment or task. Everything can be undone.
-- **Suggestions** for the target day (click a day's header to pick it), most relevant first in three tiers: overdue tasks (the longer, the higher), tasks due within a week after the day (the sooner, the higher), undated top-level tasks; high priority and "fits the largest gap" add to it. Each suggestion says why.
-- A month calendar with dots for appointments, tasks and overdue tasks (with a legend, also in the Kante style) picks the first day. In a narrow widget, such as the panel flyout, the calendar and the suggestions are left out and a day's header picks nothing.
+#### Improved
+- Settings are eight pages instead of twelve, with labels left of the fields and "Reset this page" on every page.
+- Swimlanes hold task cards you can drag between cells, have a horizon with Overdue, Later and No date columns, and stay fast with many tasks.
+- A click on a Swimlanes or Project plan cell opens the list filtered to it.
+- The sidebar gives the views their full height and can use dense rows.
+- The Kante style is up to date (Kante 1.56): combo boxes fit their longest entry, disabled controls and menus follow Kante, and in Kante Light the main button of a place (add, Done, Save, Copy command) is filled in the accent so it stands out. Return presses a focused Kante button.
+- Dates follow the system locale everywhere, and 120 more strings are translated in all five languages.
 
-#### Agenda: week board, month and a view switcher
-- **Day | Week | Month** at the front of the Agenda's date bar; ‹ › step by a day, a week or a month, the title names the calendar week, Today is off when you are on today. One date for all three views; the view and the weekend switch are remembered. Click a weekday in the week, a day number in the month or "Open day →" to open that day. Keys: T, W, M, ← →, H, while Kurrent has the focus (on the desktop they leave the folder view alone).
-- **Week**: one column per day (weekend narrower) with appointments (no box: a stripe in the calendar's colour, start and end in a time column, the title in full text colour; the month and its day panel show them the same way), open tasks as dense cards and a load bar (appointments plus task time against the workday, orange when over; the workday is 8 hours unless set otherwise in Settings › Views › Agenda, in half-hour steps). Done tasks fold into "✓ N done", empty days say "free", + adds a task for the day. Overdue tasks wait in a tray above the week with "All to today", which moves them like a drop on today (times stay); past days only point there. Drop a card on a day to move it; its time stays. Recurring tasks are moved in the editor; they stay in the tray.
-- **Month**: six weeks, tinted by how full each day is, up to three entries per day and "+n more", overdue in red. Click a day for the detail panel with its appointments, tasks and a quick-add field; drop a task on a day to move it.
-- **Add tasks** in the Agenda with the same Quick Add as the list (dates, !priority, #labels, @project, and the project choice when needed). In the day view, click free time: a task ghost opens there with Quick Add and Enter plans the task in that hour. In the week (+) and the month panel the task lands on the day unless the text names a date.
-- The tiles above the pane and the overdue notice are gone from the Agenda; it shows overdue tasks itself.
+#### Fixed
+- The heatmap's average per day was off in a month with a clock change.
+- Overdue means the same everywhere: an open task due before today.
+- Tasks completed in Kurrent had no completion date, so the heatmap did not count them.
+- Several settings switched the wrong option ("Ask before deleting", "Complete only with Shift or Ctrl", "Reduced motion").
+- Week keys around New Year, the "today" drop in Kanban, and the refresh of Swimlanes and the Project plan after changes.
 
-#### Tiles and inspector (redesign direction B)
-- **Tiles** above the task pane (wide layout): Overdue, Today, Tomorrow, Scheduled, Completed with counts and tone bars; a click switches the view. Per view: the heatmap shows its figures (total, per day, best day, overdue) in the tiles instead of a second row. Setting: Appearance › Wide layout.
-- **Inspector** beside the task pane (wide layout): a click on a task in the list, Kanban or Swimlanes shows project/labels, status, properties, subtasks with progress and notes, with Done / Tomorrow / Next week / Editor actions. Double click still opens the full editor. It follows edits live and closes when the task disappears. Setting: Appearance › Wide layout.
-- Backend: `taskSnapshotById()` and `childTasks()`; task snapshots now include all-day, recurrence preset and reminder, so the full editor opens correctly from Kanban cards and the inspector.
+#### Note
+- The Agenda reads appointments from your Akonadi calendars; pick which ones in the Agenda's calendar menu.
+- Drag and drop and the keys in the Agenda are covered by tests but were checked by hand only briefly so far.
 
-#### Redesign details (all styles unless noted)
-- Task rows show label names (Plasma: tinted pills; Kante / Kante Light: `KanteChip`) and the project name next to its icon. Kante: the open check box carries the priority band in its frame.
-- Header: "N open · M overdue" next to the view title (wide layout); active filters are chips with × that clear just that filter.
-- Sidebar: sync status line ("Synced" / "Syncing…" / "Akonadi offline"); Kante and Kante Light add the brand head.
-- List group headers: section label with a rule in Kante and Kante Light.
-- Quick Add: primary button (highlighted in Plasma, accent square in Kante).
-- Kanban: Plasma columns are tinted lanes; Kante / Kante Light columns get a colour bar (status, priority or overdue).
-- Heatmap: facts row (total, per day, best day) for the shown period.
+All changes: https://github.com/shrippen/Kurrent/compare/v0.4.0...v0.5.0
 
-#### Review round
-- Heatmap: compact square month cells with the count inside, legend below the grid, and a list of the selected day's tasks beside or below it (click opens the inspector or editor). Month / year and mode moved into the navigation row.
-- Overdue is shown once: with tiles the overdue tile carries "Move all to today" and the header drops its overdue count; the narrow layout shows a compact "N overdue" chip with both actions instead of the banner.
-- Tile tones carry meaning only (overdue, today, completed; everything else muted). Zero counters are dimmed.
-- Kante: the brand moves from the sidebar into the wide header.
-- Sidebar: when a view hides sections (e.g. projects are the swimlane rows), a note at the bottom says why.
-- List: edit buttons only on hover, gone while the inspector is shown; "Sync now" moved to the sync line in the sidebar; batch delete uses a select icon.
-- Inspector: short due date with "in 3 days"; priority as flag plus plain text; label column fits the longest label; values with a picker (due, priority, project, status, progress, secrecy) open a menu; "Edit here" edits title, description and location in place; actions are "Done" plus icon buttons.
-- Kanban: no edit button on cards (click → inspector or editor, double click → editor); empty columns fold into a narrow strip; option to hide the Canceled column; Kante shows priority only as the card bar; thin horizontal scroll bar on hover.
-- Editor: title and status (segmented) at the top; "All day" hides the time fields; progress without scale; Kante radio buttons are diamonds; placeholders "Date" / "Time"; title field starts at the beginning.
-- Swimlanes: cards per cell adapt so several lanes fit; Plan: legend right below the table, taller cells with a priority split bar.
-- Narrow layout: arrows at the tab bar edges when more tabs exist.
-- Settings: eight pages instead of twelve. General (Akonadi status with task app button, new-task defaults incl. reminder, behaviour), Appearance, Tasks (click action, live row preview, two-column chips, description preview), Sidebar, Views (Smart Views, Today day sections, Kanban, Swimlanes, Plan, Advanced), Panel & notifications (badge preview, test notification, quiet hours in one line), Organize (projects, labels, locations as tabs with one compact list: colour picker, inline rename, delete with count, default-project star), Diagnostics (widget and plugin version side by side).
-- Settings layout: labels sit left of the fields on every page; left-aligned section heads; "Reset this page" on every page at the bottom left; consistent terms (Priorities, built-in view); relative dates on by default.
-- Dates follow the system locale everywhere (day and month names were English); Kanban column names are translated; 120 missing strings translated in all five languages.
-- Full editor (Kante): accent bar in the task's priority colour.
-- Backend-missing page: Kante install card (title, cut corner, accent bar, primary copy button).
+### Deutsch
 
-#### Screenshots for self-testing
-- `tests/screenshot.sh` renders the widget offscreen into PNGs (every style × view × width, plus the full editor) — nothing appears on the desktop. `ScreenshotRunner.qml` is only active with `KURRENT_SCREENSHOT_DIR`.
-- Kante skins and wrappers on every widget control (buttons, tool buttons, text fields, combo boxes, check boxes, radio buttons, slider), so Kante reaches into the editor and pickers; settings pages stay native.
+Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster neben deinen Terminen, eine Woche als Brett und einen Monat im Überblick, und Aufgaben ziehst du in freie Zeit. Das Widget bekommt ein neues Aussehen mit Kacheln, einem Inspektor und dem wählbaren Kante-Stil, und es gibt einen Terminal-Client.
 
-### Changed
-- Priority flag in task rows sits right before the due date.
-- Kanban cards: Plasma style uses the Kirigami card look with a hover tint; Kante and Kante Light use a Kante card with the priority bar on top.
-- View-mode toolbar: the active mode shows a highlight tint with a hairline border (Plasma) or an accent fill (Kante).
-- Project plan options (columns, look ahead, undated and completed tasks) are shared by all Kurrent widgets, like every other setting. The first start keeps each widget's current values.
+#### Neu
+- Agenda, Tag: 14 Tage als Stundenraster (07–22 Uhr, länger, wenn etwas früher oder später liegt) mit deinen Terminen, Aufgaben mit Uhrzeit als Blöcke und freien Lücken in Grün. Eine abgelegte Aufgabe landet in der nächsten freien Zeit, die lang genug ist; an den Kanten eines Blocks ziehst du seine Zeit. Vorschläge für den gewählten Tag sagen, warum eine Aufgabe passt (überfällig, bald fällig, hohe Priorität, passt in die größte Lücke).
+- Agenda, Woche: eine Spalte je Tag mit Terminen, offenen Aufgaben als Karten und einem Auslastungsbalken gegen deinen Arbeitstag (Standard 8 Stunden, Einstellungen › Ansichten › Agenda). Überfällige Aufgaben warten in einem Fach über der Woche, und „Alle auf heute“ legt sie mit ihren Uhrzeiten auf heute. Erledigte und überfällige Aufgaben eines Tages klappen sich ein und öffnen per Klick. Eine Karte auf einem anderen Tag ablegen verschiebt sie; die Uhrzeit bleibt. Wiederkehrende Aufgaben verschiebst du vorerst im Editor.
+- Agenda, Monat: sechs Wochen, je Tag nach Auslastung getönt, mit einer Leiste für den gewählten Tag. Tag | Woche | Monat teilen sich ein Datum; Tasten T, W, M, ← → und H.
+- Aufgaben in der Agenda mit derselben Schnelleingabe wie in der Liste anlegen. In der Tagesansicht auf freie Zeit klicken und tippen: Die Aufgabe wird in dieser Stunde geplant.
+- Termine in Woche und Monat zeigen einen Streifen in der Farbe ihres Kalenders und eine Zeitspalte, so unterscheiden sie sich von Aufgaben.
+- Kacheln über der Aufgabenliste (Überfällig, Heute, Morgen, Geplant, Erledigt) und ein Inspektor daneben, der die Details einer Aufgabe und schnelle Aktionen zeigt, ohne den Editor zu öffnen (breites Layout).
+- Stile: Plasma (Standard), Kante und Kante Light, gewählt mit Vorschaukarten unter Einstellungen › Erscheinungsbild.
+- `kurrent-tui`: Kurrent im Terminal, wird mit dem Widget installiert.
+- Ein schmales Layout mit Ansichts-Tabs, im Panel-Popup als Standard.
 
-#### Swimlanes and Project plan — polish pass
-- **Shared matrix grid**: pinned column and row headers (both axes), Kanban-style scrolling (wheel, thin bars, middle-click pan), current period highlighted, "jump to current period" button, columns use spare width.
-- **Swimlanes hold task cards** (compact Kanban cards) and support **drag & drop**: dropping a card on another cell writes the lane field (project / label / priority / parent) and moves the due date into the target period, as a single undo step. Default column axis is now **Week**.
-- **Horizon** for Swimlanes (new KCM option "Swimlane horizon", automatic by default) with **Overdue** and **Later** collector columns and a **No date** column; empty periods stay as drop targets. Project plan gets the same **Later** column instead of silently dropping far-future tasks.
-- **Drill-down opens the list**: clicking a cell, row header or column header shows the list filtered to it with a filter chip in the header (click = back to the matrix, ✕ = clear). The matrix itself is no longer collapsed by the filter.
-- **Header options** for both views (`view-grid` button): row axis, column bucket, look-ahead, and undated/completed for the plan — no more detour through the settings dialog.
-- **Project plan cells**: heat relative to the busiest cell, red dot for overdue tasks, flag for high priority, richer tooltip, legend, projects sorted by name.
-- Readable period headers ("Week 38 · 14.–20. Sep", "Today", month names), localized lane labels (no more raw keys or parent UIDs), empty states with `PlaceholderMessage`.
+#### Verbessert
+- Die Einstellungen haben acht statt zwölf Seiten, mit Beschriftungen links neben den Feldern und „Diese Seite zurücksetzen“ auf jeder Seite.
+- Swimlanes enthalten Aufgabenkarten, die sich zwischen Zellen ziehen lassen, haben einen Horizont mit Spalten für Überfällig, Später und Ohne Datum und bleiben auch mit vielen Aufgaben schnell.
+- Ein Klick auf eine Zelle in Swimlanes oder Projektplan öffnet die Liste, gefiltert auf diese Zelle.
+- Die Seitenleiste gibt den Ansichten ihre volle Höhe und kann dichte Zeilen nutzen.
+- Der Kante-Stil ist auf dem neuen Stand (Kante 1.56): Auswahlfelder sind so breit wie ihr längster Eintrag, ausgegraute Elemente und Menüs folgen Kante, und in Kante Light ist der Hauptknopf einer Stelle (Hinzufügen, Erledigt, Speichern, Befehl kopieren) in der Akzentfarbe gefüllt und fällt so auf. Enter drückt einen fokussierten Kante-Knopf.
+- Datumsangaben folgen überall der Systemsprache, und 120 weitere Texte sind in allen fünf Sprachen übersetzt.
 
-#### Swimlanes — performance
-- Cells are virtualized: content is built only within a screen of the viewport, so switching the row axis or the time bucket no longer blocks the UI (measured on ~350 tasks: axis switch went from ~80 ms average / ~300 ms p90 stall to ~1 ms / ~5 ms).
-- A cell shows at most 8 cards and collapses the rest into "+N more tasks"; the click still drills into the list.
-- Viewport culling binds to a throttled scroll offset instead of the raw one, so scrolling no longer re-evaluates one binding per cell per pixel.
-- Weekend columns are computed once per matrix instead of per cell.
+#### Behoben
+- Der Tagesschnitt der Heatmap stimmte in einem Monat mit Zeitumstellung nicht.
+- Überfällig heißt überall dasselbe: eine offene Aufgabe, die vor heute fällig war.
+- In Kurrent erledigte Aufgaben hatten kein Erledigungsdatum, darum zählte die Heatmap sie nicht.
+- Mehrere Einstellungen schalteten die falsche Option („Vor dem Löschen fragen“, „Nur mit Umschalt oder Strg erledigen“, „Reduzierte Bewegung“).
+- Kalenderwochen um Neujahr, das Ablegen in der Kanban-Spalte „Heute“ und das Auffrischen von Swimlanes und Projektplan nach Änderungen.
 
-### Fixed
-- Overdue means the same everywhere: an open task due before today, as in the Overdue view. Task rows no longer show the due date of completed tasks in red, and the inspector no longer marks tasks due earlier today as overdue.
-- Settings › General: "Ask before deleting" toggled "Show completed tasks", and "Complete only with Shift or Ctrl" toggled "Ask before deleting".
-- Settings showed no options: `config.qml` imported the generated dev-build marker as a directory, so the category list failed to load.
-- Tasks completed in Kurrent had no completion date (COMPLETED), so the heatmap did not count them; completions after midnight UTC landed on the previous day.
-- Translation catalogs were stale (the merge step failed on missing strings), and msgids with QML escapes (`\u201c`, `\"`) never matched at runtime.
-- Switching away from Kante left invisible text (Kante module: after Kante the theme scope stays detached with colours bound live to the parent theme instead of resetting and re-attaching).
-- View switches slid the leaving view under the sidebar (the task pane lost its clip when the inspector landed).
-- Narrow layout: the view tab bar collapsed to 0 px (height binding loop).
-- Kante: hovering the selected sidebar row turned the accent fill muddy brown; "All" chips had light text on the accent fill; priority flags vanished from the editor's priority options.
-- The "today" reschedule preset (used when dropping a card into the Kanban "Today" column) left the due date unchanged.
-- Settings › Appearance: the "Reduced motion" checkbox toggled the background blur setting instead.
-- Swimlane cell click reset the sidebar view to "everything" instead of drilling down.
-- Project plan cell click filtered the plan's own data down to one cell; the tooltip on plan cells never appeared (missing `hoverEnabled`); the plan ignored `interactionsSuspended`.
-- Matrix views did not refresh after tasks changed (the matrix was computed once).
-- ISO week keys used the calendar year, so days around New Year landed in the wrong week (e.g. 2027-01-01 is now `2026-W53`).
-- Heatmap day click switched the main-pane mode in a way that was reset immediately.
-- "KCURRENT" typo in five KCM strings (the property namespace is `KURRENT`).
+#### Hinweis
+- Die Agenda liest Termine aus deinen Akonadi-Kalendern; welche, wählst du im Kalendermenü der Agenda.
+- Ziehen und Ablegen und die Tasten in der Agenda sind durch Tests abgedeckt, von Hand aber bisher nur kurz geprüft.
 
 ## [0.4.0] — 2026-09-03
 
