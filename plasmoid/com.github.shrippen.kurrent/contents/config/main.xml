@@ -267,6 +267,15 @@
         <entry name="planShowCompleted" type="Bool">
             <default>false</default>
         </entry>
+        <entry name="agendaMode" type="String">
+            <default>day</default>
+        </entry>
+        <entry name="agendaWeekend" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="agendaWorkMinutes" type="Int">
+            <default>480</default>
+        </entry>
         <entry name="multiSelectEnabled" type="Bool">
             <default>false</default>
         </entry>

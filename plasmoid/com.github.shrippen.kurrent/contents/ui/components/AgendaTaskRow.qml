@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import ".."
 import "../Kante"
+import "../taps.js" as Taps
 
 // One task in the Agenda's day view (loose tasks, suggestions): project as colour edge, a
 // check box, the title and one meta line. Drag it onto a day's hour grid to give it a time.
@@ -46,13 +47,14 @@ Rectangle {
         return KanteStyle.mutedTextColor
     }
 
-    function open() {
+    function open(tapCount) {
         if (!dragHost) {
             return
         }
-        if (dragHost.inspectorActive) {
+        var action = Taps.tapAction(tapCount, !!dragHost.inspectorActive)
+        if (action === "inspect") {
             dragHost.inspectTask(task.itemId)
-        } else if (dragHost.openFullEditor) {
+        } else if (action === "edit" && dragHost.openFullEditor) {
             dragHost.openFullEditor(controller.taskSnapshotById(task.itemId))
         }
     }
@@ -132,41 +134,12 @@ Rectangle {
 
     TapHandler {
         enabled: !row.interactionsSuspended
-        onTapped: row.open()
-        onDoubleTapped: {
-            if (row.dragHost && row.dragHost.openFullEditor) {
-                row.dragHost.openFullEditor(row.controller.taskSnapshotById(row.task.itemId))
-            }
-        }
+        onTapped: row.open(tapCount)
     }
 
-    DragHandler {
-        id: drag
-        target: null
-        enabled: !!row.dragHost && !row.task.completed && !row.interactionsSuspended
-        dragThreshold: Math.round(Kirigami.Units.gridUnit * 0.6)
-        onActiveChanged: {
-            if (active) {
-                row.dragHost.beginTaskDrag({
-                    "itemId": row.task.itemId,
-                    "uid": row.task.uid,
-                    "summary": row.task.summary || "",
-                    "parentUid": row.task.parentUid || "",
-                    "categories": row.task.categories || [],
-                    "collectionId": row.task.collectionId,
-                    "priority": row.task.priority
-                })
-                var g = row.mapToGlobal(centroid.position.x, centroid.position.y)
-                row.dragHost.updateTaskDragPosition(g.x, g.y)
-            } else {
-                row.dragHost.endTaskDrag()
-            }
-        }
-        onCentroidChanged: {
-            if (active) {
-                var g = row.mapToGlobal(centroid.position.x, centroid.position.y)
-                row.dragHost.updateTaskDragPosition(g.x, g.y)
-            }
-        }
+    AgendaTaskDrag {
+        task: row.task
+        dragHost: row.dragHost
+        suspended: row.interactionsSuspended
     }
 }

@@ -20,6 +20,12 @@ msgstr ""
 msgid "%1 %2 on %3"
 msgstr "%3: %1 %2"
 
+msgid "%1 (key %2)"
+msgstr "%1（キー %2）"
+
+msgid "%1 / %2"
+msgstr "%1 / %2"
+
 msgid "%1 completed"
 msgstr "%1 件完了"
 
@@ -143,6 +149,9 @@ msgstr "すべて"
 msgid "All day"
 msgstr "終日"
 
+msgid "All to today"
+msgstr "すべて今日へ"
+
 msgid "All views"
 msgstr "すべてのビュー"
 
@@ -193,6 +202,9 @@ msgstr "バッジが今日を表示し、期限超過のタスクがあるとき
 
 msgid "Appointment"
 msgstr "予定"
+
+msgid "Appointments plus estimated task time, against a %1 workday (Settings → Views)"
+msgstr "予定とタスクの見積もり時間の合計（1 日の作業時間 %1 に対して、設定 → ビュー）"
 
 msgid "Ask before deleting a task"
 msgstr "タスク削除前に確認する"
@@ -455,12 +467,6 @@ msgstr "時間帯:"
 msgid "Day sections"
 msgstr "時間帯"
 
-msgid "Days side by side"
-msgstr "日を横に並べる"
-
-msgid "Days stacked"
-msgstr "日を縦に並べる"
-
 msgid "Debug info"
 msgstr "デバッグ情報"
 
@@ -599,12 +605,6 @@ msgstr "用事"
 msgid "Evening"
 msgstr "夕方"
 
-msgid "Events"
-msgstr "予定"
-
-msgid "Events this week"
-msgstr "今週の予定"
-
 msgid "Everything else — surfaces, text, selection, buttons — comes from your Plasma colour scheme."
 msgstr "面、文字、選択、ボタンなどそれ以外はすべて Plasma のカラースキームに従います。"
 
@@ -659,6 +659,9 @@ msgstr "%1–%2 に収まる"
 msgid "Flag"
 msgstr "旗"
 
+msgid "Fold"
+msgstr "折りたたむ"
+
 msgid "Folder"
 msgstr "フォルダー"
 
@@ -676,6 +679,9 @@ msgstr "一般"
 
 msgid "Give tasks a due or start date to see them planned by project and period."
 msgstr "期限日または開始日を設定すると、プロジェクトと期間ごとの計画に表示されます。"
+
+msgid "Go to today (H)"
+msgstr "今日へ移動 (H)"
 
 msgid "Group tasks"
 msgstr "タスクをグループ化"
@@ -701,11 +707,20 @@ msgstr "ヒートマップ"
 msgid "Hidden"
 msgstr "非表示"
 
+msgid "Hide done"
+msgstr "完了を隠す"
+
+msgid "Hide overdue"
+msgstr "期限切れを隠す"
+
 msgid "Hide sidebar"
 msgstr "サイドバーを隠す"
 
 msgid "Hide the Canceled column"
 msgstr "「キャンセル」列を隠す"
+
+msgid "Hide weekend"
+msgstr "週末を隠す"
 
 msgid "High"
 msgstr "高"
@@ -718,6 +733,9 @@ msgstr "優先度高 (%1)"
 
 msgid "Home"
 msgstr "家"
+
+msgid "Hours a day holds in the week view: appointments plus estimated task time beyond it mark the day as full."
+msgstr "週表示で 1 日に収まる時間です。予定とタスクの見積もり時間がこれを超えると、その日は満杯として表示されます。"
 
 msgid "How tasks are ordered in this view. Leave at Default to use Priority → Due → Title."
 msgstr "このビューでの並び順です。「既定」では優先度 → 期限 → タイトルの順です。"
@@ -754,9 +772,6 @@ msgstr "すべて含める"
 
 msgid "Include this calendar when checking for ongoing events"
 msgstr "進行中イベントの確認時にこのカレンダーを含める"
-
-msgid "Include weekend"
-msgstr "週末を含める"
 
 msgid "Info journal"
 msgstr "情報ジャーナル"
@@ -923,6 +938,9 @@ msgstr "モーション"
 msgid "Move all to today"
 msgstr "すべて今日に移動"
 
+msgid "Move to %1"
+msgstr "%1 に移動"
+
 msgid "Move to project"
 msgstr "プロジェクトへ移動"
 
@@ -953,20 +971,26 @@ msgstr "新しい場所"
 msgid "New task"
 msgstr "新しいタスク"
 
+msgid "New task, Enter saves"
+msgstr "新しいタスク、Enter で保存"
+
 msgid "New tasks"
 msgstr "新しいタスク"
 
 msgid "Next"
 msgstr "次へ"
 
-msgid "Next event"
-msgstr "次の予定"
+msgid "Next day (→)"
+msgstr "翌日 (→)"
 
-msgid "Next event · %1"
-msgstr "次の予定 · %1"
+msgid "Next month (→)"
+msgstr "翌月 (→)"
 
 msgid "Next week"
 msgstr "来週"
+
+msgid "Next week (→)"
+msgstr "翌週 (→)"
 
 msgid "No Smart Views yet. Create one or copy a built-in view."
 msgstr "スマートビューはまだありません。作成するか組み込みビューをコピーしてください。"
@@ -982,9 +1006,6 @@ msgstr "期限なし"
 
 msgid "No event calendars found. Make sure Akonadi is running and CalDAV calendars are configured."
 msgstr "イベントカレンダーが見つかりません。Akonadi が起動していることと CalDAV カレンダーが設定されていることを確認してください。"
-
-msgid "No events or tasks."
-msgstr "予定もタスクもありません。"
 
 msgid "No high priority tasks"
 msgstr "優先度の高いタスクはありません"
@@ -1055,6 +1076,9 @@ msgstr "今日は期限なし"
 msgid "Nothing on this day."
 msgstr "この日は何もありません。"
 
+msgid "Nothing planned."
+msgstr "予定はありません。"
+
 msgid "Notifications"
 msgstr "通知"
 
@@ -1108,6 +1132,12 @@ msgstr "開く / 参加"
 
 msgid "Open GitHub"
 msgstr "GitHub を開く"
+
+msgid "Open day"
+msgstr "日を開く"
+
+msgid "Open day →"
+msgstr "日を開く →"
 
 msgid "Open first"
 msgstr "未完了優先"
@@ -1193,6 +1223,15 @@ msgstr "プレビュー"
 msgid "Previous"
 msgstr "前へ"
 
+msgid "Previous day (←)"
+msgstr "前日 (←)"
+
+msgid "Previous month (←)"
+msgstr "前月 (←)"
+
+msgid "Previous week (←)"
+msgstr "前週 (←)"
+
 msgid "Priorities"
 msgstr "優先度"
 
@@ -1207,9 +1246,6 @@ msgstr "優先度"
 
 msgid "Priority %1"
 msgstr "優先度 %1"
-
-msgid "Priority %1 (%2)"
-msgstr "優先度 %1 (%2)"
 
 msgid "Priority colours (red · yellow · blue)"
 msgstr "優先度の色（赤・黄・青）"
@@ -1288,6 +1324,9 @@ msgstr "繰り返し最後"
 
 msgid "Recurring tasks only"
 msgstr "繰り返しタスクのみ"
+
+msgid "Red: overdue"
+msgstr "赤：期限切れ"
 
 msgid "Reduced motion (no spinner, quieter hover)"
 msgstr "モーション低減（スピナーなし、控えめなホバー）"
@@ -1511,6 +1550,9 @@ msgstr "期限チップに時刻を表示"
 msgid "Show undated tasks"
 msgstr "日付なしのタスクを表示"
 
+msgid "Show weekend"
+msgstr "週末を表示"
+
 msgid "Sidebar"
 msgstr "サイドバー"
 
@@ -1607,17 +1649,14 @@ msgstr "対象"
 msgid "Task"
 msgstr "タスク"
 
+msgid "Task for this day, Enter saves"
+msgstr "この日のタスク、Enter で保存"
+
 msgid "Tasks"
 msgstr "タスク"
 
 msgid "Tasks appear here by row and period once they match the current view."
 msgstr "現在のビューに一致するタスクが、行と期間ごとにここに表示されます。"
-
-msgid "Tasks due"
-msgstr "期限のタスク"
-
-msgid "Tasks this week"
-msgstr "今週のタスク"
 
 msgid "Th"
 msgstr "木"
@@ -1667,6 +1706,9 @@ msgstr "時刻"
 msgid "Time grouping"
 msgstr "時間のまとまり"
 
+msgid "Tint: how full the day is"
+msgstr "色の濃さ：その日の混み具合"
+
 msgid "Title"
 msgstr "タイトル"
 
@@ -1702,6 +1744,9 @@ msgstr "再試行"
 
 msgid "Tu"
 msgstr "火"
+
+msgid "Unfold"
+msgstr "展開"
 
 msgid "Unlabeled"
 msgstr "ラベルなし"
@@ -1754,6 +1799,9 @@ msgstr "週"
 msgid "Week %1"
 msgstr "第%1週"
 
+msgid "Week %1 · %2 – %3"
+msgstr "第 %1 週 · %2 – %3"
+
 msgid "Weekly"
 msgstr "毎週"
 
@@ -1778,6 +1826,9 @@ msgstr "タイルがあれば期限切れタイルに「すべて今日へ」、
 msgid "Work"
 msgstr "仕事"
 
+msgid "Workday"
+msgstr "1 日の作業時間"
+
 msgid "Writes and sync state"
 msgstr "書き込みと同期状態"
 
@@ -1793,8 +1844,14 @@ msgstr "昨日"
 msgid "You can also drag the edge of the sidebar."
 msgstr "サイドバーの端をドラッグしても変えられます。"
 
+msgid "drag onto a day"
+msgstr "日にドラッグ"
+
 msgid "due %1"
 msgstr "期限 %1"
+
+msgid "free"
+msgstr "空き"
 
 msgid "free %1–%2 · %3"
 msgstr "空き %1–%2 · %3"
@@ -1906,3 +1963,15 @@ msgstr[0] "%1 日後が期限"
 msgid "%1 appointment"
 msgid_plural "%1 appointments"
 msgstr[0] "%1 件の予定"
+
+msgid "✓ %1 done"
+msgid_plural "✓ %1 done"
+msgstr[0] "✓ %1 件完了"
+
+msgid "↑ %1 in Overdue"
+msgid_plural "↑ %1 in Overdue"
+msgstr[0] "↑ 期限切れに %1 件"
+
+msgid "+%1 more"
+msgid_plural "+%1 more"
+msgstr[0] "他 %1 件"

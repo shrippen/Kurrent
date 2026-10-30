@@ -15,4 +15,13 @@ TestCase {
         // Never above the grid.
         compare(Agenda.drawnStart(300, 360, 1440, 30), 360)
     }
+
+    function test_dragPayload() {
+        var p = Agenda.dragPayload({"itemId": 7, "uid": "u", "summary": "Weekly", "recurring": true, "priority": 1})
+        compare(p.itemId, 7)
+        compare(p.summary, "Weekly")
+        // Week and month columns refuse recurring tasks by this flag.
+        compare(p.recurring, true)
+        compare(Agenda.dragPayload({"itemId": 8}).recurring, false)
+    }
 }

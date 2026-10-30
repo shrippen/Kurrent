@@ -33,6 +33,13 @@
 - **Suggestions** for the target day (click a day's header to pick it), most relevant first in three tiers: overdue tasks (the longer, the higher), tasks due within a week after the day (the sooner, the higher), undated top-level tasks; high priority and "fits the largest gap" add to it. Each suggestion says why.
 - A month calendar with dots for appointments, tasks and overdue tasks (with a legend, also in the Kante style) picks the first day. In a narrow widget, such as the panel flyout, the calendar and the suggestions are left out and a day's header picks nothing.
 
+#### Agenda: week board, month and a view switcher
+- **Day | Week | Month** at the front of the Agenda's date bar; ‹ › step by a day, a week or a month, the title names the calendar week, Today is off when you are on today. One date for all three views; the view and the weekend switch are remembered. Click a weekday in the week, a day number in the month or "Open day →" to open that day. Keys: T, W, M, ← →, H, while Kurrent has the focus (on the desktop they leave the folder view alone).
+- **Week**: one column per day (weekend narrower) with appointments (no box: a stripe in the calendar's colour, start and end in a time column, the title in full text colour; the month and its day panel show them the same way), open tasks as dense cards and a load bar (appointments plus task time against the workday, orange when over; the workday is 8 hours unless set otherwise in Settings › Views › Agenda, in half-hour steps). Done tasks fold into "✓ N done", empty days say "free", + adds a task for the day. Overdue tasks wait in a tray above the week with "All to today", which moves them like a drop on today (times stay); past days only point there. Drop a card on a day to move it; its time stays. Recurring tasks are moved in the editor; they stay in the tray.
+- **Month**: six weeks, tinted by how full each day is, up to three entries per day and "+n more", overdue in red. Click a day for the detail panel with its appointments, tasks and a quick-add field; drop a task on a day to move it.
+- **Add tasks** in the Agenda with the same Quick Add as the list (dates, !priority, #labels, @project, and the project choice when needed). In the day view, click free time: a task ghost opens there with Quick Add and Enter plans the task in that hour. In the week (+) and the month panel the task lands on the day unless the text names a date.
+- The tiles above the pane and the overdue notice are gone from the Agenda; it shows overdue tasks itself.
+
 #### Tiles and inspector (redesign direction B)
 - **Tiles** above the task pane (wide layout): Overdue, Today, Tomorrow, Scheduled, Completed with counts and tone bars; a click switches the view. Per view: the heatmap shows its figures (total, per day, best day, overdue) in the tiles instead of a second row. Setting: Appearance › Wide layout.
 - **Inspector** beside the task pane (wide layout): a click on a task in the list, Kanban or Swimlanes shows project/labels, status, properties, subtasks with progress and notes, with Done / Tomorrow / Next week / Editor actions. Double click still opens the full editor. It follows edits live and closes when the task disappears. Setting: Appearance › Wide layout.
@@ -49,7 +56,6 @@
 
 #### Review round
 - Heatmap: compact square month cells with the count inside, legend below the grid, and a list of the selected day's tasks beside or below it (click opens the inspector or editor). Month / year and mode moved into the navigation row.
-- Calendar: own tile figures (events, tasks due, next event, overdue); an empty day offers "Add task for this day"; "Today" is a text button.
 - Overdue is shown once: with tiles the overdue tile carries "Move all to today" and the header drops its overdue count; the narrow layout shows a compact "N overdue" chip with both actions instead of the banner.
 - Tile tones carry meaning only (overdue, today, completed; everything else muted). Zero counters are dimmed.
 - Kante: the brand moves from the sidebar into the wide header.

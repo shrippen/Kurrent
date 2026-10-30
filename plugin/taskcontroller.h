@@ -118,6 +118,12 @@ class TaskController : public QObject
     Q_PROPERTY(QString busyCalendarIds READ busyCalendarIds WRITE setBusyCalendarIds NOTIFY eventBusySettingsChanged)
     Q_PROPERTY(QVariantList eventCalendars READ eventCalendars NOTIFY eventBusySettingsChanged)
     Q_PROPERTY(QDate agendaSelectedDate READ agendaSelectedDate WRITE setAgendaSelectedDate NOTIFY agendaSelectedDateChanged)
+    /** Agenda view: "day", "week" or "month" (AgendaLogic::Mode); persists. */
+    Q_PROPERTY(QString agendaMode READ agendaMode NOTIFY agendaSettingsChanged)
+    /** Week and month boards show Saturday and Sunday; persists. */
+    Q_PROPERTY(bool agendaWeekend READ agendaWeekend NOTIFY agendaSettingsChanged)
+    /** Minutes of a workday (setting agendaWorkMinutes); the week board measures load by it. */
+    Q_PROPERTY(int agendaWorkMinutes READ agendaWorkMinutes NOTIFY agendaSettingsChanged)
     Q_PROPERTY(bool canUndo READ canUndo NOTIFY undoChanged)
     Q_PROPERTY(QString undoKind READ undoKind NOTIFY undoChanged)
     Q_PROPERTY(QString undoLabel READ undoLabel NOTIFY undoChanged)
@@ -226,6 +232,12 @@ public:
     QVariantList eventCalendars() const;
     QDate agendaSelectedDate() const { return m_agendaSelectedDate; }
     void setAgendaSelectedDate(const QDate &date);
+    QString agendaMode() const { return m_agendaMode; }
+    void setAgendaMode(const QString &mode);
+    bool agendaWeekend() const { return m_agendaWeekend; }
+    int agendaWorkMinutes() const { return m_agendaWorkMinutes; }
+    void setAgendaWorkMinutes(int minutes);
+    void setAgendaWeekend(bool show);
     bool canUndo() const { return m_undo.canUndo(); }
     QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
     QString undoLabel() const;
@@ -316,6 +328,14 @@ public:
     Q_INVOKABLE void clearMatrixDrilldown();
     /** Switch the main-pane mode from a view (cell drill-down, heatmap day); persists. */
     Q_INVOKABLE void requestMainPaneMode(const QString &mode);
+    /** The date one step (`n` days, weeks or months by agendaMode) from `date`. */
+    Q_INVOKABLE QDate agendaStep(const QDate &date, int n) const { return AgendaLogic::stepDate(date, m_agendaMode, n); }
+    /** ISO 8601 week number of `date` (1–53). */
+    Q_INVOKABLE int isoWeek(const QDate &date) const { return date.weekNumber(); }
+    /** Switch the Agenda between day, week and month; persists. */
+    Q_INVOKABLE void selectAgendaMode(const QString &mode);
+    /** Show or hide the weekend on the week and month boards; persists. */
+    Q_INVOKABLE void selectAgendaWeekend(bool show);
     Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
     Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
@@ -338,6 +358,26 @@ public:
     /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier
      *  start day stays. Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
+    /** Move a task to `day` and keep its times (week and month boards): start and due move by
+     *  the same number of days (a recurring task is left as it is);
+     *  a task without a date becomes all-day on `day`. Undoable. */
+    Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
+    /** The day view's task ghost for a click at `minute`: {start, end} between the day's
+     *  `items` (agendaDays), -1/-1 on busy time or outside 07-22 (AgendaLogic::ghostSlot). */
+    Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const;
+    /** Quick Add in the Agenda: the text is read like the list's Quick Add (date, priority,
+     *  labels, project); without a date in it the task lands on `day`, as a block from
+     *  `start` to `end` (minutes) when given, else all-day. */
+    Q_INVOKABLE void agendaAddTask(const QString &summary, qint64 collectionId, const QDate &day,
+                                   int start = -1, int end = -1);
+    /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
+     *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
+    Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
+    /** Open tasks on a past day (local time, as the week's columns) for the week board's tray,
+     *  oldest day first, within a day in triage order (TaskLogic::triageQueue). */
+    Q_INVOKABLE QVariantList agendaOverdue() const;
+    /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
+    Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
     /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest
@@ -530,6 +570,7 @@ signals:
     void managementViewChanged();
     void searchQueryChanged();
     void agendaSelectedDateChanged();
+    void agendaSettingsChanged();
     void showCompletedChanged();
     void selectedCollectionIdChanged();
     void selectedLabelChanged();
@@ -623,6 +664,8 @@ enum class SyncResult { Error, Ok };
     void pushUndo(TaskLogic::UndoRecord record);
     void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
+    /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */
+    void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
     void checkReminders();
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
     void refreshBusyEvents();
@@ -853,6 +896,9 @@ enum class SyncResult { Error, Ok };
     int m_pendingBusyFetchJobs = 0;
     QVector<TaskCalendar::BusyInterval> m_busyFetchIntervals;
     QDate m_agendaSelectedDate = QDate::currentDate();
+    QString m_agendaMode = AgendaLogic::Mode::Day;
+    bool m_agendaWeekend = true;
+    int m_agendaWorkMinutes = AgendaLogic::kDefaultWorkMinutes;
 
     static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
     static QList<Akonadi::Collection> s_collections;

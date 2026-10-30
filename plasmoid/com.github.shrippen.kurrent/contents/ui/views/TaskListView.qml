@@ -25,8 +25,6 @@ ColumnLayout {
     property var selectedItemId: -1
     property int expandedIndex: -1
     property bool deleteModeEnabled: false
-    property string pendingNewTask: ""
-    property var askProjects: []
 
     Layout.fillWidth: true
     Layout.fillHeight: true
@@ -788,14 +786,13 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: controller.emptyKind === "" || controller.emptyKind === "empty" || controller.emptyKind === "error"
 
-        QuickAddField {
+        TaskQuickAdd {
             id: newTaskField
             Layout.fillWidth: true
             placeholderText: i18n("Add a task…  tomorrow 18:00 !high #tag @project")
             controller: root.controller
-            projects: root.writableProjects
+            hiddenProjects: root.hiddenProjects
             popupHost: root.dragHost || root
-            onAccepted: root.addTask()
         }
 
         // Primary action next to Quick Add: highlighted button (Plasma), accent square (Kante).
@@ -851,109 +848,6 @@ ColumnLayout {
         }
     }
 
-    Item {
-        Layout.preferredWidth: 0
-        Layout.preferredHeight: 0
-        Layout.maximumWidth: 0
-        Layout.maximumHeight: 0
-        width: 0
-        height: 0
-
-        QQC2.Popup {
-            id: projectAskPopup
-            KantePopupSkin { popup: projectAskPopup }
-            parent: root.dragHost || root
-            popupType: QQC2.Popup.Item
-            modal: true
-            dim: true
-            focus: true
-            clip: true
-            padding: Design.spaceSmall
-            closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-            z: 1500
-
-        width: Math.min(Kirigami.Units.gridUnit * 18,
-                        Math.max(Kirigami.Units.gridUnit * 12, parent.width - Design.spaceMedium * 2))
-        x: Math.round((parent.width - width) / 2)
-        y: Math.round((parent.height - implicitHeight) / 2)
-
-        background: Rectangle {
-            radius: 4
-            color: Kirigami.Theme.backgroundColor
-            border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.25)
-            border.width: 1
-        }
-
-        contentItem: ColumnLayout {
-            spacing: Design.spaceSmall
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                font.bold: true
-                text: root.pendingNewTask
-                      ? i18n("Choose a project for “%1”", root.pendingNewTask)
-                      : i18n("Choose a project")
-            }
-
-            ListView {
-                id: projectAskList
-                Layout.fillWidth: true
-                Layout.preferredHeight: Math.min(contentHeight,
-                                                 Kirigami.Units.gridUnit * 12)
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                model: root.askProjects
-                spacing: 0
-
-                delegate: QQC2.ItemDelegate {
-                    required property var modelData
-                    width: projectAskList.width
-                    onClicked: root.confirmNewTask(modelData.collectionId)
-
-                    contentItem: RowLayout {
-                        spacing: Design.spaceSmall
-                        Kirigami.Icon {
-                            source: "folder"
-                            color: Design.colorForKey(String(modelData.collectionId))
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            Layout.alignment: Qt.AlignVCenter
-                            width: Kirigami.Units.iconSizes.small
-                            height: Kirigami.Units.iconSizes.small
-                        }
-                        QQC2.Label {
-                            Layout.fillWidth: true
-                            text: modelData.name
-                            elide: Text.ElideRight
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
-                }
-
-                QQC2.ScrollBar.vertical: QQC2.ScrollBar {
-                    policy: projectAskList.contentHeight > projectAskList.height
-                            ? QQC2.ScrollBar.AlwaysOn
-                            : QQC2.ScrollBar.AlwaysOff
-                }
-            }
-
-            KanteButton {
-                Layout.alignment: Qt.AlignRight
-                text: i18n("Cancel")
-                onClicked: projectAskPopup.close()
-            }
-        }
-
-        onClosed: {
-            if (root.pendingNewTask) {
-                newTaskField.text = root.pendingNewTask
-                root.pendingNewTask = ""
-            }
-        }
-        }
-    }
-
     // hiddenProjects only re-triggers the binding; the controller applies it.
     readonly property var writableProjects: {
         var _count = controller.collectionModel ? controller.collectionModel.count : 0
@@ -961,37 +855,4 @@ ColumnLayout {
         return controller.writableProjects()
     }
 
-    function confirmNewTask(collectionId) {
-        var text = pendingNewTask
-        pendingNewTask = ""
-        projectAskPopup.close()
-        if (text && collectionId > 0) {
-            controller.createTask(text, collectionId)
-        }
-    }
-
-    function addTask() {
-        var text = newTaskField.text.trim()
-        if (!text) {
-            return
-        }
-        var parsed = controller.parseQuickAdd(text, Qt.locale().name, writableProjects)
-        if (parsed && parsed.collectionId > 0) {
-            controller.createTask(text, parsed.collectionId)
-            newTaskField.text = ""
-            return
-        }
-        // Selected project, the "new task project" setting, or the only one (controller).
-        var target = controller.newTaskTarget()
-        if (!target.ask) {
-            controller.createTask(text, target.collectionId)
-            newTaskField.text = ""
-            return
-        }
-
-        pendingNewTask = text
-        newTaskField.text = ""
-        askProjects = target.choices
-        projectAskPopup.open()
-    }
 }

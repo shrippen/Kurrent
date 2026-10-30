@@ -25,4 +25,28 @@ PLURAL_AGENDA = {
         "ja": ["%1 件の予定"],
         "zh_CN": ["%1 个日程", "%1 个日程"],
     },
+    "✓ %1 done": {
+        "msgid_plural": "✓ %1 done",
+        "de": ["✓ %1 erledigt", "✓ %1 erledigt"],
+        "es": ["✓ %1 hecha", "✓ %1 hechas"],
+        "fr": ["✓ %1 terminée", "✓ %1 terminées"],
+        "ja": ["✓ %1 件完了"],
+        "zh_CN": ["✓ 已完成 %1 个", "✓ 已完成 %1 个"],
+    },
+    "↑ %1 in Overdue": {
+        "msgid_plural": "↑ %1 in Overdue",
+        "de": ["↑ %1 in Überfällig", "↑ %1 in Überfällig"],
+        "es": ["↑ %1 en Vencidas", "↑ %1 en Vencidas"],
+        "fr": ["↑ %1 dans En retard", "↑ %1 dans En retard"],
+        "ja": ["↑ 期限切れに %1 件"],
+        "zh_CN": ["↑ 逾期中有 %1 个", "↑ 逾期中有 %1 个"],
+    },
+    "+%1 more": {
+        "msgid_plural": "+%1 more",
+        "de": ["+%1 weitere", "+%1 weitere"],
+        "es": ["+%1 más", "+%1 más"],
+        "fr": ["+%1 de plus", "+%1 de plus"],
+        "ja": ["他 %1 件"],
+        "zh_CN": ["另有 %1 个", "另有 %1 个"],
+    },
 }

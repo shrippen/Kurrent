@@ -24,7 +24,8 @@ Item {
     visible: false
 
     readonly property var allStyles: ["plasma", "kante", "kanteLight"]
-    readonly property var allModes: ["list", "kanban", "swimlane", "plan", "heatmap", "calendar"]
+    // "calendar" is the Agenda's day view; "calendar-week" and "calendar-month" its other views.
+    readonly property var allModes: ["list", "kanban", "swimlane", "plan", "heatmap", "calendar", "calendar-week", "calendar-month"]
     // Grid units: 30 = flyout default (narrow layout with tabs), 60 = wide layout with sidebar,
     // 80 = wide enough for the inspector beside the list.
     readonly property var allWidths: [30, 60, 80]
@@ -58,15 +59,50 @@ Item {
         var inspector = planValue("inspector", ["1"])[0] === "1"
         // Mid-animation frame of a view switch (list -> kanban), to see what slides where.
         var transition = planValue("transition", ["0"])[0] === "1"
+        // The Agenda's date picker, opened from the toolbar (after the calendar modes).
+        var picker = planValue("picker", ["0"])[0] === "1"
+        // The day view's task ghost (tap on empty time) on the first day: ghost=1 at 12:00,
+        // or ghost=<minute of day>.
+        // Agenda days to pick before each calendar shot, e.g. days=2026-09-30,2026-10-01.
+        var days = planValue("days", [])
+        var ghostValue = Number(planValue("ghost", ["0"])[0])
+        var ghost = ghostValue > 0
+        var ghostMinute = ghostValue === 1 ? 12 * 60 : ghostValue
         var q = []
         q.push({ act: "expand" })
+        // Settings for the run, e.g. set=agendaWorkMinutes:360,agendaWeekend:false (the config
+        // home's kurrentrc is replaced by the widget's defaults at start).
+        var settings = planValue("set", [])
+        for (var k = 0; k < settings.length; ++k) {
+            var pair = settings[k].split(":")
+            if (pair.length === 2) {
+                q.push({ act: "setting", key: pair[0], value: pair[1] })
+            }
+        }
         for (var w = 0; w < widths.length; ++w) {
             q.push({ act: "width", value: widths[w] })
             for (var s = 0; s < styles.length; ++s) {
                 q.push({ act: "style", value: styles[s] })
                 for (var m = 0; m < modes.length; ++m) {
                     q.push({ act: "mode", value: modes[m] })
+                    if (days.length > 0 && modes[m].indexOf("calendar") === 0) {
+                        for (var d = 0; d < days.length; ++d) {
+                            q.push({ act: "day", value: days[d] })
+                            q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-" + modes[m] + "-" + days[d] })
+                        }
+                        continue
+                    }
                     q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-" + modes[m] })
+                }
+                if (ghost) {
+                    q.push({ act: "mode", value: "calendar-day" })
+                    q.push({ act: "ghost", value: ghostMinute })
+                    q.push({ act: "shot", name: styles[s] + "-" + widths[w] + "gu-ghost" })
+                }
+                if (picker) {
+                    q.push({ act: "mode", value: "calendar-day" })
+                    q.push({ act: "picker" })
+                                        q.push({ act: "closePicker" })
                 }
                 if (transition) {
                     q.push({ act: "mode", value: "list" })
@@ -119,16 +155,27 @@ Item {
             backend.selectMainPaneMode(item.value)
             wait = 110
             break
+        case "setting": {
+            var v = item.value
+            backend.storeSetting(item.key, v === "true" ? true : v === "false" ? false : (isNaN(Number(v)) ? v : Number(v)))
+            wait = 300
+            break
+        }
         case "style":
             // Through the settings: main.qml re-applies Design from them on every settings
             // change (e.g. the next view-mode switch), so an in-memory value would not stick.
             backend.storeSetting("uiStyle", item.value)
             wait = 800
             break
-        case "mode":
-            backend.selectMainPaneMode(item.value)
+        case "mode": {
+            var parts = item.value.split("-")
+            backend.selectMainPaneMode(parts[0])
+            if (parts[0] === "calendar") {
+                backend.selectAgendaMode(parts.length > 1 ? parts[1] : "day")
+            }
             wait = 1400
             break
+        }
         case "editor": {
             var snap = fullRoot.taskList && fullRoot.taskList.firstTaskSnapshot
                     ? fullRoot.taskList.firstTaskSnapshot() : null
@@ -149,6 +196,35 @@ Item {
             wait = 900
             break
         }
+        case "day": {
+            var p = item.value.split("-").map(Number)
+            if (fullRoot.calendarView) {
+                fullRoot.calendarView.jumpTo(new Date(p[0], p[1] - 1, p[2]))
+            }
+            wait = 900
+            break
+        }
+        case "ghost":
+            if (fullRoot.calendarView) {
+                fullRoot.calendarView.openTaskGhost(item.value)
+            }
+            wait = 700
+            break
+        case "picker":
+            if (fullRoot.calendarView) {
+                fullRoot.calendarView.openDatePicker()
+            }
+            wait = 700
+            break
+        case "closePicker":
+            if (fullRoot.calendarView) {
+                // The popup sits in the window overlay, which a shot does not catch: log where
+                // it opened against its button instead.
+                trace("KURRENT_SCREENSHOT_PICKER " + fullRoot.calendarView.datePickerGeometry())
+                fullRoot.calendarView.closeDatePicker()
+            }
+            wait = 300
+            break
         case "closeInspector":
             fullRoot.inspectedItemId = -1
             wait = 300

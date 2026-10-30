@@ -149,6 +149,7 @@ struct QuickAdd {
     QString summary;
     QDateTime due;
     bool hasDue = false;
+    bool hasDate = false; // the text named a day; a time alone takes today or tomorrow
     bool allDay = false;
     int priority = 0;
     QStringList labels;

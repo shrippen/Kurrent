@@ -842,6 +842,7 @@ QuickAdd parseQuickAdd(const QString &rawIn, const QDate &today, const QTime &no
 
     if (sawDate || sawTime || tonightHour >= 0) {
         out.hasDue = true;
+        out.hasDate = sawDate || tonightHour >= 0;
         if (!sawDate) {
             dueDate = today;
             if (sawTime && dueTime.isValid() && dueTime < now) {

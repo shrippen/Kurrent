@@ -18,6 +18,12 @@ Item {
     property string uiLanguage: Qt.locale().name
 
     signal accepted()
+    /** Escape while no suggestion is open. */
+    signal escaped()
+    /** Keep Escape for `escaped` (an Agenda field that closes); otherwise it goes on to the
+     *  window, so it still closes the panel popup from the list's field. */
+    property bool takesEscape: false
+    readonly property alias fieldFocus: field.activeFocus
 
     implicitHeight: field.implicitHeight
     implicitWidth: field.implicitWidth
@@ -286,6 +292,11 @@ Item {
                     event.accepted = true
                     return
                 }
+            }
+            if (event.key === Qt.Key_Escape) {
+                root.escaped()
+                event.accepted = root.takesEscape
+                return
             }
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 var token = root.currentToken()

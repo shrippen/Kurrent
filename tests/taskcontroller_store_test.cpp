@@ -45,6 +45,9 @@ private Q_SLOTS:
     void agendaMoveToDayKeepsAnEarlierStart();
     void agendaBlockUntilMidnightStaysOnTheDay();
     void agendaBlockUntilNextMidnightStaysOnItsDay();
+    void agendaBoardsShiftAndCount();
+    void agendaShiftLeavesSeriesAndUsesLocalDays();
+    void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -666,6 +669,189 @@ void TaskControllerStoreTest::agendaPlacesTasksInFreeTime()
     QVERIFY(found);
 }
 
+void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
+{
+    const QDate day = QDate::currentDate().addDays(2);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+
+    // Like the list's Quick Add: priority and label from the text; the slot gives the time.
+    m_controller->agendaAddTask(QStringLiteral("Call the harbour !high #calls"), 10, day, 10 * 60, 10 * 60 + 45);
+    // No time: an all-day task on the day.
+    m_controller->agendaAddTask(QStringLiteral("Whole day"), 10, day);
+    // A date in the text wins over the day.
+    m_controller->agendaAddTask(QStringLiteral("Elsewhere tomorrow"), 10, day);
+    // A time without a date stays on the day: due then, or the slot moved to it.
+    m_controller->agendaAddTask(QStringLiteral("Ring the port 15:00"), 10, day);
+    m_controller->agendaAddTask(QStringLiteral("Ghost call 16:00"), 10, day, 10 * 60, 10 * 60 + 45);
+    // Late in the evening the block ends at midnight's last minute, still on the day.
+    m_controller->agendaAddTask(QStringLiteral("Late call 23:30"), 10, day, 21 * 60, 22 * 60);
+    waitStore(spy, 6);
+
+    const QVariantMap board = m_controller->agendaDays(day, 1).first().toMap();
+    const QVariantList items = board.value(QStringLiteral("items")).toList();
+    QCOMPARE(items.size(), 3);
+    QMap<QString, QVariantMap> byName;
+    for (const QVariant &item : items) {
+        const QVariantMap map = item.toMap();
+        byName.insert(map.value(QStringLiteral("summary")).toString(), map);
+    }
+    const QVariantMap timed = byName.value(QStringLiteral("Call the harbour"));
+    const QVariantMap moved = byName.value(QStringLiteral("Ghost call"));
+    const QVariantMap late = byName.value(QStringLiteral("Late call"));
+    QCOMPARE(late.value(QStringLiteral("start")).toInt(), 23 * 60 + 30);
+    QCOMPARE(late.value(QStringLiteral("end")).toInt(), 24 * 60); // stored 23:59, read as 24:00
+    QCOMPARE(timed.value(QStringLiteral("summary")).toString(), QStringLiteral("Call the harbour"));
+    QCOMPARE(timed.value(QStringLiteral("start")).toInt(), 10 * 60);
+    QCOMPARE(timed.value(QStringLiteral("end")).toInt(), 10 * 60 + 45);
+    QCOMPARE(timed.value(QStringLiteral("priority")).toInt(), 1);
+    QCOMPARE(timed.value(QStringLiteral("categories")).toStringList(), QStringList{QStringLiteral("calls")});
+    QCOMPARE(moved.value(QStringLiteral("summary")).toString(), QStringLiteral("Ghost call"));
+    QCOMPARE(moved.value(QStringLiteral("start")).toInt(), 16 * 60);
+    QCOMPARE(moved.value(QStringLiteral("end")).toInt(), 16 * 60 + 45);
+    const QVariantList loose = board.value(QStringLiteral("loose")).toList();
+    QCOMPARE(loose.size(), 2);
+    QStringList looseNames;
+    for (const QVariant &task : loose) {
+        looseNames.append(task.toMap().value(QStringLiteral("summary")).toString());
+    }
+    looseNames.sort();
+    QCOMPARE(looseNames, (QStringList{QStringLiteral("Ring the port"), QStringLiteral("Whole day")}));
+    const QVariantMap tomorrow = m_controller->agendaDays(QDate::currentDate().addDays(1), 1).first().toMap();
+    QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
+}
+
+void TaskControllerStoreTest::agendaShiftLeavesSeriesAndUsesLocalDays()
+{
+    const QDate today = QDate::currentDate();
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    // A recurring task is not moved in the week and month boards (owner decision in #23): it
+    // stays as it is, and in the tray.
+    m_controller->installTestTask(1, QStringLiteral("weekly"), 10);
+    m_controller->updateTaskFull(1, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-3), QTime(10, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today.addDays(-3), QTime(11, 0))},
+        {QStringLiteral("recurrencePreset"), QStringLiteral("weekly")},
+    });
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    m_controller->agendaShiftToDay(1, today);
+    QCOMPARE(spy.count(), 1);
+    const QVariantMap kept = m_controller->taskSnapshotById(1);
+    QCOMPARE(kept.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-3), QTime(10, 0)));
+    QCOMPARE(kept.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-3), QTime(11, 0)));
+    QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    m_controller->setTaskCompleted(1, true); // out of the tray for the cases below
+    waitStore(spy, 2);
+
+    // Not recurring, start days before due: both move by the same days.
+    m_controller->installTestTask(3, QStringLiteral("long"), 10);
+    m_controller->updateTaskFull(3, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-5), QTime(10, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today.addDays(-3), QTime(11, 0))},
+    });
+    waitStore(spy, 3);
+    m_controller->agendaShiftToDay(3, today);
+    waitStore(spy, 4);
+    const QVariantMap longMoved = m_controller->taskSnapshotById(3);
+    QCOMPARE(longMoved.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-2), QTime(10, 0)));
+    QCOMPARE(longMoved.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(11, 0)));
+    m_controller->undo();
+    waitStore(spy, 5);
+    QCOMPARE(m_controller->taskSnapshotById(3).value(QStringLiteral("dueDate")).toDateTime().toLocalTime(),
+             QDateTime(today.addDays(-3), QTime(11, 0)));
+    m_controller->setTaskCompleted(3, true);
+    waitStore(spy, 6);
+
+    // DUE in UTC on the day before but today in local time: on today's column, not in the tray.
+    const QDateTime utc = QDateTime(today, QTime(0, 30)).toUTC();
+    if (utc.date() < today) {
+        m_controller->installTestTask(2, QStringLiteral("utc"), 10);
+        m_controller->updateTaskFull(2, {{QStringLiteral("dueDate"), utc}});
+        waitStore(spy, 7);
+        QVERIFY(m_controller->agendaOverdue().isEmpty());
+    }
+    // West of UTC: DUE today in UTC but yesterday here is on yesterday's column, so in the tray.
+    const QDateTime west = QDateTime(today.addDays(-1), QTime(21, 0)).toUTC();
+    if (west.date() == today) {
+        m_controller->installTestTask(4, QStringLiteral("west"), 10);
+        m_controller->updateTaskFull(4, {{QStringLiteral("dueDate"), west}});
+        waitStore(spy, 7);
+        QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    }
+}
+
+void TaskControllerStoreTest::agendaBoardsShiftAndCount()
+{
+    m_controller->installTestTask(1, QStringLiteral("block"), 10);
+    m_controller->installTestTask(2, QStringLiteral("loose"), 10);
+    m_controller->installTestTask(3, QStringLiteral("late"), 10);
+    const QDate day = QDate::currentDate().addDays(2);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->agendaSetBlock(1, day, 9 * 60, 10 * 60);
+    m_controller->agendaMoveToDay(2, day);
+    m_controller->agendaMoveToDay(3, QDate::currentDate().addDays(-3));
+    waitStore(spy, 3);
+
+    // Board fields: open tasks with the block first, load 60 + 30 minutes.
+    QVariantMap board = m_controller->agendaDays(day, 1).first().toMap();
+    QVariantList open = board.value(QStringLiteral("open")).toList();
+    QCOMPARE(open.size(), 2);
+    QCOMPARE(open.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("block"));
+    QCOMPARE(open.first().toMap().value(QStringLiteral("start")).toInt(), 9 * 60);
+    QCOMPARE(board.value(QStringLiteral("load")).toInt(), 90);
+
+    // Moving a day on keeps the time; a task without a date becomes all-day there.
+    m_controller->agendaShiftToDay(1, day.addDays(1));
+    waitStore(spy, 4);
+    const QVariantMap moved = m_controller->agendaDays(day.addDays(1), 1).first().toMap();
+    QCOMPARE(moved.value(QStringLiteral("items")).toList().size(), 1);
+    QCOMPARE(moved.value(QStringLiteral("items")).toList().first().toMap().value(QStringLiteral("start")).toInt(), 9 * 60);
+    m_controller->installTestTask(4, QStringLiteral("undated"), 10);
+    m_controller->agendaShiftToDay(4, day);
+    waitStore(spy, 5);
+    board = m_controller->agendaDays(day, 1).first().toMap();
+    QCOMPARE(board.value(QStringLiteral("loose")).toList().size(), 2);
+
+    // Overdue tray holds the late task only.
+    const QVariantList overdue = m_controller->agendaOverdue();
+    QCOMPARE(overdue.size(), 1);
+    QCOMPARE(overdue.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("late"));
+
+    // A block from yesterday until midnight sits on yesterday's column, so it is in the tray
+    // too, though its DUE (today 00:00) is not before today.
+    const QDate today = QDate::currentDate();
+    m_controller->installTestTask(5, QStringLiteral("night"), 10);
+    m_controller->updateTaskFull(5, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-1), QTime(23, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today, QTime(0, 0))},
+    });
+    waitStore(spy, 6);
+    QCOMPARE(m_controller->agendaDays(today.addDays(-1), 1).first().toMap().value(QStringLiteral("open")).toList().size(), 1);
+    QCOMPARE(m_controller->agendaOverdue().size(), 2);
+    // "All to today" shifts it like a drop on today: the block moves with its times.
+    m_controller->agendaShiftToDay(5, today);
+    waitStore(spy, 7);
+    QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    const QVariantList tonight = m_controller->agendaDays(today, 1).first().toMap().value(QStringLiteral("items")).toList();
+    QCOMPARE(tonight.size(), 1);
+    QCOMPARE(tonight.first().toMap().value(QStringLiteral("start")).toInt(), 23 * 60);
+
+    // Month: six weeks, or six times five workdays; counts include open tasks.
+    QCOMPARE(m_controller->agendaMonth(day, true).size(), 42);
+    const QVariantList workdays = m_controller->agendaMonth(day, false);
+    QCOMPARE(workdays.size(), 30);
+    bool found = false;
+    for (const QVariant &value : m_controller->agendaMonth(day, true)) {
+        const QVariantMap cell = value.toMap();
+        if (cell.value(QStringLiteral("date")).toDate() == day) {
+            found = true;
+            QCOMPARE(cell.value(QStringLiteral("count")).toInt(), 2);
+            QCOMPARE(cell.value(QStringLiteral("level")).toInt(), 1); // two entries: the first step
+        }
+    }
+    QVERIFY(found);
+}
+
 void TaskControllerStoreTest::demoModeLoadsWorldTasks()
 {
     qputenv("KURRENT_DEMO", "en");
@@ -785,6 +971,20 @@ void TaskControllerStoreTest::sessionBridgesConfiguration()
     m_controller->storeSetting(QStringLiteral("planShowUndated"), false);
     QCOMPARE(m_controller->planShowUndated(), false);
     QCOMPARE(config.value(QStringLiteral("planShowUndated")).toBool(), false);
+    m_controller->selectAgendaMode(QStringLiteral("month"));
+    m_controller->selectAgendaWeekend(false);
+    QCOMPARE(stored(QStringLiteral("agendaMode")).toString(), QStringLiteral("month"));
+    QCOMPARE(stored(QStringLiteral("agendaWeekend")).toBool(), false);
+    QCOMPARE(m_controller->agendaMode(), QStringLiteral("month"));
+    QVERIFY(!m_controller->agendaWeekend());
+    m_controller->selectAgendaMode(QStringLiteral("nonsense"));
+    QCOMPARE(m_controller->agendaMode(), QStringLiteral("day"));
+    // Workday length from the settings page; unset or nonsense means 8 hours.
+    QCOMPARE(m_controller->agendaWorkMinutes(), 480);
+    SharedSettings::instance()->store(QStringLiteral("agendaWorkMinutes"), 450);
+    QCOMPARE(m_controller->agendaWorkMinutes(), 450);
+    SharedSettings::instance()->store(QStringLiteral("agendaWorkMinutes"), 0);
+    QCOMPARE(m_controller->agendaWorkMinutes(), 480);
 
     // Kanban columns: the matching sidebar filter is cleared.
     m_controller->setSelectedLabel(QStringLiteral("work"));

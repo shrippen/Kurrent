@@ -1,15 +1,18 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import "../components"
 import ".."
 import "../datetime.js" as DateTime
-import "../colors.js" as Colors
-import org.kde.plasma.plasmoid 2.0
+import "../focus.js" as Focus
 import "../Kante"
 
+// The Agenda: day (hour grids and suggestions), week board and month, switched in the date
+// bar. All three share one date (controller.agendaSelectedDate); the mode and the weekend
+// switch persist. Keys: T, W, M switch the view, ← → step, H goes to today.
 ColumnLayout {
     id: root
 
@@ -24,11 +27,13 @@ ColumnLayout {
     Layout.minimumHeight: 0
     spacing: Design.spaceMedium
 
-    property bool weekMode: false
-    property bool includeWeekend: true
-    property bool weekStacked: true
-
-    readonly property int chipIconSize: Kirigami.Units.iconSizes.small
+    readonly property string mode: controller ? controller.agendaMode : "day"
+    readonly property bool weekend: controller ? controller.agendaWeekend : true
+    readonly property var modes: [
+        { id: "day", text: i18n("Day"), key: "T" },
+        { id: "week", text: i18n("Week"), key: "W" },
+        { id: "month", text: i18n("Month"), key: "M" }
+    ]
 
     // ── Date sync ─────────────────────────────────────────────────
     property date selectedDay: {
@@ -38,8 +43,7 @@ ColumnLayout {
             if (d && !isNaN(d.getTime()))
                 return d
         }
-        var now = new Date()
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        return today()
     }
 
     onSelectedDayChanged: {
@@ -54,7 +58,7 @@ ColumnLayout {
 
     /** Days the day view shows from listStart. */
     readonly property int dayCount: 14
-    // First of the day view's days. Moves with the date bar (‹ › Today, picker), not with a
+    // First of the day view's days. Moves with the date bar and the view switch, not with a
     // click on a day inside the list.
     property date listStart: new Date()
     function jumpTo(d) {
@@ -81,19 +85,22 @@ ColumnLayout {
         }
     }
 
-    // Re-evaluate when the model rebuilds
+    // Re-evaluate when the model rebuilds (every task change ends with one).
     Connections {
         target: controller
         function onListReorganizingChanged() {
             if (!controller.listReorganizing)
                 root._modelRev++
         }
+        function onEventBusySettingsChanged() { root._eventsRev++ }
     }
     property int _modelRev: 0
+    property int _eventsRev: 0
+    readonly property int revision: _modelRev + _eventsRev
+                                    + (controller && controller.taskModel ? controller.taskModel.count : 0)
 
     // Startup safety net: re-evaluate after async data loads
     Timer {
-        id: startupTimer
         interval: 800
         running: true
         onTriggered: {
@@ -103,252 +110,208 @@ ColumnLayout {
     }
 
     // ── Helpers ────────────────────────────────────────────────────
+    function today() {
+        var now = new Date()
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    }
     function addDays(d, n) {
         var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
         r.setDate(r.getDate() + n)
         return r
     }
-
     function mondayOf(d) {
         var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
         r.setDate(r.getDate() - ((r.getDay() + 6) % 7))
         return r
     }
+    readonly property bool onToday: DateTime.isoDateKey(selectedDay) === DateTime.isoDateKey(today())
 
-    function formatWeekLabel(start, end) {
-        var s = Qt.locale().toString(start, "d MMM")
-        var e = Qt.locale().toString(end, "d MMM yyyy")
-        return s + " \u2013 " + e
-    }
-
-    function formatDue(d) {
-        if (!d) return ""
-        var now = new Date()
-        var today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        var diff = Math.round((d - today) / 86400000)
-        if (diff === 0) return i18n("Today")
-        if (diff === 1) return i18n("Tomorrow")
-        if (diff === -1) return i18n("Yesterday")
-        return Qt.locale().toString(d, "d MMM")
-    }
-
-    // ── Visible days ──────────────────────────────────────────────
-    readonly property var agendaDays: {
-        if (weekMode) {
-            var mon = mondayOf(selectedDay)
-            var count = includeWeekend ? 7 : 5
-            var arr = []
-            for (var i = 0; i < count; ++i)
-                arr.push(addDays(mon, i))
-            return arr
-        }
-        return [selectedDay]
-    }
-
-    readonly property date rangeStart: agendaDays.length > 0 ? agendaDays[0] : selectedDay
-    readonly property date rangeEnd: agendaDays.length > 0 ? agendaDays[agendaDays.length - 1] : selectedDay
-
-    // ── Events ────────────────────────────────────────────────────
-    property int _eventsRev: 0
-    Connections {
-        target: controller
-        function onEventBusySettingsChanged() { root._eventsRev++ }
-    }
-
-    function eventsForDay(d) {
-        var _r = root._eventsRev
-        return controller ? controller.agendaEventsForDay(d) : []
-    }
-
-    // ── Tasks ─────────────────────────────────────────────────────
-    readonly property var tasksByDay: {
-        var _dep = _modelRev + (controller && controller.taskModel ? controller.taskModel.count : 0)
-        var _reorg = controller ? controller.listReorganizing : false
-        if (!controller) return {}
-        // Done tasks on their completion day, open ones first (controller).
-        return controller.agendaTasksByDay(rangeStart, rangeEnd)
-    }
-
-    function tasksForDay(d) {
-        return tasksByDay[DateTime.isoDateKey(d)] || []
-    }
-
-    // Figures for the tiles above the pane (FullView / ViewTiles): events and open tasks of the
-    // shown day or week, the next event from now, overdue.
-    readonly property var tileFacts: {
-        var events = 0
-        var tasks = 0
-        var next = null
-        var now = new Date()
-        for (var i = 0; i < agendaDays.length; ++i) {
-            var ev = eventsForDay(agendaDays[i])
-            events += ev.length
-            var ts = tasksForDay(agendaDays[i])
-            for (var j = 0; j < ts.length; ++j) {
-                if (!ts[j].completed) {
-                    tasks++
-                }
+    /** Switch the view, optionally to another day (drill-down); zooms in or out. */
+    function go(nextMode, day) {
+        jumpTo(day || selectedDay)
+        if (nextMode !== mode && controller) {
+            var order = ["day", "week", "month"]
+            stage.zoomIn = order.indexOf(nextMode) < order.indexOf(mode)
+            controller.selectAgendaMode(nextMode)
+            if (!Design.reducedMotion) {
+                zoom.restart()
             }
         }
-        var today = eventsForDay(new Date(now.getFullYear(), now.getMonth(), now.getDate()))
-        for (var k = 0; k < today.length; ++k) {
-            var st = new Date(today[k].start)
-            if (!today[k].allDay && st > now) {
-                next = today[k]
-                break
-            }
+    }
+    function step(n) {
+        if (!controller) {
+            return
         }
-        return [
-            { label: weekMode ? i18n("Events this week") : i18n("Events"), value: String(events),
-              tone: KanteStyle.mutedTextColor },
-            { label: weekMode ? i18n("Tasks this week") : i18n("Tasks due"), value: String(tasks),
-              tone: weekMode ? KanteStyle.mutedTextColor : KanteStyle.accentColor },
-            { label: next ? i18n("Next event · %1", next.summary) : i18n("Next event"),
-              value: next ? Qt.locale().toString(new Date(next.start), Qt.locale().timeFormat(Locale.ShortFormat)) : "–",
-              tone: KanteStyle.mutedTextColor },
-            { label: i18n("Overdue"), viewId: "overdue", tone: KanteStyle.negativeTextColor,
-              value: String(controller && controller.viewTaskCounts ? (controller.viewTaskCounts["overdue"] || 0) : 0) }
-        ]
+        jumpTo(n === 0 ? today() : controller.agendaStep(selectedDay, n))
     }
 
-    // ── Header ────────────────────────────────────────────────────
+    readonly property string title: {
+        var d = selectedDay
+        var week = controller ? controller.isoWeek(d) : 0
+        if (mode === "week") {
+            var mon = mondayOf(d)
+            var end = addDays(mon, weekend ? 6 : 4)
+            return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, "d. MMM"), Qt.locale().toString(end, "d. MMM yyyy"))
+        }
+        if (mode === "month") {
+            return Qt.locale().toString(d, "MMMM yyyy")
+        }
+        return Qt.locale().toString(d, "dddd, d. MMMM yyyy") + " · " + i18n("Week %1", week)
+    }
+    // For a narrow date bar, instead of cutting the long title in the middle of a word.
+    readonly property string shortTitle: {
+        var d = selectedDay
+        var week = controller ? controller.isoWeek(d) : 0
+        if (mode === "week") {
+            var mon = mondayOf(d)
+            var end = addDays(mon, weekend ? 6 : 4)
+            return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, "d.M."), Qt.locale().toString(end, "d.M."))
+        }
+        if (mode === "month") {
+            return Qt.locale().toString(d, "MMM yyyy")
+        }
+        return Qt.locale().toString(d, "ddd d. MMM") + " · " + i18n("Week %1", week)
+    }
+
+    // Keys while the Agenda is shown (text fields keep their letters and arrows). On the desktop
+    // Kurrent shares its window with the folder view and other widgets, so the keys only count
+    // while the focus is inside Kurrent; a press in the Agenda takes it there (see focusTaker).
+    readonly property bool ownsKeys: Focus.inside(Window.activeFocusItem, root.dragHost || root)
+    Shortcut {
+        sequence: "T"
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
+        onActivated: root.go("day")
+    }
+    Shortcut {
+        sequence: "W"
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
+        onActivated: root.go("week")
+    }
+    Shortcut {
+        sequence: "M"
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
+        onActivated: root.go("month")
+    }
+    Shortcut {
+        sequence: "H"
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
+        onActivated: root.step(0)
+    }
+    Shortcut {
+        sequence: "Left"
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
+        onActivated: root.step(-1)
+    }
+    Shortcut {
+        sequence: "Right"
+        enabled: root.visible && root.ownsKeys && !root.interactionsSuspended
+        onActivated: root.step(1)
+    }
+
+    // ── Date bar: view, ‹ title ›, Today, weekend, picker, calendars ──
     RowLayout {
         Layout.fillWidth: true
         spacing: Design.spaceTiny
 
-        KanteToolButton {
-            icon.name: "go-previous"
-            QQC2.ToolTip.text: i18n("Previous")
-            QQC2.ToolTip.visible: hovered
-            onClicked: {
-                if (root.weekMode) {
-                    root.selectedDay = addDays(root.selectedDay, -7)
-                } else {
-                    root.jumpTo(addDays(root.selectedDay, -1))
+        Item {
+            Layout.preferredWidth: modeRow.implicitWidth + Design.spaceTiny * 2
+            Layout.preferredHeight: modeRow.implicitHeight + Design.spaceTiny * 2
+            Rectangle {
+                anchors.fill: parent
+                // As the view-mode toolbar: a quiet fill in Plasma, a frame in Kante.
+                radius: Design.radius
+                color: Design.withAlpha(Kirigami.Theme.textColor, KanteStyle.themed ? 0 : Design.viewModeToolbarFillOpacity)
+                border.color: KanteStyle.themed ? KanteStyle.frameColor : Design.windowBorderColor()
+                border.width: KanteStyle.borderWidth
+            }
+            Row {
+                id: modeRow
+                anchors.centerIn: parent
+                Repeater {
+                    model: root.modes
+                    delegate: KanteToolButton {
+                        required property var modelData
+                        text: modelData.text
+                        checkable: true
+                        checked: root.mode === modelData.id
+                        onClicked: root.go(modelData.id)
+                        QQC2.ToolTip.text: i18n("%1 (key %2)", modelData.text, modelData.key)
+                        QQC2.ToolTip.visible: hovered
+                        QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                    }
                 }
             }
+        }
+
+        KanteToolButton {
+            icon.name: "go-previous"
+            onClicked: root.step(-1)
+            QQC2.ToolTip.text: root.mode === "week" ? i18n("Previous week (←)")
+                               : root.mode === "month" ? i18n("Previous month (←)") : i18n("Previous day (←)")
+            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
         QQC2.Label {
             id: dayLabel
             Layout.fillWidth: true
-            Layout.minimumWidth: dayLabelMetrics.advanceWidth
             horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideMiddle
-            text: {
-                if (root.weekMode)
-                    return formatWeekLabel(root.agendaDays[0], root.agendaDays[root.agendaDays.length - 1])
-                return Qt.locale().toString(root.selectedDay, "dddd, d. MMMM yyyy")
-            }
+            elide: Text.ElideRight
+            text: fullTitle.width <= width ? root.title : root.shortTitle
             font.bold: true
             font.family: Design.headingFamily
             font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
             TextMetrics {
-                id: dayLabelMetrics
-                text: Qt.locale().toString(new Date(), "dddd, d. MMMM yyyy")
+                id: fullTitle
                 font: dayLabel.font
+                text: root.title
             }
         }
 
         KanteToolButton {
             icon.name: "go-next"
-            QQC2.ToolTip.text: i18n("Next")
+            onClicked: root.step(1)
+            QQC2.ToolTip.text: root.mode === "week" ? i18n("Next week (→)")
+                               : root.mode === "month" ? i18n("Next month (→)") : i18n("Next day (→)")
             QQC2.ToolTip.visible: hovered
-            onClicked: {
-                if (root.weekMode) {
-                    root.selectedDay = addDays(root.selectedDay, 7)
-                } else {
-                    root.jumpTo(addDays(root.selectedDay, 1))
-                }
-            }
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
         KanteToolButton {
-            text: root.weekMode ? i18n("This week") : i18n("Today")
-            onClicked: {
-                if (root.weekMode) {
-                    root.selectedDay = mondayOf(new Date())
-                } else {
-                    root.jumpTo(new Date())
-                }
-            }
+            text: i18n("Today")
+            enabled: !root.onToday
+            onClicked: root.step(0)
+            QQC2.ToolTip.text: i18n("Go to today (H)")
+            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+        }
+
+        KanteToolButton {
+            visible: root.mode !== "day"
+            icon.name: "view-calendar-week"
+            checkable: true
+            checked: root.weekend
+            onClicked: root.controller.selectAgendaWeekend(!root.weekend)
+            QQC2.ToolTip.text: root.weekend ? i18n("Hide weekend") : i18n("Show weekend")
+            QQC2.ToolTip.visible: hovered
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
         KanteToolButton {
             id: pickerBtn
             icon.name: "view-calendar-day"
+            onClicked: datePicker.open()
             QQC2.ToolTip.text: i18n("Pick date")
             QQC2.ToolTip.visible: hovered
-            onClicked: datePicker.open()
-        }
-
-        // Week-only: reserve fixed space to prevent toolbar jumping
-        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing * 2; Layout.fillHeight: true }
-        KanteToolButton {
-            visible: root.weekMode
-            icon.name: root.weekStacked ? "view-split-left-right" : "view-list-details"
-            QQC2.ToolTip.text: root.weekStacked ? i18n("Days side by side") : i18n("Days stacked")
-            QQC2.ToolTip.visible: hovered
-            onClicked: root.weekStacked = !root.weekStacked
-        }
-
-        Item { visible: false; Layout.preferredWidth: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing * 2; Layout.fillHeight: true }
-        KanteToolButton {
-            visible: root.weekMode
-            icon.name: "edit-select-all"
-            checkable: true
-            checked: root.includeWeekend
-            QQC2.ToolTip.text: i18n("Include weekend")
-            QQC2.ToolTip.visible: hovered
-            onClicked: root.includeWeekend = !root.includeWeekend
-        }
-
-        // ── Day / Week segmented control ───────────────────────
-        QQC2.ButtonGroup { id: viewModeGroup }
-        Item {
-            id: segCtrl
-            Layout.preferredWidth: segBtnW * 2 + 8
-            Layout.preferredHeight: segBtnH + 8
-            readonly property int segBtnW: Math.max(dayBtn.implicitWidth, weekBtn.implicitWidth)
-            readonly property int segBtnH: Math.max(dayBtn.implicitHeight, weekBtn.implicitHeight)
-
-            Rectangle {
-                anchors.fill: parent
-                radius: Design.inputRadius
-                color: Qt.alpha(Kirigami.Theme.textColor, 0.08)
-            }
-            Row {
-                anchors.fill: parent
-                anchors.margins: 2
-                spacing: 0
-                KanteToolButton {
-                    id: dayBtn
-                    width: parent.width / 2
-                    height: parent.height
-                    text: i18n("Day")
-                    QQC2.ButtonGroup.group: viewModeGroup
-                    checkable: true
-                    checked: !root.weekMode
-                    onClicked: root.weekMode = false
-                }
-                KanteToolButton {
-                    id: weekBtn
-                    width: parent.width / 2
-                    height: parent.height
-                    text: i18n("Week")
-                    QQC2.ButtonGroup.group: viewModeGroup
-                    checkable: true
-                    checked: root.weekMode
-                    onClicked: root.weekMode = true
-                }
-            }
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
 
         KanteToolButton {
             icon.name: "text-calendar"
+            onClicked: calMenu.popup()
             QQC2.ToolTip.text: i18n("Choose calendars")
             QQC2.ToolTip.visible: hovered
-            onClicked: calMenu.popup()
+            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }
 
@@ -375,18 +338,37 @@ ColumnLayout {
     }
 
     // ── Date picker popup ─────────────────────────────────────────
+    // For the screenshot runner (plan key picker=1).
+    function openDatePicker() {
+        datePicker.open()
+    }
+    function datePickerGeometry() {
+        var b = pickerBtn.mapToItem(root, 0, 0)
+        return "opened=" + datePicker.opened + " popup=" + Math.round(datePicker.x) + "," + Math.round(datePicker.y)
+                + " " + Math.round(datePicker.width) + "x" + Math.round(datePicker.height)
+                + " button=" + Math.round(b.x) + "," + Math.round(b.y) + " " + Math.round(pickerBtn.width) + "x" + Math.round(pickerBtn.height)
+                + " view=" + Math.round(root.width) + "x" + Math.round(root.height)
+    }
+    function openTaskGhost(minute) {
+        if (modeLoader.item && modeLoader.item.openGhostAt) {
+            modeLoader.item.openGhostAt(minute)
+        }
+    }
+    function closeDatePicker() {
+        datePicker.close()
+    }
     QQC2.Popup {
         id: datePicker
         KantePopupSkin { popup: datePicker }
-        x: {
+        // Placed when it opens: mapToItem is no binding dependency, so a bound x/y kept the
+        // button's position from before layout (top left). Centred under the icon, above it
+        // only when there is no room below.
+        function place() {
             var p = pickerBtn.mapToItem(root, 0, 0)
-            return Math.max(0, Math.min(p.x - width + pickerBtn.width, root.width - width))
-        }
-        y: {
-            var p = pickerBtn.mapToItem(root, 0, 0)
+            x = Math.max(0, Math.min(p.x + (pickerBtn.width - width) / 2, root.width - width))
             var below = p.y + pickerBtn.height + Design.spaceTiny
             var above = p.y - height - Design.spaceTiny
-            return (below + height < root.height) ? below : Math.max(0, above)
+            y = (below + height <= root.height || above < 0) ? below : above
         }
         width: calGrid.implicitWidth + leftPadding + rightPadding
         height: calGrid.implicitHeight + topPadding + bottomPadding
@@ -395,385 +377,85 @@ ColumnLayout {
         focus: true
         popupType: QQC2.Popup.Item
         closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
-        onAboutToShow: calGrid.resetToSelected()
+        onAboutToShow: {
+            calGrid.resetToSelected()
+            place()
+        }
+        // The grid settles its size after opening (month header, six rows).
+        onWidthChanged: if (visible) place()
+        onHeightChanged: if (visible) place()
         contentItem: CalendarGrid {
             id: calGrid
             selectedDate: root.selectedDay
-            onDateSelected: {
-                if (root.weekMode) {
-                    root.selectedDay = date
-                } else {
-                    root.jumpTo(date)
-                }
+            onDateSelected: function(date) {
+                root.jumpTo(date)
                 datePicker.close()
             }
         }
     }
 
-    // ── Day content ───────────────────────────────────────────────
-    component DayContent: ColumnLayout {
-        id: dayRoot
-        required property var dayDate
-        required property bool compact
-        required property bool showDivider
-        readonly property bool isToday: DateTime.isoDateKey(dayDate) === DateTime.isoDateKey(new Date())
-        readonly property var events: root.eventsForDay(dayDate)
-        readonly property var tasks: root.tasksForDay(dayDate)
-        spacing: Design.spaceSmall
-
-        QQC2.Label {
-            Layout.fillWidth: true
-            text: dayRoot.compact
-                  ? Qt.locale().toString(dayRoot.dayDate, "ddd d. MMM")
-                  : Qt.locale().toString(dayRoot.dayDate, "dddd, d. MMMM yyyy")
-            font.bold: true
-            font.family: Design.headingFamily
-            font.capitalization: KanteStyle.themed ? Font.AllUppercase : Font.MixedCase
-            font.pointSize: dayRoot.compact ? Kirigami.Theme.smallFont.pointSize
-                                            : Kirigami.Theme.defaultFont.pointSize
-            opacity: dayRoot.isToday ? 1.0 : 0.8
-            color: dayRoot.isToday ? KanteStyle.accentTextColor : Kirigami.Theme.textColor
-        }
-
-        // ── Event chips (Flow layout, max 2 lines) ────────────────
-        Flow {
-            Layout.fillWidth: true
-            spacing: Design.spaceTiny
-            visible: dayRoot.events.length > 0
-            Repeater {
-                model: dayRoot.events
-                delegate: Rectangle {
-                    required property var modelData
-                    radius: Design.inputRadius
-                    color: Kirigami.Theme.alternateBackgroundColor
-                    border.color: Kirigami.Theme.disabledTextColor
-                    implicitWidth: evCol.implicitWidth + Design.padInner * 2
-                    implicitHeight: evCol.implicitHeight + Design.padInner
-                    ColumnLayout {
-                        id: evCol
-                        anchors.centerIn: parent
-                        spacing: 0
-                        QQC2.Label {
-                            Layout.maximumWidth: root.showYear ? 180 : 260
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                            text: {
-                                var parts = []
-                                if (!modelData.allDay) {
-                                    var s = modelData.start
-                                    var e = modelData.end
-                                    var from = s ? Qt.locale().toString(s, "HH:mm") : ""
-                                    var to = e ? Qt.locale().toString(e, "HH:mm") : ""
-                                    parts.push(to ? from + " \u2013 " + to : from)
-                                } else {
-                                    parts.push(i18n("All day"))
-                                }
-                                if (modelData.summary) parts.push(modelData.summary)
-                                return parts.join("  ")
-                            }
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        }
-                        QQC2.Label {
-                            visible: modelData.calendarName && modelData.calendarName.length > 0
-                            text: modelData.calendarName
-                            font.pointSize: Kirigami.Theme.smallFont.pixelSize
-                            opacity: 0.5
-                            Layout.maximumWidth: root.showYear ? 180 : 260
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── Task cards ────────────────────────────────────────────
-        Repeater {
-            model: dayRoot.tasks
-            delegate: Rectangle {
-                id: taskCard
-                required property var modelData
-                Layout.fillWidth: true
-                radius: Design.inputRadius
-                color: taskHover.hovered
-                       ? (KanteStyle.themed ? KanteStyle.selectionColor
-                                            : Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
-                                                      Kirigami.Theme.highlightColor.b, 0.08))
-                       : Kirigami.Theme.alternateBackgroundColor
-                implicitHeight: taskBody.implicitHeight + Design.padInner * 2
-
-                RowLayout {
-                    id: taskBody
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: Design.padInner
-                    anchors.rightMargin: Design.padInner
-                    spacing: Design.spaceTiny
-
-                    // Checkbox (clickable to toggle completed)
-                    QQC2.Label {
-                        text: modelData.completed ? "\u25A3" : "\u25A1"
-                        color: modelData.completed ? Kirigami.Theme.highlightColor
-                                                   : Kirigami.Theme.textColor
-                        opacity: taskCheckArea.containsMouse ? 1.0 : (modelData.completed ? 0.6 : 1.0)
-                        MouseArea {
-                            id: taskCheckArea
-                            anchors.fill: parent
-                            hoverEnabled: !root.interactionsSuspended
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: controller.setTaskCompleted(modelData.itemId, !modelData.completed)
-                        }
-                    }
-
-                    // Title + chips
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 2
-
-                        QQC2.Label {
-                            Layout.fillWidth: true
-                            text: modelData.summary || i18n("(Untitled)")
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            elide: Text.ElideRight
-                            opacity: modelData.completed ? 0.5 : 1.0
-                            font.strikeout: modelData.completed
-                        }
-
-                        // Chips row (matching TaskDelegate style)
-                        RowLayout {
-                            visible: (modelData.due)
-                                     || (modelData.priority > 0)
-                                     || (modelData.categories && modelData.categories.length > 0)
-                            spacing: Design.spaceTiny
-                            Layout.maximumHeight: root.chipIconSize
-
-                            // Label icons
-                            Repeater {
-                                model: KanteStyle.active ? [] : (modelData.categories || [])
-                                delegate: Kirigami.Icon {
-                                    required property string modelData
-                                    source: "tag"
-                                    color: Design.colorForKey(modelData, "label")
-                                    Layout.alignment: Qt.AlignVCenter
-                                    Layout.preferredWidth: root.chipIconSize
-                                    Layout.preferredHeight: root.chipIconSize
-                                    width: root.chipIconSize
-                                    height: root.chipIconSize
-                                    QQC2.ToolTip.text: modelData
-                                    QQC2.ToolTip.visible: labelHover.hovered
-                                    QQC2.ToolTip.delay: 400
-                                    HoverHandler { id: labelHover }
-                                }
-                            }
-
-                            // Kante / Kante Light: compact KanteChip (colour square, name as tooltip).
-                            Repeater {
-                                model: KanteStyle.active ? (modelData.categories || []) : []
-                                delegate: KanteChip {
-                                    required property string modelData
-                                    Layout.alignment: Qt.AlignVCenter
-                                    compact: true
-                                    activeFocusOnTab: false
-                                    text: modelData
-                                    chipColor: Design.colorForKey(modelData, "label")
-                                }
-                            }
-
-                            // Priority icon
-                            Kirigami.Icon {
-                                visible: modelData.priority > 0
-                                source: "flag"
-                                color: Design.priorityColor(modelData.priority)
-                                Layout.alignment: Qt.AlignVCenter
-                                Layout.preferredWidth: root.chipIconSize
-                                Layout.preferredHeight: root.chipIconSize
-                                width: root.chipIconSize
-                                height: root.chipIconSize
-                                QQC2.ToolTip.text: {
-                                    var band = Colors.priorityLabel(modelData.priority)
-                                    return i18n("Priority %1 (%2)", modelData.priority, band)
-                                }
-                                QQC2.ToolTip.visible: prioHover.hovered
-                                QQC2.ToolTip.delay: 400
-                                HoverHandler { id: prioHover }
-                            }
-                        }
-                    }
-                }
-
-                // Edit button overlay (appears on hover, no layout impact)
-                KanteToolButton {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.rightMargin: Design.spaceTiny
-                    opacity: taskHover.hovered ? 1.0 : 0.0
-                    icon.name: "document-edit"
-                    icon.width: root.chipIconSize
-                    icon.height: root.chipIconSize
-                    QQC2.ToolTip.text: i18n("Edit task")
-                    QQC2.ToolTip.visible: hovered
-                    onClicked: {
-                        if (root.dragHost && root.dragHost.openFullEditor) {
-                            var taskObj = {
-                                itemId: modelData.itemId,
-                                uid: modelData.uid,
-                                summary: modelData.summary,
-                                completed: modelData.completed,
-                                due: modelData.due,
-                                priority: modelData.priority || 0,
-                                categories: modelData.categories || []
-                            }
-                            root.dragHost.openFullEditor(taskObj)
-                        }
-                    }
-                    Behavior on opacity { NumberAnimation { duration: 100 } }
-                }
-
-                HoverHandler {
-                    id: taskHover
-                    enabled: !root.interactionsSuspended
-                }
-            }
-        }
-
-        QQC2.Label {
-            visible: root.weekMode && dayRoot.events.length === 0 && dayRoot.tasks.length === 0
-            text: i18n("No events or tasks.")
-            opacity: 0.5
-            font.pointSize: Kirigami.Theme.smallFont.pointSize
-        }
-
-        // Empty single day: say so and offer to plan something for it.
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.preferredWidth: dayRoot.width
-            Layout.topMargin: Kirigami.Units.gridUnit * 3
-            visible: !root.weekMode && dayRoot.events.length === 0 && dayRoot.tasks.length === 0
-            spacing: Design.spaceMedium
-
-            Kirigami.Icon {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Kirigami.Units.iconSizes.huge
-                Layout.preferredHeight: Kirigami.Units.iconSizes.huge
-                source: "view-calendar-day"
-                opacity: 0.35
-            }
-            QQC2.Label {
-                Layout.alignment: Qt.AlignHCenter
-                text: i18n("No events or tasks.")
-                color: KanteStyle.mutedTextColor
-            }
-            KanteButton {
-                Layout.alignment: Qt.AlignHCenter
-                visible: !!(root.dragHost && root.dragHost.openNewTaskEditor)
-                icon.name: "list-add"
-                text: i18n("Add task for this day")
-                onClicked: root.dragHost.openNewTaskEditor(-1, { due: dayRoot.dayDate, allDay: true })
-            }
-        }
-
-        // Horizontal divider between days (stacked mode)
-        Kirigami.Separator {
-            Layout.fillWidth: true
-            visible: !dayRoot.compact && root.weekMode
-        }
-    }
-
-    // ── Stacked layout ────────────────────────────────────────────
-    ListView {
-        id: stackedList
-        visible: root.weekMode && root.weekStacked
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        clip: true
-        spacing: Design.spaceMedium
-        model: root.agendaDays
-        delegate: DayContent {
-            required property var modelData
-            required property int index
-            width: ListView.view ? ListView.view.width : 0
-            dayDate: modelData
-            compact: root.weekMode
-            showDivider: false
-        }
-    }
-
-    // ── Day view: hour grids, month calendar, suggestions ───────────
-    AgendaDayView {
-        dayCount: root.dayCount
-        visible: !root.weekMode
-        Layout.fillWidth: true
-        Layout.fillHeight: true
-        controller: root.controller
-        dragHost: root.dragHost
-        interactionsSuspended: root.interactionsSuspended
-        targetDay: root.selectedDay
-        listStart: root.listStart
-        revision: root._modelRev + root._eventsRev
-                  + (root.controller && root.controller.taskModel ? root.controller.taskModel.count : 0)
-        onPickTarget: function(day) { root.selectedDay = day }
-        onJump: function(day) { root.jumpTo(day) }
-    }
-
-    // ── Side-by-side layout (horizontally scrollable with ScrollBar) ──
+    // ── The view ──────────────────────────────────────────────────
     Item {
-        visible: root.weekMode && !root.weekStacked
+        id: stage
         Layout.fillWidth: true
         Layout.fillHeight: true
+        property bool zoomIn: false
 
-        Flickable {
-            id: weekFlick
-            anchors.fill: parent
-            anchors.bottomMargin: weekScrollBar.height
-            clip: true
-            contentHeight: weekCol.implicitHeight
-            contentWidth: weekCol.implicitWidth
-            flickableDirection: Flickable.HorizontalFlick
-            boundsBehavior: Flickable.StopAtBounds
-
-            ColumnLayout {
-                id: weekCol
-                spacing: 0
-                Row {
-                    spacing: 1
-                    Repeater {
-                        model: root.agendaDays
-                        delegate: Item {
-                            required property var modelData
-                            required property int index
-                            width: Math.max(Kirigami.Units.gridUnit * 10,
-                                            root.width / root.agendaDays.length)
-                            height: dayLoader.item ? dayLoader.item.implicitHeight : 0
-                            Loader {
-                                id: dayLoader
-                                anchors.fill: parent
-                                sourceComponent: DayContent {
-                                    dayDate: modelData
-                                    compact: true
-                                    showDivider: index < root.agendaDays.length - 1
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        ParallelAnimation {
+            id: zoom
+            NumberAnimation { target: stage; property: "scale"; from: stage.zoomIn ? 1.04 : 0.96; to: 1; duration: Kirigami.Units.shortDuration; easing.type: Easing.OutCubic }
+            NumberAnimation { target: stage; property: "opacity"; from: 0.3; to: 1; duration: Kirigami.Units.shortDuration; easing.type: Easing.OutCubic }
         }
 
-        QQC2.ScrollBar {
-            id: weekScrollBar
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            orientation: Qt.Horizontal
-            visible: weekFlick.contentWidth > weekFlick.width + 1
-            size: weekFlick.width / weekFlick.contentWidth
-            position: weekFlick.contentX / weekFlick.contentWidth
-            onPositionChanged: {
-                if (weekScrollBar.pressed)
-                    weekFlick.contentX = weekScrollBar.position * weekFlick.contentWidth
-            }
+        Loader {
+            id: modeLoader
+            anchors.fill: parent
+            sourceComponent: root.mode === "week" ? weekView : root.mode === "month" ? monthView : dayView
+        }
+        FocusTaker {
+            id: focusTaker
+            target: root
+            enabled: !root.ownsKeys
+        }
+    }
+
+    Component {
+        id: dayView
+        AgendaDayView {
+            dayCount: root.dayCount
+            controller: root.controller
+            dragHost: root.dragHost
+            interactionsSuspended: root.interactionsSuspended
+            targetDay: root.selectedDay
+            listStart: root.listStart
+            revision: root.revision
+            onPickTarget: function(day) { root.selectedDay = day }
+            onJump: function(day) { root.jumpTo(day) }
+        }
+    }
+    Component {
+        id: weekView
+        AgendaWeekView {
+            controller: root.controller
+            dragHost: root.dragHost
+            interactionsSuspended: root.interactionsSuspended
+            day: root.selectedDay
+            weekend: root.weekend
+            revision: root.revision
+            onOpenDay: function(day) { root.go("day", day) }
+        }
+    }
+    Component {
+        id: monthView
+        AgendaMonthView {
+            controller: root.controller
+            dragHost: root.dragHost
+            interactionsSuspended: root.interactionsSuspended
+            day: root.selectedDay
+            weekend: root.weekend
+            revision: root.revision
+            onPickDay: function(day) { root.selectedDay = day }
+            onOpenDay: function(day) { root.go("day", day) }
         }
     }
 }

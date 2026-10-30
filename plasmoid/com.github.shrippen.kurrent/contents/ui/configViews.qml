@@ -430,6 +430,32 @@ ConfigPageBase {
                 onToggled: cfg_planShowCompleted = checked
             }
 
+            ConfigSection {
+                Kirigami.FormData.isSection: true
+                text: i18n("Agenda")
+            }
+
+            QQC2.SpinBox {
+                Kirigami.FormData.label: i18n("Workday")
+                Layout.fillWidth: true
+                from: 30
+                to: 16 * 60
+                stepSize: 30
+                value: cfg_agendaWorkMinutes > 0 ? cfg_agendaWorkMinutes : 480
+                onValueModified: cfg_agendaWorkMinutes = value
+                textFromValue: function(v) {
+                    var h = Math.floor(v / 60)
+                    var m = v % 60
+                    if (h === 0) {
+                        return i18n("%1 min", m)
+                    }
+                    return m === 0 ? i18n("%1 h", h) : i18n("%1 h %2", h, m < 10 ? "0" + m : m)
+                }
+                valueFromText: function(t) { return value }
+                QQC2.ToolTip.text: i18n("Hours a day holds in the week view: appointments plus estimated task time beyond it mark the day as full.")
+                QQC2.ToolTip.visible: hovered
+            }
+
             // Rarely needed, technical (d3).
             ConfigSection {
                 Kirigami.FormData.isSection: true
@@ -469,7 +495,8 @@ ConfigPageBase {
                 planTimeBucket: "week",
                 planHorizon: 8,
                 planShowUndated: true,
-                planShowCompleted: false
+                planShowCompleted: false,
+                agendaWorkMinutes: 480
             })
         }
     }

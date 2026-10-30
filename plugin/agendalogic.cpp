@@ -300,4 +300,118 @@ QString reasonKey(ReasonKind kind)
     return {};
 }
 
+QString normalizeMode(const QString &mode)
+{
+    if (mode == Mode::Week || mode == Mode::Month) {
+        return mode;
+    }
+    return Mode::Day;
+}
+
+QDate stepDate(const QDate &date, const QString &mode, int n)
+{
+    if (mode == Mode::Week) {
+        return date.addDays(7 * n);
+    }
+    if (mode == Mode::Month) {
+        // QDate::addMonths keeps the day or clamps it to the month's last day.
+        return date.addMonths(n);
+    }
+    return date.addDays(n);
+}
+
+Span ghostSlot(const QList<Span> &taken, int minute, int length)
+{
+    // Only on the 07-22 grid, where drops land too; a widened grid adds no slots.
+    if (minute < kGridStart || minute >= kGridEnd) {
+        return {-1, -1};
+    }
+    const int at = minute / kStep * kStep;
+    int lo = kGridStart;
+    int hi = kGridEnd;
+    for (const Span &span : taken) {
+        if (span.start <= at && at < span.end) {
+            return {-1, -1};
+        }
+        if (span.end <= at) {
+            lo = qMax(lo, span.end);
+        } else if (span.start > at) {
+            hi = qMin(hi, span.start);
+        }
+    }
+    const int end = qMin(at + length, hi);
+    return {qMax(lo, qMin(at, end - length)), end};
+}
+
+int workMinutes(int stored)
+{
+    if (stored <= 0) {
+        return kDefaultWorkMinutes;
+    }
+    return qBound(kWorkStep, stored / kWorkStep * kWorkStep, kMaxWorkMinutes);
+}
+
+int dayLoad(const QList<Span> &events, const QList<TaskEntry> &openTasks)
+{
+    int minutes = 0;
+    for (const Span &event : events) {
+        minutes += event.length();
+    }
+    for (const TaskEntry &task : openTasks) {
+        const Span block = taskBlock(task);
+        minutes += block.isValid() ? block.length() : defaultMinutes(task.priority);
+    }
+    return minutes;
+}
+
+QList<TaskEntry> boardOrder(QList<TaskEntry> tasks)
+{
+    // No priority (0) sorts after low (9).
+    const auto rank = [](const TaskEntry &task) {
+        const int band = TaskLogic::priorityBand(task.priority);
+        return band == TaskLogic::PriorityBand::None ? 10 : band;
+    };
+    std::stable_sort(tasks.begin(), tasks.end(), [&rank](const TaskEntry &a, const TaskEntry &b) {
+        const Span blockA = taskBlock(a);
+        const Span blockB = taskBlock(b);
+        if (blockA.isValid() != blockB.isValid()) {
+            return blockA.isValid();
+        }
+        if (blockA.isValid() && blockA.start != blockB.start) {
+            return blockA.start < blockB.start;
+        }
+        if (rank(a) != rank(b)) {
+            return rank(a) < rank(b);
+        }
+        return QString::localeAwareCompare(a.summary, b.summary) < 0;
+    });
+    return tasks;
+}
+
+QList<QDate> monthGrid(const QDate &anyDay, Weekend weekend)
+{
+    QList<QDate> days;
+    if (!anyDay.isValid()) {
+        return days;
+    }
+    const QDate first(anyDay.year(), anyDay.month(), 1);
+    const QDate monday = first.addDays(1 - first.dayOfWeek());
+    for (int i = 0; i < 42; ++i) {
+        const QDate day = monday.addDays(i);
+        if (weekend == Weekend::Hide && day.dayOfWeek() > 5) {
+            continue;
+        }
+        days.append(day);
+    }
+    return days;
+}
+
+int loadLevel(int count)
+{
+    if (count <= 0) {
+        return 0;
+    }
+    return qMin(3, (count + 1) / 2);
+}
+
 } // namespace AgendaLogic
