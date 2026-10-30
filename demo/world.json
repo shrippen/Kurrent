@@ -130,6 +130,35 @@
    ]
   }
  ],
+ "circle": [
+  {
+   "id": "emi",
+   "name": "Emi Hartmann",
+   "alias": "Emi",
+   "email": "emi.hartmann@example.test",
+   "city": "Hamburg-Ottensen",
+   "relation": {
+    "de": "Lenas Nachbarin im Haus am Kranichweg; kennt das Studio von den Hoffesten",
+    "en": "Lena's neighbour on Kranichweg; knows the studio from the courtyard parties"
+   },
+   "title": {
+    "de": "Logistikplanerin",
+    "en": "Logistics planner"
+   },
+   "languages": [
+    "de",
+    "ja",
+    "en"
+   ],
+   "note": {
+    "de": "Japanische Mutter, in Hamburg aufgewachsen: spricht fließend Familien-Japanisch, aber kein 敬語 und kaum Kanji. Übt für ein Vorstellungsgespräch bei einer japanischen Firma in Düsseldorf.",
+    "en": "Japanese mother, grew up in Hamburg: fluent family Japanese, but no keigo and few kanji. Practises for a job interview with a Japanese company in Düsseldorf."
+   },
+   "shows_up_in": [
+    "Kaiwa"
+   ]
+  }
+ ],
  "known_but_internal": [
   "Kintsugi"
  ],
@@ -784,9 +813,27 @@
     "en": "Two handheld floodlights, 40 batteries"
    },
    "state": "open"
+  },
+  {
+   "id": 12,
+   "vendor": "Copyshop Altona",
+   "day": -6,
+   "amount": 18.4,
+   "number": "CA-2210",
+   "category": {
+    "de": "Druck",
+    "en": "Printing"
+   },
+   "project": "spring",
+   "note": {
+    "de": "Drehpläne kopiert, bar bezahlt",
+    "en": "Shooting schedules copied, paid in cash"
+   },
+   "state": "open"
   }
  ],
  "tasks": {
+  "note": "VTODOs and appointments for Kurrent. items: due/start are day offsets from the anchor Monday, completed a day offset, percent 0-100; time \"HH:MM-HH:MM\" (only with due) makes a task a time block on its due day. events: day offset with start and end as \"HH:MM\"; no task block overlaps an appointment of the same day.",
   "collections": [
    {
     "id": "harbour",
@@ -970,6 +1017,7 @@
      "en": "Export edit version 2"
     },
     "due": 4,
+    "time": "10:00-11:00",
     "priority": 5,
     "labels": [
      "post"
@@ -997,6 +1045,7 @@
      "en": "Match September receipts"
     },
     "due": 3,
+    "time": "10:00-11:00",
     "priority": 5,
     "labels": [
      "orga"
@@ -1036,6 +1085,7 @@
      "en": "Scan film rolls 03 and 04"
     },
     "due": 2,
+    "time": "09:00-10:30",
     "priority": 5,
     "labels": [
      "post"
@@ -1176,6 +1226,7 @@
      "en": "Buy more batteries for the floodlights"
     },
     "due": 3,
+    "time": "15:00-16:30",
     "priority": 5,
     "labels": [
      "shoot"
@@ -1424,6 +1475,21 @@
   "note": "Paperless-ngx: the mobile contract's notice period ends in 20 days, its invoice waits in the inbox.",
   "url": "https://docs.demo",
   "total": 1843,
+  "ids_note": "The documents other services link (Kept's receipts, the scans): 412 is the laptop's invoice; 999, which Kept still links for the phone, is gone.",
+  "ids": [
+   88,
+   201,
+   202,
+   203,
+   204,
+   205,
+   206,
+   311,
+   412,
+   1841,
+   1842,
+   1843
+  ],
   "inbox": 7,
   "oldest_title": {
    "de": "Rechnung Elbnetz Mobilfunk",
@@ -1487,7 +1553,7 @@
    "belege": 212
   },
   "receipts": {
-   "note": "Scans of the receipts and how they meet the expenses: invoice number in both (sure match), linked already, amount and vendor only, the Paperless invoice 311, two scans that add up (1:n), no scan yet, a scan tagged Beleg without an expense. {amount} is filled in.",
+   "note": "Scans of the receipts and how they meet the expenses: invoice number in both (sure match), linked already, amount and vendor only, the Paperless invoice 311, two scans that add up (1:n), no scan yet, a scan tagged Beleg without an expense, a cash receipt with neither expense nor bank booking. {amount} is filled in.",
    "url": "https://invoices.demo",
    "tag": "Beleg",
    "slots": [
@@ -1651,13 +1717,67 @@
        "tagged": true
       }
      ]
+    },
+    {
+     "receipt": 12,
+     "scans": [
+      {
+       "id": 207,
+       "title": {
+        "de": "Quittung Copyshop Altona",
+        "en": "Receipt Copyshop Altona"
+       },
+       "correspondent": "Copyshop Altona",
+       "text": {
+        "de": "Bar bezahlt {amount} EUR",
+        "en": "Paid in cash {amount} EUR"
+       },
+       "amount": true,
+       "tagged": true
+      }
+     ]
     }
    ]
   }
  },
  "assets_state": {
-  "note": "Snipe-IT states of the first four inventory assets: the notebook's warranty ends soon, the NAS is past end of life and overdue for an audit, the fourth should have come back from Jonas. Licences: the first expires soon, the second has free seats.",
+  "note": "Snipe-IT states of the first four inventory assets (the monitor, bought two months ago, has no warranty entered): the notebook's warranty ends soon, the NAS is past end of life and overdue for an audit, the fourth should have come back from Jonas. Licences: the first expires soon, the second has free seats.",
   "url": "https://assets.demo",
+  "models": [
+   {
+    "id": 1,
+    "name": "Framework Laptop 13"
+   },
+   {
+    "id": 2,
+    "name": "Speicherwerk NS-4"
+   },
+   {
+    "id": 3,
+    "name": {
+     "de": "Sonstiges Netzwerkgerät",
+     "en": "Other network device"
+    }
+   }
+  ],
+  "statuses": [
+   {
+    "id": 1,
+    "name": {
+     "de": "Bereit",
+     "en": "Ready"
+    },
+    "kind": "deployable"
+   },
+   {
+    "id": 2,
+    "name": {
+     "de": "Ausstehend",
+     "en": "Pending"
+    },
+    "kind": "pending"
+   }
+  ],
   "assets": [
    {
     "status": {
@@ -1667,6 +1787,7 @@
     "deployable": true,
     "assigned": true,
     "purchase_date": "@date-30",
+    "dep_months": 12,
     "warranty_expires": "@date+10",
     "eol_date": "@date+900",
     "next_audit": "@date+100",
@@ -1680,6 +1801,7 @@
     "deployable": true,
     "assigned": true,
     "purchase_date": "@date-1900",
+    "dep_months": 36,
     "warranty_expires": "@date-800",
     "eol_date": "@date-20",
     "next_audit": "@date-15",
@@ -1692,6 +1814,7 @@
     },
     "deployable": true,
     "purchase_date": "@date-500",
+    "dep_months": 60,
     "warranty_expires": "@date+230",
     "next_audit": "@date+60",
     "last_change": "@date-140"
@@ -1704,7 +1827,7 @@
     "deployable": true,
     "assigned": true,
     "purchase_date": "@date-60",
-    "warranty_expires": "@date+1000",
+    "dep_months": 12,
     "next_audit": "@date+200",
     "last_change": "@date-60",
     "assigned_to": "Jonas Brandt",
@@ -1735,8 +1858,182 @@
    2
   ]
  },
+ "kept_state": {
+  "note": "Kept, the studio's inventory as andon reads it: the same four assets as Snipe-IT, with the same warranty ends and useful lives, plus the fire extinguisher. The laptop's invoice is a Paperless link, the NAS has its receipt as an attached file, the phone's link points to a Paperless document that is gone (999), the monitor has no receipt. The extinguisher's check is due in 20 days; the agenda carries Kept's own lead times.",
+  "url": "https://kept.demo",
+  "writable": true,
+  "locations": [
+   {
+    "id": "loc-studio",
+    "name": "Studio",
+    "mcp": true
+   }
+  ],
+  "things": [
+   {
+    "id": "th-laptop",
+    "code": "K7D2QX",
+    "name": "Schnitt-Laptop",
+    "model": "Framework Laptop 13",
+    "type": {
+     "de": "Notebook",
+     "en": "Notebook"
+    },
+    "location": "Studio",
+    "bought": "@date-30",
+    "price": 1200,
+    "currency": "EUR",
+    "warranty_ends": "@date+10",
+    "life": 12,
+    "receipts": [
+     {
+      "role": "invoice",
+      "url": "https://docs.demo/documents/412/details",
+      "doc_id": 412,
+      "paperless": "https://docs.demo"
+     }
+    ]
+   },
+   {
+    "id": "th-nas",
+    "code": "N4S2HB",
+    "name": "NAS",
+    "model": "Speicherwerk NS-4",
+    "type": {
+     "de": "Server",
+     "en": "Server"
+    },
+    "location": "Studio",
+    "bought": "@date-1900",
+    "price": 650,
+    "currency": "EUR",
+    "warranty_ends": "@date-800",
+    "life": 36,
+    "receipts": [
+     {
+      "role": "receipt",
+      "url": "https://kept.demo/files/nas-kassenbon.pdf"
+     }
+    ]
+   },
+   {
+    "id": "th-phone",
+    "code": "M0W7PH",
+    "name": "Möwe 7",
+    "model": "Möwe 7",
+    "type": {
+     "de": "Smartphone",
+     "en": "Smartphone"
+    },
+    "location": "Studio",
+    "bought": "@date-500",
+    "price": 599,
+    "currency": "EUR",
+    "warranty_ends": "@date+230",
+    "life": 60,
+    "receipts": [
+     {
+      "role": "invoice",
+      "url": "https://docs.demo/documents/999/details",
+      "doc_id": 999,
+      "paperless": "https://docs.demo"
+     }
+    ]
+   },
+   {
+    "id": "th-monitor",
+    "code": "LB27QM",
+    "name": "Monitor 27\"",
+    "model": "Lichtblick 27Q",
+    "type": {
+     "de": "Monitor",
+     "en": "Monitor"
+    },
+    "location": "Studio",
+    "bought": "@date-60",
+    "price": 890,
+    "currency": "EUR",
+    "life": 12
+   },
+   {
+    "id": "th-extinguisher",
+    "code": "FL0SCH",
+    "name": {
+     "de": "Feuerlöscher Studio",
+     "en": "Studio fire extinguisher"
+    },
+    "type": {
+     "de": "Sicherheit",
+     "en": "Safety"
+    },
+    "location": "Studio",
+    "expires": "@date+20"
+   }
+  ],
+  "agenda": [
+   {
+    "kind": "thing_expiry",
+    "state": "expiring",
+    "due": "@date+20",
+    "title": {
+     "de": "Feuerlöscher Studio",
+     "en": "Studio fire extinguisher"
+    },
+    "subject": {
+     "de": "Feuerlöscher Studio",
+     "en": "Studio fire extinguisher"
+    },
+    "code": "FL0SCH"
+   },
+   {
+    "kind": "document",
+    "state": "expiring",
+    "due": "@date+12",
+    "title": {
+     "de": "Hausratversicherung",
+     "en": "Contents insurance"
+    },
+    "subject": "Studio"
+   },
+   {
+    "kind": "schedule",
+    "state": "overdue",
+    "due": "@date-3",
+    "title": {
+     "de": "Lüfter reinigen",
+     "en": "Clean the fans"
+    },
+    "subject": "NAS",
+    "code": "N4S2HB"
+   },
+   {
+    "kind": "warranty",
+    "state": "upcoming",
+    "due": "@date+230",
+    "title": {
+     "de": "Herstellergarantie",
+     "en": "Manufacturer warranty"
+    },
+    "subject": "Möwe 7",
+    "code": "M0W7PH"
+   },
+   {
+    "kind": "loan",
+    "state": "due",
+    "due": "@date+0",
+    "title": {
+     "de": "Rückgabe",
+     "en": "Return"
+    },
+    "subject": {
+     "de": "Funkstrecke",
+     "en": "Wireless link"
+    }
+   }
+  ]
+ },
  "bank": {
-  "note": "Sure: one income matches the open invoice, the health insurance payment is overdue.",
+  "note": "Sure: one income matches the open invoice, the health insurance payment is overdue; the studio supplies of last week lack a category, an older booking of the same shop has one. The software subscription is paid from the business account but has no recurring expense in Invoice Ninja.",
   "url": "https://money.demo",
   "currency": "EUR",
   "net_worth": 48210,
@@ -1800,6 +2097,12 @@
     "date": "@date-8",
     "name": "Kabelwerk Studiobedarf",
     "amount": -899,
+    "tags": [
+     {
+      "de": "Studio",
+      "en": "Studio"
+     }
+    ],
     "account": {
      "de": "Geschäftskonto",
      "en": "Business account"
@@ -1833,13 +2136,46 @@
      "de": "Geschäftskonto",
      "en": "Business account"
     }
+   },
+   {
+    "id": "t6",
+    "date": "@date-70",
+    "name": "Kabelwerk Studiobedarf",
+    "amount": -249,
+    "category": {
+     "de": "Technik",
+     "en": "Equipment"
+    },
+    "account": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    }
+   },
+   {
+    "id": "t7",
+    "date": "@date-19",
+    "name": {
+     "de": "Farbraum Grade, Abo",
+     "en": "Farbraum Grade subscription"
+    },
+    "amount": 66.45,
+    "expense": true,
+    "category": {
+     "de": "Software",
+     "en": "Software"
+    },
+    "merchant": "Farbraum Software",
+    "account": {
+     "de": "Geschäftskonto",
+     "en": "Business account"
+    }
    }
   ],
   "recurring": [
    {
     "name": "Nordhost Server",
     "status": "active",
-    "amount": 41.65,
+    "amount": 44.9,
     "expense": true,
     "next": "@date+25",
     "last": "@date-5"
@@ -1880,7 +2216,7 @@
   ]
  },
  "subscriptions": {
-  "note": "Wallos: the studio's suppliers plus its domain; the software subscription the bank knows is missing here on purpose.",
+  "note": "Wallos: the studio's suppliers plus its domain; the software subscription the bank knows is missing here on purpose, the streaming is in twice and the server has its old price.",
   "url": "https://wallos.demo",
   "currency": "EUR",
   "subs": [
@@ -1901,6 +2237,10 @@
      "de": "Hosting",
      "en": "Hosting"
     }
+   },
+   {
+    "vendor": "wellenklang",
+    "next": "@date+9"
    },
    {
     "vendor": "wellenklang",
@@ -2063,6 +2403,213 @@
     "jonas"
    ]
   }
+ },
+ "todo": {
+  "note": "Vikunja: the studio's to-dos. The invoice for the image film is two days overdue, the colour review of episode 4 is due tomorrow; the showreel's music edit was done two days ago without time booked in Kimai.",
+  "url": "https://vikunja.demo",
+  "projects": [
+   {
+    "id": 1,
+    "title": "Studio"
+   },
+   {
+    "id": 2,
+    "title": {
+     "de": "Harbour Lights – Staffel 2",
+     "en": "Harbour Lights – Season 2"
+    }
+   },
+   {
+    "id": 3,
+    "title": {
+     "de": "Showreel 2026",
+     "en": "Showreel 2026"
+    }
+   }
+  ],
+  "tasks": [
+   {
+    "title": {
+     "de": "Rechnung Imagefilm schreiben",
+     "en": "Write the image film invoice"
+    },
+    "project": 1,
+    "due": "@date-2",
+    "done": false,
+    "priority": 3
+   },
+   {
+    "title": {
+     "de": "Farbabnahme Folge 4",
+     "en": "Colour review episode 4"
+    },
+    "project": 2,
+    "due": "@date+1",
+    "done": false,
+    "priority": 2
+   },
+   {
+    "title": {
+     "de": "Steuerunterlagen sortieren",
+     "en": "Sort the tax papers"
+    },
+    "project": 1,
+    "due": "@date+9",
+    "done": false,
+    "priority": 1
+   },
+   {
+    "title": {
+     "de": "Musikschnitt Showreel",
+     "en": "Showreel music edit"
+    },
+    "project": 3,
+    "due": "@date-3",
+    "done": true,
+    "done_at": "@-2d",
+    "priority": 2
+   }
+  ]
+ },
+ "depot": {
+  "note": "Ghostfolio: the studio's reserve in two ETFs, up over the last 30 days.",
+  "url": "https://ghostfolio.demo",
+  "currency": "EUR",
+  "value": 20420,
+  "investment": 17500,
+  "performance_pct": 11.0,
+  "days": [
+   {
+    "date": "@date-29",
+    "value": 18400
+   },
+   {
+    "date": "@date-28",
+    "value": 18350
+   },
+   {
+    "date": "@date-27",
+    "value": 18520
+   },
+   {
+    "date": "@date-26",
+    "value": 18610
+   },
+   {
+    "date": "@date-25",
+    "value": 18490
+   },
+   {
+    "date": "@date-24",
+    "value": 18700
+   },
+   {
+    "date": "@date-23",
+    "value": 18820
+   },
+   {
+    "date": "@date-22",
+    "value": 18760
+   },
+   {
+    "date": "@date-21",
+    "value": 18900
+   },
+   {
+    "date": "@date-20",
+    "value": 19050
+   },
+   {
+    "date": "@date-19",
+    "value": 19120
+   },
+   {
+    "date": "@date-18",
+    "value": 18980
+   },
+   {
+    "date": "@date-17",
+    "value": 19210
+   },
+   {
+    "date": "@date-16",
+    "value": 19330
+   },
+   {
+    "date": "@date-15",
+    "value": 19280
+   },
+   {
+    "date": "@date-14",
+    "value": 19400
+   },
+   {
+    "date": "@date-13",
+    "value": 19560
+   },
+   {
+    "date": "@date-12",
+    "value": 19470
+   },
+   {
+    "date": "@date-11",
+    "value": 19620
+   },
+   {
+    "date": "@date-10",
+    "value": 19710
+   },
+   {
+    "date": "@date-9",
+    "value": 19650
+   },
+   {
+    "date": "@date-8",
+    "value": 19800
+   },
+   {
+    "date": "@date-7",
+    "value": 19920
+   },
+   {
+    "date": "@date-6",
+    "value": 19870
+   },
+   {
+    "date": "@date-5",
+    "value": 20010
+   },
+   {
+    "date": "@date-4",
+    "value": 20140
+   },
+   {
+    "date": "@date-3",
+    "value": 20090
+   },
+   {
+    "date": "@date-2",
+    "value": 20230
+   },
+   {
+    "date": "@date-1",
+    "value": 20310
+   },
+   {
+    "date": "@date-0",
+    "value": 20420
+   }
+  ],
+  "holdings": [
+   {
+    "name": "MSCI World ETF",
+    "value": 14290
+   },
+   {
+    "name": "Euro-Staatsanleihen ETF",
+    "value": 6130
+   }
+  ]
  },
  "timesheet_weeks": {
   "from_week": -8,
@@ -3449,8 +3996,9 @@
   }
  ],
  "location": {
-  "note": "Dawarich: Mara's visits at Northlight on the client days (bookkeeping), the areas home and Northlight, yearly stats; the track drives home → Northlight before a visit and back after it.",
+  "note": "Dawarich: Mara's visits at Northlight on the client days (bookkeeping), the areas home and Northlight, yearly stats; the track drives home → Northlight before a visit and back after it. day: a weekday, weekend: a Saturday (both as tracks with transportation modes).",
   "url": "https://dawarich.demo",
+  "person": "mara",
   "home": "home-mara",
   "site": "northlight-office",
   "visit": {
@@ -3628,6 +4176,89 @@
     "studio",
     "speiche-workshop"
    ]
+  },
+  "weekend": {
+   "note": "A Saturday as Dawarich tracks it: a drive to the Graufeld lighthouse and back, a walk at the fish market in the evening. Private: no Kimai time, no customer place.",
+   "weekday": 6,
+   "segments": [
+    [
+     "home-mara",
+     "home-mara",
+     "07:00",
+     "09:30",
+     "stationary"
+    ],
+    [
+     "home-mara",
+     "graufeld-lighthouse",
+     "09:30",
+     "11:05",
+     "driving"
+    ],
+    [
+     "graufeld-lighthouse",
+     "graufeld-lighthouse",
+     "11:05",
+     "13:00",
+     "stationary"
+    ],
+    [
+     "graufeld-lighthouse",
+     "kolk",
+     "13:00",
+     "13:40",
+     "walking"
+    ],
+    [
+     "kolk",
+     "kolk",
+     "13:40",
+     "14:30",
+     "stationary"
+    ],
+    [
+     "kolk",
+     "home-mara",
+     "14:30",
+     "16:10",
+     "driving"
+    ],
+    [
+     "home-mara",
+     "home-mara",
+     "16:10",
+     "18:30",
+     "stationary"
+    ],
+    [
+     "home-mara",
+     "fishmarket",
+     "18:30",
+     "18:55",
+     "bus"
+    ],
+    [
+     "fishmarket",
+     "fishmarket",
+     "18:55",
+     "20:00",
+     "stationary"
+    ],
+    [
+     "fishmarket",
+     "home-mara",
+     "20:00",
+     "20:25",
+     "bus"
+    ],
+    [
+     "home-mara",
+     "home-mara",
+     "20:25",
+     "23:00",
+     "stationary"
+    ]
+   ]
   }
  },
  "logbook": {
@@ -3777,15 +4408,14 @@
     3600
    ]
   },
-  "tdp_watts": 28,
   "charging": {
    "rate_ma": 2100,
    "voltage_mv": 16800
   },
-  "epp": "balance_performance",
+  "power_profile": "performance",
   "history_min": 30,
   "log": [
-   "framework-control demo",
+   "framewidged demo",
    "fan curve active (APU)",
    "charge limit {charge_limit} %"
   ],
@@ -4568,7 +5198,7 @@
   ]
  },
  "stacks": {
-  "note": "Komodo: three servers, the backup Pi unreachable; paperless' last deploy failed.",
+  "note": "Komodo: three servers, the backup Pi unreachable; paperless-ngx' last deploy failed; Mara deployed the showreel while its build was red. Komodo runs paperless-ai from the Nebelhorn repo, where its directory is gone, and does not run newt-nebelhorn (IT docs: deployed without repo, not deployed).",
   "url": "https://komodo.demo",
   "servers_total": 3,
   "servers_healthy": 2,
@@ -4580,15 +5210,35 @@
     "updates": [
      "immich-server",
      "immich-machine-learning"
-    ]
+    ],
+    "repo": "studio/docker-compose-nebelhorn",
+    "images": {
+     "server": "ghcr.io/immich-app/immich-server:v2.0"
+    }
    },
    {
-    "name": "paperless",
-    "state": "unhealthy"
+    "name": "paperless-ngx",
+    "state": "unhealthy",
+    "repo": "studio/docker-compose-nebelhorn"
    },
    {
     "name": "gitea",
-    "state": "running"
+    "state": "running",
+    "repo": "studio/docker-compose-nebelhorn"
+   },
+   {
+    "name": "paperless-ai",
+    "state": "running",
+    "repo": "studio/docker-compose-nebelhorn",
+    "images": {
+     "paperless-ai": "clusterzx/paperless-ai:3.0"
+    }
+   },
+   {
+    "name": "showreel",
+    "state": "running",
+    "repo": "studio/showreel",
+    "branch": "main"
    }
   ],
   "alerts": [
@@ -4630,7 +5280,7 @@
     "by": "mara",
     "ok": true
    },
-   "paperless": {
+   "paperless-ngx": {
     "at": "@-26h",
     "operation": "DeployStack",
     "by": "lena",
@@ -4641,8 +5291,42 @@
     "operation": "DeployStack",
     "by": "mara",
     "ok": true
+   },
+   "showreel": {
+    "at": "@-4h",
+    "operation": "DeployStack",
+    "by": "mara",
+    "ok": true
    }
-  }
+  },
+  "deployed": [
+   {
+    "stack": "showreel",
+    "at": "@-4h",
+    "commit": "7c1e9a4",
+    "by": "mara",
+    "ok": true
+   },
+   {
+    "stack": "paperless",
+    "at": "@-26h",
+    "by": "lena",
+    "ok": false
+   },
+   {
+    "stack": "immich",
+    "at": "@-6d",
+    "by": "mara",
+    "ok": true
+   },
+   {
+    "stack": "showreel",
+    "at": "@-6d",
+    "commit": "52d0b17",
+    "by": "mara",
+    "ok": true
+   }
+  ]
  },
  "backups": {
   "note": "Borg backup server (the laptop has been offline for six days) and the database dumps (PG Back Web).",
@@ -5167,7 +5851,7 @@
   }
  },
  "code": {
-  "note": "Gitea (issues, reviews, a failed workflow, a stale mirror, commits per week) and GitHub.",
+  "note": "Gitea (issues, reviews, a failed workflow, a stale mirror, commits per week; compose stacks of docker-compose-<host>, matched against it_docs by the notes' Compose links: gitea, kimai and stirling-pdf undocumented, dawarich only in a deprecated note, paperless-ai linked but gone; the notes come from it_docs, docs_url is the vault in Gitea) Hansei pushes its state to Andon (hansei), matching it_docs: four batches, two to review, one with questions, one done, conformity 0.5; a batch already works on kimai's missing note. GitHub and the KDE Store (downloads_daily: downloads per day, oldest first, today last; a spike after a release).",
   "gitea": {
    "url": "https://git.demo",
    "user": "mara",
@@ -5252,10 +5936,312 @@
      "remote": "https://github.com/studio/website.git",
      "synced": "@-20m"
     }
+   ],
+   "stacks_read": true,
+   "notes_read": true,
+   "docs_url": "https://git.demo/studio/it-docs/src/branch/main/",
+   "stacks": [
+    {
+     "host": "boje",
+     "name": "dawarich",
+     "repo": "studio/docker-compose-boje",
+     "path": "dawarich/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-boje/src/branch/main/dawarich/compose.yaml",
+     "services": [
+      {
+       "name": "app",
+       "image": "freikin/dawarich:0.30.6",
+       "ports": [
+        "3000:3000"
+       ]
+      },
+      {
+       "name": "db",
+       "image": "postgis/postgis:17-3.5",
+       "ports": []
+      }
+     ]
+    },
+    {
+     "host": "boje",
+     "name": "uptime-kuma",
+     "repo": "studio/docker-compose-boje",
+     "path": "uptime-kuma/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-boje/src/branch/main/uptime-kuma/compose.yaml",
+     "services": [
+      {
+       "name": "uptime-kuma",
+       "image": "louislam/uptime-kuma:2.0.2",
+       "ports": [
+        "3001:3001"
+       ]
+      }
+     ]
+    },
+    {
+     "host": "feuerschiff",
+     "name": "invoiceninja",
+     "repo": "studio/docker-compose-feuerschiff",
+     "path": "invoiceninja/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/invoiceninja/compose.yaml",
+     "services": [
+      {
+       "name": "app",
+       "image": "invoiceninja/invoiceninja-debian:5.12",
+       "ports": [
+        "8012:80"
+       ],
+       "labels": {
+        "caddy": "rechnungen.studio-weber.example.test"
+       }
+      },
+      {
+       "name": "db",
+       "image": "mariadb:11.4",
+       "ports": []
+      }
+     ]
+    },
+    {
+     "host": "feuerschiff",
+     "name": "kimai",
+     "repo": "studio/docker-compose-feuerschiff",
+     "path": "kimai/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/kimai/compose.yaml",
+     "services": [
+      {
+       "name": "kimai",
+       "image": "kimai/kimai2:apache-2.40",
+       "ports": [
+        "8001:8001"
+       ]
+      },
+      {
+       "name": "db",
+       "image": "mariadb:11.4",
+       "ports": []
+      }
+     ]
+    },
+    {
+     "host": "feuerschiff",
+     "name": "nextcloud",
+     "repo": "studio/docker-compose-feuerschiff",
+     "path": "nextcloud/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/nextcloud/compose.yaml",
+     "services": [
+      {
+       "name": "app",
+       "image": "nextcloud:31-apache",
+       "ports": [
+        "8080:80"
+       ],
+       "labels": {
+        "caddy": "cloud.studio-weber.example.test"
+       }
+      },
+      {
+       "name": "db",
+       "image": "postgres:16",
+       "ports": []
+      }
+     ]
+    },
+    {
+     "host": "feuerschiff",
+     "name": "stirling-pdf",
+     "repo": "studio/docker-compose-feuerschiff",
+     "path": "stirling-pdf/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/stirling-pdf/compose.yaml",
+     "services": [
+      {
+       "name": "stirling-pdf",
+       "image": "stirlingtools/stirling-pdf:1.4",
+       "ports": [
+        "8090:8080"
+       ]
+      }
+     ]
+    },
+    {
+     "host": "nebelhorn",
+     "name": "gitea",
+     "repo": "studio/docker-compose-nebelhorn",
+     "path": "gitea/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/gitea/compose.yaml",
+     "services": [
+      {
+       "name": "gitea",
+       "image": "gitea/gitea:1.24",
+       "ports": [
+        "3000:3000",
+        "2222:22"
+       ]
+      }
+     ]
+    },
+    {
+     "host": "nebelhorn",
+     "name": "immich",
+     "repo": "studio/docker-compose-nebelhorn",
+     "path": "immich/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/immich/compose.yaml",
+     "services": [
+      {
+       "name": "server",
+       "image": "ghcr.io/immich-app/immich-server:v2.1",
+       "ports": [
+        "2283:2283"
+       ],
+       "labels": {
+        "caddy": "fotos.studio-weber.example.test"
+       }
+      },
+      {
+       "name": "db",
+       "image": "ghcr.io/immich-app/postgres:16",
+       "ports": []
+      }
+     ]
+    },
+    {
+     "host": "nebelhorn",
+     "name": "newt-nebelhorn",
+     "repo": "studio/docker-compose-nebelhorn",
+     "path": "newt-nebelhorn/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/newt-nebelhorn/compose.yaml",
+     "services": [
+      {
+       "name": "newt",
+       "image": "fosrl/newt:1.5",
+       "ports": []
+      }
+     ]
+    },
+    {
+     "host": "nebelhorn",
+     "name": "paperless-ngx",
+     "repo": "studio/docker-compose-nebelhorn",
+     "path": "paperless-ngx/compose.yaml",
+     "url": "https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/paperless-ngx/compose.yaml",
+     "services": [
+      {
+       "name": "webserver",
+       "image": "ghcr.io/paperless-ngx/paperless-ngx:2.18",
+       "ports": [
+        "8000:8000"
+       ]
+      },
+      {
+       "name": "broker",
+       "image": "redis:8",
+       "ports": []
+      }
+     ]
+    }
+   ]
+  },
+  "hansei": {
+   "review": 2,
+   "feedback": 1,
+   "done": 1,
+   "conformity": 0.5,
+   "updated": "@-3h",
+   "claimed": [
+    "docs.missing:feuerschiff/kimai"
+   ]
+  },
+  "kde_store": {
+   "url": "https://api.kde-look.org",
+   "user": "studioweber",
+   "items": [
+    {
+     "id": 2391004,
+     "name": "Timecode Clock",
+     "version": "2.1.0",
+     "typename": "Plasma 6 Applets",
+     "downloads": 1284,
+     "changed": "@-15d",
+     "detailpage": "https://store.kde.org/p/2391004",
+     "downloads_daily": [
+      9,
+      11,
+      8,
+      10,
+      12,
+      9,
+      7,
+      10,
+      11,
+      13,
+      9,
+      8,
+      10,
+      12,
+      31,
+      48,
+      36,
+      25,
+      19,
+      16,
+      14,
+      12,
+      11,
+      13,
+      10,
+      9,
+      12,
+      11,
+      10,
+      4
+     ]
+    },
+    {
+     "id": 2393417,
+     "name": "Shot List",
+     "version": "0.8.2",
+     "typename": "Plasma 6 Applets",
+     "downloads": 214,
+     "changed": "@-41d",
+     "detailpage": "https://store.kde.org/p/2393417",
+     "downloads_daily": [
+      2,
+      1,
+      3,
+      2,
+      2,
+      1,
+      4,
+      2,
+      3,
+      1,
+      2,
+      2,
+      3,
+      1,
+      2,
+      3,
+      2,
+      1,
+      2,
+      4,
+      3,
+      2,
+      1,
+      2,
+      3,
+      2,
+      1,
+      2,
+      3,
+      1
+     ]
+    }
    ]
   },
   "github": {
    "url": "https://api.github.com",
+   "owner": "studio",
    "notifications": 4,
    "repos": [
     {
@@ -5265,7 +6251,40 @@
      "ci": "success",
      "release": "v0.12.0",
      "released_at": "@-6d",
-     "pushed_at": "@-1d"
+     "pushed_at": "@-1d",
+     "downloads": 4210,
+     "downloads_daily": [
+      41,
+      38,
+      44,
+      52,
+      47,
+      39,
+      36,
+      45,
+      50,
+      43,
+      40,
+      37,
+      48,
+      55,
+      46,
+      42,
+      39,
+      44,
+      51,
+      47,
+      43,
+      40,
+      38,
+      96,
+      142,
+      88,
+      67,
+      58,
+      54,
+      21
+     ]
     },
     {
      "name": "studio/showreel",
@@ -5313,8 +6332,2111 @@
    }
   }
  },
+ "heartbeats": {
+  "note": "Healthchecks.io: cron jobs ping in. The laptop's Borg job is silent, the database dump of Invoice Ninja still pings although its backup failed, the certificate renewal is late.",
+  "url": "https://healthchecks.demo",
+  "checks": [
+   {
+    "name": "borg-nas",
+    "tags": "backup nas",
+    "status": "up",
+    "last_ping": "@-7h",
+    "grace": 3600,
+    "schedule": "0 2 * * *",
+    "pings": 412
+   },
+   {
+    "name": "borg-laptop",
+    "tags": "backup",
+    "status": "down",
+    "last_ping": "@-6d",
+    "grace": 3600,
+    "schedule": "0 3 * * *",
+    "pings": 388
+   },
+   {
+    "name": "pgback-invoiceninja",
+    "tags": "backup db",
+    "status": "up",
+    "last_ping": "@-2h",
+    "grace": 1800,
+    "timeout": 86400,
+    "pings": 201
+   },
+   {
+    "name": "pgback-kimai",
+    "tags": "backup db",
+    "status": "up",
+    "last_ping": "@-2h",
+    "grace": 1800,
+    "timeout": 86400,
+    "pings": 203
+   },
+   {
+    "name": "certbot-renew",
+    "tags": "tls",
+    "status": "grace",
+    "last_ping": "@-25h",
+    "grace": 7200,
+    "timeout": 86400,
+    "pings": 96
+   },
+   {
+    "name": "render-proxies",
+    "tags": "studio",
+    "status": "paused",
+    "last_ping": "@-9d",
+    "grace": 3600,
+    "timeout": 604800,
+    "pings": 14
+   }
+  ]
+ },
+ "prometheus": {
+  "note": "Prometheus with node exporters on the three hosts: the NAS runs hot, the rented server's disk fills up.",
+  "url": "https://prometheus.demo",
+  "alerts": [
+   {
+    "name": "HostHighCpuLoad",
+    "severity": "warning",
+    "instance": "nas:9100",
+    "since": "@-25m",
+    "summary": {
+     "de": "CPU-Last über 90 % seit 10 Minuten",
+     "en": "CPU load above 90 % for 10 minutes"
+    }
+   },
+   {
+    "name": "HostDiskWillFillIn24Hours",
+    "severity": "critical",
+    "instance": "docker-host:9100",
+    "since": "@-3h",
+    "summary": {
+     "de": "/var/lib/docker ist in unter 24 Stunden voll",
+     "en": "/var/lib/docker fills up in less than 24 hours"
+    }
+   },
+   {
+    "name": "ContainerRestarting",
+    "severity": "info",
+    "instance": "docker-host:8080",
+    "since": "@-50m",
+    "summary": {
+     "de": "paperless startet wiederholt neu",
+     "en": "paperless keeps restarting"
+    }
+   }
+  ],
+  "queries": {
+   "node_load1": {
+    "value": 3.4,
+    "hourly": [
+     0.6,
+     0.5,
+     0.4,
+     0.4,
+     0.3,
+     0.3,
+     0.4,
+     0.9,
+     1.4,
+     1.8,
+     2.1,
+     2.4,
+     2.2,
+     2.0,
+     2.6,
+     3.1,
+     3.0,
+     2.7,
+     2.2,
+     1.9,
+     2.4,
+     2.9,
+     3.2,
+     3.4
+    ]
+   },
+   "node_filesystem_avail_bytes": {
+    "value": 41000000000,
+    "hourly": [
+     96,
+     94,
+     92,
+     90,
+     88,
+     85,
+     83,
+     80,
+     78,
+     75,
+     73,
+     70,
+     68,
+     66,
+     63,
+     61,
+     58,
+     56,
+     53,
+     51,
+     48,
+     46,
+     43,
+     41
+    ]
+   }
+  }
+ },
+ "vulnerabilities": {
+  "note": "NVD entries for the images the studio runs: Gitea and Immich run affected versions, Vaultwarden is published through Pangolin.",
+  "url": "https://services.nvd.nist.gov",
+  "cves": [
+   {
+    "id": "CVE-2026-41207",
+    "product": "gitea",
+    "cvss": 8.1,
+    "published": "@-4d",
+    "fixed": "1.24.3",
+    "summary": {
+     "de": "Gitea: Rechteausweitung über manipulierte Actions-Token",
+     "en": "Gitea: privilege escalation through forged Actions tokens"
+    }
+   },
+   {
+    "id": "CVE-2026-39954",
+    "product": "immich",
+    "cvss": 7.5,
+    "published": "@-9d",
+    "fixed": "1.132.0",
+    "summary": {
+     "de": "Immich: geteilte Alben ohne Prüfung des Ablaufdatums abrufbar",
+     "en": "Immich: shared albums readable after their expiry"
+    }
+   },
+   {
+    "id": "CVE-2026-40112",
+    "product": "vaultwarden",
+    "cvss": 9.1,
+    "published": "@-2d",
+    "fixed": "1.34.2",
+    "summary": {
+     "de": "Vaultwarden: Umgehung der Zwei-Faktor-Anmeldung über die Admin-Schnittstelle",
+     "en": "Vaultwarden: two-factor bypass through the admin interface"
+    }
+   },
+   {
+    "id": "CVE-2026-33018",
+    "product": "paperless-ngx",
+    "cvss": 5.4,
+    "published": "@-21d",
+    "fixed": "2.15.0",
+    "summary": {
+     "de": "Paperless-ngx: gespeichertes XSS in Notizen",
+     "en": "Paperless-ngx: stored XSS in notes"
+    }
+   }
+  ]
+ },
+ "ci": {
+  "note": "Drone runs the website and showreel builds: the showreel's main branch has been red since yesterday; the website's v0.12.0 went out while its main build was red.",
+  "url": "https://drone.demo",
+  "repos": [
+   {
+    "repo": "studio/website",
+    "branch": "main",
+    "builds": [
+     {
+      "number": 88,
+      "status": "success",
+      "started": "@-3h",
+      "seconds": 142,
+      "event": "push"
+     },
+     {
+      "number": 87,
+      "status": "success",
+      "started": "@-1d2h",
+      "seconds": 138,
+      "event": "push"
+     },
+     {
+      "number": 86,
+      "status": "failure",
+      "started": "@-2d",
+      "seconds": 61,
+      "event": "pull_request"
+     },
+     {
+      "number": 85,
+      "status": "success",
+      "started": "@-3d",
+      "seconds": 140,
+      "event": "push"
+     },
+     {
+      "number": 84,
+      "status": "failure",
+      "started": "@-6d2h",
+      "seconds": 58,
+      "event": "push"
+     }
+    ]
+   },
+   {
+    "repo": "studio/showreel",
+    "branch": "main",
+    "builds": [
+     {
+      "number": 41,
+      "status": "failure",
+      "started": "@-5h",
+      "seconds": 512,
+      "event": "push",
+      "commit": "7c1e9a4e2b9f03d1"
+     },
+     {
+      "number": 40,
+      "status": "failure",
+      "started": "@-1d1h",
+      "seconds": 498,
+      "event": "push",
+      "commit": "c03f6a1d7e88b245"
+     },
+     {
+      "number": 39,
+      "status": "success",
+      "started": "@-4d",
+      "seconds": 530,
+      "event": "push",
+      "commit": "9a41e0c2b6d7f310"
+     },
+     {
+      "number": 38,
+      "status": "success",
+      "started": "@-6d",
+      "seconds": 521,
+      "event": "tag",
+      "commit": "52d0b17a9c3e6f48"
+     }
+    ]
+   },
+   {
+    "repo": "team/infra",
+    "branch": "main",
+    "builds": [
+     {
+      "number": 12,
+      "status": "running",
+      "started": "@-4m",
+      "seconds": 0,
+      "event": "push"
+     },
+     {
+      "number": 11,
+      "status": "success",
+      "started": "@-4d",
+      "seconds": 75,
+      "event": "push"
+     }
+    ]
+   }
+  ]
+ },
+ "backup_server": {
+  "note": "Proxmox Backup Server on the NAS: VM 101 (Home Assistant) has not been backed up for nine days, container 105 was deleted in Proxmox but its backups remain, the last verify of the store found a missing chunk. The archive store sits on the NAS pool tank (option pools): PBS sees it at 39 %, the pool is 88 % full.",
+  "url": "https://pbs.demo:8007",
+  "datastores": [
+   {
+    "store": "nebelhorn",
+    "total": 2000000000000,
+    "used": 1840000000000
+   },
+   {
+    "store": "archiv",
+    "pool": "tank",
+    "total": 3100000000000,
+    "used": 1200000000000
+   }
+  ],
+  "groups": [
+   {
+    "store": "nebelhorn",
+    "type": "vm",
+    "id": "100",
+    "comment": "docker",
+    "last": "@-20h",
+    "count": 14
+   },
+   {
+    "store": "nebelhorn",
+    "type": "vm",
+    "id": "101",
+    "comment": "homeassistant",
+    "last": "@-9d",
+    "count": 3
+   },
+   {
+    "store": "nebelhorn",
+    "type": "ct",
+    "id": "105",
+    "comment": "render-test",
+    "last": "@-40d",
+    "count": 8
+   },
+   {
+    "store": "archiv",
+    "type": "host",
+    "id": "nas-config",
+    "last": "@-6h",
+    "count": 30
+   }
+  ],
+  "verify": [
+   {
+    "store": "nebelhorn",
+    "status": "OK",
+    "at": "@-8d"
+   },
+   {
+    "store": "nebelhorn",
+    "status": "error: chunk 3f2a… missing",
+    "at": "@-1d"
+   }
+  ]
+ },
+ "file_backups": {
+  "note": "Kopia backs up the edit laptop's projects (footage folder with read errors), Duplicati the bookkeeping export (music archive failing since yesterday), Backrest the docker volumes of Nebelhorn and the databases of Feuerschiff (last run failed), UrBackup the workstations (the front desk PC is offline for two weeks).",
+  "kopia": {
+   "url": "https://kopia.demo:51515",
+   "sources": [
+    {
+     "host": "schnitt-laptop",
+     "user": "mara",
+     "path": "/home/mara/Projekte",
+     "start": "@-5h",
+     "end": "@-5h",
+     "failed": 0
+    },
+    {
+     "host": "schnitt-laptop",
+     "user": "mara",
+     "path": "/srv/footage",
+     "start": "@-3d",
+     "end": "@-3d",
+     "failed": 2
+    }
+   ]
+  },
+  "duplicati": {
+   "url": "https://duplicati.demo:8200",
+   "backups": [
+    {
+     "name": "Buchhaltung",
+     "last": "@-1d"
+    },
+    {
+     "name": "Musik-Archiv",
+     "last": "@-12d",
+     "last_error": "@-1d",
+     "message": {
+      "de": "Ziel nicht erreichbar",
+      "en": "Destination not reachable"
+     }
+    }
+   ]
+  },
+  "backrest": {
+   "url": "https://backrest.demo:9898",
+   "plans": [
+    {
+     "id": "nebelhorn-docker",
+     "runs": [
+      {
+       "at": "@-1d6h",
+       "status": "STATUS_SUCCESS"
+      },
+      {
+       "at": "@-6h",
+       "status": "STATUS_SUCCESS"
+      }
+     ],
+     "failed30": 0,
+     "success30": 30
+    },
+    {
+     "id": "feuerschiff-db",
+     "runs": [
+      {
+       "at": "@-2d",
+       "status": "STATUS_SUCCESS"
+      },
+      {
+       "at": "@-1d",
+       "status": "STATUS_ERROR"
+      }
+     ],
+     "failed30": 3,
+     "success30": 25
+    }
+   ]
+  },
+  "urbackup": {
+   "url": "http://urbackup.demo:55414",
+   "clients": [
+    {
+     "name": "schnitt-laptop",
+     "online": true,
+     "lastbackup": "@-1d",
+     "lastbackup_image": "@-7d",
+     "file_ok": true,
+     "image_ok": true
+    },
+    {
+     "name": "empfang-pc",
+     "online": false,
+     "lastbackup": "@-15d",
+     "lastbackup_image": "@-30d",
+     "file_ok": false,
+     "image_ok": false
+    }
+   ]
+  }
+ },
+ "image_updates": {
+  "note": "What's Up Docker watches the docker host: Immich and Uptime Kuma have newer images. Watchtower updated two containers last night, one update failed. GitHub watches immich-app/immich, whose release is newer than the running image.",
+  "wud": {
+   "url": "https://wud.demo",
+   "containers": [
+    {
+     "name": "immich-server",
+     "image": "ghcr.io/immich-app/immich-server",
+     "tag": "v1.131.0",
+     "new_tag": "v1.132.3"
+    },
+    {
+     "name": "uptime-kuma",
+     "image": "louislam/uptime-kuma",
+     "tag": "2.0.2",
+     "new_tag": "2.0.4"
+    },
+    {
+     "name": "gitea",
+     "image": "gitea/gitea",
+     "tag": "1.24",
+     "new_tag": ""
+    },
+    {
+     "name": "paperless",
+     "image": "paperlessngx/paperless-ngx",
+     "tag": "latest",
+     "new_tag": ""
+    }
+   ]
+  },
+  "watchtower": {
+   "url": "http://watchtower.demo:8080",
+   "scanned": 14,
+   "updated": 2,
+   "failed": 1,
+   "scans": 52,
+   "last_scan": "@-7h"
+  },
+  "watched_releases": [
+   {
+    "repo": "immich-app/immich",
+    "release": "v1.132.3",
+    "released_at": "@-3d"
+   }
+  ]
+ },
+ "proxy_routes": {
+  "note": "Reverse proxies: Traefik on the docker host routes the vault to a container that does not run; Caddy serves the wiki; Nginx Proxy Manager on Feuerschiff fronts Kimai, whose certificate ends in nine days.",
+  "traefik": {
+   "url": "https://traefik.demo",
+   "routes": [
+    {
+     "host": "photos.example.org",
+     "service": "immich-server",
+     "target": "http://172.18.0.5:2283",
+     "up": true
+    },
+    {
+     "host": "vault.example.org",
+     "service": "vaultwarden",
+     "target": "http://172.18.0.9:80",
+     "up": false
+    },
+    {
+     "host": "git.example.org",
+     "service": "gitea",
+     "target": "http://172.18.0.3:3000",
+     "up": true
+    }
+   ]
+  },
+  "caddy": {
+   "url": "http://caddy.demo:2019",
+   "routes": [
+    {
+     "host": "wiki.studio.example.test",
+     "service": "bookstack",
+     "target": "bookstack:80",
+     "up": true
+    }
+   ]
+  },
+  "npm": {
+   "url": "https://npm.demo",
+   "routes": [
+    {
+     "host": "kimai.example.org",
+     "service": "kimai",
+     "target": "http://kimai:8001",
+     "up": true,
+     "cert_expiry": "@+9d"
+    },
+    {
+     "host": "status.example.org",
+     "service": "uptime-kuma",
+     "target": "http://uptime-kuma:3001",
+     "up": true,
+     "cert_expiry": "@+61d"
+    }
+   ]
+  }
+ },
+ "dns_technitium": {
+  "note": "Technitium DNS on the Pi, last day.",
+  "url": "http://technitium.demo:5380",
+  "queries": 48210,
+  "blocked": 6120,
+  "clients": 23,
+  "enabled": true,
+  "top_blocked": [
+   {
+    "name": "telemetry.example.test",
+    "count": 812
+   },
+   {
+    "name": "ads.example.test",
+    "count": 640
+   }
+  ]
+ },
+ "fritzbox": {
+  "note": "The FRITZ!Box behind the firewall reconnects every night at 04:02 (the provider's forced reconnect, uptime counted from there); the VDSL line syncs at 250 Mbit/s. Reconnects of the last weeks: mostly short, twice a run caught the line down (47 and 14 minutes). FRITZ!OS 8.21 is offered; Selin is uploading the episode 4 cut to Northlight, so the upstream is full. The repeater in the sound studio hangs on a weak WLAN uplink and waits for an update; Theo's tablet is on the network but not in the inventory. The radiator thermostat in the store room lost its DECT link. Four missed calls this week, one at night without a number.",
+  "url": "https://fritz.demo:49443",
+  "status": "Connected",
+  "since": "@date-0 04:02",
+  "last_error": "ERROR_NONE",
+  "model": "FRITZ!Box 7590",
+  "down_sync": 250000,
+  "up_sync": 40000,
+  "down_max": 292000,
+  "up_max": 46000,
+  "reconnects": [
+   {
+    "up": "@-27d20h"
+   },
+   {
+    "up": "@-21d3h"
+   },
+   {
+    "down": "@-16d5h",
+    "up": "@-16d4h13m"
+   },
+   {
+    "up": "@-11d22h"
+   },
+   {
+    "down": "@-6d2h30m",
+    "up": "@-6d2h16m"
+   },
+   {
+    "up": "@-2d20h"
+   }
+  ],
+  "down_margin": 9.0,
+  "up_margin": 8.5,
+  "firmware": "8.03",
+  "update": "8.21",
+  "traffic_down": [
+   3200,
+   2800,
+   4100,
+   12500,
+   48000,
+   52000,
+   31000,
+   8800,
+   4300,
+   3900,
+   6100,
+   21000,
+   64000,
+   71000,
+   38000,
+   9200,
+   5100,
+   4700,
+   3800,
+   4400
+  ],
+  "traffic_up": [
+   36800,
+   37900,
+   38400,
+   38100,
+   37600,
+   38900,
+   38200,
+   37700,
+   38600,
+   38800,
+   38300,
+   37900,
+   38500,
+   38700,
+   38100,
+   37800,
+   38600,
+   38400,
+   38900,
+   38200
+  ],
+  "radios": [
+   {
+    "band": "2.4",
+    "on": true,
+    "channel": 6,
+    "clients": 3
+   },
+   {
+    "band": "5",
+    "on": true,
+    "channel": 36,
+    "clients": 4
+   }
+  ],
+  "mesh": [
+   {
+    "name": "fritz.box",
+    "model": "FRITZ!Box 7590",
+    "firmware": "8.03",
+    "role": "master",
+    "clients": 6
+   },
+   {
+    "name": "Repeater Tonstudio",
+    "model": "FRITZ!Repeater 1200 AX",
+    "firmware": "8.02",
+    "role": "slave",
+    "uplink": "wlan",
+    "rate": 130,
+    "signal": -79,
+    "clients": 2
+   },
+   {
+    "name": "Powerline Lager",
+    "model": "FRITZ!Powerline 1260E",
+    "firmware": "8.25",
+    "role": "slave",
+    "uplink": "plc",
+    "rate": 410,
+    "clients": 1
+   }
+  ],
+  "hosts": [
+   {
+    "name": "OPNsense",
+    "ip": "192.168.178.2",
+    "active": true,
+    "link": "lan",
+    "speed": 1000
+   },
+   {
+    "name": "Schnitt-Laptop",
+    "ip": "192.168.178.21",
+    "active": true,
+    "link": "wlan",
+    "speed": 780,
+    "signal": -48
+   },
+   {
+    "name": "Möwe 7",
+    "ip": "192.168.178.22",
+    "active": true,
+    "link": "wlan",
+    "speed": 433,
+    "signal": -61
+   },
+   {
+    "name": "Theos Tablet",
+    "ip": "192.168.178.31",
+    "active": true,
+    "link": "wlan",
+    "speed": 144,
+    "signal": -77
+   },
+   {
+    "name": "Drucker Studio",
+    "ip": "192.168.178.40",
+    "active": true,
+    "link": "lan",
+    "speed": 100
+   },
+   {
+    "name": "Repeater Tonstudio",
+    "ip": "192.168.178.5",
+    "active": true,
+    "link": "wlan",
+    "speed": 130,
+    "signal": -79,
+    "model": "FRITZ!Repeater 1200 AX",
+    "update": true
+   },
+   {
+    "name": "Powerline Lager",
+    "ip": "192.168.178.6",
+    "active": true,
+    "link": "plc",
+    "speed": 410,
+    "model": "FRITZ!Powerline 1260E"
+   },
+   {
+    "name": "Kamera-Tablet",
+    "ip": "192.168.178.33",
+    "active": true,
+    "link": "wlan",
+    "speed": 286,
+    "signal": -66
+   },
+   {
+    "name": "Gast-Handy",
+    "ip": "192.168.179.20",
+    "active": true,
+    "link": "wlan",
+    "speed": 72,
+    "signal": -70,
+    "guest": true
+   },
+   {
+    "name": "Jonas Handy",
+    "ip": "",
+    "active": false,
+    "link": "wlan"
+   },
+   {
+    "name": "Beamer Besprechung",
+    "ip": "",
+    "active": false,
+    "link": "lan"
+   }
+  ],
+  "calls": {
+   "days": 7,
+   "in": 23,
+   "out": 17,
+   "missed": 4,
+   "recent": [
+    {
+     "at": "@-2h15m",
+     "who": "Northlight Pictures"
+    },
+    {
+     "at": "@date-1 03:13",
+     "who": ""
+    },
+    {
+     "at": "@date-2 16:05",
+     "who": "Lena Kraus"
+    },
+    {
+     "at": "@date-4 09:30",
+     "who": "+49 40 555 0173"
+    }
+   ]
+  },
+  "smart": [
+   {
+    "name": "Kaffeemaschine",
+    "product": "FRITZ!DECT 200",
+    "present": true,
+    "switch": "on",
+    "meter": true,
+    "power": 2.1,
+    "energy": 41.7,
+    "thermo": true,
+    "temp": 22.5
+   },
+   {
+    "name": "Kühlschrank Requisite",
+    "product": "FRITZ!DECT 210",
+    "present": true,
+    "switch": "on",
+    "meter": true,
+    "power": 64.0,
+    "energy": 312.4
+   },
+   {
+    "name": "Heizung Tonstudio",
+    "product": "FRITZ!DECT 301",
+    "present": true,
+    "thermo": true,
+    "temp": 19.5,
+    "heater": true,
+    "set": 21.0
+   },
+   {
+    "name": "Heizung Lager",
+    "product": "FRITZ!DECT 301",
+    "present": false,
+    "heater": true,
+    "set": 16.0
+   },
+   {
+    "name": "Fluter Hof",
+    "product": "FRITZ!DECT 210",
+    "present": true,
+    "switch": "off",
+    "meter": true,
+    "power": 0.0,
+    "energy": 3.13
+   }
+  ]
+ },
+ "llm_usage": {
+  "note": "LLM providers the studio pays for. Days run oldest first, the last one is today. PaperNinja re-reads every 2025 receipt with Claude today (cost spike); Theo's OpenRouter credit for the subtitles is nearly used up; Mara's Max plan is close to its weekly limit; the DeepSeek balance for translations is low. LiteLLM on Feuerschiff routes the local Qwen and Groq.",
+  "accounts": [
+   {
+    "id": "claude-api",
+    "provider": "claudeapi",
+    "name": "Studio Weber",
+    "url": "https://console.anthropic.com",
+    "budget": 60,
+    "models": [
+     {
+      "model": "claude-opus-5-5",
+      "cost": [
+       0.85,
+       1.27,
+       0.71,
+       1.17,
+       0.47,
+       0.42,
+       0.63,
+       0.3,
+       0.73,
+       0.69,
+       0.87,
+       1.19,
+       0.41,
+       0.5,
+       0.79,
+       0.92,
+       0.48,
+       0.81,
+       0.5,
+       0.62,
+       0.47,
+       0.57,
+       0.78,
+       1.05,
+       1.04,
+       1.19,
+       0.28,
+       0.36,
+       0.78,
+       4.6
+      ],
+      "input": [
+       165791,
+       245927,
+       138495,
+       226710,
+       92179,
+       81763,
+       122978,
+       57890,
+       142577,
+       133746,
+       168635,
+       231899,
+       79475,
+       98077,
+       153368,
+       178313,
+       93108,
+       157365,
+       97381,
+       120762,
+       91345,
+       110794,
+       151777,
+       203316,
+       201956,
+       230901,
+       54551,
+       69635,
+       151268,
+       893939
+      ],
+      "output": [
+       22105,
+       32790,
+       18466,
+       30228,
+       12290,
+       10901,
+       16397,
+       7718,
+       19010,
+       17832,
+       22484,
+       30919,
+       10596,
+       13076,
+       20449,
+       23775,
+       12414,
+       20982,
+       12984,
+       16101,
+       12179,
+       14772,
+       20237,
+       27108,
+       26927,
+       30786,
+       7273,
+       9284,
+       20169,
+       119191
+      ],
+      "requests": [
+       55,
+       81,
+       46,
+       75,
+       30,
+       27,
+       40,
+       19,
+       47,
+       44,
+       56,
+       77,
+       26,
+       32,
+       51,
+       59,
+       31,
+       52,
+       32,
+       40,
+       30,
+       36,
+       50,
+       67,
+       67,
+       76,
+       18,
+       23,
+       50,
+       297
+      ],
+      "cached": [
+       66316,
+       98370,
+       55398,
+       90684,
+       36871,
+       32705,
+       49191,
+       23156,
+       57030,
+       53498,
+       67454,
+       92759,
+       31790,
+       39230,
+       61347,
+       71325,
+       37243,
+       62946,
+       38952,
+       48304,
+       36538,
+       44317,
+       60710,
+       81326,
+       80782,
+       92360,
+       21820,
+       27854,
+       60507,
+       357575
+      ]
+     },
+     {
+      "model": "claude-haiku-5-5",
+      "cost": [
+       0.05,
+       0.03,
+       0.05,
+       0.04,
+       0.04,
+       0.01,
+       0.04,
+       0.04,
+       0.01,
+       0.04,
+       0.01,
+       0.04,
+       0.03,
+       0.03,
+       0.01,
+       0.04,
+       0.03,
+       0.05,
+       0.02,
+       0.03,
+       0.03,
+       0.03,
+       0.01,
+       0.01,
+       0.02,
+       0.04,
+       0.05,
+       0.01,
+       0.03,
+       0.03
+      ],
+      "input": [
+       446379,
+       277010,
+       429088,
+       389543,
+       404435,
+       111224,
+       400998,
+       365208,
+       113083,
+       371112,
+       109099,
+       380347,
+       310611,
+       300057,
+       120586,
+       391729,
+       267934,
+       418798,
+       156906,
+       244637,
+       264786,
+       272792,
+       124107,
+       106627,
+       161927,
+       363753,
+       432823,
+       110819,
+       314327,
+       293582
+      ],
+      "output": [
+       41848,
+       25969,
+       40227,
+       36519,
+       37915,
+       10427,
+       37593,
+       34238,
+       10601,
+       34791,
+       10228,
+       35657,
+       29119,
+       28130,
+       11305,
+       36724,
+       25118,
+       39262,
+       14709,
+       22934,
+       24823,
+       25574,
+       11635,
+       9996,
+       15180,
+       34101,
+       40577,
+       10389,
+       29468,
+       27523
+      ],
+      "requests": [
+       292,
+       181,
+       281,
+       255,
+       265,
+       72,
+       263,
+       239,
+       74,
+       243,
+       71,
+       249,
+       203,
+       196,
+       79,
+       257,
+       175,
+       274,
+       102,
+       160,
+       173,
+       179,
+       81,
+       69,
+       106,
+       238,
+       284,
+       72,
+       206,
+       192
+      ],
+      "cached": [
+       178551,
+       110804,
+       171635,
+       155817,
+       161774,
+       44489,
+       160399,
+       146083,
+       45233,
+       148444,
+       43639,
+       152138,
+       124244,
+       120022,
+       48234,
+       156691,
+       107173,
+       167519,
+       62762,
+       97854,
+       105914,
+       109116,
+       49642,
+       42650,
+       64770,
+       145501,
+       173129,
+       44327,
+       125730,
+       117432
+      ]
+     }
+    ]
+   },
+   {
+    "id": "openrouter",
+    "provider": "openrouter",
+    "name": "Theo Lindqvist · Untertitel",
+    "url": "https://openrouter.ai/activity",
+    "limit": 25,
+    "limit_reset": "monthly",
+    "balance": 3.8,
+    "currency": "USD",
+    "models": [
+     {
+      "model": "mistralai/mistral-medium-3.1",
+      "cost": [
+       0.24,
+       0.25,
+       0.26,
+       0.3,
+       0.23,
+       0.19,
+       0.23,
+       0.24,
+       0.1,
+       0.34,
+       0.23,
+       0.21,
+       0.32,
+       0.27,
+       0.17,
+       0.23,
+       0.13,
+       0.14,
+       0.17,
+       0.22,
+       0.2,
+       0.27,
+       0.15,
+       0.32,
+       0.18,
+       0.1,
+       0.14,
+       0.33,
+       0.33,
+       0.15
+      ],
+      "input": [
+       255955,
+       268890,
+       279500,
+       324837,
+       248367,
+       204424,
+       241481,
+       258715,
+       111170,
+       359048,
+       240496,
+       228417,
+       337543,
+       284047,
+       180294,
+       248717,
+       135458,
+       148140,
+       183719,
+       231651,
+       216344,
+       292767,
+       162013,
+       337394,
+       190939,
+       101403,
+       150614,
+       351846,
+       346877,
+       156327
+      ],
+      "output": [
+       68911,
+       72393,
+       75250,
+       87456,
+       66868,
+       55037,
+       65014,
+       69654,
+       29930,
+       96666,
+       64749,
+       61496,
+       90877,
+       76474,
+       48540,
+       66962,
+       36469,
+       39883,
+       49462,
+       62367,
+       58246,
+       78821,
+       43618,
+       90836,
+       51406,
+       27300,
+       40550,
+       94727,
+       93390,
+       42088
+      ],
+      "requests": [
+       44,
+       46,
+       48,
+       56,
+       42,
+       35,
+       41,
+       44,
+       19,
+       62,
+       41,
+       39,
+       58,
+       49,
+       31,
+       43,
+       23,
+       25,
+       31,
+       40,
+       37,
+       50,
+       28,
+       58,
+       33,
+       17,
+       26,
+       60,
+       60,
+       27
+      ]
+     },
+     {
+      "model": "google/gemini-2.5-flash",
+      "cost": [
+       0.07,
+       0.08,
+       0.04,
+       0.02,
+       0.04,
+       0.05,
+       0.04,
+       0.07,
+       0.03,
+       0.08,
+       0.07,
+       0.03,
+       0.02,
+       0.02,
+       0.05,
+       0.04,
+       0.05,
+       0.05,
+       0.02,
+       0.05,
+       0.04,
+       0.05,
+       0.07,
+       0.03,
+       0.02,
+       0.07,
+       0.08,
+       0.07,
+       0.08,
+       0.08
+      ],
+      "input": [
+       113678,
+       124855,
+       61592,
+       27304,
+       56775,
+       75663,
+       57679,
+       108283,
+       40485,
+       125460,
+       102820,
+       51932,
+       27299,
+       32428,
+       74032,
+       60522,
+       74989,
+       72930,
+       35912,
+       71811,
+       59727,
+       71625,
+       110910,
+       49041,
+       36107,
+       107461,
+       123351,
+       107852,
+       119193,
+       119119
+      ],
+      "output": [
+       15157,
+       16647,
+       8212,
+       3640,
+       7570,
+       10088,
+       7690,
+       14437,
+       5398,
+       16728,
+       13709,
+       6924,
+       3639,
+       4323,
+       9871,
+       8069,
+       9998,
+       9724,
+       4788,
+       9574,
+       7963,
+       9550,
+       14788,
+       6538,
+       4814,
+       14328,
+       16446,
+       14380,
+       15892,
+       15882
+      ],
+      "requests": [
+       37,
+       41,
+       20,
+       9,
+       18,
+       25,
+       19,
+       36,
+       13,
+       41,
+       34,
+       17,
+       9,
+       10,
+       24,
+       20,
+       24,
+       24,
+       11,
+       23,
+       19,
+       23,
+       36,
+       16,
+       12,
+       35,
+       41,
+       35,
+       39,
+       39
+      ]
+     }
+    ]
+   },
+   {
+    "id": "openai",
+    "provider": "openai",
+    "name": "Studio Weber",
+    "url": "https://platform.openai.com/usage",
+    "models": [
+     {
+      "model": "gpt-5-mini",
+      "cost": [
+       0.22,
+       0.07,
+       0.08,
+       0.12,
+       0.16,
+       0.26,
+       0.19,
+       0.09,
+       0.12,
+       0.18,
+       0.11,
+       0.24,
+       0.2,
+       0.18,
+       0.2,
+       0.17,
+       0.16,
+       0.19,
+       0.16,
+       0.16,
+       0.16,
+       0.17,
+       0.11,
+       0.16,
+       0.11,
+       0.19,
+       0.2,
+       0.23,
+       0.16,
+       0.15
+      ],
+      "input": [
+       499182,
+       160345,
+       169078,
+       276399,
+       363923,
+       585458,
+       420229,
+       206601,
+       271203,
+       399052,
+       239299,
+       544165,
+       452569,
+       403037,
+       450508,
+       386747,
+       363308,
+       417871,
+       363614,
+       370075,
+       348025,
+       389010,
+       252378,
+       350456,
+       248853,
+       420721,
+       450986,
+       525501,
+       352561,
+       329590
+      ],
+      "output": [
+       71311,
+       22906,
+       24154,
+       39485,
+       51989,
+       83636,
+       60032,
+       29514,
+       38743,
+       57007,
+       34185,
+       77737,
+       64652,
+       57576,
+       64358,
+       55249,
+       51901,
+       59695,
+       51944,
+       52867,
+       49717,
+       55572,
+       36054,
+       50065,
+       35550,
+       60103,
+       64426,
+       75071,
+       50365,
+       47084
+      ],
+      "requests": [
+       142,
+       45,
+       48,
+       78,
+       103,
+       167,
+       120,
+       59,
+       77,
+       114,
+       68,
+       155,
+       129,
+       115,
+       128,
+       110,
+       103,
+       119,
+       103,
+       105,
+       99,
+       111,
+       72,
+       100,
+       71,
+       120,
+       128,
+       150,
+       100,
+       94
+      ],
+      "cached": [
+       199672,
+       64138,
+       67631,
+       110559,
+       145569,
+       234183,
+       168091,
+       82640,
+       108481,
+       159620,
+       95719,
+       217666,
+       181027,
+       161214,
+       180203,
+       154698,
+       145323,
+       167148,
+       145445,
+       148030,
+       139210,
+       155604,
+       100951,
+       140182,
+       99541,
+       168288,
+       180394,
+       210200,
+       141024,
+       131836
+      ]
+     },
+     {
+      "model": "gpt-5",
+      "cost": [
+       0.16,
+       0.14,
+       0.08,
+       0.05,
+       0.1,
+       0.1,
+       0.1,
+       0.1,
+       0.09,
+       0.15,
+       0.08,
+       0.05,
+       0.11,
+       0.15,
+       0.11,
+       0.08,
+       0.15,
+       0.07,
+       0.14,
+       0.17,
+       0.14,
+       0.13,
+       0.06,
+       0.11,
+       0.17,
+       0.13,
+       0.07,
+       0.07,
+       0.17,
+       0.14
+      ],
+      "input": [
+       52393,
+       44930,
+       25515,
+       15081,
+       33848,
+       33115,
+       33951,
+       34287,
+       30917,
+       47562,
+       25552,
+       15277,
+       36643,
+       48709,
+       35460,
+       27700,
+       50822,
+       22881,
+       46134,
+       55198,
+       44734,
+       41108,
+       19167,
+       34895,
+       55784,
+       41063,
+       24096,
+       23879,
+       55484,
+       45622
+      ],
+      "output": [
+       11788,
+       10109,
+       5740,
+       3393,
+       7615,
+       7451,
+       7639,
+       7714,
+       6956,
+       10701,
+       5749,
+       3437,
+       8244,
+       10959,
+       7978,
+       6232,
+       11434,
+       5148,
+       10380,
+       12419,
+       10065,
+       9249,
+       4312,
+       7851,
+       12551,
+       9239,
+       5421,
+       5372,
+       12484,
+       10265
+      ],
+      "requests": [
+       10,
+       8,
+       5,
+       3,
+       6,
+       6,
+       6,
+       6,
+       6,
+       9,
+       5,
+       3,
+       7,
+       9,
+       7,
+       5,
+       10,
+       4,
+       9,
+       11,
+       8,
+       8,
+       3,
+       6,
+       11,
+       8,
+       4,
+       4,
+       11,
+       9
+      ],
+      "cached": [
+       20957,
+       17972,
+       10206,
+       6032,
+       13539,
+       13246,
+       13580,
+       13714,
+       12366,
+       19024,
+       10220,
+       6110,
+       14657,
+       19483,
+       14184,
+       11080,
+       20328,
+       9152,
+       18453,
+       22079,
+       17893,
+       16443,
+       7666,
+       13958,
+       22313,
+       16425,
+       9638,
+       9551,
+       22193,
+       18248
+      ]
+     }
+    ]
+   },
+   {
+    "id": "deepseek",
+    "provider": "deepseek",
+    "name": {
+     "de": "Übersetzungen",
+     "en": "Translations"
+    },
+    "url": "https://platform.deepseek.com/usage",
+    "balance": 2.4,
+    "currency": "USD"
+   },
+   {
+    "id": "litellm",
+    "provider": "litellm",
+    "name": "Feuerschiff",
+    "url": "https://litellm.demo",
+    "models": [
+     {
+      "model": "ollama/qwen3:14b",
+      "cost": [
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "input": [
+       309839,
+       611618,
+       1204560,
+       415094,
+       1204764,
+       532644,
+       522178,
+       545777,
+       692383,
+       417831,
+       1228850,
+       1124059,
+       608220,
+       789072,
+       491151,
+       1189522,
+       1136769,
+       413456,
+       1171480,
+       993639,
+       533198,
+       1035801,
+       551381,
+       1000058,
+       368657,
+       476261,
+       1168535,
+       1113939,
+       1188533,
+       679472
+      ],
+      "output": [
+       48197,
+       95140,
+       187376,
+       64570,
+       187407,
+       82855,
+       81227,
+       84898,
+       107704,
+       64995,
+       191154,
+       174853,
+       94612,
+       122744,
+       76401,
+       185036,
+       176830,
+       64315,
+       182230,
+       154566,
+       82941,
+       161124,
+       85770,
+       155564,
+       57346,
+       74085,
+       181772,
+       173279,
+       184883,
+       105695
+      ],
+      "requests": [
+       130,
+       258,
+       508,
+       175,
+       508,
+       224,
+       220,
+       230,
+       292,
+       176,
+       518,
+       474,
+       256,
+       333,
+       207,
+       502,
+       479,
+       174,
+       494,
+       419,
+       225,
+       437,
+       232,
+       422,
+       155,
+       201,
+       493,
+       470,
+       501,
+       286
+      ]
+     },
+     {
+      "model": "groq/llama-4-scout",
+      "cost": [
+       0.01,
+       0.02,
+       0.03,
+       0.02,
+       0.02,
+       0.01,
+       0.03,
+       0.03,
+       0.02,
+       0.01,
+       0.01,
+       0.02,
+       0.01,
+       0.02,
+       0.03,
+       0.01,
+       0.01,
+       0.02,
+       0.01,
+       0.03,
+       0.01,
+       0.02,
+       0.02,
+       0.03,
+       0.03,
+       0.02,
+       0.03,
+       0.02,
+       0.01,
+       0.02
+      ],
+      "input": [
+       77640,
+       107531,
+       197106,
+       129000,
+       139615,
+       55408,
+       172901,
+       179335,
+       100267,
+       93915,
+       59684,
+       100699,
+       91581,
+       109079,
+       185619,
+       83009,
+       84511,
+       157728,
+       54582,
+       179864,
+       54613,
+       156605,
+       153081,
+       169026,
+       192129,
+       127161,
+       161950,
+       99730,
+       70239,
+       106982
+      ],
+      "output": [
+       10352,
+       14337,
+       26280,
+       17200,
+       18615,
+       7387,
+       23053,
+       23911,
+       13369,
+       12522,
+       7957,
+       13426,
+       12210,
+       14543,
+       24749,
+       11067,
+       11268,
+       21030,
+       7277,
+       23981,
+       7281,
+       20880,
+       20410,
+       22536,
+       25617,
+       16954,
+       21593,
+       13297,
+       9365,
+       14264
+      ],
+      "requests": [
+       36,
+       50,
+       91,
+       60,
+       65,
+       25,
+       80,
+       83,
+       46,
+       43,
+       27,
+       46,
+       42,
+       50,
+       86,
+       38,
+       39,
+       73,
+       25,
+       83,
+       25,
+       73,
+       71,
+       78,
+       89,
+       59,
+       75,
+       46,
+       32,
+       49
+      ]
+     }
+    ]
+   }
+  ]
+ },
  "smart_home": {
-  "note": "Home Assistant at Mara's: the bathroom window sensor's battery is low, a plug is unavailable, a core update waits. history: the living room warms through the day, the office light is on during work hours.",
+  "note": "Home Assistant at Mara's: the bathroom window sensor's battery is low, a plug is unavailable, a core update waits. history: the living room warms through the day, the office light is on during work hours. The workshop climate sensor answers ESPHome but Home Assistant lost it; the pond pump is off in both.",
   "url": "https://home.demo",
   "entities": [
    {
@@ -5389,6 +8511,49 @@
     "domain": "update",
     "state": "on",
     "changed": "@-20h"
+   },
+   {
+    "id": "binary_sensor.flur_sensor_bewegung",
+    "name": {
+     "de": "Flur Bewegung",
+     "en": "Hall motion"
+    },
+    "domain": "binary_sensor",
+    "state": "off",
+    "device_class": "motion",
+    "changed": "@-2h"
+   },
+   {
+    "id": "cover.garagentor",
+    "name": {
+     "de": "Garagentor",
+     "en": "Garage door"
+    },
+    "domain": "cover",
+    "state": "closed",
+    "changed": "@-9h"
+   },
+   {
+    "id": "sensor.werkstatt_klima_temperatur",
+    "name": {
+     "de": "Werkstatt Temperatur",
+     "en": "Workshop temperature"
+    },
+    "domain": "sensor",
+    "state": "unavailable",
+    "unit": "°C",
+    "device_class": "temperature",
+    "changed": "@-6h"
+   },
+   {
+    "id": "switch.teich_pumpe",
+    "name": {
+     "de": "Teichpumpe",
+     "en": "Pond pump"
+    },
+    "domain": "switch",
+    "state": "unavailable",
+    "changed": "@-26h"
    }
   ],
   "history": {
@@ -5556,6 +8721,314 @@
    }
   ]
  },
+ "power": {
+  "note": "The NAS UPS (PeaNUT) is fine; the small UPS of the Pi (apcupsd) holds only seven minutes at its load. OpenDTU reads the balcony panels, the garage inverter is unreachable. EVCC charges the studio car at the carport, mostly from the grid. Its charging sessions of the last two months are listed; after them the car drives Mara to clients and to the Graufeld set.",
+  "peanut": {
+   "url": "https://peanut.demo",
+   "devices": [
+    {
+     "name": "nebelhorn-usv",
+     "model": "Eaton 5E 1100i",
+     "status": "OL",
+     "charge": 100,
+     "runtime": 1260,
+     "load": 38,
+     "power": 240
+    }
+   ]
+  },
+  "apcupsd": {
+   "url": "apcupsd://boje.demo:3551",
+   "devices": [
+    {
+     "name": "boje-usv",
+     "model": "Back-UPS ES 400",
+     "status": "ONLINE",
+     "charge": 92,
+     "runtime": 420,
+     "load": 61,
+     "power": 0
+    }
+   ]
+  },
+  "opendtu": {
+   "url": "http://opendtu.demo",
+   "power": 412,
+   "yield_day": 1840,
+   "yield_total": 1234.5,
+   "inverters": [
+    {
+     "name": "Balkon",
+     "serial": "114182937465",
+     "reachable": true,
+     "producing": true,
+     "power": 412
+    },
+    {
+     "name": "Garage",
+     "serial": "114182930012",
+     "reachable": false,
+     "producing": false,
+     "power": 0
+    }
+   ]
+  },
+  "evcc": {
+   "url": "http://evcc.demo:7070",
+   "pv": 412,
+   "home": 380,
+   "grid": 3650,
+   "battery_soc": -1,
+   "tariff_grid": 0.34,
+   "loadpoints": [
+    {
+     "title": "Carport",
+     "vehicle": "Studio-Kombi",
+     "connected": true,
+     "charging": true,
+     "charge_power": 3700,
+     "vehicle_soc": 54,
+     "charged": 6.4,
+     "mode": "now"
+    }
+   ],
+   "stats30": {
+    "charged_kwh": 142,
+    "avg_price": 0.27,
+    "solar_pct": 31
+   },
+   "sessions": [
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-2d",
+     "finished": "@-1d21h",
+     "kwh": 18.4,
+     "price": 5.7
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-6d",
+     "finished": "@-5d21h",
+     "kwh": 22.1,
+     "price": 6.85
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-10d",
+     "finished": "@-9d21h",
+     "kwh": 15.6,
+     "price": 4.84
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-13d",
+     "finished": "@-12d21h",
+     "kwh": 24.8,
+     "price": 7.69
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-17d",
+     "finished": "@-16d21h",
+     "kwh": 19.9,
+     "price": 6.17
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-21d",
+     "finished": "@-20d21h",
+     "kwh": 12.7,
+     "price": 3.94
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-25d",
+     "finished": "@-24d21h",
+     "kwh": 21.3,
+     "price": 6.6
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-29d",
+     "finished": "@-28d21h",
+     "kwh": 17.5,
+     "price": 5.42
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-33d",
+     "finished": "@-32d21h",
+     "kwh": 25.2,
+     "price": 7.81
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-37d",
+     "finished": "@-36d21h",
+     "kwh": 16.8,
+     "price": 5.21
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-41d",
+     "finished": "@-40d21h",
+     "kwh": 20.6,
+     "price": 6.39
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-46d",
+     "finished": "@-45d21h",
+     "kwh": 23.4,
+     "price": 7.25
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-50d",
+     "finished": "@-49d21h",
+     "kwh": 14.9,
+     "price": 4.62
+    },
+    {
+     "loadpoint": "Carport",
+     "vehicle": "Studio-Kombi",
+     "created": "@-55d",
+     "finished": "@-54d21h",
+     "kwh": 19.2,
+     "price": 5.95
+    }
+   ]
+  },
+  "hass_energy": {
+   "note": "Home Assistant's energy dashboard at Mara's: the two OpenDTU inverters (balcony and garage), the grid meter and the balcony battery. Since the garage inverter dropped off the network the yield is about half the forecast. The battery has not cycled since a firmware update put it in standby, so more goes to the grid and the self-use share is below last year's. month_kwh: a typical month's yield of both inverters; daylight: hours of daylight per month; weather: the yield factor of consecutive days, repeating.",
+   "zone": "Europe/Berlin",
+   "solar": [
+    "sensor.balkon_yieldtotal",
+    "sensor.garage_yieldtotal"
+   ],
+   "import": [
+    "sensor.zaehler_bezug"
+   ],
+   "export": [
+    "sensor.zaehler_einspeisung"
+   ],
+   "charge": [
+    "sensor.akku_geladen"
+   ],
+   "discharge": [
+    "sensor.akku_entladen"
+   ],
+   "month_kwh": [
+    25,
+    45,
+    95,
+    145,
+    180,
+    180,
+    185,
+    160,
+    115,
+    70,
+    30,
+    20
+   ],
+   "daylight": [
+    8,
+    9.8,
+    11.8,
+    13.9,
+    15.7,
+    16.7,
+    16.2,
+    14.6,
+    12.6,
+    10.6,
+    8.6,
+    7.6
+   ],
+   "noon": 13,
+   "weather": [
+    1.1,
+    0.7,
+    1.0,
+    0.45,
+    0.9,
+    1.05,
+    0.8
+   ],
+   "use_kwh": 7,
+   "direct_share": 0.45,
+   "battery_kwh": 1.5,
+   "battery_efficiency": 0.9,
+   "garage_share": 0.5,
+   "garage_down": "@date-2",
+   "battery_idle": "@date-9"
+  }
+ },
+ "esphome": {
+  "note": "ESPHome dashboard: four nodes. The garage door still runs an older firmware, the pond pump is offline, the workshop climate node is online but Home Assistant shows its sensor unavailable.",
+  "url": "http://esphome.demo:6052",
+  "version": "2026.9.1",
+  "devices": [
+   {
+    "name": "flur-sensor",
+    "friendly_name": {
+     "de": "Flur Bewegung",
+     "en": "Hall motion"
+    },
+    "platform": "ESP32",
+    "address": "flur-sensor.local",
+    "deployed_version": "2026.9.1",
+    "online": true
+   },
+   {
+    "name": "garagentor",
+    "friendly_name": {
+     "de": "Garagentor",
+     "en": "Garage door"
+    },
+    "platform": "ESP8266",
+    "address": "garagentor.local",
+    "deployed_version": "2026.6.2",
+    "online": true
+   },
+   {
+    "name": "teich-pumpe",
+    "friendly_name": {
+     "de": "Teichpumpe",
+     "en": "Pond pump"
+    },
+    "platform": "ESP32-C3",
+    "address": "teich-pumpe.local",
+    "deployed_version": "2026.9.1",
+    "online": false
+   },
+   {
+    "name": "werkstatt-klima",
+    "friendly_name": {
+     "de": "Werkstatt Klima",
+     "en": "Workshop climate"
+    },
+    "platform": "ESP32",
+    "address": "werkstatt-klima.local",
+    "deployed_version": "2026.9.1",
+    "online": true
+   }
+  ]
+ },
  "sites": {
   "note": "Umami: the shop's views collapsed against the week before. detail: pages and referrers of the week; days = base + a wobble.",
   "url": "https://stats.demo",
@@ -5633,7 +9106,7 @@
   }
  },
  "feeds": {
-  "note": "FreshRSS: one feed has been silent for over a year.",
+  "note": "FreshRSS: one feed has been silent for over a year; release feeds announce newer versions of two pinned images.",
   "url": "https://rss.demo",
   "unread": 812,
   "feeds": [
@@ -5667,6 +9140,22 @@
     "category": "Tech",
     "unread": 260,
     "newest": "@-2d"
+   }
+  ],
+  "releases": [
+   {
+    "feed": "feed/5",
+    "repo": "freika/dawarich",
+    "version": "0.30.9",
+    "link": "https://github.com/Freika/dawarich/releases/tag/0.30.9",
+    "published": "@-3d"
+   },
+   {
+    "feed": "feed/6",
+    "repo": "stirling-tools/stirling-pdf",
+    "version": "v1.5.0",
+    "link": "https://github.com/Stirling-Tools/Stirling-PDF/releases/tag/v1.5.0",
+    "published": "@-6d"
    }
   ]
  },
@@ -5751,6 +9240,249 @@
      "de": "Zahnarzt",
      "en": "Dentist"
     }
+   }
+  ]
+ },
+ "news": {
+  "note": "Reading: Hacker News front page, Lobsters, r/selfhosted and a YouTube channel. A Hacker News post presents the studio's Timecode Clock widget.",
+  "url": "https://news.demo",
+  "items": [
+   {
+    "site": "hackernews",
+    "title": "Show HN: Timecode Clock, a Plasma widget for film sets",
+    "url": "https://store.kde.org/p/2391004",
+    "points": 214,
+    "comments": 61,
+    "at": "@-7h",
+    "link": "https://news.ycombinator.com/item?id=41000001"
+   },
+   {
+    "site": "hackernews",
+    "title": "Self-hosting a small studio on three machines",
+    "url": "https://blog.example.test/three-machines",
+    "points": 388,
+    "comments": 142,
+    "at": "@-11h",
+    "link": "https://news.ycombinator.com/item?id=41000002"
+   },
+   {
+    "site": "lobsters",
+    "title": "Why reverse proxies should check their upstreams",
+    "url": "https://proxy.example.test/upstreams",
+    "points": 42,
+    "comments": 9,
+    "at": "@-5h",
+    "link": "https://lobste.rs/s/abc123"
+   },
+   {
+    "site": "reddit",
+    "feed": "selfhosted",
+    "title": "My homelab backup plan, two years later",
+    "url": "https://www.reddit.com/r/selfhosted/comments/x1",
+    "points": 912,
+    "comments": 233,
+    "at": "@-14h",
+    "link": "https://www.reddit.com/r/selfhosted/comments/x1"
+   },
+   {
+    "site": "youtube",
+    "feed": "Elbe Film Club",
+    "title": {
+     "de": "Nebel richtig belichten",
+     "en": "Exposing fog right"
+    },
+    "url": "https://www.youtube.com/watch?v=demo1",
+    "points": 0,
+    "comments": 0,
+    "at": "@-2d",
+    "link": "https://www.youtube.com/watch?v=demo1"
+   }
+  ]
+ },
+ "twitch": {
+  "note": "Twitch: one of the followed channels is live.",
+  "url": "https://api.twitch.tv",
+  "live": [
+   {
+    "user": "elbefilmclub",
+    "title": {
+     "de": "Farbkorrektur live: Hafen bei Nacht",
+     "en": "Live grading: harbour at night"
+    },
+    "game": "Art",
+    "viewers": 214,
+    "since": "@-1h"
+   }
+  ]
+ },
+ "fediverse": {
+  "note": "The studio's Mastodon account: followers grow slowly, two unread notifications (a mention and a new follower). The Timecode Clock 2.1 was announced; the website's release v0.12.0 six days ago was not.",
+  "url": "https://social.studio-weber.example.test",
+  "software": "Mastodon",
+  "version": "4.4.3",
+  "account": {
+   "acct": "studio",
+   "display_name": "Studio Weber",
+   "url": "https://social.studio-weber.example.test/@studio",
+   "followers": 412,
+   "following": 118,
+   "statuses": 231,
+   "followers_daily": [
+    1,
+    0,
+    2,
+    1,
+    0,
+    0,
+    3,
+    1,
+    1,
+    0,
+    2,
+    0,
+    1,
+    4,
+    6,
+    2,
+    1,
+    0,
+    1,
+    0,
+    2,
+    1,
+    0,
+    1,
+    1,
+    0,
+    2,
+    1,
+    0,
+    1
+   ]
+  },
+  "notifications": [
+   {
+    "type": "mention",
+    "from": "elbefilmclub@film.example.test",
+    "text": {
+     "de": "Habt ihr die Timecode-Uhr auch für Plasma 5?",
+     "en": "Is the timecode clock available for Plasma 5 too?"
+    },
+    "at": "@-3h",
+    "unread": true
+   },
+   {
+    "type": "follow",
+    "from": "nordlicht@social.example.test",
+    "at": "@-9h",
+    "unread": true
+   },
+   {
+    "type": "favourite",
+    "from": "mara@social.example.test",
+    "at": "@-1d",
+    "unread": false
+   },
+   {
+    "type": "reblog",
+    "from": "kdecommunity@floss.example.test",
+    "at": "@-14d",
+    "unread": false
+   }
+  ],
+  "statuses": [
+   {
+    "text": {
+     "de": "Hinter den Kulissen: Farbabnahme für Harbour Lights, Folge 4.",
+     "en": "Behind the scenes: colour review for Harbour Lights, episode 4."
+    },
+    "url": "https://social.studio-weber.example.test/@studio/113000000000000002",
+    "at": "@-2d"
+   },
+   {
+    "text": {
+     "de": "Timecode Clock 2.1 ist im KDE Store: Bildrate je Projekt, dunkles Ziffernblatt. https://store.kde.org/p/2391004",
+     "en": "Timecode Clock 2.1 is in the KDE Store: frame rate per project, dark face. https://store.kde.org/p/2391004"
+    },
+    "url": "https://social.studio-weber.example.test/@studio/113000000000000001",
+    "at": "@-14d"
+   }
+  ]
+ },
+ "lemmy": {
+  "note": "Lemmy: the studio's account on a German instance. One unread reply; the subscribed communities' hot posts include one about the Timecode Clock. The studio's own posts announced the Shot List, not the website release.",
+  "url": "https://feddit.example.test",
+  "version": "0.19.12",
+  "user": {
+   "name": "studioweber",
+   "url": "https://feddit.example.test/u/studioweber",
+   "posts": 14,
+   "comments": 87
+  },
+  "replies": [
+   {
+    "kind": "reply",
+    "from": "cutter_jo",
+    "community": "kde",
+    "post": {
+     "de": "Shot List 0.8 für Plasma",
+     "en": "Shot List 0.8 for Plasma"
+    },
+    "text": {
+     "de": "Läuft die Liste auch auf dem Steam Deck?",
+     "en": "Does the list run on the Steam Deck too?"
+    },
+    "url": "https://feddit.example.test/comment/880101",
+    "at": "@-5h"
+   }
+  ],
+  "subscribed": [
+   {
+    "community": "kde",
+    "title": "This timecode clock widget is perfect for editors",
+    "url": "https://store.kde.org/p/2391004",
+    "link": "https://feddit.example.test/post/770001",
+    "score": 96,
+    "comments": 18,
+    "at": "@-9h"
+   },
+   {
+    "community": "selfhosted",
+    "title": {
+     "de": "Welches Dashboard nutzt ihr 2026?",
+     "en": "Which dashboard do you use in 2026?"
+    },
+    "url": "https://feddit.example.test/post/770002",
+    "link": "https://feddit.example.test/post/770002",
+    "score": 241,
+    "comments": 133,
+    "at": "@-20h"
+   },
+   {
+    "community": "filmmaking",
+    "title": {
+     "de": "Nebel im Hafen: Belichtung",
+     "en": "Fog in the harbour: exposure"
+    },
+    "url": "https://www.youtube.com/watch?v=demo1",
+    "link": "https://feddit.example.test/post/770003",
+    "score": 38,
+    "comments": 7,
+    "at": "@-2d"
+   }
+  ],
+  "own": [
+   {
+    "community": "kde",
+    "title": {
+     "de": "Shot List 0.8 für Plasma",
+     "en": "Shot List 0.8 for Plasma"
+    },
+    "url": "https://store.kde.org/p/2393417",
+    "link": "https://feddit.example.test/post/760001",
+    "score": 54,
+    "comments": 12,
+    "at": "@-40d"
    }
   ]
  },
@@ -5964,6 +9696,92 @@
    }
   ]
  },
+ "listening": {
+  "note": "Tautulli watches the Plex server (Theo streams the score), Jellystat the last 30 days of Jellyfin, Navidrome plays the studio's music, Audiobookshelf has one listener, Jellyseerr has two requests stuck for days while Sonarr reports a broken indexer.",
+  "tautulli": {
+   "url": "http://tautulli.demo:8181",
+   "sessions": [
+    {
+     "user": "theo",
+     "title": {
+      "de": "Harbour Lights – Ebbe",
+      "en": "Harbour Lights – Ebb"
+     },
+     "state": "playing"
+    }
+   ],
+   "bandwidth": 8200
+  },
+  "jellystat": {
+   "url": "http://jellystat.demo:3000",
+   "users": [
+    {
+     "name": "mara",
+     "plays": 41
+    },
+    {
+     "name": "jonas",
+     "plays": 17
+    }
+   ],
+   "libraries": [
+    {
+     "name": "Filme",
+     "plays": 33
+    },
+    {
+     "name": "Serien",
+     "plays": 25
+    }
+   ]
+  },
+  "navidrome": {
+   "url": "http://navidrome.demo:4533",
+   "now_playing": [
+    {
+     "user": "selin",
+     "title": "Nebelhorn",
+     "artist": "Theo Lindqvist"
+    }
+   ],
+   "scanning": false,
+   "songs": 1834
+  },
+  "audiobookshelf": {
+   "url": "http://abs.demo:13378",
+   "online": [
+    {
+     "user": "lena",
+     "title": {
+      "de": "Leuchtfeuer der Unterelbe",
+      "en": "Lights of the Lower Elbe"
+     }
+    }
+   ],
+   "libraries": 2
+  },
+  "seerr": {
+   "url": "http://jellyseerr.demo:5055",
+   "pending": 1,
+   "approved": 5,
+   "processing": 2,
+   "available": 38,
+   "stuck": [
+    {
+     "title": "Nebelküste",
+     "type": "tv",
+     "requested": "@-6d",
+     "by": "jonas"
+    },
+    {
+     "title": "Das Feuerschiff",
+     "type": "movie",
+     "requested": "@-4d",
+     "by": "mara"
+    }
+   ]
+  }
+ },
  "graufeld": {
   "note": "Second shooting area: fog, marsh and mud flats at the Elbe mouth, about 110 km from the studio. Places: graufeld-lighthouse, kolk, moorhof, sendehaus.",
   "description": {
@@ -6021,7 +9839,108 @@
     },
     "severity": "moderate"
    }
-  ]
+  ],
+  "stream": {
+   "note": "The Sendehaus stream: the night programme filmed live in the old broadcasting house and mixed with lmix (lmix demo). Pictures are synthetic: the demo renders each input from `pattern` (a videotestsrc pattern) with its name and `tone` (Hz, 0 = none). `on` says what is on program and preview; outputs with `running` are started.",
+   "show": "Graufeld nach Mitternacht",
+   "file": "graufeld-nach-mitternacht.lmix",
+   "inputs": [
+    {
+     "id": "studio",
+     "name": {
+      "de": "Studio",
+      "en": "Studio"
+     },
+     "kind": "camera",
+     "color": "red",
+     "pattern": "ball",
+     "tone": 220
+    },
+    {
+     "id": "guest",
+     "name": "Hinnerk Aalders",
+     "kind": "guest",
+     "color": "blue",
+     "pattern": "pinwheel",
+     "tone": 330
+    },
+    {
+     "id": "lighthouse",
+     "name": {
+      "de": "Leuchtturm",
+      "en": "Lighthouse"
+     },
+     "kind": "camera",
+     "color": "yellow",
+     "pattern": "snow",
+     "tone": 0
+    },
+    {
+     "id": "forecast",
+     "name": {
+      "de": "Seewetter",
+      "en": "Shipping forecast"
+     },
+     "kind": "graphic",
+     "color": "cyan",
+     "pattern": "gradient",
+     "tone": 0
+    },
+    {
+     "id": "trailer",
+     "name": {
+      "de": "Trailer Nachtwache",
+      "en": "Nightwatch trailer"
+     },
+     "kind": "clip",
+     "color": "purple",
+     "pattern": "circular",
+     "tone": 440
+    },
+    {
+     "id": "music",
+     "name": "Ebbe",
+     "kind": "music",
+     "color": "green",
+     "pattern": "",
+     "tone": 196
+    }
+   ],
+   "on": {
+    "program": "studio",
+    "preview": "lighthouse"
+   },
+   "outputs": [
+    {
+     "id": "stream",
+     "name": {
+      "de": "Sendehaus-Stream",
+      "en": "Sendehaus stream"
+     },
+     "kind": "srt",
+     "running": true
+    },
+    {
+     "id": "recording",
+     "name": {
+      "de": "Mitschnitt",
+      "en": "Recording"
+     },
+     "kind": "record",
+     "running": true
+    },
+    {
+     "id": "iso",
+     "name": {
+      "de": "ISO Leuchtturm",
+      "en": "ISO lighthouse"
+     },
+     "kind": "record",
+     "input": "lighthouse",
+     "running": false
+    }
+   ]
+  }
  },
  "oddities": {
   "note": "Hidden layer, an homage to Alan Wake. Use it quietly in corners of a demo (logs, backups, sensors, notes), never explain it in the UI. Motif: 03:13 and seven minutes.",
@@ -6094,7 +10013,7 @@
   }
  },
  "it_docs": {
-  "note": "Obsidian vault with Studio Weber's IT documentation (Hansei). Dates in notes are {{day:N}} placeholders, N = day offset from the anchor. Each check of Hansei finds something: a plain-text password and token, old code names (SW-NAS01, SW-VPS, SW-PI), a missing frontmatter key, an old review date, a dead link, a full compose copy. The restore note carries the returning file of the hidden layer.",
+  "note": "Obsidian vault with Studio Weber's IT documentation (Hansei). Dates in notes are {{day:N}} placeholders, N = day offset from the anchor. Each check of Hansei finds something: a plain-text password and token, old code names (SW-NAS01, SW-VPS, SW-PI), a missing frontmatter key, an old review date, a dead link, a full compose copy. The restore note carries the returning file of the hidden layer. Three service notes drift from their stacks: Invoice Ninja's URL and port, Nextcloud's image, and Immich runs an older image than its note names (Komodo).",
   "hosts": [
    {
     "name": "Nebelhorn",
@@ -6152,8 +10071,8 @@
    {
     "path": "IT/Geräte/Nebelhorn.md",
     "content": {
-     "de": "---\nIPs: [192.168.40.10]\nInventar: SRV-002\n---\n# Nebelhorn\n\nNAS im Studio, Speicherwerk NS-4 mit 4 × Tiefgang NAS 4TB. Früher SW-NAS01.\n\nNimmt die Borg-Backups aller Hosts an.\n",
-     "en": "---\nIPs: [192.168.40.10]\nInventar: SRV-002\n---\n# Nebelhorn\n\nNAS in the studio, Speicherwerk NS-4 with 4 × Tiefgang NAS 4TB. Formerly SW-NAS01.\n\nReceives the Borg backups of all hosts.\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/newt-nebelhorn/compose.yaml\nIPs: [192.168.40.10]\nInventar: SRV-002\n---\n# Nebelhorn\n\nNAS im Studio, Speicherwerk NS-4 mit 4 × Tiefgang NAS 4TB. Früher SW-NAS01.\n\nNimmt die Borg-Backups aller Hosts an.\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/newt-nebelhorn/compose.yaml\nIPs: [192.168.40.10]\nInventar: SRV-002\n---\n# Nebelhorn\n\nNAS in the studio, Speicherwerk NS-4 with 4 × Tiefgang NAS 4TB. Formerly SW-NAS01.\n\nReceives the Borg backups of all hosts.\n"
     }
    },
    {
@@ -6173,8 +10092,8 @@
    {
     "path": "IT/Dienste/Feuerschiff/Nextcloud.md",
     "content": {
-     "de": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [cloud.studio-weber.example.test]\nletzte Prüfung: {{day:-420}}\n---\n# Nextcloud\n\nDateiablage für Kunden und Team. Läuft auf SW-VPS.\n\n## Zugang\nAdmin-Login über die Weboberfläche.\n- Benutzer: admin\n- Passwort: Elbfeuer-2026!\n\n## Backup\nNächtlich mit Restic nach Nordhost-Speicher.\n",
-     "en": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [cloud.studio-weber.example.test]\nletzte Prüfung: {{day:-420}}\n---\n# Nextcloud\n\nFile storage for customers and team. Runs on SW-VPS.\n\n## Access\nAdmin login through the web interface.\n- User: admin\n- Passwort: Elbfeuer-2026!\n\n## Backup\nNightly with Restic to Nordhost storage.\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/nextcloud/compose.yaml\nGerät: \"[[Feuerschiff]]\"\nURLs: [cloud.studio-weber.example.test]\nImage: nextcloud:30-apache\nletzte Prüfung: {{day:-420}}\n---\n# Nextcloud\n\nDateiablage für Kunden und Team. Läuft auf SW-VPS.\n\n## Zugang\nAdmin-Login über die Weboberfläche.\n- Benutzer: admin\n- Passwort: Elbfeuer-2026!\n\n## Backup\nNächtlich mit Restic nach Nordhost-Speicher.\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/nextcloud/compose.yaml\nGerät: \"[[Feuerschiff]]\"\nURLs: [cloud.studio-weber.example.test]\nImage: nextcloud:30-apache\nletzte Prüfung: {{day:-420}}\n---\n# Nextcloud\n\nFile storage for customers and team. Runs on SW-VPS.\n\n## Access\nAdmin login through the web interface.\n- User: admin\n- Passwort: Elbfeuer-2026!\n\n## Backup\nNightly with Restic to Nordhost storage.\n"
     }
    },
    {
@@ -6187,22 +10106,22 @@
    {
     "path": "IT/Dienste/Feuerschiff/Invoice Ninja.md",
     "content": {
-     "de": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [rechnung.studio-weber.example.test]\nletzte Prüfung: {{day:-30}}\n---\n# Invoice Ninja\n\nRechnungen und Angebote.\n\n## API\n- API-Token: ninja_4f9e2c71b8a0d53e\n- Genutzt von Kimai-Export und andon.\n",
-     "en": "---\nGerät: \"[[Feuerschiff]]\"\nURLs: [rechnung.studio-weber.example.test]\nletzte Prüfung: {{day:-30}}\n---\n# Invoice Ninja\n\nInvoices and quotes.\n\n## API\n- API-Token: ninja_4f9e2c71b8a0d53e\n- Used by the Kimai export and andon.\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/invoiceninja/compose.yaml\nGerät: \"[[Feuerschiff]]\"\nURLs: [rechnung.studio-weber.example.test]\nexterne Ports: 8002\nletzte Prüfung: {{day:-30}}\n---\n# Invoice Ninja\n\nRechnungen und Angebote.\n\n## API\n- API-Token: ninja_4f9e2c71b8a0d53e\n- Genutzt von Kimai-Export und andon.\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-feuerschiff/src/branch/main/invoiceninja/compose.yaml\nGerät: \"[[Feuerschiff]]\"\nURLs: [rechnung.studio-weber.example.test]\nexterne Ports: 8002\nletzte Prüfung: {{day:-30}}\n---\n# Invoice Ninja\n\nInvoices and quotes.\n\n## API\n- API-Token: ninja_4f9e2c71b8a0d53e\n- Used by the Kimai export and andon.\n"
     }
    },
    {
     "path": "IT/Dienste/Nebelhorn/Immich.md",
     "content": {
-     "de": "---\nGerät: \"[[Nebelhorn]]\"\nURLs: [fotos.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-12}}\n---\n# Immich\n\nFotos vom Set und Referenzbilder.\n\n```yaml\nservices:\n  immich-server:\n    image: ghcr.io/immich-app/immich-server:release\n    volumes:\n      - /srv/fotos:/usr/src/app/upload\n```\n",
-     "en": "---\nGerät: \"[[Nebelhorn]]\"\nURLs: [fotos.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-12}}\n---\n# Immich\n\nPhotos from the set and reference pictures.\n\n```yaml\nservices:\n  immich-server:\n    image: ghcr.io/immich-app/immich-server:release\n    volumes:\n      - /srv/fotos:/usr/src/app/upload\n```\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/immich/compose.yaml\nGerät: \"[[Nebelhorn]]\"\nURLs: [fotos.studio-weber.example.test]\nImage: ghcr.io/immich-app/immich-server:v2.1\nBackup via: Borg\nletzte Prüfung: {{day:-12}}\n---\n# Immich\n\nFotos vom Set und Referenzbilder.\n\n```yaml\nservices:\n  immich-server:\n    image: ghcr.io/immich-app/immich-server:release\n    volumes:\n      - /srv/fotos:/usr/src/app/upload\n```\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/immich/compose.yaml\nGerät: \"[[Nebelhorn]]\"\nURLs: [fotos.studio-weber.example.test]\nImage: ghcr.io/immich-app/immich-server:v2.1\nBackup via: Borg\nletzte Prüfung: {{day:-12}}\n---\n# Immich\n\nPhotos from the set and reference pictures.\n\n```yaml\nservices:\n  immich-server:\n    image: ghcr.io/immich-app/immich-server:release\n    volumes:\n      - /srv/fotos:/usr/src/app/upload\n```\n"
     }
    },
    {
     "path": "IT/Dienste/Nebelhorn/Paperless-ngx.md",
     "content": {
-     "de": "---\nURLs: [belege.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-40}}\n---\n# Paperless-ngx\n\nBelege und Verträge, OCR auf Deutsch und Englisch.\n\nBackup siehe [[Nebelhorn-Backup]].\n",
-     "en": "---\nURLs: [belege.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-40}}\n---\n# Paperless-ngx\n\nReceipts and contracts, OCR in German and English.\n\nBackup see [[Nebelhorn-Backup]].\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/paperless-ngx/compose.yaml\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/paperless-ai/compose.yaml\nURLs: [belege.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-40}}\n---\n# Paperless-ngx\n\nBelege und Verträge, OCR auf Deutsch und Englisch.\n\nBackup siehe [[Nebelhorn-Backup]].\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/paperless-ngx/compose.yaml\n  - https://git.demo/studio/docker-compose-nebelhorn/src/branch/main/paperless-ai/compose.yaml\nURLs: [belege.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-40}}\n---\n# Paperless-ngx\n\nReceipts and contracts, OCR in German and English.\n\nBackup see [[Nebelhorn-Backup]].\n"
     }
    },
    {
@@ -6215,15 +10134,15 @@
    {
     "path": "IT/Dienste/Boje/Uptime Kuma.md",
     "content": {
-     "de": "---\nGerät: \"[[Boje]]\"\nURLs: [status.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-3}}\n---\n# Uptime Kuma\n\nÜberwacht alle Dienste. Meldet Ausfälle an das Team-Telefon.\n",
-     "en": "---\nGerät: \"[[Boje]]\"\nURLs: [status.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-3}}\n---\n# Uptime Kuma\n\nWatches all services. Reports outages to the team phone.\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-boje/src/branch/main/uptime-kuma/compose.yaml\nGerät: \"[[Boje]]\"\nURLs: [status.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-3}}\n---\n# Uptime Kuma\n\nÜberwacht alle Dienste. Meldet Ausfälle an das Team-Telefon.\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-boje/src/branch/main/uptime-kuma/compose.yaml\nGerät: \"[[Boje]]\"\nURLs: [status.studio-weber.example.test]\nBackup via: Borg\nletzte Prüfung: {{day:-3}}\n---\n# Uptime Kuma\n\nWatches all services. Reports outages to the team phone.\n"
     }
    },
    {
     "path": "IT/Dienste/deprecated/Dawarich.md",
     "content": {
-     "de": "---\ndeprecated: true\n---\n# Dawarich\n\nLief bis 2025 auf SW-NAS01. Abgelöst, Daten liegen im Archiv.\n",
-     "en": "---\ndeprecated: true\n---\n# Dawarich\n\nRan on SW-NAS01 until 2025. Retired, data is in the archive.\n"
+     "de": "---\nCompose:\n  - https://git.demo/studio/docker-compose-boje/src/branch/main/dawarich/compose.yaml\ndeprecated: true\n---\n# Dawarich\n\nLief bis 2025 auf SW-NAS01. Abgelöst, Daten liegen im Archiv.\n",
+     "en": "---\nCompose:\n  - https://git.demo/studio/docker-compose-boje/src/branch/main/dawarich/compose.yaml\ndeprecated: true\n---\n# Dawarich\n\nRan on SW-NAS01 until 2025. Retired, data is in the archive.\n"
     }
    },
    {

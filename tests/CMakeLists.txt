@@ -16,6 +16,17 @@ target_include_directories(kurrent-tasklogic-test PRIVATE ${CMAKE_SOURCE_DIR}/pl
 target_link_libraries(kurrent-tasklogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
 add_test(NAME kurrent-tasklogic COMMAND kurrent-tasklogic-test)
 
+add_executable(kurrent-agendalogic-test
+    agendalogic_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/agendalogic.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+)
+target_include_directories(kurrent-agendalogic-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-agendalogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
+add_test(NAME kurrent-agendalogic COMMAND kurrent-agendalogic-test)
+
 add_executable(kurrent-sharedsettings-test
     sharedsettings_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
@@ -94,6 +105,7 @@ find_package(KF6 REQUIRED COMPONENTS I18n)
 add_executable(kurrent-taskcontroller-store-test
     taskcontroller_store_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
@@ -130,6 +142,7 @@ set_tests_properties(kurrent-taskcontroller-store PROPERTIES
 
 set(_kurrent_test_targets
     kurrent-tasklogic-test
+    kurrent-agendalogic-test
     kurrent-sharedsettings-test
     kurrent-models-test
     kurrent-calendar-test

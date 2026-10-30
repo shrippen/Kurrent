@@ -1,0 +1,302 @@
+#include "agendalogic.h"
+
+#include <QtTest>
+
+using namespace AgendaLogic;
+
+namespace
+{
+const QDate kToday(2026, 10, 29);
+
+int hm(int h, int m = 0)
+{
+    return h * 60 + m;
+}
+
+TaskEntry task(const QString &summary, const QDate &due, int priority = 0)
+{
+    TaskEntry t;
+    t.itemId = qHash(summary);
+    t.summary = summary;
+    t.priority = priority;
+    if (due.isValid()) {
+        t.dueDate = QDateTime(due, QTime(0, 0));
+        t.allDay = true;
+    }
+    return t;
+}
+
+const Suggestion *find(const QList<Suggestion> &list, const QString &summary)
+{
+    for (const Suggestion &s : list) {
+        if (s.task.summary == summary) {
+            return &s;
+        }
+    }
+    return nullptr;
+}
+}
+
+class AgendaLogicTest : public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void blockNeedsTimedStartAndDueOnOneDay();
+    void dayIsCompletionOrDue();
+    void defaultMinutesByPriority();
+    void planFromNowTodayEightLaterNeverBefore();
+    void freeSlotsSkipBusyAndShortGaps();
+    void largestSlotFirstOnTie();
+    void fitFreeMovesPastBusy();
+    void resizeStopsAtNeighbours();
+    void resizeNeverCutsTheBlock();
+    void fitFreeStepsBackBeforeTheGridEnd();
+    void gridWidensForBlocksOutsideIt();
+    void lanesForOverlaps();
+    void blockUntilMidnightEndsAt24();
+    void suggestionsRankedWithReasons();
+    void suggestionsSkipPastTargetOverdueAndOwnDay();
+    void suggestionsCountABlockUntilMidnightOnItsDay();
+};
+
+void AgendaLogicTest::blockNeedsTimedStartAndDueOnOneDay()
+{
+    TaskEntry t = task(QStringLiteral("Angebot"), {});
+    t.startDate = QDateTime(kToday, QTime(10, 45));
+    t.dueDate = QDateTime(kToday, QTime(11, 45));
+    QCOMPARE(taskBlock(t), (Span{hm(10, 45), hm(11, 45)}));
+
+    TaskEntry allDay = t;
+    allDay.allDay = true;
+    QVERIFY(!taskBlock(allDay).isValid());
+
+    TaskEntry noStart = t;
+    noStart.startDate = {};
+    QVERIFY(!taskBlock(noStart).isValid());
+
+    TaskEntry twoDays = t;
+    twoDays.startDate = QDateTime(kToday.addDays(-1), QTime(10, 45));
+    QVERIFY(!taskBlock(twoDays).isValid());
+
+    TaskEntry backwards = t;
+    backwards.startDate = QDateTime(kToday, QTime(12, 0));
+    QVERIFY(!taskBlock(backwards).isValid());
+}
+
+// Midnight two ways: another app ends a block at the next day's 00:00, Kurrent writes 23:59.
+// Both are a block until 24:00 on the start day, so the grips step in quarter hours.
+void AgendaLogicTest::blockUntilMidnightEndsAt24()
+{
+    TaskEntry t = task(QStringLiteral("Spätschicht"), {});
+    t.startDate = QDateTime(kToday, QTime(23, 0));
+    t.dueDate = QDateTime(kToday.addDays(1), QTime(0, 0));
+    QCOMPARE(taskBlock(t), (Span{hm(23, 0), 24 * 60}));
+    QCOMPARE(taskDay(t), kToday);
+
+    TaskEntry written = t;
+    written.dueDate = QDateTime(kToday, QTime(23, 59));
+    QCOMPARE(taskBlock(written), (Span{hm(23, 0), 24 * 60}));
+
+    TaskEntry later = t;
+    later.dueDate = QDateTime(kToday.addDays(1), QTime(0, 15));
+    QVERIFY(!taskBlock(later).isValid());
+}
+
+void AgendaLogicTest::dayIsCompletionOrDue()
+{
+    TaskEntry t = task(QStringLiteral("Rechnung"), kToday.addDays(2));
+    QCOMPARE(taskDay(t), kToday.addDays(2));
+    t.completed = true;
+    t.completedDate = QDateTime(kToday, QTime(9, 0));
+    QCOMPARE(taskDay(t), kToday);
+    QVERIFY(!taskDay(task(QStringLiteral("Irgendwann"), {})).isValid());
+}
+
+void AgendaLogicTest::defaultMinutesByPriority()
+{
+    QCOMPARE(defaultMinutes(1), 60);
+    QCOMPARE(defaultMinutes(5), 45);
+    QCOMPARE(defaultMinutes(9), 30);
+    QCOMPARE(defaultMinutes(0), 30);
+}
+
+void AgendaLogicTest::planFromNowTodayEightLaterNeverBefore()
+{
+    QCOMPARE(planFrom(kToday, kToday, QTime(10, 40)), hm(10, 45));
+    QCOMPARE(planFrom(kToday, kToday, QTime(10, 45)), hm(10, 45));
+    QCOMPARE(planFrom(kToday, kToday, QTime(6, 10)), hm(8));
+    QCOMPARE(planFrom(kToday.addDays(1), kToday, QTime(10, 40)), hm(8));
+    QCOMPARE(planFrom(kToday.addDays(-1), kToday, QTime(10, 40)), -1);
+}
+
+void AgendaLogicTest::freeSlotsSkipBusyAndShortGaps()
+{
+    // 09–10 busy, 10:20–11 busy (20-minute gap is too short), 13–14 busy, unsorted input.
+    const QList<Span> busy{{hm(13), hm(14)}, {hm(9), hm(10)}, {hm(10, 20), hm(11)}};
+    const QList<Span> gaps = freeSlots(busy, hm(8), hm(18));
+    QCOMPARE(gaps, (QList<Span>{{hm(8), hm(9)}, {hm(11), hm(13)}, {hm(14), hm(18)}}));
+
+    // From inside a busy span; a busy span past the end.
+    QCOMPARE(freeSlots(busy, hm(9, 30), hm(12)), (QList<Span>{{hm(11), hm(12)}}));
+    QCOMPARE(freeSlots({{hm(17, 45), hm(19)}}, hm(17), hm(18)), (QList<Span>{{hm(17), hm(17, 45)}}));
+    QVERIFY(freeSlots({}, -1, hm(18)).isEmpty());
+}
+
+void AgendaLogicTest::largestSlotFirstOnTie()
+{
+    QCOMPARE(largestSlot({{hm(8), hm(9)}, {hm(11), hm(13)}, {hm(14), hm(16)}}), (Span{hm(11), hm(13)}));
+    QVERIFY(!largestSlot({}).isValid());
+}
+
+void AgendaLogicTest::fitFreeMovesPastBusy()
+{
+    const QList<Span> busy{{hm(9), hm(10)}, {hm(10, 15), hm(11)}};
+    QCOMPARE(fitFree(busy, hm(8), 30), hm(8));
+    QCOMPARE(fitFree(busy, hm(8, 45), 30), hm(11)); // 10:00–10:15 is too short for 30
+    QCOMPARE(fitFree(busy, hm(9, 30), 15), hm(10));
+    QCOMPARE(fitFree({}, hm(21, 45), 60), hm(21)); // not past the end of the grid
+}
+
+void AgendaLogicTest::resizeStopsAtNeighbours()
+{
+    const QList<Span> busy{{hm(9), hm(10)}, {hm(12), hm(13)}, {hm(15), hm(16)}};
+    QCOMPARE(resizeLimits(busy, {hm(10, 30), hm(11)}), (Span{hm(10), hm(12)}));
+    QCOMPARE(resizeLimits({}, {hm(10), hm(11)}), (Span{kGridStart, kGridEnd}));
+}
+
+void AgendaLogicTest::resizeNeverCutsTheBlock()
+{
+    // A block past the grid keeps its edges; the first drag of a grip must not move them.
+    QCOMPARE(resizeLimits({}, {hm(21), hm(23)}), (Span{kGridStart, hm(23)}));
+    QCOMPARE(resizeLimits({}, {hm(6), hm(6, 45)}), (Span{hm(6), kGridEnd}));
+}
+
+void AgendaLogicTest::fitFreeStepsBackBeforeTheGridEnd()
+{
+    // No room after 22:00 for the event 21:00–22:00: the free half hour before it.
+    QCOMPARE(fitFree({{hm(21), hm(22)}}, hm(21), 30), hm(20, 30));
+    QCOMPARE(fitFree({{hm(20), hm(20, 30)}, {hm(21), hm(22)}}, hm(21), 45), hm(19, 15));
+    // A full day has no free room: the asked start stays.
+    QCOMPARE(fitFree({{kGridStart, kGridEnd}}, hm(10), 30), hm(10));
+}
+
+void AgendaLogicTest::gridWidensForBlocksOutsideIt()
+{
+    QCOMPARE(gridRange({}), (Span{kGridStart, kGridEnd}));
+    QCOMPARE(gridRange({{hm(10), hm(11)}}), (Span{kGridStart, kGridEnd}));
+    // To whole hours around early and late blocks, never past the day.
+    QCOMPARE(gridRange({{hm(6, 20), hm(6, 45)}}), (Span{hm(6), kGridEnd}));
+    QCOMPARE(gridRange({{hm(22, 30), hm(23, 15)}}), (Span{kGridStart, hm(24)}));
+    QCOMPARE(gridRange({{hm(20), hm(24)}, {hm(0), hm(1)}}), (Span{hm(0), hm(24)}));
+}
+
+void AgendaLogicTest::lanesForOverlaps()
+{
+    // A 9–11 and B 10–12 overlap, C 10:30–11 overlaps both; D 13–14 stands alone.
+    const QList<Span> spans{{hm(13), hm(14)}, {hm(9), hm(11)}, {hm(10), hm(12)}, {hm(10, 30), hm(11)}};
+    const QList<Lane> out = lanes(spans);
+    QCOMPARE(out.size(), 4);
+    QCOMPARE(out[0].lane, 0);
+    QCOMPARE(out[0].lanes, 1);
+    QCOMPARE(out[1].lane, 0);
+    QCOMPARE(out[2].lane, 1);
+    QCOMPARE(out[3].lane, 2);
+    QCOMPARE(out[1].lanes, 3);
+    QCOMPARE(out[3].lanes, 3);
+}
+
+void AgendaLogicTest::suggestionsRankedWithReasons()
+{
+    const QDate target = kToday;
+    QList<TaskEntry> tasks{
+        task(QStringLiteral("Lange überfällig"), kToday.addDays(-12)), // 30 + 24 + 5 (fits) = 59
+        task(QStringLiteral("Überfällig, wichtig"), kToday.addDays(-1), 1), // 32 + 30 = 62 (60 minutes do not fit)
+        task(QStringLiteral("Morgen fällig, wichtig"), kToday.addDays(1), 2), // 36 + 30 = 66
+        task(QStringLiteral("In fünf Tagen"), kToday.addDays(5)), // 20 + 5 = 25
+        task(QStringLiteral("In acht Tagen"), kToday.addDays(8)), // too far
+        task(QStringLiteral("Ohne Datum"), {}, 5), // 10 + 10 + 5 = 25
+    };
+    TaskEntry sub = task(QStringLiteral("Unteraufgabe ohne Datum"), {});
+    sub.parentUid = QStringLiteral("parent");
+    tasks.append(sub);
+    TaskEntry done = task(QStringLiteral("Erledigt"), kToday.addDays(-3));
+    done.completed = true;
+    tasks.append(done);
+
+    // Largest gap 10:45–11:30: 45 minutes, enough for 30 and 45, not for 60.
+    const Span gap{hm(10, 45), hm(11, 30)};
+    const QList<Suggestion> out = rankSuggestions(tasks, target, kToday, gap);
+    QStringList order;
+    for (const Suggestion &s : out) {
+        order << s.task.summary;
+    }
+    QCOMPARE(order, (QStringList{QStringLiteral("Morgen fällig, wichtig"), QStringLiteral("Überfällig, wichtig"),
+                                 QStringLiteral("Lange überfällig"), QStringLiteral("In fünf Tagen"),
+                                 QStringLiteral("Ohne Datum")}));
+
+    const Suggestion *late = find(out, QStringLiteral("Lange überfällig"));
+    QCOMPARE(late->score, 59);
+    QCOMPARE(late->tier, Tier::Then);
+    QCOMPARE(late->reasons.size(), 2);
+    QCOMPARE(late->reasons[0].kind, ReasonKind::Overdue);
+    QCOMPARE(late->reasons[0].days, 12);
+    QCOMPARE(late->reasons[1].kind, ReasonKind::Fits);
+    QCOMPARE(late->reasons[1].gap, gap);
+
+    const Suggestion *soon = find(out, QStringLiteral("Morgen fällig, wichtig"));
+    QCOMPARE(soon->score, 66); // 60 minutes do not fit the gap
+    QCOMPARE(soon->tier, Tier::First);
+    QCOMPARE(soon->reasons.size(), 2);
+    QCOMPARE(soon->reasons[0].kind, ReasonKind::DueSoon);
+    QCOMPARE(soon->reasons[0].days, 1);
+    QCOMPARE(soon->reasons[1].kind, ReasonKind::HighPriority);
+
+    const Suggestion *undated = find(out, QStringLiteral("Ohne Datum"));
+    QCOMPARE(undated->score, 25);
+    QCOMPARE(undated->tier, Tier::Later);
+    QCOMPARE(undated->reasons[0].kind, ReasonKind::Undated);
+
+    QCOMPARE(tierKey(Tier::First), QStringLiteral("first"));
+    QCOMPARE(reasonKey(ReasonKind::DueSoon), QStringLiteral("dueSoon"));
+}
+
+void AgendaLogicTest::suggestionsSkipPastTargetOverdueAndOwnDay()
+{
+    const QList<TaskEntry> tasks{
+        task(QStringLiteral("Überfällig"), kToday.addDays(-4)),
+        task(QStringLiteral("Am Ziel fällig"), kToday.addDays(2)),
+        task(QStringLiteral("Danach fällig"), kToday.addDays(3)),
+    };
+    // Overdue is not suggested for a past day; the target's own tasks never are.
+    const QList<Suggestion> past = rankSuggestions(tasks, kToday.addDays(-2), kToday, {});
+    QVERIFY(!find(past, QStringLiteral("Überfällig")));
+    const QList<Suggestion> later = rankSuggestions(tasks, kToday.addDays(2), kToday, {});
+    QVERIFY(find(later, QStringLiteral("Überfällig")));
+    QVERIFY(!find(later, QStringLiteral("Am Ziel fällig")));
+    QCOMPARE(find(later, QStringLiteral("Danach fällig"))->score, 36);
+}
+
+void AgendaLogicTest::suggestionsCountABlockUntilMidnightOnItsDay()
+{
+    // Blocks until the next midnight (DUE 00:00 of the following day, as other apps write it).
+    TaskEntry later = task(QStringLiteral("Später"), {});
+    later.startDate = QDateTime(kToday.addDays(3), QTime(23, 0));
+    later.dueDate = QDateTime(kToday.addDays(4), QTime(0, 0));
+    TaskEntry yesterday = task(QStringLiteral("Gestern"), {});
+    yesterday.startDate = QDateTime(kToday.addDays(-1), QTime(23, 0));
+    yesterday.dueDate = QDateTime(kToday, QTime(0, 0));
+    const QList<TaskEntry> tasks{later, yesterday};
+    // Two days after the target, not three; yesterday's block is a day overdue.
+    const QList<Suggestion> out = rankSuggestions(tasks, kToday.addDays(1), kToday, {});
+    const Suggestion *soon = find(out, QStringLiteral("Später"));
+    QVERIFY(soon);
+    QCOMPARE(soon->reasons.first().days, 2);
+    const Suggestion *late = find(out, QStringLiteral("Gestern"));
+    QVERIFY(late);
+    QCOMPARE(late->reasons.first().kind, ReasonKind::Overdue);
+    QCOMPARE(late->reasons.first().days, 1);
+}
+
+QTEST_GUILESS_MAIN(AgendaLogicTest)
+#include "agendalogic_test.moc"

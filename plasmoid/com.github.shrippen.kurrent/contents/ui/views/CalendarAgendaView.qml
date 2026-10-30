@@ -43,8 +43,23 @@ ColumnLayout {
     }
 
     onSelectedDayChanged: {
-        if (controller && DateTime.isoDateKey(controller.agendaSelectedDate) !== DateTime.isoDateKey(selectedDay))
+        if (controller && DateTime.isoDateKey(controller.agendaSelectedDate) !== DateTime.isoDateKey(selectedDay)) {
             controller.agendaSelectedDate = selectedDay
+        }
+        // The day view keeps its days while the target moves inside them.
+        if (selectedDay < listStart || selectedDay > addDays(listStart, dayCount - 1)) {
+            listStart = selectedDay
+        }
+    }
+
+    /** Days the day view shows from listStart. */
+    readonly property int dayCount: 14
+    // First of the day view's days. Moves with the date bar (‹ › Today, picker), not with a
+    // click on a day inside the list.
+    property date listStart: new Date()
+    function jumpTo(d) {
+        listStart = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+        selectedDay = listStart
     }
 
     Connections {
@@ -56,6 +71,7 @@ ColumnLayout {
     }
 
     Component.onCompleted: {
+        listStart = selectedDay
         if (controller) {
             controller.agendaSelectedDate = selectedDay
             // Force initial data load after async model rebuild completes
@@ -205,9 +221,11 @@ ColumnLayout {
             QQC2.ToolTip.text: i18n("Previous")
             QQC2.ToolTip.visible: hovered
             onClicked: {
-                var d = new Date(root.selectedDay)
-                d.setDate(d.getDate() + (root.weekMode ? -7 : -1))
-                root.selectedDay = d
+                if (root.weekMode) {
+                    root.selectedDay = addDays(root.selectedDay, -7)
+                } else {
+                    root.jumpTo(addDays(root.selectedDay, -1))
+                }
             }
         }
 
@@ -237,9 +255,11 @@ ColumnLayout {
             QQC2.ToolTip.text: i18n("Next")
             QQC2.ToolTip.visible: hovered
             onClicked: {
-                var d = new Date(root.selectedDay)
-                d.setDate(d.getDate() + (root.weekMode ? 7 : 1))
-                root.selectedDay = d
+                if (root.weekMode) {
+                    root.selectedDay = addDays(root.selectedDay, 7)
+                } else {
+                    root.jumpTo(addDays(root.selectedDay, 1))
+                }
             }
         }
 
@@ -249,8 +269,7 @@ ColumnLayout {
                 if (root.weekMode) {
                     root.selectedDay = mondayOf(new Date())
                 } else {
-                    var now = new Date()
-                    root.selectedDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                    root.jumpTo(new Date())
                 }
             }
         }
@@ -380,7 +399,14 @@ ColumnLayout {
         contentItem: CalendarGrid {
             id: calGrid
             selectedDate: root.selectedDay
-            onDateSelected: { root.selectedDay = date; datePicker.close() }
+            onDateSelected: {
+                if (root.weekMode) {
+                    root.selectedDay = date
+                } else {
+                    root.jumpTo(date)
+                }
+                datePicker.close()
+            }
         }
     }
 
@@ -658,7 +684,7 @@ ColumnLayout {
     // ── Stacked layout ────────────────────────────────────────────
     ListView {
         id: stackedList
-        visible: !root.weekMode || root.weekStacked
+        visible: root.weekMode && root.weekStacked
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
@@ -672,6 +698,23 @@ ColumnLayout {
             compact: root.weekMode
             showDivider: false
         }
+    }
+
+    // ── Day view: hour grids, month calendar, suggestions ───────────
+    AgendaDayView {
+        dayCount: root.dayCount
+        visible: !root.weekMode
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        controller: root.controller
+        dragHost: root.dragHost
+        interactionsSuspended: root.interactionsSuspended
+        targetDay: root.selectedDay
+        listStart: root.listStart
+        revision: root._modelRev + root._eventsRev
+                  + (root.controller && root.controller.taskModel ? root.controller.taskModel.count : 0)
+        onPickTarget: function(day) { root.selectedDay = day }
+        onJump: function(day) { root.jumpTo(day) }
     }
 
     // ── Side-by-side layout (horizontally scrollable with ScrollBar) ──

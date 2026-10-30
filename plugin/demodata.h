@@ -26,8 +26,10 @@ struct Data {
     QList<Task> tasks;
     // Calendar events for the agenda ("Calendar + tasks" view).
     QVector<TaskCalendar::BusyInterval> events;
-    // Monday of the demo week: the agenda opens there, where the demo events are.
+    // Monday of the demo week, where the demo events are.
     QDate monday;
+    // Demo "today" (DEMO_TODAY or the real date): the agenda opens there.
+    QDate today;
 };
 
 // Language from KURRENT_DEMO, or an empty string when demo mode is off.
