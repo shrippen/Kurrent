@@ -201,7 +201,7 @@ ColumnLayout {
                 Row {
                     anchors.horizontalCenter: parent.horizontalCenter
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Design.agendaHairline
+                    anchors.bottomMargin: KanteStyle.borderWidth
                     spacing: Design.spaceTiny
                     visible: !!modelData.marks
                     Repeater {
@@ -212,9 +212,9 @@ ColumnLayout {
                         }
                         delegate: Rectangle {
                             required property color modelData
-                            width: Design.agendaDot
-                            height: Design.agendaDot
-                            radius: Design.agendaDotRadius
+                            width: KanteStyle.markerSize
+                            height: KanteStyle.markerSize
+                            radius: KanteStyle.markerRadius
                             color: modelData
                         }
                     }

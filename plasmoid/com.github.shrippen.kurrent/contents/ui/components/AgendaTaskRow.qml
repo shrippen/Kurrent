@@ -29,9 +29,9 @@ Rectangle {
     implicitHeight: body.implicitHeight + Design.padInner * 2
     radius: Design.inputRadius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
-    border.width: inspected ? Design.agendaHairline : 0
+    border.width: inspected ? KanteStyle.borderWidth : 0
     border.color: KanteStyle.accentColor
-    opacity: task.completed ? Design.agendaDoneOpacity : 1
+    opacity: task.completed ? KanteStyle.doneOpacity : 1
 
     function toneColor(tone) {
         if (tone === "late") {
@@ -58,9 +58,9 @@ Rectangle {
     }
 
     Rectangle {
-        width: Design.agendaEdge
+        width: KanteStyle.edgeWidth
         height: parent.height
-        radius: Design.agendaEdgeRadius
+        radius: KanteStyle.edgeRadius
         color: Design.colorForKey(String(row.task.collectionId))
     }
 
@@ -69,7 +69,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: Design.padInner + Design.agendaEdge
+        anchors.leftMargin: Design.padInner + KanteStyle.edgeWidth
         anchors.rightMargin: Design.padInner
         spacing: Design.spaceSmall
 

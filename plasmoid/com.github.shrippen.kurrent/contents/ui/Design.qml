@@ -241,22 +241,6 @@ QtObject {
     readonly property int heatmapCellSize: Math.max(Kirigami.Units.gridUnit * 2,
                                                     Math.round(Kirigami.Units.iconSizes.smallMedium))
 
-    // Agenda: colour edge of tasks and appointments, the day dots (calendar, legend), the hour
-    // grid's scale and lines, and the tints of free time, the work hours and task blocks.
-    readonly property int agendaEdge: 3
-    readonly property int agendaEdgeRadius: KanteStyle.themed ? 0 : 1
-    readonly property int agendaDot: Math.max(4, Math.round(Kirigami.Units.gridUnit / 4))
-    readonly property int agendaDotRadius: KanteStyle.themed ? 0 : agendaDot / 2
-    readonly property real agendaMinutePx: 0.45 * Kirigami.Units.gridUnit / 18
-    readonly property int agendaHairline: 1
-    readonly property int agendaMarkLine: 2
-    readonly property real agendaWorkHoursOpacity: 0.5
-    readonly property real agendaFreeFill: 0.12
-    readonly property real agendaFreeEdge: 0.4
-    readonly property real agendaBlockFill: 0.22
-    readonly property real agendaDoneOpacity: 0.6
-    readonly property real agendaHalfHourOpacity: 0.4
-
     // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
     readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small
     readonly property int taskIndentUnit: Math.round(Kirigami.Units.gridUnit * 1.25)

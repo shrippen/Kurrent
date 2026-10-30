@@ -17,7 +17,7 @@ Item {
     required property var day
     property Item dragHost: null
     property bool interactionsSuspended: false
-    property real px: Design.agendaMinutePx
+    property real px: KanteStyle.minuteHeight
     property bool showFree: true
     /** Minutes since midnight now; the Agenda ticks it, so the now line moves. */
     property int nowMinute: new Date().getHours() * 60 + new Date().getMinutes()
@@ -81,7 +81,7 @@ Item {
         y: grid.yOf(grid.workStart)
         height: (grid.workEnd - grid.workStart) * grid.px
         color: KanteStyle.tint1Color
-        opacity: Design.agendaWorkHoursOpacity
+        opacity: KanteStyle.dimOpacity
     }
     Repeater {
         model: (grid.gridEnd - grid.gridStart) / 30 + 1
@@ -93,9 +93,9 @@ Item {
             Rectangle {
                 x: grid.gutter
                 width: parent.width - grid.gutter
-                height: Design.agendaHairline
+                height: KanteStyle.borderWidth
                 color: KanteStyle.ruleColor
-                opacity: parent.full ? 1 : Design.agendaHalfHourOpacity
+                opacity: parent.full ? 1 : KanteStyle.dimOpacity
             }
             QQC2.Label {
                 visible: parent.full
@@ -116,12 +116,12 @@ Item {
             required property var modelData
             x: grid.gutter + Design.spaceTiny
             width: grid.width - grid.gutter - Design.spaceTiny * 2
-            y: grid.yOf(modelData.start) + Design.agendaHairline
-            height: (modelData.end - modelData.start) * grid.px - Design.agendaHairline * 2
+            y: grid.yOf(modelData.start) + KanteStyle.borderWidth
+            height: (modelData.end - modelData.start) * grid.px - KanteStyle.borderWidth * 2
             radius: Design.inputRadius
-            color: KanteStyle.tint(KanteStyle.positiveTextColor, Design.agendaFreeFill)
-            border.width: Design.agendaHairline
-            border.color: KanteStyle.tint(KanteStyle.positiveTextColor, Design.agendaFreeEdge)
+            color: KanteStyle.tint(KanteStyle.positiveTextColor, KanteStyle.fillLevel)
+            border.width: KanteStyle.borderWidth
+            border.color: KanteStyle.tint(KanteStyle.positiveTextColor, KanteStyle.edgeLevel)
             QQC2.Label {
                 anchors.right: parent.right
                 anchors.top: parent.top
@@ -175,7 +175,7 @@ Item {
         x: grid.gutter
         width: grid.width - grid.gutter
         y: grid.yOf(drop.minute)
-        height: Design.agendaMarkLine
+        height: KanteStyle.lineWidth
         color: KanteStyle.accentColor
     }
 
@@ -199,15 +199,15 @@ Item {
             readonly property int shownEnd: Math.min(liveEnd, grid.gridEnd)
             visible: shownEnd > shownStart
             y: grid.yOf(shownStart)
-            height: Math.max(Kirigami.Units.gridUnit, (shownEnd - shownStart) * grid.px - Design.agendaHairline * 2)
+            height: Math.max(Kirigami.Units.gridUnit, (shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2)
             z: selected ? 3 : 2
             radius: Design.inputRadius
             clip: true
-            color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), Design.agendaBlockFill) : KanteStyle.sunkenColor
-            border.width: selected ? Design.agendaMarkLine : Design.agendaHairline
+            color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), KanteStyle.strongFillLevel) : KanteStyle.sunkenColor
+            border.width: selected ? KanteStyle.lineWidth : KanteStyle.borderWidth
             border.color: selected ? KanteStyle.accentColor
                                    : (isTask ? Design.colorForKey(String(modelData.collectionId)) : KanteStyle.frameColor)
-            opacity: isTask && modelData.completed ? Design.agendaDoneOpacity : 1
+            opacity: isTask && modelData.completed ? KanteStyle.doneOpacity : 1
 
             QQC2.Label {
                 anchors.fill: parent
@@ -328,7 +328,7 @@ Item {
         x: grid.gutter
         width: grid.width - grid.gutter
         y: grid.yOf(now)
-        height: Design.agendaMarkLine
+        height: KanteStyle.lineWidth
         z: 4
         color: KanteStyle.negativeTextColor
     }
