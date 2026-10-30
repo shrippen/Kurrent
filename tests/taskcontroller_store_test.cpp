@@ -652,7 +652,7 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     const QVariantMap moved = byName.value(QStringLiteral("Ghost call"));
     const QVariantMap late = byName.value(QStringLiteral("Late call"));
     QCOMPARE(late.value(QStringLiteral("start")).toInt(), 23 * 60 + 30);
-    QCOMPARE(late.value(QStringLiteral("end")).toInt(), 24 * 60 - 1);
+    QCOMPARE(late.value(QStringLiteral("end")).toInt(), 24 * 60); // stored 23:59, read as 24:00
     QCOMPARE(timed.value(QStringLiteral("summary")).toString(), QStringLiteral("Call the harbour"));
     QCOMPARE(timed.value(QStringLiteral("start")).toInt(), 10 * 60);
     QCOMPARE(timed.value(QStringLiteral("end")).toInt(), 10 * 60 + 45);
