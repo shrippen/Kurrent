@@ -833,6 +833,7 @@
   }
  ],
  "tasks": {
+  "note": "VTODOs and appointments for Kurrent. items: due/start are day offsets from the anchor Monday, completed a day offset, percent 0-100; time \"HH:MM-HH:MM\" (only with due) makes a task a time block on its due day. events: day offset with start and end as \"HH:MM\"; no task block overlaps an appointment of the same day.",
   "collections": [
    {
     "id": "harbour",
