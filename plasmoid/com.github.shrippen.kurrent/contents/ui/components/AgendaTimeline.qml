@@ -6,6 +6,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import com.github.shrippen.kurrent 1.0
 import ".."
 import "../Kante"
+import "../agenda.js" as Agenda
 import "../datetime.js" as DateTime
 
 // One day as an hour grid (07–22): appointments stay fixed, task blocks can be selected,
@@ -239,8 +240,8 @@ Item {
             readonly property int shownEnd: Math.min(liveEnd, grid.gridEnd)
             // An appointment without an end still shows; short entries are drawn minShown long.
             visible: shownEnd >= shownStart && shownStart < grid.gridEnd
-            // drawStart: a short entry at the day's end is drawn from earlier, inside the grid.
-            y: grid.yOf(Math.min(shownStart, Math.max(modelData.drawStart, grid.gridStart)))
+            // A short entry at the day's end is drawn from earlier, inside the grid (agenda.js).
+            y: grid.yOf(Agenda.drawnStart(shownStart, grid.gridStart, grid.gridEnd, grid.minShown))
             height: Math.max(grid.minShown, shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2
             // Too low for a second line: one line, centred, without the vertical margins.
             readonly property bool low: height < Kirigami.Units.gridUnit * 1.5

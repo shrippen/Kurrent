@@ -2307,6 +2307,7 @@ QVariantList TaskController::agendaDays(const QDate &from, int count) const
             QVariantMap item = items.at(k).toMap();
             item.insert(QStringLiteral("start"), spans.at(k).start);
             item.insert(QStringLiteral("end"), spans.at(k).end);
+            // The drawn start, as QML derives it live (agenda.js drawnStart).
             item.insert(QStringLiteral("drawStart"), drawn.at(k).start);
             item.insert(QStringLiteral("lane"), lanes.at(k).lane);
             item.insert(QStringLiteral("lanes"), lanes.at(k).lanes);
