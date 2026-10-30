@@ -23,12 +23,19 @@ Column {
 
     spacing: 2
 
+    // One name for screen readers: "Practised: 7 min", not two loose texts (1.36).
+    Accessible.role: Accessible.StaticText
+    Accessible.name: label.length > 0 ? label + ": " + value : value
+    Accessible.description: delta
+
     Text {
+        Accessible.ignored: true
         text: kpi.value
         color: KanteStyle.strongTextColor
         font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 2.6)
     }
     Text {
+        Accessible.ignored: true
         text: kpi.label
         color: KanteStyle.mutedTextColor
         font: KanteStyle.labelFont()
@@ -62,6 +69,7 @@ Column {
             Component.onCompleted: requestPaint()
         }
         Text {
+            Accessible.ignored: true
             text: kpi.delta
             color: parent.tone
             font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)

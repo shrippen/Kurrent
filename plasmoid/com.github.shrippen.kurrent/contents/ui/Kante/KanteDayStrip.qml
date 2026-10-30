@@ -12,7 +12,10 @@ import "."
  *   sunrise, sunset   daylight: the track is warm between them (`KanteStyle.daylightColor`),
  *                     a sun mark sits above sunrise and a moon mark above sunset
  *   workFrom, workTo  work hours: a 4 px band under the track (`KanteStyle.workBandColor`)
+ *   allDay            all-day events ({title, color}): one named row each above the track,
+ *                     over the whole day, the colour (default focus cyan) as bottom edge
  *
+ *   ┌ Urlaub ──────────────┐   all-day lane
  *   ┌ ☼ ──────────────── ☾ ┐   sky lane (marks)
  *   ░░▓▓▓▓████▓▓▓▓▓▓▓▓▓▓░░░   track: night, daylight, segments
  *       ▬▬▬▬▬▬▬▬▬▬▬▬           work band
@@ -30,11 +33,14 @@ Item {
     property real sunset: -1
     property real workFrom: -1
     property real workTo: -1
+    property var allDay: []
     readonly property real range: Math.max(1, spanTo - spanFrom)
     readonly property bool hasSky: sunrise >= 0 && sunset > sunrise
     readonly property bool hasWork: workFrom >= 0 && workTo > workFrom
     readonly property real skyHeight: hasSky ? KanteStyle.unit(16) : 0
     readonly property real workHeight: hasWork ? KanteStyle.unit(8) : 0
+    readonly property real allDayRow: KanteStyle.unit(22)
+    readonly property real allDayHeight: allDay.length * (allDayRow + KanteStyle.unit(2)) + (allDay.length > 0 ? KanteStyle.unit(2) : 0)
 
     function xOf(hours) { return (hours - spanFrom) / range * width }
 
@@ -51,9 +57,35 @@ Item {
     }
 
     implicitWidth: KanteStyle.unit(320)
-    implicitHeight: skyHeight + KanteStyle.unit(44) + workHeight + KanteStyle.unit(18)
+    implicitHeight: allDayHeight + skyHeight + KanteStyle.unit(44) + workHeight + KanteStyle.unit(18)
 
-    Rectangle { id: track; y: strip.skyHeight; width: parent.width; height: KanteStyle.unit(44); color: KanteStyle.sunkenColor }
+    // All-day lane: one named row per event, its colour as the bottom edge.
+    Repeater {
+        model: strip.allDay
+        delegate: Rectangle {
+            required property var modelData
+            required property int index
+            y: index * (strip.allDayRow + KanteStyle.unit(2))
+            width: strip.width
+            height: strip.allDayRow
+            color: KanteStyle.sunkenColor
+            Rectangle {
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: KanteStyle.unit(4)
+                color: modelData.color !== undefined && modelData.color !== "" ? modelData.color : KanteStyle.focusColor
+            }
+            Text {
+                anchors { left: parent.left; right: parent.right; leftMargin: KanteStyle.unit(10); rightMargin: KanteStyle.unit(10) }
+                y: (parent.height - KanteStyle.unit(4) - height) / 2
+                text: modelData.title || ""
+                elide: Text.ElideRight
+                color: KanteStyle.textColor
+                font: KanteStyle.labelFont()
+            }
+        }
+    }
+
+    Rectangle { id: track; y: strip.allDayHeight + strip.skyHeight; width: parent.width; height: KanteStyle.unit(44); color: KanteStyle.sunkenColor }
 
     // Daylight: warm between sunrise and sunset, night stays sunken.
     Rectangle {
@@ -88,7 +120,7 @@ Item {
         width: ray * 2
         height: ray * 2
         x: Math.max(0, Math.min(strip.width - width, strip.xOf(strip.sunrise) - width / 2))
-        y: (strip.skyHeight - height) / 2 - KanteStyle.unit(1)
+        y: strip.allDayHeight + (strip.skyHeight - height) / 2 - KanteStyle.unit(1)
         antialiasing: true
         ShapePath {
             strokeColor: "transparent"
@@ -121,7 +153,7 @@ Item {
         width: r * 2
         height: r * 2
         x: Math.max(0, Math.min(strip.width - width, strip.xOf(strip.sunset) - width / 2))
-        y: (strip.skyHeight - height) / 2 - KanteStyle.unit(1)
+        y: strip.allDayHeight + (strip.skyHeight - height) / 2 - KanteStyle.unit(1)
         antialiasing: true
         // A crescent: the left half of a disc, less an arc that bulges the same way.
         ShapePath {

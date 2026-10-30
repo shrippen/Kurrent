@@ -6,7 +6,7 @@ import "."
  * Card surface: filled polygon with the top-right corner cut off and an
  * optional 4 px accent bar along the top edge. With chamfer 0 it is a plain
  * rectangle. `chamferBottom` adds the second cut bottom-left (dialogs, install
- * box). `interactive` makes it a link card: under the pointer the cut opens
+ * box); `mirrored` swaps left and right. `interactive` makes it a link card: under the pointer the cut opens
  * and the card lifts 3 px (Kante only). Used for Kante surfaces only; System
  * views keep their own Rectangles.
  */
@@ -21,6 +21,8 @@ Item {
     /** Second cut at the bottom-left corner (0: none). */
     property int chamferBottom: 0
     property color borderColor: "transparent"
+    /** Cut top left instead of top right (a drawer: the cut faces the content). */
+    property bool mirrored: false
     /** A link card: the cut opens and the card lifts under the pointer. */
     property bool interactive: false
     readonly property bool hovered: hover.hovered
@@ -43,6 +45,7 @@ Item {
     Shape {
         anchors.fill: parent
         antialiasing: true
+        transform: Scale { xScale: card.mirrored ? -1 : 1; origin.x: card.width / 2 }
 
         ShapePath {
             fillColor: card.color

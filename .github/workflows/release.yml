@@ -50,12 +50,8 @@ jobs:
         run: |
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 && exit 0
           version="${TAG#v}"
-          awk -v v="$version" '
-            $0 ~ "^## v?" v "( |$)" { on = 1; next }
-            /^## /                  { on = 0 }
-            on
-          ' CHANGELOG.md > notes.md
-          [ -s notes.md ] || echo "Kurrent $version." > notes.md
+          # Section "## [X.Y.Z] — YYYY-MM-DD"; no section, or an empty one: fail.
+          scripts/release-notes.sh "$version" > notes.md
           gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "Kurrent $version" --notes-file notes.md --verify-tag
 
   plasmoid:
