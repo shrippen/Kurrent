@@ -98,7 +98,7 @@ Beide teilen sich `components/MatrixGrid.qml`: **ein** `GridLayout` in einer `Fl
 
 ### Heatmap
 
-- Monats- oder Jahresgitter. Monat: quadratische Zellen (max. 4 GU) mit Tag oben links und Anzahl in der Mitte, Legende direkt darunter; daneben (ab 30 GU) oder darunter die Aufgaben des gewählten Tages (`heatmapTasksForDay`, Klick → Inspektor bzw. Editor). Navigation, Monat/Jahr und Modus in einer Zeile.
+- Monats- oder Jahresgitter. Monat: quadratische Zellen (max. 4 GU) mit Tag oben links und Anzahl in der Mitte, Legende direkt darunter; daneben (ab 30 GU) oder darunter die Aufgaben des gewählten Tages (`heatmapTasksForDay`, Klick → Inspektor bzw. Editor). Navigation, Monat/Jahr und Modus in einer Zeile; wird sie zu schmal, kürzen Titel und Modus-Box gemeinsam, die Box bis auf 4 GU (`Layout.maximumWidth: implicitWidth`).
 - Modus umschaltbar: offene Fälligkeiten pro Tag vs. Erledigungen pro Tag (aus STATUS/`COMPLETED`, nicht gespeicherter „Streak“-Zähler).
 - Zahlen des gezeigten Zeitraums (Summe, Schnitt pro Tag bis heute, bester Tag) und die zusammengeführten Jahre liefert `heatmapPeriod` (`TaskLogic::summarizeHeatmap`); QML formatiert nur.
 
