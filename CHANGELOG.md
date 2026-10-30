@@ -6,72 +6,116 @@
 
 ### English
 
-Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to your appointments, a week as a board and a month at a glance, and you drag tasks into free time. The widget gets a new look with tiles, an inspector and the optional Kante style, and there is now a terminal client.
+Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to your appointments, a week as a board and a month at a glance, and you drag tasks into free time. The widget gets a new look with tiles, an inspector, a narrow layout and the optional Kante style, Swimlanes and the Project plan are reworked, the settings are new, and there is now a terminal client.
 
 #### New
-- Agenda, Day: 14 days as hour grids (07–22, longer when something is earlier or later) with your appointments, tasks with a time as blocks and free gaps in green. Drop a task on a day and it lands in the next free time long enough for it; drag a block's edges to change its time. Suggestions for the picked day say why each task fits (overdue, due soon, high priority, fits the largest gap).
-- Agenda, Week: one column per day with appointments, open tasks as cards and a load bar against your workday (8 hours by default, Settings › Views › Agenda). Overdue tasks wait in a tray above the week, and "All to today" moves them to today with their times. Done and overdue tasks of a day fold away and open with a click. Drop a card on another day to move it; its time stays. Recurring tasks are not moved here yet, neither by dragging nor by "All to today"; move them in the editor.
-- Agenda, Month: six weeks tinted by how full each day is, with a panel for the picked day. Day | Week | Month share one date; keys T, W and M switch the view, ← → step, H jumps to today.
-- Add tasks in the Agenda with the same Quick Add as the list. In the day view, click free time and type: the task is planned in that hour.
+- Agenda, Day: 14 days from the picked date, each as an hour grid (07–22, longer on a day with something earlier or later) with your appointments, tasks with a time as blocks and free gaps of 30 minutes and more in green; today starts at the now line, which moves with the clock. Days with nothing on them fold into one line. A month calendar with dots for appointments, tasks and overdue tasks picks the first day.
+- Plan by dragging: drop a task on a day and it lands in the next free time long enough for it (a block keeps its length, otherwise 60, 45 or 30 minutes by priority). Drop it under "No time", or use a suggestion's arrow button, to keep it on the day without a time. Click a block to get grips at its edges; they move its time in 15-minute steps and stop at the next appointment or task. Everything can be undone.
+- Suggestions for the picked day (click a day's header to pick it) in three tiers, First, Then and If time allows: overdue tasks and tasks due within a week rank highest, undated tasks come later, and high priority and fitting the largest free gap count too. Each suggestion says why it is there.
+- Agenda, Week: one column per day with appointments, open tasks as cards and a load bar against your workday (8 hours by default, Settings › Views › Agenda), orange when the day is full. Done tasks fold into "✓ N done", empty days say "free", and + adds a task for the day. Overdue tasks wait in a tray above the week, and "All to today" moves them to today with their times. Drop a card on another day to move it; its time stays. Recurring tasks are not moved here yet, neither by dragging nor by "All to today"; move them in the editor.
+- Agenda, Month: six weeks tinted by how full each day is, up to three entries per day and "+n more", overdue in red. Click a day for a panel with its appointments, tasks and a field to add one; drop a task on a day to move it.
+- Day | Week | Month share one date and remember the last view; "Open day →", a weekday in the week or a day number in the month opens that day. Keys T, W and M switch the view, ← → step, H jumps to today.
+- Add tasks in the Agenda with the same Quick Add as the list. In the day view, click free time and type: the task is planned in that hour. In the week and the month the task lands on the day unless the text names a date.
 - Appointments in week and month show a stripe in their calendar's colour and a time column, so they read differently from tasks.
-- Tiles above the task pane (Overdue, Today, Tomorrow, Scheduled, Completed) and an inspector beside it that shows a task's details and quick actions without opening the editor (wide layout).
-- Styles: Plasma (default), Kante and Kante Light, picked with preview cards in Settings › Appearance.
-- `kurrent-tui`: Kurrent in a terminal, installed by source builds (`install.sh`, or the installer with `--from-source`).
-- A narrow layout with view tabs, used by default in the panel popup.
+- Tiles above the task pane: Overdue, Today, Tomorrow, Scheduled and Completed with their counts; a click opens the view. The overdue tile offers "Move all to today", and the heatmap shows its figures (total, per day, best day) in the tiles.
+- Inspector beside the task pane: a click on a task in the list, Kanban, Swimlanes, the Agenda or the heatmap's day list shows its project, labels, status, dates, subtasks with progress and notes without opening the editor. Values with a picker (due date, priority, project, status, progress, secrecy) open a menu, "Edit here" edits title, description and location in place, and Done, Tomorrow, Next week and Editor are one click away. Double click still opens the full editor. Tiles and inspector can be turned off in Settings › Appearance › Wide layout.
+- Narrow layout: when the widget is narrow, the views become tabs with counters above the tasks (arrows at the edges when more tabs exist), and the sidebar opens on demand. The panel popup opens narrow by default.
+- Styles: Plasma (default) follows your Plasma colour scheme like any KDE app; Kante brings its own palette (Gruvbox, or Leinen on a light colour scheme) with square controls, cut corners and condensed titles; Kante Light keeps Plasma's colours and adds only Kante's shapes and type. Pick one with preview cards in Settings › Appearance. A translucent or blurred Plasma background shows through in every style.
+- Accent switches: show project and label colours or priority colours as accents, or keep the widget calm.
+- Overdue tasks in other views: a notice with "Move all to today" and "Show overdue" (a compact chip in the narrow layout); it can be turned off.
+- Header: "N open · M overdue" next to the view title, and active filters as chips whose × clears just that filter.
+- Sidebar: the views (Inbox, Today, Overdue …) always get their full height, and projects, labels and the other sections share the rest. Optional dense rows (Settings › Sidebar › Row size), a sync line ("Synced", "Syncing…", "Akonadi offline") with "Sync now", and a note when a view hides a section.
+- Counters are badges (red for overdue), Kanban column headers count their cards, and the panel badge looks like Plasma's notification badge.
+- `kurrent-tui`: Kurrent in a terminal, installed by source builds (`install.sh`, or the installer with `--from-source`). Now, Soon and Someday as one list; `x` done, `t` today, `m` tomorrow, `d` someday, `a` adds with Quick Add, `/` searches, and `g` goes through overdue tasks one at a time. Its texts are English only for now.
 
 #### Improved
-- Settings are eight pages instead of twelve, with labels left of the fields and "Reset this page" on every page.
-- Swimlanes hold task cards you can drag between cells, have a horizon with Overdue, Later and No date columns, and stay fast with many tasks.
-- A click on a Swimlanes or Project plan cell opens the list filtered to it.
-- The sidebar gives the views their full height and can use dense rows.
-- The Kante style is up to date (Kante 1.56): combo boxes fit their longest entry, disabled controls and menus follow Kante, and in Kante Light the main button of a place (add, Done, Save, Copy command) is filled in the accent so it stands out. Return presses a focused Kante button.
-- Dates follow the system locale everywhere, and 120 more strings are translated in all five languages.
+- Swimlanes hold task cards. Drag a card to another cell to change its project, label, priority or parent and move its due date into that period, as one undo step. Columns are weeks by default.
+- Swimlanes have a horizon (Settings › Views › Look ahead, automatic by default) with Overdue, Later and No date columns; empty periods stay as drop targets. The Project plan gets the same Later column instead of leaving far-off tasks out.
+- Swimlanes and the Project plan share one grid: row and column headers stay in place, scrolling works like in Kanban (wheel, thin bars, middle-click to pan), the current period is highlighted with a button to jump to it, and column headers name the period, such as the calendar week with its dates, or "Today". A button in the header sets rows, columns and look ahead without the settings dialog.
+- A click on a Swimlanes or Project plan cell, row or column header opens the list filtered to it, with a chip in the header to go back.
+- Swimlanes stay fast with many tasks: a cell shows up to eight cards and "+N more tasks".
+- Project plan cells show how busy they are compared with the busiest cell, a red dot for overdue tasks, a flag for high priority and a split bar by priority; tooltips work, a legend explains the colours, and projects are sorted by name.
+- Heatmap: square month cells with the count inside, the legend below, and the picked day's tasks beside or below the grid (a click opens the inspector or the editor). Month, year and mode sit in the navigation row.
+- Kanban: a click on a card opens the inspector or the editor, empty columns fold into a narrow strip, and the Canceled column can be hidden (Settings › Views).
+- Task rows show label names and the project name, the priority flag sits right before the due date, and the edit buttons appear only on hover.
+- Editor: title and status at the top, "All day" hides the time fields, and the editor opens correctly from Kanban cards and the inspector.
+- Quick Add shows the recognised parts as tinted pills.
+- Return presses a focused button in the widget like Space, in every style.
+- Settings are now seven pages: General, Appearance, Tasks, Sidebar, Views, Panel & notifications and Organize. Labels sit left of the fields, and every page has "Reset this page". General shows whether Akonadi is connected, with a button that opens your task app; Tasks shows a live preview of a task row; Panel & notifications previews the panel badge and can send a test notification; Organize keeps projects, labels and locations in one list each (colour, rename, delete, default project). Relative dates are on by default.
+- The widget's icon in the widget picker is now in colour; the panel icon stays monochrome.
+- Dates follow the system locale everywhere (day and month names were always English), Kanban column names are translated, and about 250 more strings are translated in all five languages.
 
 #### Fixed
-- The heatmap's average per day was off in a month with a clock change.
-- Overdue means the same everywhere: an open task due before today.
-- Tasks completed in Kurrent had no completion date, so the heatmap did not count them.
-- Several settings switched the wrong option ("Ask before deleting a task", "Only with Shift or Ctrl held", "Reduced motion").
-- Week keys around New Year, the "today" drop in Kanban, and the refresh of Swimlanes and the Project plan after changes.
+- The settings dialog showed only Plasma's own pages: Kurrent's pages did not load at all.
+- Overdue means the same everywhere: an open task due before today. Completed tasks no longer show their due date in red.
+- Tasks completed in Kurrent had no completion date, so the heatmap did not count them; completions after midnight UTC landed on the previous day.
+- Translations were partly missing: the catalogs were stale, and texts with quotation marks never matched.
+- The Project plan put the days around New Year into the wrong week; also fixed: the "today" drop in Kanban, and the refresh of Swimlanes and the Project plan after changes.
+- A click on a Swimlanes cell reset the sidebar view, a click on a Project plan cell filtered the plan itself, and the plan's tooltips never appeared.
+- A click on a heatmap day was undone right away.
 
 #### Note
 - The Agenda reads appointments from your Akonadi calendars; pick which ones in the Agenda's calendar menu.
+- The Agenda's day and week are rebuilt, the month is new, and the switch between days side by side and stacked is gone.
+- The Project plan options are now shared by all Kurrent widgets, like every other setting.
 - Drag and drop and the keys in the Agenda are covered by tests but were checked by hand only briefly so far.
 
 All changes: https://github.com/shrippen/Kurrent/compare/v0.4.0...v0.5.0
 
 ### Deutsch
 
-Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster neben deinen Terminen, eine Woche als Brett und einen Monat im Überblick, und Aufgaben ziehst du in freie Zeit. Das Widget bekommt ein neues Aussehen mit Kacheln, einem Inspektor und dem wählbaren Kante-Stil, und es gibt einen Terminal-Client.
+Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster neben deinen Terminen, eine Woche als Brett und einen Monat im Überblick, und Aufgaben ziehst du in freie Zeit. Das Widget bekommt ein neues Aussehen mit Kacheln, einem Inspektor, einem schmalen Layout und dem wählbaren Kante-Stil, Swimlanes und Projektplan sind überarbeitet, die Einstellungen neu gestaltet, und es gibt einen Terminal-Client.
 
 #### Neu
-- Agenda, Tag: 14 Tage als Stundenraster (07–22 Uhr, länger, wenn etwas früher oder später liegt) mit deinen Terminen, Aufgaben mit Uhrzeit als Blöcke und freien Lücken in Grün. Eine abgelegte Aufgabe landet in der nächsten freien Zeit, die lang genug ist; an den Kanten eines Blocks ziehst du seine Zeit. Vorschläge für den gewählten Tag sagen, warum eine Aufgabe passt (überfällig, bald fällig, hohe Priorität, passt in die größte Lücke).
-- Agenda, Woche: eine Spalte je Tag mit Terminen, offenen Aufgaben als Karten und einem Auslastungsbalken gegen deinen Arbeitstag (Standard 8 Stunden, Einstellungen › Ansichten › Agenda). Überfällige Aufgaben warten in einem Fach über der Woche, und „Alle auf heute“ legt sie mit ihren Uhrzeiten auf heute. Erledigte und überfällige Aufgaben eines Tages klappen sich ein und öffnen per Klick. Eine Karte auf einem anderen Tag ablegen verschiebt sie; die Uhrzeit bleibt. Wiederkehrende Aufgaben werden hier noch nicht verschoben, weder per Ziehen noch mit „Alle auf heute“; verschiebe sie im Editor.
-- Agenda, Monat: sechs Wochen, je Tag nach Auslastung getönt, mit einer Leiste für den gewählten Tag. Tag | Woche | Monat teilen sich ein Datum; die Tasten T, W und M wechseln die Ansicht, ← → blättern, H springt auf heute.
-- Aufgaben in der Agenda mit derselben Schnelleingabe wie in der Liste anlegen. In der Tagesansicht auf freie Zeit klicken und tippen: Die Aufgabe wird in dieser Stunde geplant.
+- Agenda, Tag: 14 Tage ab dem gewählten Datum, jeder als Stundenraster (07–22 Uhr, länger, wenn etwas früher oder später liegt) mit deinen Terminen, Aufgaben mit Uhrzeit als Blöcke und freien Lücken ab 30 Minuten in Grün; heute beginnt an der Jetzt-Linie, die mit der Uhr wandert. Tage ohne Einträge klappen zu einer Zeile zusammen. Ein Monatskalender mit Punkten für Termine, Aufgaben und Überfälliges wählt den ersten Tag.
+- Planen per Ziehen: Eine abgelegte Aufgabe landet in der nächsten freien Zeit, die lang genug ist (ein Block behält seine Länge, sonst 60, 45 oder 30 Minuten nach Priorität). Unter „Ohne Uhrzeit“ abgelegt oder mit dem Pfeilknopf eines Vorschlags bleibt sie ohne Uhrzeit auf dem Tag. Ein Klick auf einen Block zeigt Griffe an seinen Kanten; sie verschieben seine Zeit in 15-Minuten-Schritten und halten am nächsten Termin oder an der nächsten Aufgabe. Alles lässt sich rückgängig machen.
+- Vorschläge für den gewählten Tag (ein Klick auf den Tageskopf wählt ihn) in drei Stufen, Zuerst, Danach und Wenn Zeit bleibt: Überfällige und innerhalb einer Woche fällige Aufgaben stehen am höchsten, Aufgaben ohne Datum später, und hohe Priorität und das Passen in die größte freie Lücke zählen mit. Jeder Vorschlag sagt, warum er dasteht.
+- Agenda, Woche: eine Spalte je Tag mit Terminen, offenen Aufgaben als Karten und einem Auslastungsbalken gegen deinen Arbeitstag (Standard 8 Stunden, Einstellungen › Ansichten › Agenda), orange, wenn der Tag voll ist. Erledigte Aufgaben klappen zu „✓ N erledigt“ ein, leere Tage zeigen „frei“, und + legt eine Aufgabe für den Tag an. Überfällige Aufgaben warten in einem Fach über der Woche, und „Alle auf heute“ legt sie mit ihren Uhrzeiten auf heute. Eine Karte auf einem anderen Tag ablegen verschiebt sie; die Uhrzeit bleibt. Wiederkehrende Aufgaben werden hier noch nicht verschoben, weder per Ziehen noch mit „Alle auf heute“; verschiebe sie im Editor.
+- Agenda, Monat: sechs Wochen, je Tag nach Auslastung getönt, bis zu drei Einträge je Tag und „+n weitere“, Überfälliges in Rot. Ein Klick auf einen Tag öffnet eine Leiste mit seinen Terminen, Aufgaben und einem Feld zum Anlegen; eine Aufgabe auf einem Tag ablegen verschiebt sie.
+- Tag | Woche | Monat teilen sich ein Datum und merken sich die letzte Ansicht; „Tag öffnen →“, ein Wochentag in der Woche oder eine Tageszahl im Monat öffnet diesen Tag. Die Tasten T, W und M wechseln die Ansicht, ← → blättern, H springt auf heute.
+- Aufgaben in der Agenda mit derselben Schnelleingabe wie in der Liste anlegen. In der Tagesansicht auf freie Zeit klicken und tippen: Die Aufgabe wird in dieser Stunde geplant. In Woche und Monat landet sie auf dem Tag, außer der Text nennt ein Datum.
 - Termine in Woche und Monat zeigen einen Streifen in der Farbe ihres Kalenders und eine Zeitspalte, so unterscheiden sie sich von Aufgaben.
-- Kacheln über der Aufgabenliste (Überfällig, Heute, Morgen, Geplant, Erledigt) und ein Inspektor daneben, der die Details einer Aufgabe und schnelle Aktionen zeigt, ohne den Editor zu öffnen (breites Layout).
-- Stile: Plasma (Standard), Kante und Kante Light, gewählt mit Vorschaukarten unter Einstellungen › Erscheinungsbild.
-- `kurrent-tui`: Kurrent im Terminal, wird bei Quellbuilds mitinstalliert (`install.sh` oder der Installer mit `--from-source`).
-- Ein schmales Layout mit Ansichts-Tabs, im Panel-Popup als Standard.
+- Kacheln über der Aufgabenliste: Überfällig, Heute, Morgen, Geplant und Erledigt mit ihren Zahlen; ein Klick öffnet die Ansicht. Die Kachel Überfällig bietet „Alle auf heute“, und die Heatmap zeigt ihre Kennzahlen (gesamt, je Tag, bester Tag) in den Kacheln.
+- Inspektor neben der Aufgabenliste: Ein Klick auf eine Aufgabe in Liste, Kanban, Swimlanes, der Agenda oder der Tagesliste der Heatmap zeigt Projekt, Labels, Status, Daten, Unteraufgaben mit Fortschritt und Notizen, ohne den Editor zu öffnen. Werte mit Auswahl (Fälligkeit, Priorität, Projekt, Status, Fortschritt, Vertraulichkeit) öffnen ein Menü, „Hier bearbeiten“ ändert Titel, Beschreibung und Ort direkt, und Erledigt, Morgen, Nächste Woche und Editor sind einen Klick entfernt. Ein Doppelklick öffnet weiter den vollen Editor. Kacheln und Inspektor lassen sich unter Einstellungen › Erscheinungsbild › Breites Layout abschalten.
+- Schmales Layout: Ist das Widget schmal, werden die Ansichten zu Tabs mit Zählern über den Aufgaben (mit Pfeilen an den Rändern, wenn mehr Tabs da sind), und die Seitenleiste öffnet sich bei Bedarf. Das Panel-Popup öffnet sich standardmäßig schmal.
+- Stile: Plasma (Standard) folgt deinem Plasma-Farbschema wie jede KDE-App; Kante bringt eine eigene Palette (Gruvbox, oder Leinen bei hellem Farbschema) mit eckigen Bedienelementen, abgeschnittenen Ecken und schmalen Titeln; Kante Light behält die Farben von Plasma und ergänzt nur Formen und Schrift von Kante. Gewählt mit Vorschaukarten unter Einstellungen › Erscheinungsbild. Ein durchscheinender oder unscharfer Plasma-Hintergrund bleibt in jedem Stil sichtbar.
+- Akzent-Schalter: Projekt- und Labelfarben oder Prioritätsfarben als Akzente zeigen, oder das Widget ruhig lassen.
+- Überfällige Aufgaben in anderen Ansichten: ein Hinweis mit „Alle auf heute“ und „Überfällige zeigen“ (im schmalen Layout ein kompakter Chip); lässt sich abschalten.
+- Kopfzeile: „N offen · M überfällig“ neben dem Titel der Ansicht, und aktive Filter als Chips, deren × nur diesen Filter entfernt.
+- Seitenleiste: Die Ansichten (Posteingang, Heute, Überfällig …) bekommen immer ihre volle Höhe, Projekte, Labels und die übrigen Bereiche teilen sich den Rest. Wählbar dichte Zeilen (Einstellungen › Seitenleiste › Zeilenhöhe), eine Sync-Zeile („Synchronisiert“, „Synchronisiere …“, „Akonadi offline“) mit „Jetzt synchronisieren“ und ein Hinweis, wenn eine Ansicht einen Bereich ausblendet.
+- Zähler sind Plaketten (rot für Überfälliges), Kanban-Spalten zählen ihre Karten, und die Plakette im Panel sieht aus wie die Benachrichtigungs-Plakette von Plasma.
+- `kurrent-tui`: Kurrent im Terminal, wird bei Quellbuilds mitinstalliert (`install.sh` oder der Installer mit `--from-source`). Now, Soon und Someday als eine Liste; `x` erledigt, `t` heute, `m` morgen, `d` irgendwann, `a` legt per Schnelleingabe an, `/` sucht, und `g` geht überfällige Aufgaben einzeln durch. Seine Texte sind vorerst nur Englisch.
 
 #### Verbessert
-- Die Einstellungen haben acht statt zwölf Seiten, mit Beschriftungen links neben den Feldern und „Diese Seite zurücksetzen“ auf jeder Seite.
-- Swimlanes enthalten Aufgabenkarten, die sich zwischen Zellen ziehen lassen, haben einen Horizont mit Spalten für Überfällig, Später und Ohne Datum und bleiben auch mit vielen Aufgaben schnell.
-- Ein Klick auf eine Zelle in Swimlanes oder Projektplan öffnet die Liste, gefiltert auf diese Zelle.
-- Die Seitenleiste gibt den Ansichten ihre volle Höhe und kann dichte Zeilen nutzen.
-- Der Kante-Stil ist auf dem neuen Stand (Kante 1.56): Auswahlfelder sind so breit wie ihr längster Eintrag, ausgegraute Elemente und Menüs folgen Kante, und in Kante Light ist der Hauptknopf einer Stelle (Hinzufügen, Erledigt, Speichern, Befehl kopieren) in der Akzentfarbe gefüllt und fällt so auf. Enter drückt einen fokussierten Kante-Knopf.
-- Datumsangaben folgen überall der Systemsprache, und 120 weitere Texte sind in allen fünf Sprachen übersetzt.
+- Swimlanes enthalten Aufgabenkarten. Eine Karte in eine andere Zelle ziehen ändert Projekt, Label, Priorität oder Elternaufgabe und legt die Fälligkeit in diesen Zeitraum, als ein Rückgängig-Schritt. Spalten sind standardmäßig Wochen.
+- Swimlanes haben einen Horizont (Einstellungen › Ansichten › Vorausschau, standardmäßig automatisch) mit Spalten für Überfällig, Später und Kein Datum; leere Zeiträume bleiben als Ablageziel. Der Projektplan bekommt dieselbe Spalte Später, statt ferne Aufgaben wegzulassen.
+- Swimlanes und Projektplan teilen sich ein Raster: Zeilen- und Spaltenköpfe bleiben stehen, Scrollen geht wie im Kanban (Mausrad, schmale Leisten, Mittelklick zum Verschieben), der aktuelle Zeitraum ist hervorgehoben mit einem Knopf, der zu ihm springt, und Spaltenköpfe nennen den Zeitraum, etwa die Kalenderwoche mit ihren Daten, oder „Heute“. Ein Knopf in der Kopfzeile stellt Zeilen, Spalten und Vorausschau ein, ohne den Einstellungsdialog.
+- Ein Klick auf eine Zelle, einen Zeilen- oder Spaltenkopf in Swimlanes oder Projektplan öffnet die Liste, gefiltert darauf, mit einem Chip in der Kopfzeile für den Weg zurück.
+- Swimlanes bleiben auch mit vielen Aufgaben schnell: Eine Zelle zeigt bis zu acht Karten und „+N weitere Aufgaben“.
+- Zellen im Projektplan zeigen ihre Auslastung im Vergleich zur vollsten Zelle, einen roten Punkt für Überfälliges, eine Flagge für hohe Priorität und einen Balken nach Priorität; Tooltips funktionieren, eine Legende erklärt die Farben, und Projekte sind nach Namen sortiert.
+- Heatmap: quadratische Monatszellen mit der Zahl darin, die Legende darunter und die Aufgaben des gewählten Tages neben oder unter dem Raster (ein Klick öffnet Inspektor oder Editor). Monat, Jahr und Modus stehen in der Navigationszeile.
+- Kanban: Ein Klick auf eine Karte öffnet Inspektor oder Editor, leere Spalten klappen zu einem schmalen Streifen ein, und die Spalte Abgebrochen lässt sich ausblenden (Einstellungen › Ansichten).
+- Aufgabenzeilen zeigen Labelnamen und den Projektnamen, die Prioritätsflagge steht direkt vor der Fälligkeit, und die Bearbeiten-Knöpfe erscheinen nur beim Überfahren.
+- Editor: Titel und Status oben, „Ganztägig“ blendet die Zeitfelder aus, und der Editor öffnet sich auch aus Kanban-Karten und dem Inspektor richtig.
+- Die Schnelleingabe zeigt die erkannten Teile als getönte Pillen.
+- Enter drückt einen fokussierten Knopf im Widget wie die Leertaste, in jedem Stil.
+- Die Einstellungen haben jetzt sieben Seiten: Allgemein, Erscheinungsbild, Aufgaben, Seitenleiste, Ansichten, Panel & Hinweise und Organisieren. Beschriftungen stehen links neben den Feldern, und jede Seite hat „Diese Seite zurücksetzen“. Allgemein zeigt, ob Akonadi verbunden ist, mit einem Knopf, der deine Aufgaben-App öffnet; Aufgaben zeigt eine Live-Vorschau einer Aufgabenzeile; Panel & Hinweise zeigt die Panel-Plakette als Vorschau und kann eine Test-Benachrichtigung senden; Organisieren führt Projekte, Labels und Orte in je einer Liste (Farbe, Umbenennen, Löschen, Standardprojekt). Relative Datumsangaben sind standardmäßig an.
+- Das Symbol des Widgets in der Widget-Auswahl ist jetzt farbig; das Panel-Symbol bleibt einfarbig.
+- Datumsangaben folgen überall der Systemsprache (Tages- und Monatsnamen waren immer Englisch), Kanban-Spaltennamen sind übersetzt, und rund 250 weitere Texte sind in allen fünf Sprachen übersetzt.
 
 #### Behoben
-- Der Tagesschnitt der Heatmap stimmte in einem Monat mit Zeitumstellung nicht.
-- Überfällig heißt überall dasselbe: eine offene Aufgabe, die vor heute fällig war.
-- In Kurrent erledigte Aufgaben hatten kein Erledigungsdatum, darum zählte die Heatmap sie nicht.
-- Mehrere Einstellungen schalteten die falsche Option („Vor dem Löschen einer Aufgabe nachfragen“, „Nur mit gedrückter Umschalt- oder Strg-Taste“, „Reduzierte Bewegung“).
-- Kalenderwochen um Neujahr, das Ablegen in der Kanban-Spalte „Heute“ und das Auffrischen von Swimlanes und Projektplan nach Änderungen.
+- Der Einstellungsdialog zeigte nur die eigenen Seiten von Plasma: Die Seiten von Kurrent luden gar nicht.
+- Überfällig heißt überall dasselbe: eine offene Aufgabe, die vor heute fällig war. Erledigte Aufgaben zeigen ihre Fälligkeit nicht mehr in Rot.
+- In Kurrent erledigte Aufgaben hatten kein Erledigungsdatum, darum zählte die Heatmap sie nicht; Erledigungen nach Mitternacht UTC landeten auf dem Vortag.
+- Übersetzungen fehlten teilweise: Die Kataloge waren veraltet, und Texte mit Anführungszeichen wurden nie gefunden.
+- Der Projektplan legte die Tage um Neujahr in die falsche Woche; außerdem behoben: das Ablegen in der Kanban-Spalte „Heute“ und das Auffrischen von Swimlanes und Projektplan nach Änderungen.
+- Ein Klick auf eine Swimlanes-Zelle setzte die Ansicht in der Seitenleiste zurück, ein Klick auf eine Projektplan-Zelle filterte den Plan selbst, und die Tooltips des Plans erschienen nie.
+- Ein Klick auf einen Tag der Heatmap wurde sofort wieder zurückgenommen.
 
 #### Hinweis
 - Die Agenda liest Termine aus deinen Akonadi-Kalendern; welche, wählst du im Kalendermenü der Agenda.
+- Tag und Woche der Agenda sind neu gebaut, der Monat ist neu, und der Schalter zwischen Tagen nebeneinander und untereinander entfällt.
+- Die Optionen des Projektplans gelten jetzt für alle Kurrent-Widgets, wie jede andere Einstellung.
 - Ziehen und Ablegen und die Tasten in der Agenda sind durch Tests abgedeckt, von Hand aber bisher nur kurz geprüft.
 
 ## [0.4.0] — 2026-09-03
