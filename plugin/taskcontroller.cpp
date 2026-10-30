@@ -2293,16 +2293,21 @@ QVariantList TaskController::agendaDays(const QDate &from, int count) const
             items.append(row);
             spans.append(block);
         }
-        // Lanes for the drawn length: a short entry is drawn kMinShown long.
+        // Lanes for the drawn length: a short entry is drawn kMinShown long, moved up at the
+        // day's end so it stays in the grid.
         QList<AgendaLogic::Span> drawn = spans;
         for (AgendaLogic::Span &span : drawn) {
-            span.end = qMax(span.end, span.start + AgendaLogic::kMinShown);
+            if (span.end - span.start < AgendaLogic::kMinShown) {
+                span.start = qMin(span.start, 24 * 60 - AgendaLogic::kMinShown);
+                span.end = span.start + AgendaLogic::kMinShown;
+            }
         }
         const QList<AgendaLogic::Lane> lanes = AgendaLogic::lanes(drawn);
         for (int k = 0; k < items.size(); ++k) {
             QVariantMap item = items.at(k).toMap();
             item.insert(QStringLiteral("start"), spans.at(k).start);
             item.insert(QStringLiteral("end"), spans.at(k).end);
+            item.insert(QStringLiteral("drawStart"), drawn.at(k).start);
             item.insert(QStringLiteral("lane"), lanes.at(k).lane);
             item.insert(QStringLiteral("lanes"), lanes.at(k).lanes);
             items[k] = item;
