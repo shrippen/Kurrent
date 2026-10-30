@@ -717,7 +717,7 @@ void TaskControllerStoreTest::agendaBoardsShiftAndCount()
         const QVariantMap cell = value.toMap();
         if (cell.value(QStringLiteral("date")).toDate() == day) {
             QCOMPARE(cell.value(QStringLiteral("count")).toInt(), 2);
-            QVERIFY(cell.value(QStringLiteral("tint")).toDouble() > 0);
+            QVERIFY(cell.value(QStringLiteral("level")).toInt() > 0);
         }
     }
 }

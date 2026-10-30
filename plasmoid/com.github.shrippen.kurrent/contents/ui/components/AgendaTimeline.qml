@@ -367,7 +367,7 @@ Item {
         y: grid.yOf(grid.ghostStart) + 1
         height: Math.max(slotHeight, rowHeight)
         z: 5
-        radius: Design.inputRadius
+        radius: Design.radius
         // Opaque (the window colour with a touch of accent), so neither the grid nor a block
         // it reaches into shows through.
         readonly property color base: Kirigami.Theme.backgroundColor

@@ -62,7 +62,7 @@ private Q_SLOTS:
     void ghostSlotStaysBetweenNeighbours();
     void boardOrderTimedThenPriority();
     void monthGridSixWeeksFromMonday();
-    void loadTintGrowsAndCaps();
+    void loadLevelUsesThreeSteps();
 };
 
 void AgendaLogicTest::blockNeedsTimedStartAndDueOnOneDay()
@@ -358,12 +358,16 @@ void AgendaLogicTest::monthGridSixWeeksFromMonday()
     QCOMPARE(monthGrid(QDate(2026, 6, 20), Weekend::Show).first(), QDate(2026, 6, 1));
 }
 
-void AgendaLogicTest::loadTintGrowsAndCaps()
+void AgendaLogicTest::loadLevelUsesThreeSteps()
 {
-    QCOMPARE(loadTint(0), 0.0);
-    QCOMPARE(loadTint(1), 0.11);
-    QCOMPARE(loadTint(3), 0.21);
-    QCOMPARE(loadTint(10), 0.30);
+    // Kante's wash, fill and strong fill; the month view tints with those, not with a scale of its own.
+    QCOMPARE(loadLevel(0), 0);
+    QCOMPARE(loadLevel(1), 1);
+    QCOMPARE(loadLevel(2), 1);
+    QCOMPARE(loadLevel(3), 2);
+    QCOMPARE(loadLevel(4), 2);
+    QCOMPARE(loadLevel(5), 3);
+    QCOMPARE(loadLevel(10), 3);
 }
 
 QTEST_GUILESS_MAIN(AgendaLogicTest)

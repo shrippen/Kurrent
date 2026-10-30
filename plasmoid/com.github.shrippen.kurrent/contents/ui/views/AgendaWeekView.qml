@@ -79,7 +79,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: view.overdue.length > 0
         implicitHeight: trayCol.implicitHeight + Design.spaceSmall * 2
-        radius: Design.inputRadius
+        radius: Design.radius
         color: KanteStyle.tint(KanteStyle.negativeTextColor, KanteStyle.washLevel)
         border.width: KanteStyle.borderWidth
         border.color: KanteStyle.tint(KanteStyle.negativeTextColor, KanteStyle.edgeLevel)
@@ -201,7 +201,7 @@ ColumnLayout {
 
                     width: columns.unit * (weekendDay ? 3 : 4)
                     height: Math.max(colBody.implicitHeight + Design.spaceSmall * 2, weekFlick.height)
-                    radius: Design.inputRadius
+                    radius: Design.radius
                     color: drop.containsDrag ? KanteStyle.selectionColor
                                              : (isToday ? KanteStyle.tint1Color : (weekendDay || past ? KanteStyle.sunkenColor : "transparent"))
                     border.width: isToday ? KanteStyle.borderWidth : 0

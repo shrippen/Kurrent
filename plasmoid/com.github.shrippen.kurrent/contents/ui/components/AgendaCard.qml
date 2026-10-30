@@ -25,7 +25,7 @@ Rectangle {
     readonly property color projectColor: Design.colorForKey(String(task.collectionId))
 
     implicitHeight: body.implicitHeight + Design.spaceSmall * 2
-    radius: Design.inputRadius
+    radius: Design.radius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
     border.width: inspected ? KanteStyle.borderWidth : 0
     border.color: KanteStyle.accentColor

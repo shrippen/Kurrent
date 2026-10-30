@@ -2494,7 +2494,7 @@ QVariantList TaskController::agendaMonth(const QDate &anyDay, bool weekend) cons
         const int count = day.value(QStringLiteral("events")).toList().size() + day.value(QStringLiteral("open")).toList().size();
         day.insert(QStringLiteral("inMonth"), date.month() == anyDay.month());
         day.insert(QStringLiteral("count"), count);
-        day.insert(QStringLiteral("tint"), AgendaLogic::loadTint(count));
+        day.insert(QStringLiteral("level"), AgendaLogic::loadLevel(count));
         out.append(day);
     }
     return out;

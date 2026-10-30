@@ -371,12 +371,12 @@ public:
     Q_INVOKABLE void agendaAddTask(const QString &summary, qint64 collectionId, const QDate &day,
                                    int start = -1, int end = -1);
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
-     *  inMonth, count (appointments and open tasks) and tint (AgendaLogic::loadTint). */
+     *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
     Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
     /** Open overdue tasks of all projects for the week board's tray, oldest first. */
     Q_INVOKABLE QVariantList agendaOverdue() const;
-    /** Month cell tint for `count` entries (AgendaLogic::loadTint), for the legend. */
-    Q_INVOKABLE double agendaTint(int count) const { return AgendaLogic::loadTint(count); }
+    /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
+    Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }
     Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
     Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
     /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest

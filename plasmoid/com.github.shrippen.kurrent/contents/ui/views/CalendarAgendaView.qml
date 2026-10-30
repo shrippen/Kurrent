@@ -218,8 +218,11 @@ ColumnLayout {
             Layout.preferredHeight: modeRow.implicitHeight + Design.spaceTiny * 2
             Rectangle {
                 anchors.fill: parent
-                radius: Design.inputRadius
-                color: Design.withAlpha(Kirigami.Theme.textColor, Design.viewModeToolbarFillOpacity)
+                // As the view-mode toolbar: a quiet fill in Plasma, a frame in Kante.
+                radius: Design.radius
+                color: Design.withAlpha(Kirigami.Theme.textColor, KanteStyle.themed ? 0 : Design.viewModeToolbarFillOpacity)
+                border.color: KanteStyle.themed ? KanteStyle.frameColor : Design.windowBorderColor()
+                border.width: KanteStyle.borderWidth
             }
             Row {
                 id: modeRow

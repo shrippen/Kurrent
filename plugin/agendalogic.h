@@ -133,8 +133,9 @@ enum class Weekend { Show, Hide };
  *  without Saturdays and Sundays when they are hidden. */
 QList<QDate> monthGrid(const QDate &anyDay, Weekend weekend);
 
-/** Tint of a month cell for `count` appointments and open tasks: none for 0, then 6 % and
- *  5 % more per item, at most 30 %. */
-double loadTint(int count);
+/** Load step of a month cell for `count` appointments and open tasks: 0 for none, 1 for one
+ *  or two, 2 for three or four, 3 from five on. QML tints with Kante's wash, fill and strong
+ *  fill levels for 1 to 3. */
+int loadLevel(int count);
 
 } // namespace AgendaLogic

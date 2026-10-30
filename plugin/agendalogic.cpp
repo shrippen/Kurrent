@@ -390,12 +390,12 @@ QList<QDate> monthGrid(const QDate &anyDay, Weekend weekend)
     return days;
 }
 
-double loadTint(int count)
+int loadLevel(int count)
 {
     if (count <= 0) {
-        return 0.0;
+        return 0;
     }
-    return qMin(30, 6 + 5 * count) / 100.0;
+    return qMin(3, (count + 1) / 2);
 }
 
 } // namespace AgendaLogic

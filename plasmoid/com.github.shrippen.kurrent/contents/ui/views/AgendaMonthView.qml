@@ -70,6 +70,12 @@ RowLayout {
     /** The day the detail shows: the picked one, or the weekday standing in for it. */
     readonly property date shownDay: selected ? selected.date : day
 
+    // A cell's load step (AgendaLogic::loadLevel) in Kante's tint levels: wash, fill, strong fill.
+    function loadColor(level) {
+        var levels = [0, KanteStyle.washLevel, KanteStyle.fillLevel, KanteStyle.strongFillLevel]
+        return KanteStyle.tint(KanteStyle.accentColor, levels[Math.max(0, Math.min(3, level))])
+    }
+
     // Entries of a cell: appointments first, then tasks (open before done).
     function entriesOf(cell) {
         var out = []
@@ -134,10 +140,10 @@ RowLayout {
                     Layout.preferredWidth: 1
                     Layout.preferredHeight: 1
                     Layout.minimumHeight: Kirigami.Units.gridUnit * 3
-                    radius: Design.inputRadius
+                    radius: Design.radius
                     clip: true
                     color: drop.containsDrag ? KanteStyle.selectionColor
-                                             : (modelData.tint > 0 ? KanteStyle.tint(KanteStyle.accentColor, modelData.tint)
+                                             : (modelData.level > 0 ? view.loadColor(modelData.level)
                                                                    : (modelData.inMonth ? KanteStyle.cardColor : "transparent"))
                     opacity: modelData.inMonth ? 1 : KanteStyle.dimOpacity
                     border.width: isSelected || isToday ? (isSelected ? KanteStyle.lineWidth : KanteStyle.borderWidth) : 0
@@ -268,7 +274,7 @@ RowLayout {
                         required property int modelData
                         width: KanteStyle.swatchSize
                         height: width
-                        color: KanteStyle.tint(KanteStyle.accentColor, view.controller ? view.controller.agendaTint(modelData) : 0)
+                        color: view.loadColor(view.controller ? view.controller.agendaLoadLevel(modelData) : 0)
                     }
                 }
             }
