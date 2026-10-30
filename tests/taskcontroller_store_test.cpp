@@ -713,13 +713,16 @@ void TaskControllerStoreTest::agendaBoardsShiftAndCount()
     QCOMPARE(m_controller->agendaMonth(day, true).size(), 42);
     const QVariantList workdays = m_controller->agendaMonth(day, false);
     QCOMPARE(workdays.size(), 30);
+    bool found = false;
     for (const QVariant &value : m_controller->agendaMonth(day, true)) {
         const QVariantMap cell = value.toMap();
         if (cell.value(QStringLiteral("date")).toDate() == day) {
+            found = true;
             QCOMPARE(cell.value(QStringLiteral("count")).toInt(), 2);
             QCOMPARE(cell.value(QStringLiteral("level")).toInt(), 1); // two entries: the first step
         }
     }
+    QVERIFY(found);
 }
 
 void TaskControllerStoreTest::demoModeLoadsWorldTasks()

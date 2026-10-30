@@ -70,13 +70,11 @@ RowLayout {
     /** The day the detail shows: the picked one, or the weekday standing in for it. */
     readonly property date shownDay: selected ? selected.date : day
 
-    // A cell's ground for its load step (AgendaLogic::loadLevel): the card, tinted on top with
-    // Kante's wash, fill or strong fill, so a busier day is never lighter than an empty one.
-    function loadColor(level) {
+    // The tint for a load step (AgendaLogic::loadLevel): Kante's wash, fill or strong fill of the
+    // accent. It lies on the card as a layer of its own, so a busier day is never lighter.
+    function loadTint(level) {
         var levels = [0, KanteStyle.washLevel, KanteStyle.fillLevel, KanteStyle.strongFillLevel]
-        var step = Math.max(0, Math.min(3, level || 0))
-        return step > 0 ? Qt.tint(KanteStyle.cardColor, KanteStyle.tint(KanteStyle.accentColor, levels[step]))
-                        : KanteStyle.cardColor
+        return KanteStyle.tint(KanteStyle.accentColor, levels[Math.max(0, Math.min(3, level || 0))])
     }
 
     // Entries of a cell: appointments first, then tasks (open before done).
@@ -145,11 +143,18 @@ RowLayout {
                     Layout.minimumHeight: Kirigami.Units.gridUnit * 3
                     radius: Design.radius
                     clip: true
-                    color: drop.containsDrag ? KanteStyle.selectionColor
-                                             : (modelData.level > 0 || modelData.inMonth ? view.loadColor(modelData.level) : "transparent")
+                    color: modelData.level > 0 || modelData.inMonth ? KanteStyle.cardColor : "transparent"
                     opacity: modelData.inMonth ? 1 : KanteStyle.dimOpacity
                     border.width: isSelected || isToday ? (isSelected ? KanteStyle.lineWidth : KanteStyle.borderWidth) : 0
                     border.color: isSelected ? KanteStyle.focusColor : KanteStyle.accentColor
+
+                    // Load tint, or the drop highlight, on top of the card and inside the frame.
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: cell.border.width
+                        radius: cell.radius
+                        color: drop.containsDrag ? KanteStyle.selectionColor : view.loadTint(cell.modelData.level)
+                    }
 
                     TapHandler {
                         enabled: !view.interactionsSuspended
@@ -264,15 +269,18 @@ RowLayout {
             }
         }
 
-        // Legend for the tint and the red entries.
-        RowLayout {
+        // Legend for the tint and the red entries; wraps when the view is narrow.
+        Flow {
             Layout.fillWidth: true
             spacing: Design.spaceMedium
             Row {
                 spacing: Design.spaceSmall
                 // The three steps with the entries they stand for (AgendaLogic::loadLevel).
                 Repeater {
-                    model: [[1, "1–2"], [3, "3–4"], [5, "5+"]]
+                    // Counts as loadLevel steps them (AgendaLogicTest::loadLevelUsesThreeSteps).
+                    model: [[1, Qt.locale().toString(1) + "–" + Qt.locale().toString(2)],
+                            [3, Qt.locale().toString(3) + "–" + Qt.locale().toString(4)],
+                            [5, Qt.locale().toString(5) + "+"]]
                     delegate: Row {
                         required property var modelData
                         spacing: Design.spaceTiny
@@ -280,9 +288,14 @@ RowLayout {
                             anchors.verticalCenter: parent.verticalCenter
                             width: KanteStyle.swatchSize
                             height: width
-                            color: view.loadColor(view.controller ? view.controller.agendaLoadLevel(modelData[0]) : 0)
+                            color: KanteStyle.cardColor
                             border.width: KanteStyle.borderWidth
                             border.color: KanteStyle.frameColor
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: parent.border.width
+                                color: view.loadTint(view.controller ? view.controller.agendaLoadLevel(modelData[0]) : 0)
+                            }
                         }
                         QQC2.Label {
                             anchors.verticalCenter: parent.verticalCenter
@@ -303,7 +316,6 @@ RowLayout {
                 color: KanteStyle.negativeTextColor
                 font: Kirigami.Theme.smallFont
             }
-            Item { Layout.fillWidth: true }
         }
     }
 
