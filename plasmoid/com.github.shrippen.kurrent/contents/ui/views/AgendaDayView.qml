@@ -297,7 +297,7 @@ RowLayout {
         Rectangle {
             readonly property var entry: parent ? parent.entry : null
             implicitHeight: quietLabel.implicitHeight + Design.spaceSmall * 2
-            radius: Design.inputRadius
+            radius: Design.radius
             color: KanteStyle.sunkenColor
             QQC2.Label {
                 id: quietLabel
@@ -351,7 +351,7 @@ RowLayout {
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: head.implicitHeight + Design.spaceSmall * 2
-                radius: Design.inputRadius
+                radius: Design.radius
                 color: dayCol.marked ? KanteStyle.selectionColor : (headHover.hovered ? KanteStyle.sunkenColor : "transparent")
                 border.width: dayCol.marked ? KanteStyle.borderWidth : 0
                 border.color: KanteStyle.accentColor
@@ -402,7 +402,7 @@ RowLayout {
                         required property var modelData
                         implicitWidth: allDayLabel.implicitWidth + Design.padInner * 2
                         implicitHeight: allDayLabel.implicitHeight + Design.spaceTiny * 2
-                        radius: Design.inputRadius
+                        radius: Design.radius
                         color: KanteStyle.sunkenColor
                         border.width: KanteStyle.borderWidth
                         border.color: KanteStyle.frameColor
@@ -446,7 +446,7 @@ RowLayout {
                     visible: !!(view.dragHost && view.dragHost.draggingTask)
                     Rectangle {
                         anchors.fill: parent
-                        radius: Design.inputRadius
+                        radius: Design.radius
                         color: parent.containsDrag ? KanteStyle.selectionColor : "transparent"
                         border.width: KanteStyle.borderWidth
                         border.color: KanteStyle.frameColor

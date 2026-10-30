@@ -80,8 +80,7 @@ Item {
         width: grid.width - grid.gutter
         y: grid.yOf(grid.workStart)
         height: (grid.workEnd - grid.workStart) * grid.px
-        color: KanteStyle.tint1Color
-        opacity: KanteStyle.dimOpacity
+        color: KanteStyle.tint(KanteStyle.textColor, KanteStyle.washLevel)
     }
     Repeater {
         model: (grid.gridEnd - grid.gridStart) / 30 + 1
@@ -118,7 +117,7 @@ Item {
             width: grid.width - grid.gutter - Design.spaceTiny * 2
             y: grid.yOf(modelData.start) + KanteStyle.borderWidth
             height: (modelData.end - modelData.start) * grid.px - KanteStyle.borderWidth * 2
-            radius: Design.inputRadius
+            radius: Design.radius
             color: KanteStyle.tint(KanteStyle.positiveTextColor, KanteStyle.fillLevel)
             border.width: KanteStyle.borderWidth
             border.color: KanteStyle.tint(KanteStyle.positiveTextColor, KanteStyle.edgeLevel)
@@ -201,7 +200,7 @@ Item {
             y: grid.yOf(shownStart)
             height: Math.max(Kirigami.Units.gridUnit, (shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2)
             z: selected ? 3 : 2
-            radius: Design.inputRadius
+            radius: Design.radius
             clip: true
             color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), KanteStyle.strongFillLevel) : KanteStyle.sunkenColor
             border.width: selected ? KanteStyle.lineWidth : KanteStyle.borderWidth
@@ -278,7 +277,7 @@ Item {
                     readonly property bool atTop: modelData === "top"
                     width: Kirigami.Units.gridUnit * 1.5
                     height: Design.spaceSmall
-                    radius: height / 2
+                    radius: KanteStyle.themed ? 0 : height / 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: atTop ? 0 : block.height - height
                     color: KanteStyle.accentColor

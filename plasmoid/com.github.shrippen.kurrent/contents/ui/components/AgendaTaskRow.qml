@@ -27,7 +27,7 @@ Rectangle {
     readonly property bool inspected: !!(dragHost && dragHost.inspectorActive && dragHost.inspectedItemId === task.itemId)
 
     implicitHeight: body.implicitHeight + Design.padInner * 2
-    radius: Design.inputRadius
+    radius: Design.radius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
     border.width: inspected ? KanteStyle.borderWidth : 0
     border.color: KanteStyle.accentColor
