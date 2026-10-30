@@ -64,6 +64,7 @@ private Q_SLOTS:
     void boardOrderTimedThenPriority();
     void monthGridSixWeeksFromMonday();
     void loadLevelUsesThreeSteps();
+    void suggestionsCountABlockUntilMidnightOnItsDay();
 };
 
 void AgendaLogicTest::blockNeedsTimedStartAndDueOnOneDay()
@@ -393,6 +394,27 @@ void AgendaLogicTest::loadLevelUsesThreeSteps()
     QCOMPARE(loadLevel(4), 2);
     QCOMPARE(loadLevel(5), 3);
     QCOMPARE(loadLevel(10), 3);
+}
+
+void AgendaLogicTest::suggestionsCountABlockUntilMidnightOnItsDay()
+{
+    // Blocks until the next midnight (DUE 00:00 of the following day, as other apps write it).
+    TaskEntry later = task(QStringLiteral("Später"), {});
+    later.startDate = QDateTime(kToday.addDays(3), QTime(23, 0));
+    later.dueDate = QDateTime(kToday.addDays(4), QTime(0, 0));
+    TaskEntry yesterday = task(QStringLiteral("Gestern"), {});
+    yesterday.startDate = QDateTime(kToday.addDays(-1), QTime(23, 0));
+    yesterday.dueDate = QDateTime(kToday, QTime(0, 0));
+    const QList<TaskEntry> tasks{later, yesterday};
+    // Two days after the target, not three; yesterday's block is a day overdue.
+    const QList<Suggestion> out = rankSuggestions(tasks, kToday.addDays(1), kToday, {});
+    const Suggestion *soon = find(out, QStringLiteral("Später"));
+    QVERIFY(soon);
+    QCOMPARE(soon->reasons.first().days, 2);
+    const Suggestion *late = find(out, QStringLiteral("Gestern"));
+    QVERIFY(late);
+    QCOMPARE(late->reasons.first().kind, ReasonKind::Overdue);
+    QCOMPARE(late->reasons.first().days, 1);
 }
 
 QTEST_GUILESS_MAIN(AgendaLogicTest)

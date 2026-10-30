@@ -2307,7 +2307,8 @@ QVariantList TaskController::agendaDays(const QDate &from, int count) const
             item.insert(QStringLiteral("lanes"), lanes.at(k).lanes);
             items[k] = item;
         }
-        const AgendaLogic::Span grid = AgendaLogic::gridRange(spans);
+        // The grid holds what is drawn, so a short entry at its end stays inside.
+        const AgendaLogic::Span grid = AgendaLogic::gridRange(drawn);
         const int planFrom = AgendaLogic::planFrom(day, today, now);
         QVariantList free;
         for (const AgendaLogic::Span &gap : AgendaLogic::freeSlots(busy, planFrom, AgendaLogic::kWorkEnd)) {
@@ -2350,6 +2351,7 @@ QVariantList TaskController::agendaDays(const QDate &from, int count) const
             {QStringLiteral("workEnd"), AgendaLogic::kWorkEnd},
             {QStringLiteral("step"), AgendaLogic::kStep},
             {QStringLiteral("minGap"), AgendaLogic::kMinGap},
+            {QStringLiteral("minShown"), AgendaLogic::kMinShown},
             {QStringLiteral("allDayEvents"), allDayEvents},
             {QStringLiteral("items"), items},
             {QStringLiteral("loose"), openLoose + doneLoose},

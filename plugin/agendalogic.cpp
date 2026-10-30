@@ -229,18 +229,19 @@ QList<Suggestion> rankSuggestions(const QList<TaskEntry> &tasks, const QDate &ta
         }
         Suggestion s;
         s.task = task;
-        if (due.isValid() && due < today) {
+        // Counted from the day it is on, so such a block is late or soon by its start day.
+        if (onDay.isValid() && onDay < today) {
             if (target < today) {
                 continue;
             }
-            const int days = int(due.daysTo(today));
+            const int days = int(onDay.daysTo(today));
             s.score = 30 + qMin(days, 14) * 2;
             s.reasons.append({ReasonKind::Overdue, days, {}});
-        } else if (due.isValid() && due > target && due <= target.addDays(7)) {
-            const int days = int(target.daysTo(due));
+        } else if (onDay.isValid() && onDay > target && onDay <= target.addDays(7)) {
+            const int days = int(target.daysTo(onDay));
             s.score = 40 - days * 4;
             s.reasons.append({ReasonKind::DueSoon, days, {}});
-        } else if (!due.isValid() && task.parentUid.isEmpty()) {
+        } else if (!onDay.isValid() && task.parentUid.isEmpty()) {
             s.score = 10;
             s.reasons.append({ReasonKind::Undated, 0, {}});
         } else {

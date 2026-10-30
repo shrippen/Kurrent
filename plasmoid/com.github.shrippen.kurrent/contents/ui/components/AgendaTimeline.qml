@@ -36,6 +36,7 @@ Item {
     readonly property int workEnd: day ? day.workEnd : 0
     readonly property int step: day && day.step > 0 ? day.step : 1
     readonly property int minGap: day ? day.minGap : 0
+    readonly property int minShown: day ? day.minShown : 0
     readonly property int gutter: Kirigami.Units.gridUnit * 2.5
     readonly property bool isToday: day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(new Date())
 
@@ -236,10 +237,12 @@ Item {
             // Drawn inside the grid; the label keeps the real times (an evening shoot to 23:59).
             readonly property int shownStart: Math.max(liveStart, grid.gridStart)
             readonly property int shownEnd: Math.min(liveEnd, grid.gridEnd)
-            // An appointment without an end still shows; short entries are drawn kMinShown (30 min) long.
+            // An appointment without an end still shows; short entries are drawn minShown long.
             visible: shownEnd >= shownStart && shownStart < grid.gridEnd
             y: grid.yOf(shownStart)
-            height: Math.max(30, shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2
+            height: Math.max(grid.minShown, shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2
+            // Too low for a second line: one line, centred, without the vertical margins.
+            readonly property bool low: height < Kirigami.Units.gridUnit * 1.5
             z: selected ? 3 : 2
             radius: Design.radius
             clip: true
@@ -252,15 +255,17 @@ Item {
             QQC2.Label {
                 anchors.fill: parent
                 anchors.margins: Design.spaceTiny
+                anchors.bottomMargin: block.low ? 0 : Design.spaceTiny
                 anchors.leftMargin: Design.spaceSmall
                 // Below the ghost where it reaches into this block.
-                anchors.topMargin: Design.spaceTiny
+                anchors.topMargin: (block.low ? 0 : Design.spaceTiny)
                                    + (ghost.cramped && block.modelData.start === ghost.nextStart ? ghost.overhang : 0)
+                verticalAlignment: block.low ? Text.AlignVCenter : Text.AlignTop
                 text: grid.hm(block.liveStart) + "–" + grid.hm(block.liveEnd)
                       + (block.liveEnd - block.liveStart !== block.modelData.end - block.modelData.start
                          ? " · " + grid.duration(block.liveEnd - block.liveStart) : "")
                       + "  " + (block.modelData.summary || i18n("(Untitled)"))
-                wrapMode: Text.Wrap
+                wrapMode: block.low ? Text.NoWrap : Text.Wrap
                 elide: Text.ElideRight
                 font.strikeout: block.isTask && block.modelData.completed
                 color: KanteStyle.textColor
