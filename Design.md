@@ -171,7 +171,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 |---|---|---|---|
 | `plasma` (Standard) | System | Plasma-Farbschema (`Kirigami.Theme`) | Plasma, pixelgleich zu einem normalen Kirigami-Widget |
 | `kante` | Kante | Kante-Palette: Gruvbox dunkel, bei hellem Plasma-Farbschema „Leinen“ | eckige Controls, abgeschrägte Ecke oben rechts an Karten und Dialogen, Titel und Buttons in Rajdhani versal, Zahlen und Labels in JetBrains Mono |
-| `kanteLight` | Kante Light | Plasma-Farbschema | Kante-Formen und -Schrift, Controls bleiben Plasmas |
+| `kanteLight` | Kante Light | Plasma-Farbschema | Kante-Formen und -Schrift, Controls bleiben Plasmas; nur Primär-Buttons (`Emphasis.Primary`: Plus an der Schnellerfassung, Erledigt/Wieder öffnen im Inspektor, Konflikt-Dialog) zeichnet Kante seit 1.27 selbst, gefüllt in `primaryColor`, damit die Hauptaktion hervorsticht |
 
 - `main.qml` bindet `KanteStyle.kind` an `Design.kanteKind(uiStyle)`. Views verzweigen auf `KanteStyle.active` (Kante oder Kante Light: Formen, Schrift, Layouts) bzw. `KanteStyle.themed` (nur Kante: Palette, Control-Skins) und lesen Farben aus den `KanteStyle`-Rollen. Nie Hex-Werte in Views.
 - `FullView` enthält `KanteScope { target: fullRoot }`: in Kante bekommt das ganze Widget die Kante-Farben über `Kirigami.Theme`. Popups erben das nicht: jedes `QQC2.Menu`/`QQC2.Popup` hat einen `KantePopupSkin`, jeder `QQC2.Dialog` einen `KanteDialogSkin`, der auf den Applet-Container umgehängte Full-Editor einen eigenen `KanteScope` plus `KanteCard` (Ecke + Akzentbalken).
