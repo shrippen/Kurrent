@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
-import org.kde.kirigami as Kirigami
 import "."
 
 /**
@@ -25,13 +24,26 @@ FocusScope {
     property var dayNames: ["MO", "DI", "MI", "DO", "FR", "SA", "SO"]
     property string todayText: qsTr("Today")
     readonly property bool invalid: input.invalid
-    readonly property alias popupOpen: popup.visible
+    readonly property alias popupOpen: monthPopup.visible
     /** Side of the popup: undefined = below, above when there is no room (true / false force it). */
     property var popupAbove: undefined
     signal dateEdited(var date)
 
     implicitWidth: KanteStyle.unit(170)
     implicitHeight: input.implicitHeight
+
+    /** Years a two-digit year may lie ahead of today: "26" is 2026, "99" is 1999. */
+    readonly property int twoDigitYearsAhead: 20
+
+    /** Full year of a two-digit year, in the century around today (Qt reads "26" as 1926). */
+    function fullYear(twoDigits) {
+        var year = new Date().getFullYear()
+        var full = Math.floor(year / 100) * 100 + (twoDigits % 100)
+        if (full > year + twoDigitYearsAhead) {
+            full -= 100
+        }
+        return full
+    }
 
     /** Text -> Date, or null if empty, or undefined if unreadable. */
     function parse(text) {
@@ -41,6 +53,10 @@ FocusScope {
         }
         var fixed = Date.fromLocaleString(Qt.locale(), t, format)
         if (fixed instanceof Date && !isNaN(fixed.getTime())) {
+            // "dd.MM.yy": the field shows "26"; reading it back must give 2026, not 1926.
+            if (/(^|[^y])yy([^y]|$)/.test(format)) {
+                fixed.setFullYear(fullYear(fixed.getFullYear()))
+            }
             return fixed
         }
         var y, m, d
@@ -52,7 +68,7 @@ FocusScope {
             d = +dmy[1]; m = +dmy[2]
             y = dmy[3] === undefined ? new Date().getFullYear() : +dmy[3]
             if (y < 100) {
-                y += 2000
+                y = fullYear(y)
             }
         } else {
             return undefined
@@ -67,10 +83,10 @@ FocusScope {
 
     /** Opens the month popup (e.g. from a shortcut); `close()` closes it. */
     function open() {
-        popup.open()
+        monthPopup.open()
     }
     function close() {
-        popup.close()
+        monthPopup.close()
     }
 
     function textOf(date) {
@@ -126,11 +142,11 @@ FocusScope {
                     root.commit()
                 }
             }
-            Keys.onDownPressed: popup.open()
+            Keys.onDownPressed: monthPopup.open()
             // The field keeps the focus, so the popup never sees Escape itself.
             Keys.onEscapePressed: function (event) {
-                event.accepted = popup.visible
-                popup.close()
+                event.accepted = monthPopup.visible
+                monthPopup.close()
             }
         }
         KanteToolButton {
@@ -145,7 +161,7 @@ FocusScope {
             checkable: false
             focusPolicy: Qt.NoFocus
             Accessible.name: root.placeholderText
-            onClicked: popup.visible ? popup.close() : popup.open()
+            onClicked: monthPopup.visible ? monthPopup.close() : monthPopup.open()
 
             // Calendar glyph: a square with a heavy top edge, drawn in every kind.
             Rectangle {
@@ -166,7 +182,7 @@ FocusScope {
     }
 
     QQC2.Popup {
-        id: popup
+        id: monthPopup
         objectName: "popup"
         // Inside the window: shifted left at the right edge, above the field at the bottom.
         readonly property var place: visible ? KanteStyle.popupPlace(root, width, implicitHeight, root.popupAbove)
@@ -194,35 +210,35 @@ FocusScope {
             month = ((m % 12) + 12) % 12 + 1
         }
 
-        KantePopupSkin { popup: popup }
+        KantePopupSkin { popup: monthPopup }
 
         contentItem: ColumnLayout {
             spacing: KanteStyle.unit(8)
 
             RowLayout {
                 Layout.fillWidth: true
-                KanteToolButton { text: "‹"; focusPolicy: Qt.NoFocus; onClicked: popup.step(-1); Accessible.name: "previous month" }
+                KanteToolButton { text: "‹"; focusPolicy: Qt.NoFocus; onClicked: monthPopup.step(-1); Accessible.name: "previous month" }
                 QQC2.Label {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
-                    text: Qt.locale().standaloneMonthName(popup.month - 1) + " " + popup.year
+                    text: Qt.locale().standaloneMonthName(monthPopup.month - 1) + " " + monthPopup.year
                     color: KanteStyle.strongTextColor
                     font: KanteStyle.headingFont(Math.round(KanteStyle.defaultFont.pointSize * 1.1))
                 }
-                KanteToolButton { text: "›"; focusPolicy: Qt.NoFocus; onClicked: popup.step(1); Accessible.name: "next month" }
+                KanteToolButton { text: "›"; focusPolicy: Qt.NoFocus; onClicked: monthPopup.step(1); Accessible.name: "next month" }
             }
             KanteCalendarGrid {
                 id: grid
                 Layout.fillWidth: true
                 Layout.preferredHeight: implicitHeight
-                year: popup.year
-                month: popup.month
+                year: monthPopup.year
+                month: monthPopup.month
                 dayNames: root.dayNames
-                selectedDay: root.date && new Date(root.date).getFullYear() === popup.year
-                             && new Date(root.date).getMonth() + 1 === popup.month ? new Date(root.date).getDate() : 0
+                selectedDay: root.date && new Date(root.date).getFullYear() === monthPopup.year
+                             && new Date(root.date).getMonth() + 1 === monthPopup.month ? new Date(root.date).getDate() : 0
                 onDayClicked: function (day) {
-                    root.pick(new Date(popup.year, popup.month - 1, day))
-                    popup.close()
+                    root.pick(new Date(monthPopup.year, monthPopup.month - 1, day))
+                    monthPopup.close()
                 }
             }
             KanteButton {
@@ -234,7 +250,7 @@ FocusScope {
                 onClicked: {
                     var t = new Date()
                     root.pick(new Date(t.getFullYear(), t.getMonth(), t.getDate()))
-                    popup.close()
+                    monthPopup.close()
                 }
             }
         }

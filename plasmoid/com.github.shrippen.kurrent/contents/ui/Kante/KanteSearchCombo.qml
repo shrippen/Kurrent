@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
 import QtQuick.Controls as QQC2
-import org.kde.kirigami as Kirigami
 import "."
 
 /**
@@ -43,7 +42,7 @@ FocusScope {
     property int maxRows: 8
     /** Kante: draw the field's sunken box (false inside a framed container). */
     property bool kanteFrame: true
-    readonly property alias popupOpen: popup.visible
+    readonly property alias popupOpen: listPopup.visible
     readonly property alias editText: input.text
     /** Row under the keyboard in the list (index in `matches`). */
     property int highlighted: 0
@@ -130,7 +129,7 @@ FocusScope {
 
     function openList() {
         highlighted = 0
-        popup.open()
+        listPopup.open()
     }
     /** The list's place: x from the field, the side from `popupAnchor` (in the field's coordinates). */
     function placeList(w, h) {
@@ -142,11 +141,11 @@ FocusScope {
     }
     /** Closes the list and ends the filter (the field shows the current entry again). */
     function close() {
-        popup.close()
+        listPopup.close()
         reset()
     }
     function move(delta) {
-        if (!popup.visible) {
+        if (!listPopup.visible) {
             openList()
             return
         }
@@ -162,7 +161,7 @@ FocusScope {
         var isNew = row >= matches.length
         var index = isNew ? -1 : matches[row]
         var text = query
-        popup.close()
+        listPopup.close()
         filtering = false
         if (isNew) {
             input.text = keepText ? text : ""
@@ -175,7 +174,7 @@ FocusScope {
     }
     /** Enter: picks the keyboard row; typed text with a closed list opens it first. */
     function enter(event) {
-        if (popup.visible && rowCount > 0) {
+        if (listPopup.visible && rowCount > 0) {
             choose(highlighted)
             return
         }
@@ -212,8 +211,8 @@ FocusScope {
             onTextEdited: {
                 root.filtering = true
                 root.highlighted = 0
-                if (!popup.visible) {
-                    popup.open()
+                if (!listPopup.visible) {
+                    listPopup.open()
                 }
             }
             onActiveFocusChanged: {
@@ -222,7 +221,7 @@ FocusScope {
                     selectAll()
                     return
                 }
-                popup.close()
+                listPopup.close()
                 root.reset()
             }
             Keys.onPressed: function (event) {
@@ -236,11 +235,11 @@ FocusScope {
             Keys.onReturnPressed: function (event) { root.enter(event) }
             Keys.onEnterPressed: function (event) { root.enter(event) }
             Keys.onEscapePressed: function (event) {
-                if (!popup.visible) {
+                if (!listPopup.visible) {
                     event.accepted = false
                     return
                 }
-                popup.close()
+                listPopup.close()
                 root.reset()
             }
         }
@@ -273,8 +272,8 @@ FocusScope {
             focusPolicy: Qt.NoFocus
             Accessible.name: root.placeholderText
             onClicked: {
-                if (popup.visible) {
-                    popup.close()
+                if (listPopup.visible) {
+                    listPopup.close()
                     return
                 }
                 root.filtering = false
@@ -300,7 +299,7 @@ FocusScope {
     }
 
     QQC2.Popup {
-        id: popup
+        id: listPopup
         objectName: "popup"
         width: root.width
         padding: KanteStyle.unit(4)
@@ -316,7 +315,7 @@ FocusScope {
         y: place.above ? place.top - height - KanteStyle.unit(2) : place.y
         height: Math.max(minHeight, Math.min(implicitHeight, place.room))
 
-        KantePopupSkin { popup: popup }
+        KantePopupSkin { popup: listPopup }
 
         contentItem: ListView {
             id: list

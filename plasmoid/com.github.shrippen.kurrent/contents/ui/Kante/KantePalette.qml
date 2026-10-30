@@ -8,7 +8,7 @@ import QtQuick
  * translucent or blurred platform ground shows through.
  */
 QtObject {
-    readonly property string version: "1.13.0"
+    readonly property string version: "1.15.0"
 
     readonly property QtObject dark: QtObject {
         readonly property color text: "#ebdbb2"
@@ -24,6 +24,13 @@ QtObject {
         readonly property color negative: "#fb4934"
         readonly property color info: "#5ccfc4"
         readonly property color tag: "#d3869b"
+        readonly property color labelRed: "#fb4934"
+        readonly property color labelOrange: "#fe8019"
+        readonly property color labelYellow: "#fabd2f"
+        readonly property color labelGreen: "#8ec07c"
+        readonly property color labelCyan: "#5ccfc4"
+        readonly property color labelBlue: "#83a598"
+        readonly property color labelPurple: "#d3869b"
         readonly property color warning: "#fe8019"
         readonly property color card: "#993c3836"
         readonly property color sunken: "#80141312"
@@ -36,6 +43,14 @@ QtObject {
         readonly property color accentPressed: "#e5a823"
         readonly property color onState: "#141312"
         readonly property color scrim: "#9e141312"
+        readonly property color stage: "#282828"
+        readonly property color stageText: "#ebdbb2"
+        readonly property color string0: "#d3869b"
+        readonly property color string1: "#5ccfc4"
+        readonly property color string2: "#fabd2f"
+        readonly property color string3: "#fbf1c7"
+        readonly property color string4: "#bdae93"
+        readonly property color string5: "#5ccfc4"
     }
 
     readonly property QtObject light: QtObject {
@@ -47,11 +62,18 @@ QtObject {
         readonly property color accent: "#fabd2f"
         readonly property color accentText: "#8a5a00"
         readonly property color accentForeground: "#141312"
-        readonly property color positive: "#427b58"
+        readonly property color positive: "#3a6e4e"
         readonly property color neutral: "#af3a03"
         readonly property color negative: "#9d0006"
         readonly property color info: "#0f6b66"
         readonly property color tag: "#8f3f71"
+        readonly property color labelRed: "#9d0006"
+        readonly property color labelOrange: "#af3a03"
+        readonly property color labelYellow: "#8a5a00"
+        readonly property color labelGreen: "#3a6e4e"
+        readonly property color labelCyan: "#0f6b66"
+        readonly property color labelBlue: "#076678"
+        readonly property color labelPurple: "#8f3f71"
         readonly property color warning: "#af3a03"
         readonly property color card: "#b2fbf8ee"
         readonly property color sunken: "#99e6dec6"
@@ -64,6 +86,14 @@ QtObject {
         readonly property color accentPressed: "#e5a823"
         readonly property color onState: "#fbf8ee"
         readonly property color scrim: "#80282828"
+        readonly property color stage: "#282828"
+        readonly property color stageText: "#ebdbb2"
+        readonly property color string0: "#bc2f6c"
+        readonly property color string1: "#076678"
+        readonly property color string2: "#8a5a00"
+        readonly property color string3: "#282828"
+        readonly property color string4: "#665c54"
+        readonly property color string5: "#0f6b66"
     }
 
     // Brand mark fill (icon, badges); not for controls.
@@ -77,6 +107,18 @@ QtObject {
     readonly property int heightSmall: 32
     readonly property int heightMedium: 40
     readonly property int heightLarge: 48
+    // Lines (px, not scaled): borders, marking lines, the colour edge of an entry; dash pattern.
+    readonly property int lineBorder: 1
+    readonly property int lineMark: 2
+    readonly property int lineEdge: 3
+    readonly property var dash: [6, 4]
+    // Tint levels and opacities.
+    readonly property real levelWash: 0.06
+    readonly property real levelFill: 0.12
+    readonly property real levelStrongFill: 0.22
+    readonly property real levelEdge: 0.4
+    readonly property real levelDone: 0.6
+    readonly property real levelDim: 0.5
 
     // Type
     readonly property string headingFamily: "Rajdhani"

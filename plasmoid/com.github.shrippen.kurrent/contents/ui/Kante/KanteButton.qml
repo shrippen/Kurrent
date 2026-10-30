@@ -17,6 +17,12 @@ import "."
  *
  * In Kante the style's frame and content stay (they size the button) but are
  * hidden; frame, icon and text are drawn here.
+ *
+ *   Kante Light  the platform's button, except the primary one (1.27): a platform
+ *           button marks "highlighted" only faintly (Breeze: a blue frame), so the
+ *           primary action did not stand out. It is drawn as in Kante, filled in
+ *           KanteStyle.primaryColor (the platform highlight at 4.5:1 to its label),
+ *           cut at two corners and with a bold label; size and font stay the platform's.
  */
 QQC2.Button {
     id: control
@@ -41,7 +47,19 @@ QQC2.Button {
     property bool busy: false
     /** Sits on a hard 4 px shadow and presses into it (a big, single action). */
     property bool raised: false
+    /** Removes or resets (1.55): a Normal or Quiet button with the text in the negative
+     *  colour, for a removal that should not outweigh the actions beside it (Destructive
+     *  is the filled red one). Filled buttons keep their ink. Kante style only: System and
+     *  Kante Light keep the platform's button (its styles do not take a label colour). */
+    property bool destructive: false
 
+    // Return and Enter press a focused button like Space (1.49, WCAG 2.1.1): Qt Quick
+    // Controls take only Space, so keyboard users pressed Return and nothing happened.
+    Keys.onReturnPressed: function (event) { KanteStyle.pressByKey(control, event) }
+    Keys.onEnterPressed: function (event) { KanteStyle.pressByKey(control, event) }
+
+    /** Kante draws this button: always in Kante, only the primary one in Kante Light. */
+    readonly property bool drawn: KanteStyle.themed || (KanteStyle.active && emphasis === KanteButton.Emphasis.Primary)
     readonly property bool filled: emphasis === KanteButton.Emphasis.Primary || emphasis === KanteButton.Emphasis.Destructive
     readonly property bool lit: enabled && (hovered || visualFocus) && !down
     readonly property real cut: size === KanteButton.Size.Small ? KanteStyle.cutSmall
@@ -54,7 +72,7 @@ QQC2.Button {
     readonly property color kanteFill: {
         switch (emphasis) {
         case KanteButton.Emphasis.Primary:
-            return busy || down ? KanteStyle.accentPressedColor : (hovered ? KanteStyle.accentHoverColor : KanteStyle.accentColor)
+            return busy || down ? KanteStyle.primaryPressedColor : (hovered ? KanteStyle.primaryHoverColor : KanteStyle.primaryColor)
         case KanteButton.Emphasis.Destructive:
             return down ? Qt.darker(KanteStyle.negativeTextColor, 1.15) : (hovered ? Qt.lighter(KanteStyle.negativeTextColor, 1.12) : KanteStyle.negativeTextColor)
         case KanteButton.Emphasis.Data:
@@ -65,11 +83,12 @@ QQC2.Button {
     }
     readonly property color kanteInk: {
         switch (emphasis) {
-        case KanteButton.Emphasis.Primary: return KanteStyle.accentForegroundColor
+        case KanteButton.Emphasis.Primary: return KanteStyle.primaryTextColor
         case KanteButton.Emphasis.Destructive: return KanteStyle.onStateColor
         case KanteButton.Emphasis.Data: return KanteStyle.focusColor
-        case KanteButton.Emphasis.Quiet: return hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
-        default: return KanteStyle.textColor
+        case KanteButton.Emphasis.Quiet:
+            return destructive ? KanteStyle.negativeTextColor : hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
+        default: return destructive ? KanteStyle.negativeTextColor : KanteStyle.textColor
         }
     }
     readonly property color kanteFrame: emphasis === KanteButton.Emphasis.Data
@@ -77,8 +96,8 @@ QQC2.Button {
         : (visualFocus ? KanteStyle.focusColor : KanteStyle.frameColor)
 
     transform: Translate {
-        x: control.down && KanteStyle.themed ? (control.raised ? 4 : 1) : 0
-        y: control.down && KanteStyle.themed ? (control.raised ? 4 : 1) : 0
+        x: control.down && control.drawn ? (control.raised ? 4 : 1) : 0
+        y: control.down && control.drawn ? (control.raised ? 4 : 1) : 0
     }
 
     // Hard shadow (raised): a second cut shape 4 px down and right.
@@ -88,7 +107,7 @@ QQC2.Button {
         y: 4
         width: control.width
         height: control.height
-        visible: KanteStyle.themed && control.raised && !control.down
+        visible: control.drawn && control.raised && !control.down
         fillColor: KanteStyle.tint(KanteStyle.strongTextColor, 0.2)
         cutTopRight: control.cut + control.grow
     }
@@ -96,7 +115,7 @@ QQC2.Button {
     KantePolygon {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && control.emphasis !== KanteButton.Emphasis.Quiet
+        visible: control.drawn && control.emphasis !== KanteButton.Emphasis.Quiet
         opacity: control.enabled ? 1 : 0.45
         fillColor: control.kanteFill
         strokeColor: control.filled ? "transparent" : control.kanteFrame
@@ -117,8 +136,8 @@ QQC2.Button {
     KantePolygon {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && control.visualFocus
-        strokeColor: control.filled ? KanteStyle.accentForegroundColor : KanteStyle.focusColor
+        visible: control.drawn && control.visualFocus
+        strokeColor: control.filled ? control.kanteInk : KanteStyle.focusColor
         strokeWidth: 2
         inset: 3
         cutTopRight: Math.max(0, control.cut + control.grow - 3)
@@ -127,7 +146,7 @@ QQC2.Button {
 
     RowLayout {
         id: kanteContent
-        visible: KanteStyle.themed
+        visible: control.drawn
         x: control.leftPadding + Math.max(0, (control.availableWidth - width) / 2)
         y: control.topPadding
         width: Math.min(implicitWidth, control.availableWidth)
@@ -170,7 +189,7 @@ QQC2.Button {
         property: "implicitWidth"
         value: Math.max(control.implicitBackgroundWidth + control.leftInset + control.rightInset,
                         kanteContent.implicitWidth + control.leftPadding + control.rightPadding)
-        when: KanteStyle.themed
+        when: control.drawn
         restoreMode: Binding.RestoreBindingOrValue
     }
     // 32 / 40 / 48 px, like the web buttons.
@@ -186,21 +205,21 @@ QQC2.Button {
         target: control.background
         property: "opacity"
         value: 0
-        when: KanteStyle.themed && control.background !== null
+        when: control.drawn && control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control.contentItem
         property: "opacity"
         value: 0
-        when: KanteStyle.themed && control.contentItem !== null
+        when: control.drawn && control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "font"
         value: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * (control.size === KanteButton.Size.Small ? 0.9 : 1))
-        when: KanteStyle.themed
+        when: control.drawn
         restoreMode: Binding.RestoreBindingOrValue
     }
 }

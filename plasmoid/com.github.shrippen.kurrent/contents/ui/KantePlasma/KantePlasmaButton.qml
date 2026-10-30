@@ -19,6 +19,12 @@ import "../Kante"
  * In Kante the Plasma frame and content stay (they size the button) but are
  * hidden; frame, icon and text are drawn here, so disabled buttons fade
  * instead of taking the Plasma theme's disabled colors.
+ *
+ *   Kante Light  the platform's button, except the primary one (1.27): a platform
+ *           button marks "highlighted" only faintly (Breeze: a blue frame), so the
+ *           primary action did not stand out. It is drawn as in Kante, filled in
+ *           KanteStyle.primaryColor (the platform highlight at 4.5:1 to its label),
+ *           cut at two corners and with a bold label; size and font stay the platform's.
  */
 PlasmaComponents3.Button {
     id: control
@@ -43,7 +49,19 @@ PlasmaComponents3.Button {
     property bool busy: false
     /** Sits on a hard 4 px shadow and presses into it (a big, single action). */
     property bool raised: false
+    /** Removes or resets (1.55): a Normal or Quiet button with the text in the negative
+     *  colour, for a removal that should not outweigh the actions beside it (Destructive
+     *  is the filled red one). Filled buttons keep their ink. Kante style only: System and
+     *  Kante Light keep the platform's button (its styles do not take a label colour). */
+    property bool destructive: false
 
+    // Return and Enter press a focused button like Space (1.49, WCAG 2.1.1): Qt Quick
+    // Controls take only Space, so keyboard users pressed Return and nothing happened.
+    Keys.onReturnPressed: function (event) { KanteStyle.pressByKey(control, event) }
+    Keys.onEnterPressed: function (event) { KanteStyle.pressByKey(control, event) }
+
+    /** Kante draws this button: always in Kante, only the primary one in Kante Light. */
+    readonly property bool drawn: KanteStyle.themed || (KanteStyle.active && emphasis === KantePlasmaButton.Emphasis.Primary)
     readonly property bool filled: emphasis === KantePlasmaButton.Emphasis.Primary || emphasis === KantePlasmaButton.Emphasis.Destructive
     readonly property bool lit: enabled && (hovered || visualFocus) && !down
     readonly property real cut: size === KantePlasmaButton.Size.Small ? KanteStyle.cutSmall
@@ -56,7 +74,7 @@ PlasmaComponents3.Button {
     readonly property color kanteFill: {
         switch (emphasis) {
         case KantePlasmaButton.Emphasis.Primary:
-            return busy || down ? KanteStyle.accentPressedColor : (hovered ? KanteStyle.accentHoverColor : KanteStyle.accentColor)
+            return busy || down ? KanteStyle.primaryPressedColor : (hovered ? KanteStyle.primaryHoverColor : KanteStyle.primaryColor)
         case KantePlasmaButton.Emphasis.Destructive:
             return down ? Qt.darker(KanteStyle.negativeTextColor, 1.15) : (hovered ? Qt.lighter(KanteStyle.negativeTextColor, 1.12) : KanteStyle.negativeTextColor)
         case KantePlasmaButton.Emphasis.Data:
@@ -67,11 +85,12 @@ PlasmaComponents3.Button {
     }
     readonly property color kanteInk: {
         switch (emphasis) {
-        case KantePlasmaButton.Emphasis.Primary: return KanteStyle.accentForegroundColor
+        case KantePlasmaButton.Emphasis.Primary: return KanteStyle.primaryTextColor
         case KantePlasmaButton.Emphasis.Destructive: return KanteStyle.onStateColor
         case KantePlasmaButton.Emphasis.Data: return KanteStyle.focusColor
-        case KantePlasmaButton.Emphasis.Quiet: return hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
-        default: return KanteStyle.textColor
+        case KantePlasmaButton.Emphasis.Quiet:
+            return destructive ? KanteStyle.negativeTextColor : hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
+        default: return destructive ? KanteStyle.negativeTextColor : KanteStyle.textColor
         }
     }
     readonly property color kanteFrame: emphasis === KantePlasmaButton.Emphasis.Data
@@ -79,8 +98,8 @@ PlasmaComponents3.Button {
         : (visualFocus ? KanteStyle.focusColor : KanteStyle.frameColor)
 
     transform: Translate {
-        x: control.down && KanteStyle.themed ? (control.raised ? 4 : 1) : 0
-        y: control.down && KanteStyle.themed ? (control.raised ? 4 : 1) : 0
+        x: control.down && control.drawn ? (control.raised ? 4 : 1) : 0
+        y: control.down && control.drawn ? (control.raised ? 4 : 1) : 0
     }
 
     // Hard shadow (raised): a second cut shape 4 px down and right.
@@ -90,7 +109,7 @@ PlasmaComponents3.Button {
         y: 4
         width: control.width
         height: control.height
-        visible: KanteStyle.themed && control.raised && !control.down
+        visible: control.drawn && control.raised && !control.down
         fillColor: KanteStyle.tint(KanteStyle.strongTextColor, 0.2)
         cutTopRight: control.cut + control.grow
     }
@@ -98,7 +117,7 @@ PlasmaComponents3.Button {
     KantePolygon {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && control.emphasis !== KantePlasmaButton.Emphasis.Quiet
+        visible: control.drawn && control.emphasis !== KantePlasmaButton.Emphasis.Quiet
         opacity: control.enabled ? 1 : 0.45
         fillColor: control.kanteFill
         strokeColor: control.filled ? "transparent" : control.kanteFrame
@@ -119,8 +138,8 @@ PlasmaComponents3.Button {
     KantePolygon {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && control.visualFocus
-        strokeColor: control.filled ? KanteStyle.accentForegroundColor : KanteStyle.focusColor
+        visible: control.drawn && control.visualFocus
+        strokeColor: control.filled ? control.kanteInk : KanteStyle.focusColor
         strokeWidth: 2
         inset: 3
         cutTopRight: Math.max(0, control.cut + control.grow - 3)
@@ -129,7 +148,7 @@ PlasmaComponents3.Button {
 
     RowLayout {
         id: kanteContent
-        visible: KanteStyle.themed
+        visible: control.drawn
         x: control.leftPadding + Math.max(0, (control.availableWidth - width) / 2)
         y: control.topPadding
         width: Math.min(implicitWidth, control.availableWidth)
@@ -172,7 +191,7 @@ PlasmaComponents3.Button {
         property: "implicitWidth"
         value: Math.max(control.implicitBackgroundWidth + control.leftInset + control.rightInset,
                         kanteContent.implicitWidth + control.leftPadding + control.rightPadding)
-        when: KanteStyle.themed
+        when: control.drawn
         restoreMode: Binding.RestoreBindingOrValue
     }
     // 32 / 40 / 48 px, like the web buttons.
@@ -188,21 +207,21 @@ PlasmaComponents3.Button {
         target: control.background
         property: "opacity"
         value: 0
-        when: KanteStyle.themed && control.background !== null
+        when: control.drawn && control.background !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control.contentItem
         property: "opacity"
         value: 0
-        when: KanteStyle.themed && control.contentItem !== null
+        when: control.drawn && control.contentItem !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
     Binding {
         target: control
         property: "font"
         value: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * (control.size === KantePlasmaButton.Size.Small ? 0.9 : 1))
-        when: KanteStyle.themed
+        when: control.drawn
         restoreMode: Binding.RestoreBindingOrValue
     }
 }
