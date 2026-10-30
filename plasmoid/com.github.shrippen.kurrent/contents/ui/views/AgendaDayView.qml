@@ -31,6 +31,9 @@ RowLayout {
     signal jump(date day)
 
     readonly property int dayCount: 14
+    /** Room for the left column (month calendar, legend, suggestions); without it a day's
+     *  header picks nothing, since there are no suggestions to show. */
+    readonly property bool wide: width >= Kirigami.Units.gridUnit * 34
     spacing: Design.spaceMedium
 
     function addDays(d, n) {
@@ -157,7 +160,7 @@ RowLayout {
 
     // ── Left: month calendar and suggestions (not in a narrow widget) ──────
     ColumnLayout {
-        visible: view.width >= Kirigami.Units.gridUnit * 34
+        visible: view.wide
         Layout.preferredWidth: Kirigami.Units.gridUnit * 15
         Layout.maximumWidth: Kirigami.Units.gridUnit * 15
         Layout.fillHeight: true
@@ -330,6 +333,8 @@ RowLayout {
             readonly property var day: parent ? parent.entry.day : null
             readonly property Item timeline: dayTimeline
             readonly property bool isTarget: !!day && DateTime.isoDateKey(day.date) === DateTime.isoDateKey(view.targetDay)
+            // Only marked where the suggestions show beside it.
+            readonly property bool marked: view.wide && isTarget
             readonly property bool isToday: !!day && DateTime.isoDateKey(day.date) === view.todayKey
             readonly property bool past: !!day && DateTime.isoDateKey(day.date) < view.todayKey
             readonly property int openCount: {
@@ -342,13 +347,13 @@ RowLayout {
             readonly property int eventCount: day ? day.allDayEvents.length + day.items.filter(function(it) { return it.kind === "event" }).length : 0
             spacing: Design.spaceSmall
 
-            // Header: a click makes this day the suggestions' target.
+            // Header: a click makes this day the suggestions' target (wide layout only).
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: head.implicitHeight + Design.spaceSmall * 2
                 radius: Design.inputRadius
-                color: dayCol.isTarget ? KanteStyle.selectionColor : (headHover.hovered ? KanteStyle.sunkenColor : "transparent")
-                border.width: dayCol.isTarget ? 1 : 0
+                color: dayCol.marked ? KanteStyle.selectionColor : (headHover.hovered ? KanteStyle.sunkenColor : "transparent")
+                border.width: dayCol.marked ? Design.agendaHairline : 0
                 border.color: KanteStyle.accentColor
                 RowLayout {
                     id: head
@@ -369,16 +374,16 @@ RowLayout {
                     }
                     Item { Layout.fillWidth: true }
                     QQC2.Label {
-                        text: (dayCol.isTarget ? i18n("Target") + " · " : "")
+                        text: (dayCol.marked ? i18n("Target") + " · " : "")
                               + i18np("%1 appointment", "%1 appointments", dayCol.eventCount)
                               + " · " + i18np("%1 task", "%1 tasks", dayCol.openCount)
-                        color: dayCol.isTarget ? KanteStyle.accentTextColor : KanteStyle.mutedTextColor
+                        color: dayCol.marked ? KanteStyle.accentTextColor : KanteStyle.mutedTextColor
                         font: Kirigami.Theme.smallFont
                     }
                 }
-                HoverHandler { id: headHover; enabled: !view.interactionsSuspended }
+                HoverHandler { id: headHover; enabled: view.wide && !view.interactionsSuspended }
                 TapHandler {
-                    enabled: !view.interactionsSuspended && !!dayCol.day
+                    enabled: view.wide && !view.interactionsSuspended && !!dayCol.day
                     onTapped: view.pickTarget(dayCol.day.date)
                 }
                 QQC2.ToolTip.text: i18n("Show suggestions for this day")
@@ -399,7 +404,7 @@ RowLayout {
                         implicitHeight: allDayLabel.implicitHeight + Design.spaceTiny * 2
                         radius: Design.inputRadius
                         color: KanteStyle.sunkenColor
-                        border.width: 1
+                        border.width: Design.agendaHairline
                         border.color: KanteStyle.frameColor
                         QQC2.Label {
                             id: allDayLabel
@@ -443,7 +448,7 @@ RowLayout {
                         anchors.fill: parent
                         radius: Design.inputRadius
                         color: parent.containsDrag ? KanteStyle.selectionColor : "transparent"
-                        border.width: 1
+                        border.width: Design.agendaHairline
                         border.color: KanteStyle.frameColor
                         QQC2.Label {
                             anchors.centerIn: parent
