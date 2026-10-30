@@ -70,10 +70,13 @@ RowLayout {
     /** The day the detail shows: the picked one, or the weekday standing in for it. */
     readonly property date shownDay: selected ? selected.date : day
 
-    // A cell's load step (AgendaLogic::loadLevel) in Kante's tint levels: wash, fill, strong fill.
+    // A cell's ground for its load step (AgendaLogic::loadLevel): the card, tinted on top with
+    // Kante's wash, fill or strong fill, so a busier day is never lighter than an empty one.
     function loadColor(level) {
         var levels = [0, KanteStyle.washLevel, KanteStyle.fillLevel, KanteStyle.strongFillLevel]
-        return KanteStyle.tint(KanteStyle.accentColor, levels[Math.max(0, Math.min(3, level))])
+        var step = Math.max(0, Math.min(3, level || 0))
+        return step > 0 ? Qt.tint(KanteStyle.cardColor, KanteStyle.tint(KanteStyle.accentColor, levels[step]))
+                        : KanteStyle.cardColor
     }
 
     // Entries of a cell: appointments first, then tasks (open before done).
@@ -143,8 +146,7 @@ RowLayout {
                     radius: Design.radius
                     clip: true
                     color: drop.containsDrag ? KanteStyle.selectionColor
-                                             : (modelData.level > 0 ? view.loadColor(modelData.level)
-                                                                   : (modelData.inMonth ? KanteStyle.cardColor : "transparent"))
+                                             : (modelData.level > 0 || modelData.inMonth ? view.loadColor(modelData.level) : "transparent")
                     opacity: modelData.inMonth ? 1 : KanteStyle.dimOpacity
                     border.width: isSelected || isToday ? (isSelected ? KanteStyle.lineWidth : KanteStyle.borderWidth) : 0
                     border.color: isSelected ? KanteStyle.focusColor : KanteStyle.accentColor
@@ -267,14 +269,27 @@ RowLayout {
             Layout.fillWidth: true
             spacing: Design.spaceMedium
             Row {
-                spacing: Design.spaceTiny
+                spacing: Design.spaceSmall
+                // The three steps with the entries they stand for (AgendaLogic::loadLevel).
                 Repeater {
-                    model: [1, 3, 5]
-                    delegate: Rectangle {
-                        required property int modelData
-                        width: KanteStyle.swatchSize
-                        height: width
-                        color: view.loadColor(view.controller ? view.controller.agendaLoadLevel(modelData) : 0)
+                    model: [[1, "1–2"], [3, "3–4"], [5, "5+"]]
+                    delegate: Row {
+                        required property var modelData
+                        spacing: Design.spaceTiny
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: KanteStyle.swatchSize
+                            height: width
+                            color: view.loadColor(view.controller ? view.controller.agendaLoadLevel(modelData[0]) : 0)
+                            border.width: KanteStyle.borderWidth
+                            border.color: KanteStyle.frameColor
+                        }
+                        QQC2.Label {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: modelData[1]
+                            color: KanteStyle.mutedTextColor
+                            font: Kirigami.Theme.smallFont
+                        }
                     }
                 }
             }
