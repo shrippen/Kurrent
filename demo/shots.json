@@ -2,7 +2,7 @@
   "kind": "command",
   "start": "demo/shots.sh",
   "today": "real",
-  "timeout": 300,
+  "timeout": 900,
   "format": "webp",
   "shots": [
     {
@@ -25,6 +25,12 @@
     },
     {
       "name": "agenda"
+    },
+    {
+      "name": "agenda-week"
+    },
+    {
+      "name": "agenda-month"
     },
     {
       "name": "detail-sidebar"
