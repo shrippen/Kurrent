@@ -526,7 +526,7 @@ void TaskControllerStoreTest::agendaBlockUntilNextMidnightStaysOnItsDay()
     QCOMPARE(onDay.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60);
     QVERIFY(days.at(1).toMap().value(QStringLiteral("items")).toList().isEmpty());
     for (const QVariant &value : m_controller->agendaSuggestions(day)) {
-        QVERIFY(value.toMap().value(QStringLiteral("itemId")).toLongLong() != 1);
+        QVERIFY(value.toMap().value(QStringLiteral("task")).toMap().value(QStringLiteral("itemId")).toLongLong() != 1);
     }
 }
 
