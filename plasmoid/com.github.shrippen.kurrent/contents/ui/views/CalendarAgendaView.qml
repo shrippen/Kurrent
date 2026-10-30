@@ -47,14 +47,16 @@ ColumnLayout {
     }
 
     onSelectedDayChanged: {
-        if (controller && DateTime.isoDateKey(controller.agendaSelectedDate) !== DateTime.isoDateKey(selectedDay))
+        if (controller && DateTime.isoDateKey(controller.agendaSelectedDate) !== DateTime.isoDateKey(selectedDay)) {
             controller.agendaSelectedDate = selectedDay
-        // The day view keeps its 14 days while the target moves inside them.
-        if (selectedDay < listStart || selectedDay > addDays(listStart, 13))
+        }
+        // The day view keeps its days while the target moves inside them.
+        if (selectedDay < listStart || selectedDay > addDays(listStart, dayView.dayCount - 1)) {
             listStart = selectedDay
+        }
     }
 
-    // First of the day view's 14 days. Moves with the date bar and the view switch, not with a
+    // First of the day view's days. Moves with the date bar and the view switch, not with a
     // click on a day inside the list.
     property date listStart: new Date()
     function jumpTo(d) {
