@@ -98,6 +98,7 @@
 - Weekend columns are computed once per matrix instead of per cell.
 
 ### Fixed
+- Completing a recurring task after moving it to another day moves it on to its next occurrence on the series' usual day. Before, it stayed open on the moved day and the series could shift to that weekday.
 - Overdue means the same everywhere: an open task due before today, as in the Overdue view. Task rows no longer show the due date of completed tasks in red, and the inspector no longer marks tasks due earlier today as overdue.
 - Settings › General: "Ask before deleting" toggled "Show completed tasks", and "Complete only with Shift or Ctrl" toggled "Ask before deleting".
 - Settings showed no options: `config.qml` imported the generated dev-build marker as a directory, so the category list failed to load.

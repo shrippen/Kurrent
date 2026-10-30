@@ -2467,10 +2467,15 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
     if (days == 0) {
         return;
     }
+    // A recurring task moves this occurrence only, by its start; its due follows. Moving DTSTART
+    // would move the series' anchor and leave the occurrence late.
+    if (task.recurring) {
+        const QDateTime start = task.startDate.isValid() ? task.startDate : task.dueDate;
+        updateTaskFull(itemId, {{QStringLiteral("occurrenceStart"), start.addDays(days)}});
+        return;
+    }
     QVariantMap fields{{QStringLiteral("dueDate"), task.dueDate.addDays(days)}};
-    // A recurring task moves this occurrence only (DUE, like rescheduleTask); its start
-    // follows. Moving DTSTART would move the series' anchor and leave the occurrence late.
-    if (task.startDate.isValid() && !task.recurring) {
+    if (task.startDate.isValid()) {
         fields.insert(QStringLiteral("startDate"), task.startDate.addDays(days));
     }
     updateTaskFull(itemId, fields);
@@ -2521,26 +2526,29 @@ QVariantList TaskController::agendaMonth(const QDate &anyDay, bool weekend) cons
 QVariantList TaskController::agendaOverdue() const
 {
     const QDate today = QDate::currentDate();
-    QList<TaskEntry> overdue;
-    // An open block from yesterday until midnight (DUE today 00:00) is not overdue by its DUE,
-    // but yesterday's column counts it, so the tray holds it too: a day late, after the others.
-    QList<TaskEntry> lateBlocks;
-    // Only what lies on a past column (local day): a DUE in UTC on the day before that is
-    // today here stays on today's column.
+    // Exactly the open tasks on a past column (local day, agendaDayOf): also a block from
+    // yesterday until midnight (DUE today 00:00), and a DUE stored in UTC by its local day.
+    QList<TaskEntry> past;
+    QHash<qint64, QDate> dayOf;
     for (const TaskEntry &task : agendaEntries()) {
-        const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
-        const QDate day = agendaDayOf(task, block);
-        if (task.completed || !day.isValid() || day >= today) {
-            continue;
-        }
-        if (TaskLogic::matchesView(task, TaskLogic::ViewId::Overdue, today)) {
-            overdue.append(task);
-        } else if (block.isValid()) {
-            lateBlocks.append(task);
+        const QDate day = agendaDayOf(task, AgendaLogic::taskBlock(task));
+        if (!task.completed && day.isValid() && day < today) {
+            past.append(task);
+            dayOf.insert(task.itemId, day);
         }
     }
+    // Triage order (oldest by DUE, then priority, then title), then the oldest day first.
+    QList<TaskEntry> ordered = TaskLogic::triageQueue(past, today);
+    for (const TaskEntry &task : std::as_const(past)) {
+        if (TaskLogic::overdueDays(task, today) <= 0) {
+            ordered.append(task);
+        }
+    }
+    std::stable_sort(ordered.begin(), ordered.end(), [&dayOf](const TaskEntry &a, const TaskEntry &b) {
+        return dayOf.value(a.itemId) < dayOf.value(b.itemId);
+    });
     QVariantList out;
-    for (const TaskEntry &task : TaskLogic::triageQueue(overdue, today) + lateBlocks) {
+    for (const TaskEntry &task : std::as_const(ordered)) {
         out.append(taskEntryToVariantMap(task));
     }
     return out;
@@ -4457,6 +4465,15 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         const QDateTime start = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
         if (start.isValid()) {
             todo->setDtStart(start);
+        }
+    }
+
+    // A recurring task's current occurrence, by its start (dtRecurrence); DTSTART and the
+    // series stay, and the occurrence's due follows at the series' distance.
+    if (fields.contains(QStringLiteral("occurrenceStart")) && todo->recurs()) {
+        const QDateTime occurrence = dateTimeFromVariant(fields.value(QStringLiteral("occurrenceStart")));
+        if (occurrence.isValid()) {
+            todo->setDtRecurrence(occurrence);
         }
     }
 

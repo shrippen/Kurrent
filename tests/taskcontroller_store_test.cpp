@@ -738,15 +738,46 @@ void TaskControllerStoreTest::agendaShiftToTodayKeepsSeriesAndLocalDays()
     QVERIFY(m_controller->agendaOverdue().isEmpty());
     const QVariantMap moved = m_controller->taskSnapshotById(1);
     QCOMPARE(moved.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(11, 0)));
-    QVERIFY(moved.value(QStringLiteral("startDate")).toDateTime() <= moved.value(QStringLiteral("dueDate")).toDateTime());
+    // The block stays a block, 10:00-11:00 today.
+    QCOMPARE(moved.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(10, 0)));
+
+    // Completing the moved occurrence moves it on to the series' next one, same weekday as before.
+    m_controller->setTaskCompleted(1, true);
+    waitStore(spy, 3);
+    const QVariantMap next = m_controller->taskSnapshotById(1);
+    QVERIFY(!next.value(QStringLiteral("completed")).toBool());
+    QCOMPARE(next.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(4), QTime(10, 0)));
+    QCOMPARE(next.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(4), QTime(11, 0)));
+
+    // Start days before due: the occurrence keeps that distance and is due on the target.
+    m_controller->installTestTask(3, QStringLiteral("long weekly"), 10);
+    m_controller->updateTaskFull(3, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-5), QTime(10, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today.addDays(-3), QTime(11, 0))},
+        {QStringLiteral("recurrencePreset"), QStringLiteral("weekly")},
+    });
+    waitStore(spy, 4);
+    m_controller->agendaShiftToDay(3, today);
+    waitStore(spy, 5);
+    const QVariantMap longMoved = m_controller->taskSnapshotById(3);
+    QCOMPARE(longMoved.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-2), QTime(10, 0)));
+    QCOMPARE(longMoved.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(11, 0)));
 
     // DUE in UTC on the day before but today in local time: on today's column, not in the tray.
     const QDateTime utc = QDateTime(today, QTime(0, 30)).toUTC();
     if (utc.date() < today) {
         m_controller->installTestTask(2, QStringLiteral("utc"), 10);
         m_controller->updateTaskFull(2, {{QStringLiteral("dueDate"), utc}});
-        waitStore(spy, 3);
+        waitStore(spy, 6);
         QVERIFY(m_controller->agendaOverdue().isEmpty());
+    }
+    // West of UTC: DUE today in UTC but yesterday here is on yesterday's column, so in the tray.
+    const QDateTime west = QDateTime(today.addDays(-1), QTime(21, 0)).toUTC();
+    if (west.date() == today) {
+        m_controller->installTestTask(4, QStringLiteral("west"), 10);
+        m_controller->updateTaskFull(4, {{QStringLiteral("dueDate"), west}});
+        waitStore(spy, 6);
+        QCOMPARE(m_controller->agendaOverdue().size(), 1);
     }
 }
 

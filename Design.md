@@ -213,7 +213,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 
 ## Hinweis „Überfällig“
 
-- **Eine Regel für „überfällig“:** offen und fällig vor heute (`TaskLogic::overdueDays`, gleiche Menge wie die View Überfällig). Ausnahme in der Agenda: Ein offener Block bis Mitternacht (DUE 00:00 des Folgetags) gehört zu seinem Starttag; liegt der vor heute, zählt er in Vorschlägen, Wochenfach und Monat als überfällig, auch wenn DUE heute ist. Zeilen und Karten lesen die Rolle `overdueDays`, Inspektor und Snapshots das gleichnamige Feld; QML vergleicht keine Daten selbst.
+- **Eine Regel für „überfällig“:** offen und fällig vor heute (`TaskLogic::overdueDays`, gleiche Menge wie die View Überfällig). Ausnahme in der Agenda: Ein offener Block bis Mitternacht (DUE 00:00 des Folgetags) gehört zu seinem Starttag; liegt der vor heute, zählt er in Vorschlägen, Wochenfach und Monat als überfällig, auch wenn DUE heute ist. Das Wochenfach zählt Tage nach Ortszeit, auch bei einem DUE in UTC. Zeilen und Karten lesen die Rolle `overdueDays`, Inspektor und Snapshots das gleichnamige Feld; QML vergleicht keine Daten selbst.
 - `OverdueBanner` (`Kirigami.InlineMessage`, Warning) über der Aufgabenfläche, wenn überfällige Aufgaben existieren und die aktuelle View sie nicht zeigt (nicht in Überfällig/Erledigt). Aktionen: **Alle auf heute** (`rescheduleOverdueToToday`, Preset `today`: Uhrzeit bleibt, ganztägig → heute 00:00) und **Überfällige zeigen**. Schließen blendet ihn aus, bis die Zahl wieder steigt. Abschaltbar (`showOverdueBanner`). Nur ein Ort zeigt die Zahl: mit Kacheln die Überfällig-Kachel (Kopfzeile ohne Überfällig-Zahl), im schmalen Layout ein Chip „N überfällig“ in der Kopfzeile mit beiden Aktionen.
 
 ## Farbe

@@ -359,7 +359,7 @@ public:
      *  start day stays. Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
-     *  the same number of days (a recurring task: only this occurrence's due, the series stays);
+     *  the same number of days (a recurring task: only this occurrence, by its start; the series stays);
      *  a task without a date becomes all-day on `day`. Undoable. */
     Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's
@@ -373,8 +373,8 @@ public:
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
      *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
     Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
-    /** Open tasks on a past day (local time, as the week's columns) for the week board's tray:
-     *  overdue ones oldest first, then blocks from an earlier day until midnight. */
+    /** Open tasks on a past day (local time, as the week's columns) for the week board's tray,
+     *  oldest day first, within a day in triage order (TaskLogic::triageQueue). */
     Q_INVOKABLE QVariantList agendaOverdue() const;
     /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
     Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }
