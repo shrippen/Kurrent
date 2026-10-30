@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import org.kde.kirigami 2.20 as Kirigami
+import "../agenda.js" as Agenda
 
 // Drags a task in the Agenda through the drag host's proxy (FullView.beginTaskDrag). Drop
 // targets read dragHost.draggingTask. Open tasks only.
@@ -24,15 +25,7 @@ DragHandler {
             return
         }
         if (active) {
-            dragHost.beginTaskDrag({
-                "itemId": task.itemId,
-                "uid": task.uid,
-                "summary": task.summary || "",
-                "parentUid": task.parentUid || "",
-                "categories": task.categories || [],
-                "collectionId": task.collectionId,
-                "priority": task.priority
-            })
+            dragHost.beginTaskDrag(Agenda.dragPayload(task))
             follow()
         } else {
             dragHost.endTaskDrag()

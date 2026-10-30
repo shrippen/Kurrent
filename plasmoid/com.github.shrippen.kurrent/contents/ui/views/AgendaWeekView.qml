@@ -114,6 +114,8 @@ ColumnLayout {
                 }
                 KanteButton {
                     text: i18n("All to today")
+                    // Recurring tasks are moved in the editor; nothing to do when only they wait.
+                    enabled: view.overdue.some(function(t) { return !t.recurring })
                     // Like dropping each card on today: start and due move together, times stay.
                     // Recurring tasks stay in the tray (agendaShiftToDay leaves them).
                     onClicked: {
