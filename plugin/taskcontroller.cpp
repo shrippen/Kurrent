@@ -2519,13 +2519,21 @@ QVariantList TaskController::agendaOverdue() const
 {
     const QDate today = QDate::currentDate();
     QList<TaskEntry> overdue;
+    // An open block from yesterday until midnight (DUE today 00:00) is not overdue by its DUE,
+    // but yesterday's column counts it, so the tray holds it too: a day late, after the others.
+    QList<TaskEntry> lateBlocks;
     for (const TaskEntry &task : agendaEntries()) {
         if (TaskLogic::matchesView(task, TaskLogic::ViewId::Overdue, today)) {
             overdue.append(task);
+            continue;
+        }
+        const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
+        if (!task.completed && block.isValid() && agendaDayOf(task, block) < today) {
+            lateBlocks.append(task);
         }
     }
     QVariantList out;
-    for (const TaskEntry &task : TaskLogic::triageQueue(overdue, today)) {
+    for (const TaskEntry &task : TaskLogic::triageQueue(overdue, today) + lateBlocks) {
         out.append(taskEntryToVariantMap(task));
     }
     return out;

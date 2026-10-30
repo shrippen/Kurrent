@@ -372,7 +372,8 @@ public:
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
      *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
     Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
-    /** Open overdue tasks of all projects for the week board's tray, oldest first. */
+    /** Open overdue tasks of all projects for the week board's tray, oldest first; also an open
+     *  block from an earlier day until midnight, which a past day's column counts. */
     Q_INVOKABLE QVariantList agendaOverdue() const;
     /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
     Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }

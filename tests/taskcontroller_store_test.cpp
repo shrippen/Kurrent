@@ -756,6 +756,25 @@ void TaskControllerStoreTest::agendaBoardsShiftAndCount()
     QCOMPARE(overdue.size(), 1);
     QCOMPARE(overdue.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("late"));
 
+    // A block from yesterday until midnight sits on yesterday's column, so it is in the tray
+    // too, though its DUE (today 00:00) is not before today.
+    const QDate today = QDate::currentDate();
+    m_controller->installTestTask(5, QStringLiteral("night"), 10);
+    m_controller->updateTaskFull(5, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-1), QTime(23, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today, QTime(0, 0))},
+    });
+    waitStore(spy, 6);
+    QCOMPARE(m_controller->agendaDays(today.addDays(-1), 1).first().toMap().value(QStringLiteral("open")).toList().size(), 1);
+    QCOMPARE(m_controller->agendaOverdue().size(), 2);
+    // "All to today" shifts it like a drop on today: the block moves with its times.
+    m_controller->agendaShiftToDay(5, today);
+    waitStore(spy, 7);
+    QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    const QVariantList tonight = m_controller->agendaDays(today, 1).first().toMap().value(QStringLiteral("items")).toList();
+    QCOMPARE(tonight.size(), 1);
+    QCOMPARE(tonight.first().toMap().value(QStringLiteral("start")).toInt(), 23 * 60);
+
     // Month: six weeks, or six times five workdays; counts include open tasks.
     QCOMPARE(m_controller->agendaMonth(day, true).size(), 42);
     const QVariantList workdays = m_controller->agendaMonth(day, false);

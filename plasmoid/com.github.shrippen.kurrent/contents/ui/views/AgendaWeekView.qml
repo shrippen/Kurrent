@@ -114,9 +114,13 @@ ColumnLayout {
                 }
                 KanteButton {
                     text: i18n("All to today")
+                    // Like dropping each card on today: start and due move together, times stay.
                     onClicked: {
                         var ids = view.overdue.map(function(t) { return t.itemId })
-                        view.controller.bulkRescheduleTasks(ids, "today")
+                        var today = view.today()
+                        for (var i = 0; i < ids.length; ++i) {
+                            view.controller.agendaShiftToDay(ids[i], today)
+                        }
                     }
                 }
             }
