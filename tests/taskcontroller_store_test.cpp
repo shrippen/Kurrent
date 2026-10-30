@@ -44,6 +44,7 @@ private Q_SLOTS:
     void agendaDayShowsBlocksOutsideTheGrid();
     void agendaMoveToDayKeepsAnEarlierStart();
     void agendaBlockUntilMidnightStaysOnTheDay();
+    void agendaBlockUntilNextMidnightStaysOnItsDay();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
     void sessionRemembersSorts();
@@ -493,7 +494,7 @@ void TaskControllerStoreTest::agendaBlockUntilMidnightStaysOnTheDay()
     const QDate day = QDate::currentDate().addDays(2);
     m_controller->installTestTask(1, QStringLiteral("night shoot"), 10);
     QSignalSpy spy(m_store, &AbstractTaskStore::finished);
-    // A grid widened to midnight lets a grip reach 24:00; the block ends on the same day.
+    // A block that already ends at midnight keeps 24:00 when written; it stays on the same day.
     m_controller->agendaSetBlock(1, day, 22 * 60, 24 * 60);
     waitStore(spy, 1);
     const QVariantMap task = m_controller->taskSnapshotById(1);
@@ -504,6 +505,29 @@ void TaskControllerStoreTest::agendaBlockUntilMidnightStaysOnTheDay()
     QCOMPARE(items.first().toMap().value(QStringLiteral("start")).toInt(), 22 * 60);
     // Stored as 23:59, read back as 24:00 (AgendaLogic::taskBlock), so the grips stay on quarter hours.
     QCOMPARE(items.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60);
+}
+
+// Another app ends a block at the next day's 00:00: it is a block until 24:00 of its start
+// day there, not a block on the next day, and no suggestion for its own day.
+void TaskControllerStoreTest::agendaBlockUntilNextMidnightStaysOnItsDay()
+{
+    const QDate day = QDate::currentDate().addDays(2);
+    m_controller->installTestTask(1, QStringLiteral("night shoot"), 10);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->updateTaskFull(1, {
+        {QStringLiteral("startDate"), QDateTime(day, QTime(23, 0))},
+        {QStringLiteral("dueDate"), QDateTime(day.addDays(1), QTime(0, 0))},
+    });
+    waitStore(spy, 1);
+    const QVariantList days = m_controller->agendaDays(day, 2);
+    const QVariantList onDay = days.at(0).toMap().value(QStringLiteral("items")).toList();
+    QCOMPARE(onDay.size(), 1);
+    QCOMPARE(onDay.first().toMap().value(QStringLiteral("start")).toInt(), 23 * 60);
+    QCOMPARE(onDay.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60);
+    QVERIFY(days.at(1).toMap().value(QStringLiteral("items")).toList().isEmpty());
+    for (const QVariant &value : m_controller->agendaSuggestions(day)) {
+        QVERIFY(value.toMap().value(QStringLiteral("itemId")).toLongLong() != 1);
+    }
 }
 
 void TaskControllerStoreTest::agendaMoveToDayKeepsAnEarlierStart()
@@ -585,6 +609,9 @@ void TaskControllerStoreTest::agendaPlacesTasksInFreeTime()
     QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("start")).toInt(), 10 * 60);
     QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("end")).toInt(), 10 * 60 + 30);
     QCOMPARE(bySummary[QStringLiteral("second")].value(QStringLiteral("start")).toInt(), 10 * 60 + 30);
+    // Back to back at the shortest drawn length: one lane, neither covers the other.
+    QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("lanes")).toInt(), 1);
+    QCOMPARE(bySummary[QStringLiteral("second")].value(QStringLiteral("lanes")).toInt(), 1);
     // The first may grow up to the second, not into it.
     QCOMPARE(bySummary[QStringLiteral("first")].value(QStringLiteral("hi")).toInt(), 10 * 60 + 30);
     // Free time 08:00–10:00 and 11:00–18:00.

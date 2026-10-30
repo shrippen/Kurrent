@@ -196,9 +196,10 @@ Item {
             // Drawn inside the grid; the label keeps the real times (an evening shoot to 23:59).
             readonly property int shownStart: Math.max(liveStart, grid.gridStart)
             readonly property int shownEnd: Math.min(liveEnd, grid.gridEnd)
-            visible: shownEnd > shownStart
+            // An appointment without an end still shows; short entries are drawn kMinShown (30 min) long.
+            visible: shownEnd >= shownStart && shownStart < grid.gridEnd
             y: grid.yOf(shownStart)
-            height: Math.max(Kirigami.Units.gridUnit, (shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2)
+            height: Math.max(30, shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2
             z: selected ? 3 : 2
             radius: Design.radius
             clip: true

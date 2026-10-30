@@ -17,6 +17,9 @@ constexpr int kWorkStart = 8 * 60;
 constexpr int kWorkEnd = 18 * 60;
 constexpr int kStep = 15;
 constexpr int kMinGap = 30;
+// Shortest drawn entry: shorter ones (and appointments without an end) are drawn this long, and
+// lanes count them so, so they never cover the next entry.
+constexpr int kMinShown = 30;
 
 struct Span {
     int start = 0;
@@ -26,11 +29,13 @@ struct Span {
     bool operator==(const Span &other) const { return start == other.start && end == other.end; }
 };
 
-/** Time block of a task: start and due both timed, on the same local day, start before due.
- *  Anything else (all-day, no start, several days) has no block; it shows as "no time". */
+/** Time block of a task: start and due both timed, on the same local day, start before due. A
+ *  due at 23:59 or at the next day's 00:00 ends the block at 24:00 of the start day. Anything
+ *  else (all-day, no start, several days) has no block; it shows as "no time". */
 Span taskBlock(const TaskEntry &task);
 
-/** Day a task belongs to in the agenda: the completion day when done, else the due day. */
+/** Day a task belongs to in the agenda: the completion day when done, a block's start day,
+ *  else the due day. */
 QDate taskDay(const TaskEntry &task);
 
 /** Minutes a task takes when it gets a time without one: high priority 60, medium 45, else 30. */

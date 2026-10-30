@@ -2184,10 +2184,11 @@ QList<TaskEntry> TaskController::agendaEntries() const
 
 namespace
 {
-// Day of a task in the Agenda: a block's day, else AgendaLogic::taskDay.
+// Day of a task in the Agenda: a block's start day (a block until midnight may end at the next
+// day's 00:00), else AgendaLogic::taskDay.
 QDate agendaDayOf(const TaskEntry &task, const AgendaLogic::Span &block)
 {
-    return block.isValid() ? task.dueDate.toLocalTime().date() : AgendaLogic::taskDay(task);
+    return block.isValid() ? task.startDate.toLocalTime().date() : AgendaLogic::taskDay(task);
 }
 
 int minutesInto(const QDate &day, const QDateTime &when)
@@ -2282,7 +2283,12 @@ QVariantList TaskController::agendaDays(const QDate &from, int count) const
             items.append(row);
             spans.append(block);
         }
-        const QList<AgendaLogic::Lane> lanes = AgendaLogic::lanes(spans);
+        // Lanes for the drawn length: a short entry is drawn kMinShown long.
+        QList<AgendaLogic::Span> drawn = spans;
+        for (AgendaLogic::Span &span : drawn) {
+            span.end = qMax(span.end, span.start + AgendaLogic::kMinShown);
+        }
+        const QList<AgendaLogic::Lane> lanes = AgendaLogic::lanes(drawn);
         for (int k = 0; k < items.size(); ++k) {
             QVariantMap item = items.at(k).toMap();
             item.insert(QStringLiteral("start"), spans.at(k).start);
@@ -2355,7 +2361,9 @@ void TaskController::agendaPlaceTask(qint64 itemId, const QDate &day, int minute
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
     const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
-    const int minutes = block.isValid() ? block.length() : AgendaLogic::defaultMinutes(task.priority);
+    // A block longer than the grid (00:00 to 24:00 from another app) is placed as long as the grid.
+    const int minutes = qMin(block.isValid() ? block.length() : AgendaLogic::defaultMinutes(task.priority),
+                             AgendaLogic::kGridEnd - AgendaLogic::kGridStart);
     const int from = qBound(AgendaLogic::kGridStart, minute / AgendaLogic::kStep * AgendaLogic::kStep,
                             AgendaLogic::kGridEnd - minutes);
     const int start = AgendaLogic::fitFree(agendaBusy(day, agendaEntries(), itemId), from, minutes);

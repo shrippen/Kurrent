@@ -222,7 +222,9 @@ QList<Suggestion> rankSuggestions(const QList<TaskEntry> &tasks, const QDate &ta
             continue;
         }
         const QDate due = task.dueDate.isValid() ? localDate(task.dueDate, task.allDay) : QDate();
-        if (due == target && due.isValid()) {
+        // Already on the target: due there, or a block there (one until midnight is due the next day).
+        const QDate onDay = taskBlock(task).isValid() ? task.startDate.toLocalTime().date() : due;
+        if (onDay == target && onDay.isValid()) {
             continue;
         }
         Suggestion s;
