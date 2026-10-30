@@ -14,7 +14,7 @@ QQC2.Label {
 
     property bool rule: false
 
-    font: KanteStyle.active ? KanteStyle.labelFont() : Qt.font({ family: Kirigami.Theme.smallFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
+    font: KanteStyle.active ? KanteStyle.labelFont() : Qt.font({ family: KanteStyle.smallFont.family, pointSize: KanteStyle.smallFont.pointSize, bold: true })
     color: KanteStyle.active ? KanteStyle.mutedTextColor : Kirigami.Theme.textColor
     opacity: KanteStyle.active ? 1 : 0.85
     elide: Text.ElideRight

@@ -13,9 +13,9 @@ Item {
     signal copiedToClipboard()
 
     function copy() {
-        clip.text = box.text
-        clip.selectAll()
-        clip.copy()
+        clipboard.text = box.text
+        clipboard.selectAll()
+        clipboard.copy()
         box.copied = true
         reset.restart()
         box.copiedToClipboard()
@@ -24,7 +24,7 @@ Item {
     implicitWidth: KanteStyle.unit(360)
     implicitHeight: KanteStyle.heightMedium
 
-    TextEdit { id: clip; visible: false }
+    TextEdit { id: clipboard; visible: false }
     Timer { id: reset; interval: 1500; onTriggered: box.copied = false }
 
     Rectangle { anchors.fill: parent; color: KanteStyle.sunkenColor; border.width: 1; border.color: KanteStyle.frameColor }

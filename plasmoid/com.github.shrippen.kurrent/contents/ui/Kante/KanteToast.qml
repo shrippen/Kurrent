@@ -6,6 +6,10 @@ import "."
  * Toast: slides in from the right with the cut corner first, a 2 px line at the
  * bottom shows how long it stays. Call `show()`; it hides itself after `life`
  * ms (0: stays) and emits `closed`.
+ * Action (Kante 1.43, from lmix): `actionText` ("Undo") puts a button at the right end;
+ * a click emits `actionTriggered` and hides the toast. `actionShortcut` (e.g. "Ctrl+Z") is
+ * shown as a `KanteKeycap` beside it; the app handles the shortcut itself. Under the
+ * pointer or with the button focused the toast stays, then gets its full `life` again.
  */
 Item {
     id: toast
@@ -22,7 +26,10 @@ Item {
     property string text: ""
     property int life: 4000
     property bool shown: false
+    property string actionText: ""
+    property string actionShortcut: ""
     signal closed()
+    signal actionTriggered()
 
     readonly property color tone: {
         switch (kind) {
@@ -35,11 +42,20 @@ Item {
 
     function show() {
         shown = true
+        // Shown under the pointer (or with the action focused): it waits until let go.
+        if (held) {
+            timer.stop()
+            lifeLine.stop()
+            return
+        }
         lifeLine.restart()
         if (life > 0) {
             timer.restart()
         }
     }
+    // Hidden (by hide() or by setting shown), its button gives up the focus: disabled it
+    // would keep `focus` and take the keys again with the next show (and hold the toast).
+    onShownChanged: if (!shown) actionButton.focus = false
     function hide() {
         timer.stop()
         shown = false
@@ -58,6 +74,21 @@ Item {
     }
 
     Timer { id: timer; interval: toast.life; onTriggered: toast.hide() }
+
+    // Under the pointer or with the action focused it stays; afterwards its full life again.
+    readonly property bool held: hold.hovered || actionButton.activeFocus
+    onHeldChanged: {
+        if (!shown || life <= 0) {
+            return
+        }
+        if (held) {
+            timer.stop()
+            lifeLine.stop()
+        } else {
+            show()
+        }
+    }
+    HoverHandler { id: hold }
 
     KanteCard {
         anchors.fill: parent
@@ -90,6 +121,27 @@ Item {
                 font: KanteStyle.defaultFont
                 wrapMode: Text.WordWrap
             }
+        }
+        KanteButton {
+            id: actionButton
+            visible: toast.actionText.length > 0
+            // Hidden, it is no tab stop (focus off screen).
+            enabled: toast.shown
+            Layout.alignment: Qt.AlignVCenter
+            text: toast.actionText
+            onClicked: {
+                // Only while shown: a key on the focused button after the toast left does nothing.
+                if (toast.shown) {
+                    toast.actionTriggered()
+                    toast.hide()
+                }
+                actionButton.focus = false
+            }
+        }
+        KanteKeycap {
+            visible: toast.actionText.length > 0 && toast.actionShortcut.length > 0
+            Layout.alignment: Qt.AlignVCenter
+            text: toast.actionShortcut
         }
     }
 

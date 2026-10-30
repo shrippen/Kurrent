@@ -322,6 +322,11 @@ ColumnLayout {
 
         QQC2.ComboBox {
             KanteFieldSkin { control: parent }
+            // In a narrow popup it gives way (and elides) together with the title, down to 4 GU, instead of
+            // running out of the view.
+            Layout.fillWidth: true
+            Layout.maximumWidth: implicitWidth
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 4
             Accessible.name: i18n("Mode:")
             model: [
                 { text: i18n("Completions"), value: "completed" },

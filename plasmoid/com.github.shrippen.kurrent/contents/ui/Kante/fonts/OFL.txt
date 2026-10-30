@@ -9,6 +9,9 @@ Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/
 Spectral (Spectral-400-normal.woff2, Spectral-500-normal.woff2, Spectral-600-normal.woff2, Spectral-400-italic.woff2; Latin subset from @fontsource/spectral)
 Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral)
 
+Bravura (Bravura.otf, the music glyphs of the QML notation components, SMuFL) has its own
+copyright and reserved font name, see OFL-Bravura.txt. It is vendored unchanged.
+
 All three are licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 https://openfontlicense.org

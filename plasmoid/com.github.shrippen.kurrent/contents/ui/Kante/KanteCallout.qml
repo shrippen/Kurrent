@@ -71,7 +71,9 @@ Item {
                 font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize * 1.05)
                 wrapMode: Text.WordWrap
             }
+            // Without text no empty line under the title (1.51: 40 px too tall).
             Text {
+                visible: callout.text.length > 0
                 Layout.fillWidth: true
                 text: callout.text
                 color: KanteStyle.textColor

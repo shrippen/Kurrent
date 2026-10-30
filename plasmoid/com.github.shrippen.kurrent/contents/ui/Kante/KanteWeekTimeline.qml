@@ -9,6 +9,9 @@ import "."
  * `KanteStyle.entityFallbackColor`. `totals` adds the day's sum at the right (h:mm),
  * `today` marks a row (yellow label), `now` (hours) a cyan rule in that row.
  * `entryClicked(index)` on a tap. Blocks are square; a gap of 1 px keeps neighbours apart.
+ * Hover (on touch a tap, or `hoverIndex` set by the caller) frames the block cyan and shows a
+ * read-out as in KanteBarChart: a square in the entry's colour, its title, the time span and the
+ * duration; `readout: false` keeps only the frame.
  *
  *        00    06    12    18    24
  *   MO   ┊     ┊ ███ ██┊██   ┊     ┊  7:30
@@ -28,6 +31,9 @@ Item {
     property real now: -1
     property bool totals: true
     property real rowHeight: KanteStyle.unit(22)
+    property bool readout: true
+    /** Entry under the pointer (or tapped on touch), -1 for none. */
+    property int hoverIndex: -1
     signal entryClicked(int index)
 
     readonly property real range: Math.max(1, spanTo - spanFrom)
@@ -152,12 +158,29 @@ Item {
             height: timeline.rowHeight - KanteStyle.unit(6)
             color: hasColor ? entry.color : KanteStyle.entityFallbackColor
 
-            HoverHandler { id: hover }
-            TapHandler { onTapped: timeline.entryClicked(block.index) }
+            HoverHandler {
+                id: hover
+                onHoveredChanged: {
+                    if (hovered) {
+                        timeline.hoverIndex = block.index
+                    } else if (timeline.hoverIndex === block.index) {
+                        timeline.hoverIndex = -1
+                    }
+                }
+            }
+            TapHandler {
+                onTapped: {
+                    // Without a pointer that hovers (touch) a tap opens and closes the read-out.
+                    if (!hover.hovered) {
+                        timeline.hoverIndex = timeline.hoverIndex === block.index ? -1 : block.index
+                    }
+                    timeline.entryClicked(block.index)
+                }
+            }
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: -2
-                visible: hover.hovered
+                visible: timeline.hoverIndex === block.index
                 color: "transparent"
                 border.width: 2
                 border.color: KanteStyle.focusColor
@@ -174,5 +197,54 @@ Item {
         width: 2
         height: timeline.rowHeight + KanteStyle.unit(4)
         color: KanteStyle.focusColor
+    }
+
+    // Read-out of the entry under the pointer: beside the block, below it in the upper rows.
+    Rectangle {
+        id: box
+        readonly property var entry: timeline.hoverIndex >= 0 && timeline.hoverIndex < timeline.entries.length
+                                     ? timeline.entries[timeline.hoverIndex] : null
+        readonly property real blockX: entry ? timeline.xOf(entry.start) : 0
+        readonly property real blockEnd: entry ? timeline.xOf(entry.end) : 0
+        readonly property bool below: entry ? entry.day < timeline.dayNames.length / 2 : true
+        visible: timeline.readout && entry !== null
+        x: Math.max(0, Math.min(timeline.width - width, (blockX + blockEnd) / 2 - width / 2))
+        y: entry ? (below ? timeline.rowY(entry.day) + timeline.rowHeight + KanteStyle.unit(2)
+                          : timeline.rowY(entry.day) - height - KanteStyle.unit(2)) : 0
+        z: 2
+        width: lines.implicitWidth + KanteStyle.unit(16)
+        height: lines.implicitHeight + KanteStyle.unit(10)
+        color: Qt.alpha(KanteStyle.dialogColor, 0.92)
+        border.width: 1
+        border.color: KanteStyle.frameColor
+        Column {
+            id: lines
+            x: KanteStyle.unit(8)
+            y: KanteStyle.unit(5)
+            Row {
+                spacing: KanteStyle.unit(5)
+                visible: !!(box.entry && box.entry.title)
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: KanteStyle.unit(8)
+                    height: width
+                    color: box.entry && box.entry.color !== undefined && box.entry.color !== ""
+                           ? box.entry.color : KanteStyle.entityFallbackColor
+                }
+                Text {
+                    text: box.entry ? (box.entry.title || "") : ""
+                    color: KanteStyle.strongTextColor
+                    font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
+                }
+            }
+            Text {
+                text: box.entry
+                      ? timeline.hoursText(box.entry.start) + "–" + timeline.hoursText(box.entry.end)
+                        + "  " + timeline.hoursText(Math.max(0, box.entry.end - box.entry.start))
+                      : ""
+                color: KanteStyle.textColor
+                font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize * 0.9, false)
+            }
+        }
     }
 }

@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
 import QtQuick.Controls as QQC2
-import org.kde.kirigami as Kirigami
 import "."
 
 /**
@@ -34,7 +33,7 @@ FocusScope {
     property string minuteText: qsTr("Minute")
     readonly property bool hasTime: hour >= 0 && minute >= 0
     readonly property bool invalid: input.invalid
-    readonly property alias popupOpen: popup.visible
+    readonly property alias popupOpen: hourPopup.visible
     /** Side of the popup: undefined = below, above when there is no room (true / false force it). */
     property var popupAbove: undefined
     signal timeEdited(int hour, int minute)
@@ -44,10 +43,10 @@ FocusScope {
 
     /** Opens the hour popup (e.g. from a shortcut); `close()` closes it. */
     function open() {
-        popup.open()
+        hourPopup.open()
     }
     function close() {
-        popup.close()
+        hourPopup.close()
     }
 
     /** Half of the day a typed suffix names. */
@@ -162,11 +161,11 @@ FocusScope {
                     root.commit()
                 }
             }
-            Keys.onDownPressed: popup.open()
+            Keys.onDownPressed: hourPopup.open()
             // The field keeps the focus, so the popup never sees Escape itself.
             Keys.onEscapePressed: function (event) {
-                event.accepted = popup.visible
-                popup.close()
+                event.accepted = hourPopup.visible
+                hourPopup.close()
             }
         }
         KanteToolButton {
@@ -180,7 +179,7 @@ FocusScope {
             display: QQC2.AbstractButton.IconOnly
             focusPolicy: Qt.NoFocus
             Accessible.name: root.placeholderText
-            onClicked: popup.visible ? popup.close() : popup.open()
+            onClicked: hourPopup.visible ? hourPopup.close() : hourPopup.open()
 
             // Clock glyph (an icon, so round): ring and two hands.
             Shape {
@@ -232,7 +231,7 @@ FocusScope {
     }
 
     QQC2.Popup {
-        id: popup
+        id: hourPopup
         objectName: "popup"
         // Inside the window: shifted left at the right edge, above the field at the bottom.
         readonly property var place: visible ? KanteStyle.popupPlace(root, width, implicitHeight, root.popupAbove)
@@ -261,7 +260,7 @@ FocusScope {
             }
         }
 
-        KantePopupSkin { popup: popup }
+        KantePopupSkin { popup: hourPopup }
 
         contentItem: ColumnLayout {
             spacing: KanteStyle.unit(6)
@@ -280,15 +279,15 @@ FocusScope {
                     visible: root.twelveHour
                     implicitWidth: KanteStyle.unit(48)
                     label: root.amText
-                    selected: !popup.draftPm
-                    onPicked: popup.setPm(false)
+                    selected: !hourPopup.draftPm
+                    onPicked: hourPopup.setPm(false)
                 }
                 Cell {
                     visible: root.twelveHour
                     implicitWidth: KanteStyle.unit(48)
                     label: root.pmText
-                    selected: popup.draftPm
-                    onPicked: popup.setPm(true)
+                    selected: hourPopup.draftPm
+                    onPicked: hourPopup.setPm(true)
                 }
             }
             GridLayout {
@@ -300,10 +299,10 @@ FocusScope {
                     delegate: Cell {
                         required property int index
                         // 12 h: the cells read 12, 1 … 11 of the chosen half.
-                        readonly property int hour: root.twelveHour ? index + (popup.draftPm ? 12 : 0) : index
+                        readonly property int hour: root.twelveHour ? index + (hourPopup.draftPm ? 12 : 0) : index
                         label: root.twelveHour ? String(index === 0 ? 12 : index) : String(index).padStart(2, "0")
-                        selected: popup.draftHour === hour
-                        onPicked: popup.draftHour = hour
+                        selected: hourPopup.draftHour === hour
+                        onPicked: hourPopup.draftHour = hour
                     }
                 }
             }
@@ -323,10 +322,10 @@ FocusScope {
                         required property int index
                         readonly property int value: index * Math.max(1, root.minuteStep)
                         label: ":" + String(value).padStart(2, "0")
-                        selected: root.hasTime && popup.draftHour === root.hour && root.minute === value
+                        selected: root.hasTime && hourPopup.draftHour === root.hour && root.minute === value
                         onPicked: {
-                            root.pick(popup.draftHour >= 0 ? popup.draftHour : (popup.draftPm ? 12 : 0), value)
-                            popup.close()
+                            root.pick(hourPopup.draftHour >= 0 ? hourPopup.draftHour : (hourPopup.draftPm ? 12 : 0), value)
+                            hourPopup.close()
                         }
                     }
                 }
