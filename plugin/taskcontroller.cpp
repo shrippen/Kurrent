@@ -2467,14 +2467,10 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
     if (days == 0) {
         return;
     }
-    // A recurring task moves this occurrence only, by its start; its due follows. Moving DTSTART
-    // would move the series' anchor and leave the occurrence late.
-    if (task.recurring) {
-        const QDateTime start = task.startDate.isValid() ? task.startDate : task.dueDate;
-        updateTaskFull(itemId, {{QStringLiteral("occurrenceStart"), start.addDays(days)}});
-        return;
-    }
-    QVariantMap fields{{QStringLiteral("dueDate"), task.dueDate.addDays(days)}};
+    // A recurring task moves as a series (DTSTART and its due), so it recurs from the new day,
+    // as completing it moves the series on; "dueDate" alone would set only the occurrence.
+    QVariantMap fields{{task.recurring ? QStringLiteral("seriesDueDate") : QStringLiteral("dueDate"),
+                        task.dueDate.addDays(days)}};
     if (task.startDate.isValid()) {
         fields.insert(QStringLiteral("startDate"), task.startDate.addDays(days));
     }
@@ -4468,12 +4464,11 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         }
     }
 
-    // A recurring task's current occurrence, by its start (dtRecurrence); DTSTART and the
-    // series stay, and the occurrence's due follows at the series' distance.
-    if (fields.contains(QStringLiteral("occurrenceStart")) && todo->recurs()) {
-        const QDateTime occurrence = dateTimeFromVariant(fields.value(QStringLiteral("occurrenceStart")));
-        if (occurrence.isValid()) {
-            todo->setDtRecurrence(occurrence);
+    // A recurring task's series due (first = true); "dueDate" sets the current occurrence.
+    if (fields.contains(QStringLiteral("seriesDueDate"))) {
+        const QDateTime due = dateTimeFromVariant(fields.value(QStringLiteral("seriesDueDate")));
+        if (due.isValid()) {
+            todo->setDtDue(due, true);
         }
     }
 

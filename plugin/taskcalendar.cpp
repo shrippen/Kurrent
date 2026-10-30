@@ -273,20 +273,13 @@ bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, c
         todo->setPercentComplete(100);
         return true;
     }
-    // The series' own start and due (first = true); seriesStart may be a moved occurrence
-    // (dtRecurrence), so the next due keeps the series' start-to-due distance from `next`.
-    const QDateTime baseStart = todo->dtStart(true);
     const QDateTime originalDue = todo->dtDue(true);
     todo->setDtStart(next);
-    if (originalDue.isValid() && baseStart.isValid() && todo->hasStartDate()) {
-        todo->setDtDue(next.addMSecs(baseStart.msecsTo(originalDue)), true);
-    } else if (originalDue.isValid()) {
+    if (originalDue.isValid()) {
         todo->setDtDue(originalDue.addMSecs(shiftMsecs), true);
     } else {
         todo->setDtDue(next, true);
     }
-    // The current occurrence is the new one, also after an occurrence was moved.
-    todo->setDtRecurrence(next);
     todo->setCompleted(false);
     todo->setPercentComplete(0);
     return true;
