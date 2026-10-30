@@ -359,7 +359,7 @@ public:
      *  start day stays. Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
-     *  the same number of days (a recurring task moves as a series and recurs from `day`);
+     *  the same number of days (a recurring task is left as it is);
      *  a task without a date becomes all-day on `day`. Undoable. */
     Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's

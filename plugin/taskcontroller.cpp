@@ -2458,6 +2458,11 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
         return;
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
+    // Not for recurring tasks (owner decision in #23): moving one day of a series means
+    // rewriting its rule and occurrence; they move in the editor.
+    if (task.recurring) {
+        return;
+    }
     const QDate from = agendaDayOf(task, AgendaLogic::taskBlock(task));
     if (!task.dueDate.isValid() || !from.isValid()) {
         agendaMoveToDay(itemId, day);
@@ -2467,10 +2472,7 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
     if (days == 0) {
         return;
     }
-    // A recurring task moves as a series (DTSTART and its due), so it recurs from the new day,
-    // as completing it moves the series on; "dueDate" alone would set only the occurrence.
-    QVariantMap fields{{task.recurring ? QStringLiteral("seriesDueDate") : QStringLiteral("dueDate"),
-                        task.dueDate.addDays(days)}};
+    QVariantMap fields{{QStringLiteral("dueDate"), task.dueDate.addDays(days)}};
     if (task.startDate.isValid()) {
         fields.insert(QStringLiteral("startDate"), task.startDate.addDays(days));
     }
@@ -4461,14 +4463,6 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         const QDateTime start = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
         if (start.isValid()) {
             todo->setDtStart(start);
-        }
-    }
-
-    // A recurring task's series due (first = true); "dueDate" sets the current occurrence.
-    if (fields.contains(QStringLiteral("seriesDueDate"))) {
-        const QDateTime due = dateTimeFromVariant(fields.value(QStringLiteral("seriesDueDate")));
-        if (due.isValid()) {
-            todo->setDtDue(due, true);
         }
     }
 

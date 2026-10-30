@@ -115,8 +115,10 @@ ColumnLayout {
                 KanteButton {
                     text: i18n("All to today")
                     // Like dropping each card on today: start and due move together, times stay.
+                    // Recurring tasks stay in the tray (agendaShiftToDay leaves them).
                     onClicked: {
-                        var ids = view.overdue.map(function(t) { return t.itemId })
+                        var ids = view.overdue.filter(function(t) { return !t.recurring })
+                                              .map(function(t) { return t.itemId })
                         var today = view.today()
                         for (var i = 0; i < ids.length; ++i) {
                             view.controller.agendaShiftToDay(ids[i], today)
@@ -216,6 +218,12 @@ ColumnLayout {
                         anchors.fill: parent
                         keys: ["application/x-kurrent-task"]
                         onEntered: function(drag) {
+                            // Recurring tasks are not moved here (agendaShiftToDay).
+                            var dragged = view.dragHost ? view.dragHost.draggingTask : null
+                            if (dragged && dragged.recurring) {
+                                drag.accepted = false
+                                return
+                            }
                             drag.acceptProposedAction()
                             if (view.dragHost) {
                                 view.dragHost.setDropHint(i18n("Move to %1", Qt.locale().toString(column.date, "dddd, d. MMMM")))
@@ -228,7 +236,7 @@ ColumnLayout {
                         }
                         onDropped: function(event) {
                             var task = view.dragHost ? view.dragHost.draggingTask : null
-                            if (task) {
+                            if (task && !task.recurring) {
                                 view.controller.agendaShiftToDay(task.itemId, column.date)
                                 event.acceptProposedAction()
                             }
