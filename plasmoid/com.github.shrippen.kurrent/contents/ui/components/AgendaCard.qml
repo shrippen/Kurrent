@@ -27,9 +27,9 @@ Rectangle {
     implicitHeight: body.implicitHeight + Design.spaceSmall * 2
     radius: Design.inputRadius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
-    border.width: inspected ? Design.agendaHairline : 0
+    border.width: inspected ? KanteStyle.borderWidth : 0
     border.color: KanteStyle.accentColor
-    opacity: task.completed ? Design.agendaDoneOpacity : 1
+    opacity: task.completed ? KanteStyle.doneOpacity : 1
 
     QQC2.ToolTip.text: (task.summary || i18n("(Untitled)")) + (task.collectionName ? " · " + task.collectionName : "")
     QQC2.ToolTip.visible: hover.hovered && titleLabel.truncated
@@ -40,9 +40,9 @@ Rectangle {
     }
 
     Rectangle {
-        width: Design.agendaEdge
+        width: KanteStyle.edgeWidth
         height: parent.height
-        radius: Design.agendaEdgeRadius
+        radius: KanteStyle.edgeRadius
         color: card.projectColor
     }
 
@@ -52,7 +52,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: Design.spaceSmall
-        anchors.leftMargin: Design.spaceSmall + Design.agendaEdge
+        anchors.leftMargin: Design.spaceSmall + KanteStyle.edgeWidth
         spacing: Design.spaceTiny
 
         QQC2.CheckBox {

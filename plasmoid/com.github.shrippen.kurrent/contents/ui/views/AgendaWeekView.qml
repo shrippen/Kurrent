@@ -80,9 +80,9 @@ ColumnLayout {
         visible: view.overdue.length > 0
         implicitHeight: trayCol.implicitHeight + Design.spaceSmall * 2
         radius: Design.inputRadius
-        color: KanteStyle.tint(KanteStyle.negativeTextColor, Design.agendaTrayFill)
-        border.width: Design.agendaHairline
-        border.color: KanteStyle.tint(KanteStyle.negativeTextColor, Design.agendaTrayEdge)
+        color: KanteStyle.tint(KanteStyle.negativeTextColor, KanteStyle.washLevel)
+        border.width: KanteStyle.borderWidth
+        border.color: KanteStyle.tint(KanteStyle.negativeTextColor, KanteStyle.edgeLevel)
 
         ColumnLayout {
             id: trayCol
@@ -204,7 +204,7 @@ ColumnLayout {
                     radius: Design.inputRadius
                     color: drop.containsDrag ? KanteStyle.selectionColor
                                              : (isToday ? KanteStyle.tint1Color : (weekendDay || past ? KanteStyle.sunkenColor : "transparent"))
-                    border.width: isToday ? Design.agendaHairline : 0
+                    border.width: isToday ? KanteStyle.borderWidth : 0
                     border.color: KanteStyle.accentColor
 
                     DropArea {
@@ -289,13 +289,13 @@ ColumnLayout {
                             spacing: Design.spaceTiny
                             Rectangle {
                                 Layout.fillWidth: true
-                                implicitHeight: Design.agendaBar
-                                radius: Design.agendaBarRadius
+                                implicitHeight: KanteStyle.meterHeight
+                                radius: KanteStyle.meterRadius
                                 color: KanteStyle.tint2Color
                                 Rectangle {
                                     width: parent.width * Math.min(1, column.modelData.load / view.workMinutes)
                                     height: parent.height
-                                    radius: Design.agendaBarRadius
+                                    radius: KanteStyle.meterRadius
                                     color: column.full ? KanteStyle.warningColor : KanteStyle.accentColor
                                 }
                             }

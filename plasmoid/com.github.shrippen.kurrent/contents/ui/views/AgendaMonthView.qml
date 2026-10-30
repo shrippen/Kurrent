@@ -127,7 +127,7 @@ RowLayout {
                     readonly property var entries: view.entriesOf(modelData)
                     readonly property int shown: Math.max(0, Math.min(entries.length,
                                                   Math.floor((height - dayRow.height - Design.spaceTiny * 2) / entryHeight) - (entries.length > 3 ? 1 : 0), 3))
-                    readonly property real entryHeight: Design.agendaMonthEntry
+                    readonly property real entryHeight: KanteStyle.calendarEntryHeight
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -139,8 +139,8 @@ RowLayout {
                     color: drop.containsDrag ? KanteStyle.selectionColor
                                              : (modelData.tint > 0 ? KanteStyle.tint(KanteStyle.accentColor, modelData.tint)
                                                                    : (modelData.inMonth ? KanteStyle.cardColor : "transparent"))
-                    opacity: modelData.inMonth ? 1 : Design.agendaOutsideOpacity
-                    border.width: isSelected || isToday ? (isSelected ? Design.agendaMarkLine : Design.agendaHairline) : 0
+                    opacity: modelData.inMonth ? 1 : KanteStyle.dimOpacity
+                    border.width: isSelected || isToday ? (isSelected ? KanteStyle.lineWidth : KanteStyle.borderWidth) : 0
                     border.color: isSelected ? KanteStyle.focusColor : KanteStyle.accentColor
 
                     TapHandler {
@@ -216,9 +216,9 @@ RowLayout {
                                 spacing: Design.spaceTiny
                                 Rectangle {
                                     visible: !entry.modelData.event
-                                    implicitWidth: Design.agendaDot
-                                    implicitHeight: Design.agendaDot
-                                    radius: Design.agendaDotRadius
+                                    implicitWidth: KanteStyle.markerSize
+                                    implicitHeight: KanteStyle.markerSize
+                                    radius: KanteStyle.markerRadius
                                     color: Design.colorForKey(String(entry.modelData.data.collectionId))
                                 }
                                 AgendaEventRow {
@@ -266,7 +266,7 @@ RowLayout {
                     model: [1, 3, 5]
                     delegate: Rectangle {
                         required property int modelData
-                        width: Design.agendaSwatch
+                        width: KanteStyle.swatchSize
                         height: width
                         color: KanteStyle.tint(KanteStyle.accentColor, view.controller ? view.controller.agendaTint(modelData) : 0)
                     }
