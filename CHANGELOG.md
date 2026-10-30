@@ -6,7 +6,7 @@
 
 ### English
 
-Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to your appointments, a week as a board and a month at a glance, and you drag tasks into free time. The widget gets a new look with tiles, an inspector, a narrow layout and the optional Kante style, Swimlanes and the Project plan are reworked, the settings are regrouped, and there is now a terminal client.
+Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to your appointments, a week as a board and a month at a glance, and you drag tasks into free time. The widget gets a new look with tiles, an inspector, a narrow layout and the optional Kante style, Swimlanes and the Project plan are reworked, the settings are new, and there is now a terminal client.
 
 #### New
 - Agenda, Day: 14 days from the picked date, each as an hour grid (07–22, longer on a day with something earlier or later) with your appointments, tasks with a time as blocks and free gaps of 30 minutes and more in green; today starts at the now line, which moves with the clock. Days with nothing on them fold into one line. A month calendar with dots for appointments, tasks and overdue tasks picks the first day.
@@ -33,14 +33,14 @@ Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to
 - Swimlanes have a horizon (Settings › Views › Look ahead, automatic by default) with Overdue, Later and No date columns; empty periods stay as drop targets. The Project plan gets the same Later column instead of leaving far-off tasks out.
 - Swimlanes and the Project plan share one grid: row and column headers stay in place, scrolling works like in Kanban (wheel, thin bars, middle-click to pan), the current period is highlighted with a button to jump to it, and column headers name the period, such as the calendar week with its dates, or "Today". A button in the header sets rows, columns and look ahead without the settings dialog.
 - A click on a Swimlanes or Project plan cell, row or column header opens the list filtered to it, with a chip in the header to go back.
-- Swimlanes stay fast with many tasks: a cell shows up to eight cards and "+N more tasks", and switching rows or columns no longer stalls the widget.
+- Swimlanes stay fast with many tasks: a cell shows up to eight cards and "+N more tasks".
 - Project plan cells show how busy they are compared with the busiest cell, a red dot for overdue tasks, a flag for high priority and a split bar by priority; tooltips work, a legend explains the colours, and projects are sorted by name.
 - Heatmap: square month cells with the count inside, the legend below, and the picked day's tasks beside or below the grid (a click opens the inspector or the editor). Month, year and mode sit in the navigation row.
 - Kanban: a click on a card opens the inspector or the editor, empty columns fold into a narrow strip, and the Canceled column can be hidden (Settings › Views).
 - Task rows show label names and the project name, the priority flag sits right before the due date, and the edit buttons appear only on hover.
 - Editor: title and status at the top, "All day" hides the time fields, and the editor opens correctly from Kanban cards and the inspector.
 - Quick Add shows the recognised parts as tinted pills.
-- Return presses a focused button like Space, in every style.
+- Return presses a focused button in the widget like Space, in every style.
 - Settings are now seven pages: General, Appearance, Tasks, Sidebar, Views, Panel & notifications and Organize. Labels sit left of the fields, and every page has "Reset this page". General shows whether Akonadi is connected, with a button that opens your task app; Tasks shows a live preview of a task row; Panel & notifications previews the panel badge and can send a test notification; Organize keeps projects, labels and locations in one list each (colour, rename, delete, default project). Relative dates are on by default.
 - The widget's icon in the widget picker is now in colour; the panel icon stays monochrome.
 - Dates follow the system locale everywhere (day and month names were always English), Kanban column names are translated, and about 250 more strings are translated in all five languages.
@@ -50,21 +50,21 @@ Kurrent learns to plan your days: the Agenda shows a day as an hour grid next to
 - Overdue means the same everywhere: an open task due before today. Completed tasks no longer show their due date in red.
 - Tasks completed in Kurrent had no completion date, so the heatmap did not count them; completions after midnight UTC landed on the previous day.
 - Translations were partly missing: the catalogs were stale, and texts with quotation marks never matched.
-- Swimlanes and the Project plan put the days around New Year into the wrong week; also fixed: the "today" drop in Kanban, and the refresh of Swimlanes and the Project plan after changes.
+- The Project plan put the days around New Year into the wrong week; also fixed: the "today" drop in Kanban, and the refresh of Swimlanes and the Project plan after changes.
 - A click on a Swimlanes cell reset the sidebar view, a click on a Project plan cell filtered the plan itself, and the plan's tooltips never appeared.
 - A click on a heatmap day was undone right away.
 
 #### Note
 - The Agenda reads appointments from your Akonadi calendars; pick which ones in the Agenda's calendar menu.
 - The Agenda's day and week are rebuilt, the month is new, and the switch between days side by side and stacked is gone.
-- The Project plan options are now shared by all Kurrent widgets, like every other setting; on the first start, each option keeps the first widget's own value.
+- The Project plan options are now shared by all Kurrent widgets, like every other setting.
 - Drag and drop and the keys in the Agenda are covered by tests but were checked by hand only briefly so far.
 
 All changes: https://github.com/shrippen/Kurrent/compare/v0.4.0...v0.5.0
 
 ### Deutsch
 
-Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster neben deinen Terminen, eine Woche als Brett und einen Monat im Überblick, und Aufgaben ziehst du in freie Zeit. Das Widget bekommt ein neues Aussehen mit Kacheln, einem Inspektor, einem schmalen Layout und dem wählbaren Kante-Stil, Swimlanes und Projektplan sind überarbeitet, die Einstellungen neu geordnet, und es gibt einen Terminal-Client.
+Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster neben deinen Terminen, eine Woche als Brett und einen Monat im Überblick, und Aufgaben ziehst du in freie Zeit. Das Widget bekommt ein neues Aussehen mit Kacheln, einem Inspektor, einem schmalen Layout und dem wählbaren Kante-Stil, Swimlanes und Projektplan sind überarbeitet, die Einstellungen neu gestaltet, und es gibt einen Terminal-Client.
 
 #### Neu
 - Agenda, Tag: 14 Tage ab dem gewählten Datum, jeder als Stundenraster (07–22 Uhr, länger, wenn etwas früher oder später liegt) mit deinen Terminen, Aufgaben mit Uhrzeit als Blöcke und freien Lücken ab 30 Minuten in Grün; heute beginnt an der Jetzt-Linie, die mit der Uhr wandert. Tage ohne Einträge klappen zu einer Zeile zusammen. Ein Monatskalender mit Punkten für Termine, Aufgaben und Überfälliges wählt den ersten Tag.
@@ -91,14 +91,14 @@ Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster
 - Swimlanes haben einen Horizont (Einstellungen › Ansichten › Vorausschau, standardmäßig automatisch) mit Spalten für Überfällig, Später und Kein Datum; leere Zeiträume bleiben als Ablageziel. Der Projektplan bekommt dieselbe Spalte Später, statt ferne Aufgaben wegzulassen.
 - Swimlanes und Projektplan teilen sich ein Raster: Zeilen- und Spaltenköpfe bleiben stehen, Scrollen geht wie im Kanban (Mausrad, schmale Leisten, Mittelklick zum Verschieben), der aktuelle Zeitraum ist hervorgehoben mit einem Knopf, der zu ihm springt, und Spaltenköpfe nennen den Zeitraum, etwa die Kalenderwoche mit ihren Daten, oder „Heute“. Ein Knopf in der Kopfzeile stellt Zeilen, Spalten und Vorausschau ein, ohne den Einstellungsdialog.
 - Ein Klick auf eine Zelle, einen Zeilen- oder Spaltenkopf in Swimlanes oder Projektplan öffnet die Liste, gefiltert darauf, mit einem Chip in der Kopfzeile für den Weg zurück.
-- Swimlanes bleiben auch mit vielen Aufgaben schnell: Eine Zelle zeigt bis zu acht Karten und „+N weitere Aufgaben“, und das Umschalten von Zeilen oder Spalten bremst das Widget nicht mehr aus.
+- Swimlanes bleiben auch mit vielen Aufgaben schnell: Eine Zelle zeigt bis zu acht Karten und „+N weitere Aufgaben“.
 - Zellen im Projektplan zeigen ihre Auslastung im Vergleich zur vollsten Zelle, einen roten Punkt für Überfälliges, eine Flagge für hohe Priorität und einen Balken nach Priorität; Tooltips funktionieren, eine Legende erklärt die Farben, und Projekte sind nach Namen sortiert.
 - Heatmap: quadratische Monatszellen mit der Zahl darin, die Legende darunter und die Aufgaben des gewählten Tages neben oder unter dem Raster (ein Klick öffnet Inspektor oder Editor). Monat, Jahr und Modus stehen in der Navigationszeile.
 - Kanban: Ein Klick auf eine Karte öffnet Inspektor oder Editor, leere Spalten klappen zu einem schmalen Streifen ein, und die Spalte Abgebrochen lässt sich ausblenden (Einstellungen › Ansichten).
 - Aufgabenzeilen zeigen Labelnamen und den Projektnamen, die Prioritätsflagge steht direkt vor der Fälligkeit, und die Bearbeiten-Knöpfe erscheinen nur beim Überfahren.
 - Editor: Titel und Status oben, „Ganztägig“ blendet die Zeitfelder aus, und der Editor öffnet sich auch aus Kanban-Karten und dem Inspektor richtig.
 - Die Schnelleingabe zeigt die erkannten Teile als getönte Pillen.
-- Enter drückt einen fokussierten Knopf wie die Leertaste, in jedem Stil.
+- Enter drückt einen fokussierten Knopf im Widget wie die Leertaste, in jedem Stil.
 - Die Einstellungen haben jetzt sieben Seiten: Allgemein, Erscheinungsbild, Aufgaben, Seitenleiste, Ansichten, Panel & Hinweise und Organisieren. Beschriftungen stehen links neben den Feldern, und jede Seite hat „Diese Seite zurücksetzen“. Allgemein zeigt, ob Akonadi verbunden ist, mit einem Knopf, der deine Aufgaben-App öffnet; Aufgaben zeigt eine Live-Vorschau einer Aufgabenzeile; Panel & Hinweise zeigt die Panel-Plakette als Vorschau und kann eine Test-Benachrichtigung senden; Organisieren führt Projekte, Labels und Orte in je einer Liste (Farbe, Umbenennen, Löschen, Standardprojekt). Relative Datumsangaben sind standardmäßig an.
 - Das Symbol des Widgets in der Widget-Auswahl ist jetzt farbig; das Panel-Symbol bleibt einfarbig.
 - Datumsangaben folgen überall der Systemsprache (Tages- und Monatsnamen waren immer Englisch), Kanban-Spaltennamen sind übersetzt, und rund 250 weitere Texte sind in allen fünf Sprachen übersetzt.
@@ -108,14 +108,14 @@ Kurrent plant jetzt deine Tage mit: Die Agenda zeigt einen Tag als Stundenraster
 - Überfällig heißt überall dasselbe: eine offene Aufgabe, die vor heute fällig war. Erledigte Aufgaben zeigen ihre Fälligkeit nicht mehr in Rot.
 - In Kurrent erledigte Aufgaben hatten kein Erledigungsdatum, darum zählte die Heatmap sie nicht; Erledigungen nach Mitternacht UTC landeten auf dem Vortag.
 - Übersetzungen fehlten teilweise: Die Kataloge waren veraltet, und Texte mit Anführungszeichen wurden nie gefunden.
-- Swimlanes und Projektplan legten die Tage um Neujahr in die falsche Woche; außerdem behoben: das Ablegen in der Kanban-Spalte „Heute“ und das Auffrischen von Swimlanes und Projektplan nach Änderungen.
+- Der Projektplan legte die Tage um Neujahr in die falsche Woche; außerdem behoben: das Ablegen in der Kanban-Spalte „Heute“ und das Auffrischen von Swimlanes und Projektplan nach Änderungen.
 - Ein Klick auf eine Swimlanes-Zelle setzte die Ansicht in der Seitenleiste zurück, ein Klick auf eine Projektplan-Zelle filterte den Plan selbst, und die Tooltips des Plans erschienen nie.
 - Ein Klick auf einen Tag der Heatmap wurde sofort wieder zurückgenommen.
 
 #### Hinweis
 - Die Agenda liest Termine aus deinen Akonadi-Kalendern; welche, wählst du im Kalendermenü der Agenda.
 - Tag und Woche der Agenda sind neu gebaut, der Monat ist neu, und der Schalter zwischen Tagen nebeneinander und untereinander entfällt.
-- Die Optionen des Projektplans gelten jetzt für alle Kurrent-Widgets, wie jede andere Einstellung; beim ersten Start behält jede Option den bisherigen Wert des ersten Widgets.
+- Die Optionen des Projektplans gelten jetzt für alle Kurrent-Widgets, wie jede andere Einstellung.
 - Ziehen und Ablegen und die Tasten in der Agenda sind durch Tests abgedeckt, von Hand aber bisher nur kurz geprüft.
 
 ## [0.4.0] — 2026-09-03
