@@ -2207,7 +2207,9 @@ int minutesInto(const QDate &day, const QDateTime &when)
 
 QDateTime atMinute(const QDate &day, int minute)
 {
-    return QDateTime(day, QTime(minute / 60, minute % 60));
+    // 24:00 is no QTime; a block until midnight ends at 23:59 and stays on its day.
+    const int clamped = qBound(0, minute, 24 * 60 - 1);
+    return QDateTime(day, QTime(clamped / 60, clamped % 60));
 }
 }
 

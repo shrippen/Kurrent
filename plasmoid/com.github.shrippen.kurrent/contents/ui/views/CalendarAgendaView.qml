@@ -51,11 +51,13 @@ ColumnLayout {
             controller.agendaSelectedDate = selectedDay
         }
         // The day view keeps its days while the target moves inside them.
-        if (selectedDay < listStart || selectedDay > addDays(listStart, dayView.dayCount - 1)) {
+        if (selectedDay < listStart || selectedDay > addDays(listStart, dayCount - 1)) {
             listStart = selectedDay
         }
     }
 
+    /** Days the day view shows from listStart. */
+    readonly property int dayCount: 14
     // First of the day view's days. Moves with the date bar and the view switch, not with a
     // click on a day inside the list.
     property date listStart: new Date()
@@ -417,6 +419,7 @@ ColumnLayout {
     Component {
         id: dayView
         AgendaDayView {
+            dayCount: root.dayCount
             controller: root.controller
             dragHost: root.dragHost
             interactionsSuspended: root.interactionsSuspended
