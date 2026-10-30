@@ -199,7 +199,8 @@ Item {
             readonly property int shownEnd: Math.min(liveEnd, grid.gridEnd)
             // An appointment without an end still shows; short entries are drawn minShown long.
             visible: shownEnd >= shownStart && shownStart < grid.gridEnd
-            y: grid.yOf(shownStart)
+            // drawStart: a short entry at the day's end is drawn from earlier, inside the grid.
+            y: grid.yOf(Math.min(shownStart, Math.max(modelData.drawStart, grid.gridStart)))
             height: Math.max(grid.minShown, shownEnd - shownStart) * grid.px - KanteStyle.borderWidth * 2
             // Too low for a second line: one line, centred, without the vertical margins.
             readonly property bool low: height < Kirigami.Units.gridUnit * 1.5

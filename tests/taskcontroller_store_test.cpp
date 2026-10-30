@@ -524,10 +524,29 @@ void TaskControllerStoreTest::agendaBlockUntilNextMidnightStaysOnItsDay()
     QCOMPARE(onDay.size(), 1);
     QCOMPARE(onDay.first().toMap().value(QStringLiteral("start")).toInt(), 23 * 60);
     QCOMPARE(onDay.first().toMap().value(QStringLiteral("end")).toInt(), 24 * 60);
+    QCOMPARE(onDay.first().toMap().value(QStringLiteral("drawStart")).toInt(), 23 * 60);
     QVERIFY(days.at(1).toMap().value(QStringLiteral("items")).toList().isEmpty());
     for (const QVariant &value : m_controller->agendaSuggestions(day)) {
         QVERIFY(value.toMap().value(QStringLiteral("task")).toMap().value(QStringLiteral("itemId")).toLongLong() != 1);
     }
+
+    // A short block at the day's end is drawn kMinShown long, moved up so it stays in the grid.
+    m_controller->installTestTask(2, QStringLiteral("last call"), 10);
+    m_controller->updateTaskFull(2, {
+        {QStringLiteral("startDate"), QDateTime(day, QTime(23, 45))},
+        {QStringLiteral("dueDate"), QDateTime(day, QTime(23, 59))},
+    });
+    waitStore(spy, 2);
+    bool found = false;
+    for (const QVariant &value : m_controller->agendaDays(day, 1).first().toMap().value(QStringLiteral("items")).toList()) {
+        const QVariantMap item = value.toMap();
+        if (item.value(QStringLiteral("itemId")).toLongLong() == 2) {
+            found = true;
+            QCOMPARE(item.value(QStringLiteral("start")).toInt(), 23 * 60 + 45);
+            QCOMPARE(item.value(QStringLiteral("drawStart")).toInt(), 23 * 60 + 30);
+        }
+    }
+    QVERIFY(found);
 }
 
 void TaskControllerStoreTest::agendaMoveToDayKeepsAnEarlierStart()
