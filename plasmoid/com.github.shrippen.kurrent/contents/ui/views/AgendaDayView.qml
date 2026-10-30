@@ -190,9 +190,9 @@ RowLayout {
                     required property var modelData
                     spacing: Design.spaceTiny
                     Rectangle {
-                        width: Design.agendaDot
-                        height: Design.agendaDot
-                        radius: Design.agendaDotRadius
+                        width: KanteStyle.markerSize
+                        height: KanteStyle.markerSize
+                        radius: KanteStyle.markerRadius
                         anchors.verticalCenter: parent.verticalCenter
                         color: modelData.color
                     }
@@ -354,7 +354,7 @@ RowLayout {
                 implicitHeight: head.implicitHeight + Design.spaceSmall * 2
                 radius: Design.inputRadius
                 color: dayCol.marked ? KanteStyle.selectionColor : (headHover.hovered ? KanteStyle.sunkenColor : "transparent")
-                border.width: dayCol.marked ? Design.agendaHairline : 0
+                border.width: dayCol.marked ? KanteStyle.borderWidth : 0
                 border.color: KanteStyle.accentColor
                 RowLayout {
                     id: head
@@ -405,7 +405,7 @@ RowLayout {
                         implicitHeight: allDayLabel.implicitHeight + Design.spaceTiny * 2
                         radius: Design.inputRadius
                         color: KanteStyle.sunkenColor
-                        border.width: Design.agendaHairline
+                        border.width: KanteStyle.borderWidth
                         border.color: KanteStyle.frameColor
                         QQC2.Label {
                             id: allDayLabel
@@ -449,7 +449,7 @@ RowLayout {
                         anchors.fill: parent
                         radius: Design.inputRadius
                         color: parent.containsDrag ? KanteStyle.selectionColor : "transparent"
-                        border.width: Design.agendaHairline
+                        border.width: KanteStyle.borderWidth
                         border.color: KanteStyle.frameColor
                         QQC2.Label {
                             anchors.centerIn: parent

@@ -10,18 +10,29 @@ import "."
  *   System  a plain tool button of the active style (unchanged).
  *   Kante   square; hover and pressed show the sunken tint, checked ones
  *           (segmented filters) the accent. Icon and text are drawn here.
+ *
+ *   fillChecked  (1.38) false: a checked button is not filled with the accent, for a
+ *                toggle that shows its state itself (KanteTransportBar's lamps). It stays
+ *                checkable and checked, so screen readers still get the state from Qt.
  */
 QQC2.ToolButton {
     id: control
 
-    readonly property color kanteInk: checked ? KanteStyle.accentForegroundColor : KanteStyle.textColor
+    // Return and Enter press a focused button like Space (1.49, WCAG 2.1.1): Qt Quick
+    // Controls take only Space, so keyboard users pressed Return and nothing happened.
+    Keys.onReturnPressed: function (event) { KanteStyle.pressByKey(control, event) }
+    Keys.onEnterPressed: function (event) { KanteStyle.pressByKey(control, event) }
+
+    property bool fillChecked: true
+    readonly property bool filled: checked && fillChecked
+    readonly property color kanteInk: filled ? KanteStyle.accentForegroundColor : KanteStyle.textColor
 
     Rectangle {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && (control.hovered || control.down || control.checked || control.visualFocus)
-        color: control.checked ? KanteStyle.accentColor : KanteStyle.sunkenColor
-        border.width: control.visualFocus && !control.checked ? 2 : 0
+        visible: KanteStyle.themed && (control.hovered || control.down || control.filled || control.visualFocus)
+        color: control.filled ? KanteStyle.accentColor : KanteStyle.sunkenColor
+        border.width: control.visualFocus && !control.filled ? 2 : 0
         border.color: KanteStyle.focusColor
     }
 

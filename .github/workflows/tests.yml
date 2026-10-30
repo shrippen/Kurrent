@@ -47,6 +47,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check CHANGELOG.md headings
+        run: scripts/release-notes.sh --check
+
       - name: Skip full KDE build on Ubuntu
         run: |
           echo "Unit tests run in job build (Arch container)."

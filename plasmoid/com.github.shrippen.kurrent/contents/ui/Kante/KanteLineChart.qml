@@ -193,13 +193,23 @@ Item {
                 }
                 Repeater {
                     model: chart.series.length
-                    delegate: Text {
+                    // Text colour for the value, a square in the series colour beside it.
+                    delegate: Row {
                         required property int index
                         readonly property var values: chart.series[index]
                         visible: chart.hoverIndex >= 0 && chart.hoverIndex < values.length
-                        text: visible ? values[chart.hoverIndex] + chart.unit : ""
-                        color: KanteStyle.dataColor(chart.series.length === 1 ? chart.colorIndex : index)
-                        font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
+                        spacing: KanteStyle.unit(5)
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: KanteStyle.unit(8)
+                            height: width
+                            color: KanteStyle.dataColor(chart.series.length === 1 ? chart.colorIndex : parent.index)
+                        }
+                        Text {
+                            text: parent.visible ? parent.values[chart.hoverIndex] + chart.unit : ""
+                            color: KanteStyle.strongTextColor
+                            font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
+                        }
                     }
                 }
             }
