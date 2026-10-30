@@ -98,7 +98,7 @@ Beide teilen sich `components/MatrixGrid.qml`: **ein** `GridLayout` in einer `Fl
 
 ### Heatmap
 
-- Monats- oder Jahresgitter. Monat: quadratische Zellen (max. 4 GU) mit Tag oben links und Anzahl in der Mitte, Legende direkt darunter; daneben (ab 30 GU) oder darunter die Aufgaben des gewählten Tages (`heatmapTasksForDay`, Klick → Inspektor bzw. Editor). Navigation, Monat/Jahr und Modus in einer Zeile.
+- Monats- oder Jahresgitter. Monat: quadratische Zellen (max. 4 GU) mit Tag oben links und Anzahl in der Mitte, Legende direkt darunter; daneben (ab 30 GU) oder darunter die Aufgaben des gewählten Tages (`heatmapTasksForDay`, Klick → Inspektor bzw. Editor). Navigation, Monat/Jahr und Modus in einer Zeile; wird sie zu schmal, kürzen Titel und Modus-Box gemeinsam, die Box bis auf 4 GU (`Layout.maximumWidth: implicitWidth`).
 - Modus umschaltbar: offene Fälligkeiten pro Tag vs. Erledigungen pro Tag (aus STATUS/`COMPLETED`, nicht gespeicherter „Streak“-Zähler).
 - Zahlen des gezeigten Zeitraums (Summe, Schnitt pro Tag bis heute, bester Tag) und die zusammengeführten Jahre liefert `heatmapPeriod` (`TaskLogic::summarizeHeatmap`); QML formatiert nur.
 
@@ -176,7 +176,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 |---|---|---|---|
 | `plasma` (Standard) | System | Plasma-Farbschema (`Kirigami.Theme`) | Plasma, pixelgleich zu einem normalen Kirigami-Widget |
 | `kante` | Kante | Kante-Palette: Gruvbox dunkel, bei hellem Plasma-Farbschema „Leinen“ | eckige Controls, abgeschrägte Ecke oben rechts an Karten und Dialogen, Titel und Buttons in Rajdhani versal, Zahlen und Labels in JetBrains Mono |
-| `kanteLight` | Kante Light | Plasma-Farbschema | Kante-Formen und -Schrift, Controls bleiben Plasmas |
+| `kanteLight` | Kante Light | Plasma-Farbschema | Kante-Formen und -Schrift, Controls bleiben Plasmas; nur Primär-Buttons (`Emphasis.Primary`: Plus an der Schnellerfassung, Erledigt/Wieder öffnen und Speichern (beim Bearbeiten) im Inspektor, Befehl kopieren in der Plugin-fehlt-Ansicht als Hauptaktion; im Konflikt-Dialog die gewählte Version) zeichnet Kante seit 1.27 selbst, gefüllt in `primaryColor`, damit sie hervorstechen |
 
 - `main.qml` bindet `KanteStyle.kind` an `Design.kanteKind(uiStyle)`. Views verzweigen auf `KanteStyle.active` (Kante oder Kante Light: Formen, Schrift, Layouts) bzw. `KanteStyle.themed` (nur Kante: Palette, Control-Skins) und lesen Farben aus den `KanteStyle`-Rollen. Nie Hex-Werte in Views.
 - `FullView` enthält `KanteScope { target: fullRoot }`: in Kante bekommt das ganze Widget die Kante-Farben über `Kirigami.Theme`. Popups erben das nicht: jedes `QQC2.Menu`/`QQC2.Popup` hat einen `KantePopupSkin`, jeder `QQC2.Dialog` einen `KanteDialogSkin`, der auf den Applet-Container umgehängte Full-Editor einen eigenen `KanteScope` plus `KanteCard` (Ecke + Akzentbalken).
