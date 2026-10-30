@@ -614,20 +614,36 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     m_controller->agendaAddTask(QStringLiteral("Whole day"), 10, day);
     // A date in the text wins over the day.
     m_controller->agendaAddTask(QStringLiteral("Elsewhere tomorrow"), 10, day);
-    waitStore(spy, 3);
+    // A time without a date stays on the day: due then, or the slot moved to it.
+    m_controller->agendaAddTask(QStringLiteral("Ring the port 15:00"), 10, day);
+    m_controller->agendaAddTask(QStringLiteral("Ghost call 16:00"), 10, day, 10 * 60, 10 * 60 + 45);
+    waitStore(spy, 5);
 
     const QVariantMap board = m_controller->agendaDays(day, 1).first().toMap();
     const QVariantList items = board.value(QStringLiteral("items")).toList();
-    QCOMPARE(items.size(), 1);
-    const QVariantMap timed = items.first().toMap();
+    QCOMPARE(items.size(), 2);
+    QVariantMap timed;
+    QVariantMap moved;
+    for (const QVariant &item : items) {
+        const QVariantMap map = item.toMap();
+        (map.value(QStringLiteral("summary")).toString() == QStringLiteral("Ghost call") ? moved : timed) = map;
+    }
     QCOMPARE(timed.value(QStringLiteral("summary")).toString(), QStringLiteral("Call the harbour"));
     QCOMPARE(timed.value(QStringLiteral("start")).toInt(), 10 * 60);
     QCOMPARE(timed.value(QStringLiteral("end")).toInt(), 10 * 60 + 45);
     QCOMPARE(timed.value(QStringLiteral("priority")).toInt(), 1);
     QCOMPARE(timed.value(QStringLiteral("categories")).toStringList(), QStringList{QStringLiteral("calls")});
+    QCOMPARE(moved.value(QStringLiteral("summary")).toString(), QStringLiteral("Ghost call"));
+    QCOMPARE(moved.value(QStringLiteral("start")).toInt(), 16 * 60);
+    QCOMPARE(moved.value(QStringLiteral("end")).toInt(), 16 * 60 + 45);
     const QVariantList loose = board.value(QStringLiteral("loose")).toList();
-    QCOMPARE(loose.size(), 1);
-    QCOMPARE(loose.first().toMap().value(QStringLiteral("summary")).toString(), QStringLiteral("Whole day"));
+    QCOMPARE(loose.size(), 2);
+    QStringList looseNames;
+    for (const QVariant &task : loose) {
+        looseNames.append(task.toMap().value(QStringLiteral("summary")).toString());
+    }
+    looseNames.sort();
+    QCOMPARE(looseNames, (QStringList{QStringLiteral("Ring the port"), QStringLiteral("Whole day")}));
     const QVariantMap tomorrow = m_controller->agendaDays(QDate::currentDate().addDays(1), 1).first().toMap();
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
 }

@@ -55,8 +55,11 @@ RowLayout {
         var _rev = view.revision
         return controller ? controller.agendaMonth(day, weekend) : []
     }
+    // The picked day's cell; with the weekend hidden a Saturday shows Friday, a Sunday Monday.
     readonly property var selected: {
-        var key = DateTime.isoDateKey(day)
+        var wd = day.getDay()
+        var shift = weekend ? 0 : (wd === 6 ? -1 : (wd === 0 ? 1 : 0))
+        var key = DateTime.isoDateKey(new Date(day.getFullYear(), day.getMonth(), day.getDate() + shift))
         for (var i = 0; i < cells.length; ++i) {
             if (DateTime.isoDateKey(cells[i].date) === key) {
                 return cells[i]
@@ -64,6 +67,8 @@ RowLayout {
         }
         return null
     }
+    /** The day the detail shows: the picked one, or the weekday standing in for it. */
+    readonly property date shownDay: selected ? selected.date : day
 
     // Entries of a cell: appointments first, then tasks (open before done).
     function entriesOf(cell) {
@@ -107,8 +112,8 @@ RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             columns: view.columns
-            rowSpacing: 2
-            columnSpacing: 2
+            rowSpacing: Design.spaceTiny
+            columnSpacing: Design.spaceTiny
 
             Repeater {
                 model: view.cells
@@ -117,12 +122,12 @@ RowLayout {
                     required property var modelData
                     readonly property string key: DateTime.isoDateKey(modelData.date)
                     readonly property bool isToday: key === DateTime.isoDateKey(view.today())
-                    readonly property bool isSelected: key === DateTime.isoDateKey(view.day)
+                    readonly property bool isSelected: !!view.selected && key === DateTime.isoDateKey(view.selected.date)
                     readonly property bool past: key < DateTime.isoDateKey(view.today())
                     readonly property var entries: view.entriesOf(modelData)
                     readonly property int shown: Math.max(0, Math.min(entries.length,
                                                   Math.floor((height - dayRow.height - Design.spaceTiny * 2) / entryHeight) - (entries.length > 3 ? 1 : 0), 3))
-                    readonly property real entryHeight: Kirigami.Units.gridUnit * 1.1
+                    readonly property real entryHeight: Design.agendaMonthEntry
 
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -134,8 +139,8 @@ RowLayout {
                     color: drop.containsDrag ? KanteStyle.selectionColor
                                              : (modelData.tint > 0 ? KanteStyle.tint(KanteStyle.accentColor, modelData.tint)
                                                                    : (modelData.inMonth ? KanteStyle.cardColor : "transparent"))
-                    opacity: modelData.inMonth ? 1 : 0.55
-                    border.width: isSelected || isToday ? (isSelected ? 2 : 1) : 0
+                    opacity: modelData.inMonth ? 1 : Design.agendaOutsideOpacity
+                    border.width: isSelected || isToday ? (isSelected ? Design.agendaMarkLine : Design.agendaHairline) : 0
                     border.color: isSelected ? KanteStyle.focusColor : KanteStyle.accentColor
 
                     TapHandler {
@@ -184,7 +189,7 @@ RowLayout {
                                     anchors.fill: parent
                                     anchors.margins: -Design.spaceTiny
                                     cursorShape: Qt.PointingHandCursor
-                                    hoverEnabled: true
+                                    hoverEnabled: !view.interactionsSuspended
                                     onClicked: view.openDay(cell.modelData.date)
                                     QQC2.ToolTip.text: i18n("Open day")
                                     QQC2.ToolTip.visible: containsMouse
@@ -222,6 +227,7 @@ RowLayout {
                                     Layout.fillHeight: true
                                     compact: true
                                     event: entry.modelData.data
+                                    interactionsSuspended: view.interactionsSuspended
                                 }
                                 QQC2.Label {
                                     visible: !entry.modelData.event
@@ -289,7 +295,7 @@ RowLayout {
         spacing: Design.spaceSmall
 
         QQC2.Label {
-            text: view.relDay(view.day)
+            text: view.relDay(view.shownDay)
             color: KanteStyle.mutedTextColor
             font: Kirigami.Theme.smallFont
         }
@@ -297,11 +303,11 @@ RowLayout {
             Layout.fillWidth: true
             level: 4
             wrapMode: Text.Wrap
-            text: Qt.locale().toString(view.day, "dddd, d. MMMM yyyy")
+            text: Qt.locale().toString(view.shownDay, "dddd, d. MMMM yyyy")
         }
         KanteButton {
             text: i18n("Open day →")
-            onClicked: view.openDay(view.day)
+            onClicked: view.openDay(view.shownDay)
         }
 
         QQC2.ScrollView {
@@ -322,6 +328,7 @@ RowLayout {
                         Layout.fillWidth: true
                         event: modelData
                         maximumLineCount: 0
+                        interactionsSuspended: view.interactionsSuspended
                     }
                 }
                 Repeater {
@@ -350,7 +357,7 @@ RowLayout {
             placeholderText: i18n("Task for this day, Enter saves")
             controller: view.controller
             popupHost: view.dragHost
-            day: view.day
+            day: view.shownDay
         }
     }
 }

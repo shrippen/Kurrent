@@ -17,6 +17,8 @@ Item {
     property bool compact: false
     /** Title lines before it elides; 0 wraps without limit. */
     property int maximumLineCount: 2
+    /** True while the editor's dim covers the Agenda: no tooltip then. */
+    property bool interactionsSuspended: false
 
     readonly property color calendarColor: Design.colorForKey(String(event.calendarId))
     readonly property font timeFont: KanteStyle.active ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
@@ -28,7 +30,7 @@ Item {
         return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
     }
 
-    HoverHandler { id: hover }
+    HoverHandler { id: hover; enabled: !row.interactionsSuspended }
     QQC2.ToolTip.text: event.summary + (event.calendarName ? " · " + event.calendarName : "")
     QQC2.ToolTip.visible: hover.hovered
     QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay

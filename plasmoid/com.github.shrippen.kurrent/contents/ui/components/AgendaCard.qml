@@ -27,7 +27,7 @@ Rectangle {
     implicitHeight: body.implicitHeight + Design.spaceSmall * 2
     radius: Design.inputRadius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
-    border.width: inspected ? 1 : 0
+    border.width: inspected ? Design.agendaHairline : 0
     border.color: KanteStyle.accentColor
     opacity: task.completed ? Design.agendaDoneOpacity : 1
 
@@ -69,7 +69,7 @@ Rectangle {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: Design.spaceTiny
 
             QQC2.Label {
                 id: titleLabel
@@ -102,7 +102,7 @@ Rectangle {
                         QQC2.ToolTip.text: modelData
                         QQC2.ToolTip.visible: tagHover.hovered
                         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-                        HoverHandler { id: tagHover }
+                        HoverHandler { id: tagHover; enabled: !card.interactionsSuspended }
                     }
                 }
                 Repeater {

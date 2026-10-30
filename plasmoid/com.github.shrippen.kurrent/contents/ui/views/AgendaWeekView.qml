@@ -204,7 +204,7 @@ ColumnLayout {
                     radius: Design.inputRadius
                     color: drop.containsDrag ? KanteStyle.selectionColor
                                              : (isToday ? KanteStyle.tint1Color : (weekendDay || past ? KanteStyle.sunkenColor : "transparent"))
-                    border.width: isToday ? 1 : 0
+                    border.width: isToday ? Design.agendaHairline : 0
                     border.color: KanteStyle.accentColor
 
                     DropArea {
@@ -250,7 +250,7 @@ ColumnLayout {
                                 MouseArea {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
-                                    hoverEnabled: true
+                                    hoverEnabled: !view.interactionsSuspended
                                     onClicked: view.openDay(column.date)
                                     QQC2.ToolTip.text: i18n("Open day")
                                     QQC2.ToolTip.visible: containsMouse
@@ -304,7 +304,7 @@ ColumnLayout {
                                 color: column.full ? KanteStyle.warningColor : KanteStyle.mutedTextColor
                                 font: Kirigami.Theme.smallFont
                             }
-                            HoverHandler { id: loadHover }
+                            HoverHandler { id: loadHover; enabled: !view.interactionsSuspended }
                             QQC2.ToolTip.text: i18n("Appointments plus estimated task time, against a %1 workday (Settings → Views)", view.duration(view.workMinutes))
                             QQC2.ToolTip.visible: loadHover.hovered
                             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -340,6 +340,7 @@ ColumnLayout {
                                 required property var modelData
                                 Layout.fillWidth: true
                                 event: modelData
+                                interactionsSuspended: view.interactionsSuspended
                             }
                         }
 

@@ -257,7 +257,8 @@ QtObject {
     readonly property real agendaDoneOpacity: 0.6
     readonly property real agendaHalfHourOpacity: 0.4
     // Week load bar, the overdue tray, the task ghost (fill over the window colour, dashed edge
-    // where it runs into the next entry) and the month's tint legend.
+    // where it runs into the next entry), the month's tint legend, the height of an entry in a
+    // month cell and the fade of days outside the month.
     readonly property int agendaBar: Math.max(3, Math.round(Kirigami.Units.gridUnit / 5))
     readonly property int agendaBarRadius: KanteStyle.themed ? 0 : agendaBar / 2
     readonly property real agendaTrayFill: 0.06
@@ -265,6 +266,8 @@ QtObject {
     readonly property real agendaGhostFill: 0.15
     readonly property var agendaDash: [6, 4]
     readonly property int agendaSwatch: Math.round(Kirigami.Units.gridUnit * 0.7)
+    readonly property real agendaMonthEntry: Kirigami.Units.gridUnit * 1.1
+    readonly property real agendaOutsideOpacity: 0.55
 
     // Task row: reserved collapse-arrow column, then hierarchy indent, then checkbox.
     readonly property int taskCollapseCol: Kirigami.Units.iconSizes.small
