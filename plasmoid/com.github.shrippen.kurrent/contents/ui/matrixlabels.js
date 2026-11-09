@@ -53,7 +53,7 @@ function title(matrix, key, bucket, t) {
         return t.week(parseInt(String(key).substr(6), 10))
     }
     if (bucket === "month") {
-        return Qt.locale().monthName(start.getMonth(), Locale.LongFormat)
+        return Qt.locale().monthName(start.getMonth(), DateTime.LONG_FORMAT)
     }
     var today = parseIso(matrix.today)
     if (today) {
@@ -61,7 +61,7 @@ function title(matrix, key, bucket, t) {
         if (diff === 0) return t.today
         if (diff === 1) return t.tomorrow
     }
-    return Qt.locale().dayName(start.getDay(), Locale.ShortFormat) + " " + start.getDate()
+    return Qt.locale().dayName(start.getDay(), DateTime.SHORT_FORMAT) + " " + start.getDate()
 }
 
 function subtitle(matrix, key, bucket) {
