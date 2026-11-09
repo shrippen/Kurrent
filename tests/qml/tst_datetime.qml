@@ -153,6 +153,14 @@ TestCase {
         verify(label.indexOf(ru.standaloneMonthName(9, Locale.LongFormat)) === 0, label)
         verify(label.indexOf("2026") > 0, label)
         compare(DateTime.monthYearLabel(october, false, Qt.locale("es_ES")), "octubre de 2026")
+        // Languages without inflection keep the format's abbreviation, period included.
+        var de = Qt.locale("de_DE")
+        compare(DateTime.monthYearLabel(october, true, de), de.toString(october, DateTime.monthYearFormat(de, true)))
+    }
+
+    function test_unquote() {
+        compare(DateTime._unquote("'o''clock' 'de'"), "o'clock de")
+        compare(DateTime._unquote("''"), "'")
     }
 
     // Separators that belong to a field stay with it.

@@ -187,6 +187,7 @@ set(_kurrent_test_targets
     kurrent-calendar-test
     kurrent-taskstore-test
     kurrent-taskcontroller-store-test
+    kurrent-tui-screens-test
 )
 
 find_package(Qt6 COMPONENTS QuickTest Qml Quick)

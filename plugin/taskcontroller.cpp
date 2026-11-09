@@ -5250,11 +5250,11 @@ void TaskController::pushUndo(TaskLogic::UndoRecord record)
     if (m_applyingUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
         return;
     }
+    if (m_batchUndo) {
+        return; // a composite action pushes its own record
+    }
     if (m_collectingUndo) {
         m_collectedUndo.push_back(record);
-        return;
-    }
-    if (m_batchUndo) {
         return;
     }
     m_undo.push(record);
@@ -5287,7 +5287,7 @@ QString TaskController::undoLabel() const
         return title == tr("(Untitled)") ? tr("Undo Kanban order")
                                          : tr("Undo Kanban order of “%1”").arg(title);
     case TaskLogic::UndoRecord::Kind::Batch:
-        return tr("Undo moving %1 tasks").arg(rec.batch.size());
+        return tr("Undo moving %n task(s)", nullptr, int(rec.batch.size()));
     case TaskLogic::UndoRecord::Kind::None:
         break;
     }

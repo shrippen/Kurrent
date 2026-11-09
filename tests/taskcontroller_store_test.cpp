@@ -763,8 +763,6 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
 }
 
-// #29: the inspector's day presets move only the occurrence; the editor saving unchanged
-// dates keeps that move, and changing a date there edits the series.
 // "All to today" moves the whole tray; one undo brings every task back.
 void TaskControllerStoreTest::allToTodayIsOneUndoStep()
 {
@@ -797,6 +795,8 @@ void TaskControllerStoreTest::allToTodayIsOneUndoStep()
     QCOMPARE(m_controller->agendaOverdue().size(), 2);
 }
 
+// #29: the inspector's day presets move only the occurrence; the editor saving unchanged
+// dates keeps that move, and changing a date there edits the series.
 void TaskControllerStoreTest::seriesRescheduleMovesOccurrenceEditorEditsSeries()
 {
     const QDate today = QDate::currentDate();

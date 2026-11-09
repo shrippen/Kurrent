@@ -11,10 +11,10 @@
 #include <QSet>
 #include <QString>
 #include <QStringList>
-
-#include <vector>
 #include <QVariantList>
 #include <QVariantMap>
+
+#include <vector>
 
 namespace TaskLogic
 {

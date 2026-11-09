@@ -675,12 +675,17 @@ function weekdayNumericFormat(locale) {
 }
 
 function _unquote(text) {
-    return String(text).replace(/'([^']*)'/g, function (m, inner) { return inner.length ? inner : "'" })
+    // '…' quotes a literal; '' inside or outside a quote is one apostrophe ("'o''clock'").
+    return String(text).replace(/'((?:[^']|'')*)'/g, function (m, inner) {
+        return inner.length ? inner.replace(/''/g, "'") : "'"
+    })
 }
 
 /**
  * Month and year as a heading: like monthYearFormat, but with the month's standalone name
- * (nominative): Russian "октябрь 2026 г.", not the "октября" a date uses.
+ * (nominative) where the language inflects it: Russian "октябрь 2026 г.", not the "октября"
+ * a date uses. Elsewhere, and where a suffix is glued to the month (bo, mn), the format's own
+ * name stays (German "Okt. 2026" keeps its period).
  */
 function monthYearLabel(date, shortMonth, locale) {
     var loc = locale || Qt.locale()
@@ -691,8 +696,11 @@ function monthYearLabel(date, shortMonth, locale) {
     var out = ""
     for (var i = 0; i < tokens.length; ++i) {
         var t = tokens[i]
-        if (t.field && t.ch === "M" && t.text.length >= 3) {
-            out += loc.standaloneMonthName(date.getMonth(), t.text.length >= 4 ? Locale.LongFormat : Locale.ShortFormat)
+        var glued = i + 1 < tokens.length && !tokens[i + 1].field && /^[^\s,]/.test(tokens[i + 1].text)
+        var month = date.getMonth()
+        var inflects = loc.standaloneMonthName(month, Locale.LongFormat) !== loc.monthName(month, Locale.LongFormat)
+        if (t.field && t.ch === "M" && t.text.length >= 3 && inflects && !glued) {
+            out += loc.standaloneMonthName(month, t.text.length >= 4 ? Locale.LongFormat : Locale.ShortFormat)
         } else if (t.field) {
             out += loc.toString(date, t.text)
         } else {
