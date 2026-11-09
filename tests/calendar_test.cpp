@@ -38,6 +38,9 @@ private Q_SLOTS:
     void moveBackToOriginClearsMark();
     void completeClearsStaleOccurrence();
     void completeAllDayDailyKeepsDayAcrossDst();
+    void completeAfterMovingLaterSkipsPastOccurrences();
+    void staleOriginIsIgnored();
+    void moveOccurrenceWithoutStart();
 };
 
 namespace
@@ -403,6 +406,55 @@ void CalendarTest::completeAllDayDailyKeepsDayAcrossDst()
         QCOMPARE(todo->dtDue().date(), QDate(2026, 10, 25 + i));
         QCOMPARE(todo->dtStart().date(), QDate(2026, 10, 25 + i));
     }
+}
+
+// Moved later than the next occurrence: the series continues after the moved day.
+void CalendarTest::completeAfterMovingLaterSkipsPastOccurrences()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setDaily(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 3)); // Monday -> Thursday
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 5), QTime(12, 0))));
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 6), QTime(9, 0)));
+
+    KCalendarCore::Todo::Ptr weekly = seriesTodo(start, start.addSecs(3600));
+    weekly->recurrence()->setWeekly(1);
+    QVERIFY(TaskCalendar::moveOccurrence(weekly, 7)); // onto the next occurrence
+    QVERIFY(TaskCalendar::completeTodo(weekly, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 9), QTime(12, 0))));
+    QCOMPARE(weekly->dtStart(), QDateTime(QDate(2026, 11, 16), QTime(9, 0)));
+}
+
+// Another client (KOrganizer: Todo::setCompleted) moves DTRECURRENCE on and keeps our mark.
+void CalendarTest::staleOriginIsIgnored()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setDaily(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 2));
+    QCOMPARE(TaskCalendar::occurrenceOrigin(todo), QDate(2026, 11, 2));
+    todo->setDtRecurrence(QDateTime(QDate(2026, 11, 10), QTime(9, 0)));
+    QVERIFY(!TaskCalendar::occurrenceOrigin(todo).isValid());
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 10), QTime(12, 0))));
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 11), QTime(9, 0)));
+}
+
+// Series from tasks.org or Nextcloud often have DUE but no DTSTART.
+void CalendarTest::moveOccurrenceWithoutStart()
+{
+    // As Akonadi delivers it: an ICS without DTSTART (KCalendarCore reads the DUE as start).
+    KCalendarCore::Todo::Ptr seed(new KCalendarCore::Todo);
+    seed->setUid(QStringLiteral("no-start"));
+    const QDateTime due(QDate(2026, 11, 2), QTime(10, 0));
+    seed->setDtDue(due, true);
+    seed->recurrence()->setStartDateTime(due, false);
+    seed->recurrence()->setDaily(1);
+    KCalendarCore::Todo::Ptr todo = icsRoundTrip(seed);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 2));
+    const KCalendarCore::Todo::Ptr back = icsRoundTrip(todo);
+    QCOMPARE(back->dtDue(), QDateTime(QDate(2026, 11, 4), QTime(10, 0)));
+    QCOMPARE(back->dtDue(true), due);
+    QCOMPARE(TaskCalendar::occurrenceOrigin(back), QDate(2026, 11, 2));
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)

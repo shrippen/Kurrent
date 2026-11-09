@@ -385,7 +385,7 @@ struct UndoRecord {
     QDateTime seriesStart;
     QDateTime seriesDue;
     QDateTime occurrence;
-    QDate occurrenceOrigin;
+    QString occurrenceMark; // X-KDE-KURRENT-OCCURRENCE-ORIGIN as stored
     /** When true, undo restores kanbanManualOrderJson + sortMode (local kurrentrc). */
     bool restoreLayout = false;
     QString kanbanManualOrderJson;

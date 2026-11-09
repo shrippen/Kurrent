@@ -5,7 +5,7 @@
 ### English
 
 #### New
-- Agenda, Week and Month: recurring tasks can be dragged to another day too, and "All to today" takes them along. Only this occurrence moves; the series keeps its rule, and when you check the task off, the next occurrence follows the original day. The inspector's Today, Tomorrow and Next week do the same for a recurring task.
+- Agenda, Week and Month: recurring tasks can be dragged to another day too, and "All to today" takes them along. Only this occurrence moves; the series keeps its rule, and when you check the task off, the next occurrence follows the original day. The inspector's Today, Tomorrow and Next week and the Day view do the same for a recurring task; its time of day stays the series' time.
 
 #### Improved
 - `kurrent-tui` now comes with the prebuilt download, so the one-line installer sets it up too; before, only source builds had it.
@@ -19,7 +19,7 @@
 ### Deutsch
 
 #### Neu
-- Agenda, Woche und Monat: Auch wiederkehrende Aufgaben lassen sich auf einen anderen Tag ziehen, und „Alle auf heute“ nimmt sie mit. Verschoben wird nur dieses Vorkommen; die Serie behält ihre Regel, und beim Abhaken richtet sich das nächste Vorkommen nach dem ursprünglichen Tag. „Heute“, „Morgen“ und „Nächste Woche“ im Inspektor machen es bei wiederkehrenden Aufgaben genauso.
+- Agenda, Woche und Monat: Auch wiederkehrende Aufgaben lassen sich auf einen anderen Tag ziehen, und „Alle auf heute“ nimmt sie mit. Verschoben wird nur dieses Vorkommen; die Serie behält ihre Regel, und beim Abhaken richtet sich das nächste Vorkommen nach dem ursprünglichen Tag. „Heute“, „Morgen“ und „Nächste Woche“ im Inspektor und die Tagesansicht machen es bei wiederkehrenden Aufgaben genauso; die Uhrzeit bleibt die der Serie.
 
 #### Verbessert
 - `kurrent-tui` ist jetzt im fertigen Download enthalten, der Einzeiler installiert ihn also mit; vorher hatten ihn nur Quellbuilds.

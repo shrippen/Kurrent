@@ -20,7 +20,7 @@ TestCase {
         var p = Agenda.dragPayload({"itemId": 7, "uid": "u", "summary": "Weekly", "recurring": true, "priority": 1})
         compare(p.itemId, 7)
         compare(p.summary, "Weekly")
-        // Week and month columns refuse recurring tasks by this flag.
+        // The payload keeps the flag (a recurring task moves only its occurrence).
         compare(p.recurring, true)
         compare(Agenda.dragPayload({"itemId": 8}).recurring, false)
     }

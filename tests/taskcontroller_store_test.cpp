@@ -793,12 +793,38 @@ void TaskControllerStoreTest::seriesRescheduleMovesOccurrenceEditorEditsSeries()
     QCOMPARE(snap.value(QStringLiteral("summary")).toString(), QStringLiteral("daily renamed"));
     QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(1), QTime(9, 0)));
 
-    // A new due date in the editor edits the series and drops the move.
-    m_controller->updateTaskFull(1, {{QStringLiteral("dueDate"), QDateTime(today, QTime(17, 0))}});
+    // A new due date in the editor (the inline editor sends only due) edits the series:
+    // start and due are written together from the shown occurrence, so no occurrence
+    // stretches over days, and the move is dropped.
+    m_controller->updateTaskFull(1, {{QStringLiteral("dueDate"), QDateTime(today.addDays(1), QTime(17, 0))}});
     waitStore(spy, 4);
     snap = m_controller->taskSnapshotById(1);
-    QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(8, 0)));
-    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(17, 0)));
+    QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(1), QTime(8, 0)));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(1), QTime(17, 0)));
+    m_controller->setTaskCompleted(1, true);
+    waitStore(spy, 5);
+    snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(8), QTime(8, 0)));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(8), QTime(17, 0)));
+
+    // Day view: no time on another day and a block both move only the occurrence, by days.
+    m_controller->agendaMoveToDay(1, today.addDays(9));
+    waitStore(spy, 6);
+    snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(9), QTime(17, 0)));
+    m_controller->agendaSetBlock(1, today.addDays(10), 13 * 60, 14 * 60);
+    waitStore(spy, 7);
+    snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(10), QTime(8, 0)));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(10), QTime(17, 0)));
+    QCOMPARE(snap.value(QStringLiteral("recurrencePreset")).toString(), QStringLiteral("weekly"));
+
+    // Turning the series off keeps the shown (moved) dates.
+    m_controller->updateTaskFull(1, {{QStringLiteral("recurrencePreset"), QStringLiteral("none")}});
+    waitStore(spy, 8);
+    snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("recurrencePreset")).toString(), QStringLiteral("none"));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(10), QTime(17, 0)));
 }
 
 void TaskControllerStoreTest::agendaShiftMovesOccurrenceAndUsesLocalDays()
