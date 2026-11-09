@@ -420,3 +420,222 @@ function resolveDateFields(dateStr, timeStr, allDay, clearRequested) {
     }
     return { clear: false, date: combined }
 }
+
+/*
+ * Day labels in the locale's own order (#27). Every format is derived from the locale's long
+ * (or short) date format by dropping fields, so "Thursday, October 29" stays American,
+ * "Donnerstag, 29. Oktober" German and "10月29日木曜日" Japanese. Use with
+ * Qt.locale().toString(date, DateTime.longDayMonthFormat()).
+ *
+ * A literal right after a field without whitespace or a comma belongs to that field
+ * (German "d.", Japanese "M月", "d日") and goes or stays with it.
+ */
+
+function _dateFormatTokens(fmt) {
+    var tokens = []
+    var s = String(fmt)
+    var i = 0
+    while (i < s.length) {
+        var c = s.charAt(i)
+        if (c === "d" || c === "M" || c === "y") {
+            var j = i
+            while (j < s.length && s.charAt(j) === c) {
+                ++j
+            }
+            tokens.push({ field: true, ch: c, text: s.substring(i, j) })
+            i = j
+            continue
+        }
+        var start = i
+        while (i < s.length) {
+            var ch = s.charAt(i)
+            if (ch === "'") {
+                var close = s.indexOf("'", i + 1)
+                i = close < 0 ? s.length : close + 1
+                continue
+            }
+            if (ch === "d" || ch === "M" || ch === "y") {
+                break
+            }
+            ++i
+        }
+        tokens.push({ field: false, text: s.substring(start, i) })
+    }
+    return tokens
+}
+
+/** Leading part of a literal that sticks to the field before it ("." in ". ", "日", "('a')"). */
+function _fieldSuffix(text) {
+    var m = /^(?:[^\s,']|'[^']*')*/.exec(text)
+    return m ? m[0] : ""
+}
+
+function _isWeekday(token) {
+    return token.field && token.ch === "d" && token.text.length >= 3
+}
+
+function _isDay(token) {
+    return token.field && token.ch === "d" && token.text.length <= 2
+}
+
+function _isYear(token) {
+    return token.field && token.ch === "y"
+}
+
+/** Removes the first field matching `pred` and the separator that only it needed. */
+function _dropField(tokens, pred) {
+    var idx = -1
+    for (var i = 0; i < tokens.length; ++i) {
+        if (pred(tokens[i])) {
+            idx = i
+            break
+        }
+    }
+    if (idx < 0) {
+        return tokens
+    }
+    var hasPrevField = false
+    var hasNextField = false
+    for (var k = 0; k < tokens.length; ++k) {
+        if (tokens[k].field && k < idx) {
+            hasPrevField = true
+        } else if (tokens[k].field && k > idx) {
+            hasNextField = true
+        }
+    }
+    var out = tokens.slice()
+    var next = idx + 1 < out.length && !out[idx + 1].field ? out[idx + 1] : null
+    var prev = idx > 0 && !out[idx - 1].field ? out[idx - 1] : null
+    var rest = next ? next.text.substring(_fieldSuffix(next.text).length) : ""
+    if (!hasPrevField) {
+        rest = ""                      // leading field: its separator goes too
+    } else if (!hasNextField) {
+        rest = ""                      // trailing field: the separator before it goes,
+        if (prev) {                    // but not what belongs to the field before
+            out[idx - 1] = { field: false, text: _fieldSuffix(prev.text) }
+        }
+    } else if (prev && prev.text.length > 0) {
+        rest = ""                      // middle: keep the separator before it
+    }
+    out.splice(idx, next ? 2 : 1)
+    if (rest.length > 0) {
+        out.splice(idx, 0, { field: false, text: rest })
+    }
+    return out
+}
+
+function _joinFormat(tokens, mapField) {
+    var s = ""
+    for (var i = 0; i < tokens.length; ++i) {
+        var t = tokens[i]
+        s += t.field && mapField ? mapField(t) : t.text
+    }
+    return s.replace(/^[\s,\/-]+/, "").replace(/[\s,\/-]+$/, "")
+}
+
+function _shortNames(t) {
+    if (t.text === "dddd") {
+        return "ddd"
+    }
+    if (t.text === "MMMM") {
+        return "MMM"
+    }
+    return t.text
+}
+
+var _formatCache = ({})
+
+function _cachedFormat(locale, kind, build) {
+    var loc = locale || Qt.locale()
+    var key = loc.name + "|" + kind
+    if (_formatCache[key] === undefined) {
+        _formatCache[key] = build(loc)
+    }
+    return _formatCache[key]
+}
+
+function _longTokens(locale) {
+    return _dateFormatTokens(locale.dateFormat(Locale.LongFormat))
+}
+
+/** "dddd, d. MMMM yyyy" in German: the locale's long date format. */
+function longDateFormat(locale) {
+    return _cachedFormat(locale, "longDate", function (loc) {
+        return loc.dateFormat(Locale.LongFormat)
+    })
+}
+
+/** Weekday, day and month, no year: "Donnerstag, 29. Oktober", "Thursday, October 29". */
+function longDayMonthFormat(locale) {
+    return _cachedFormat(locale, "longDayMonth", function (loc) {
+        return _joinFormat(_dropField(_longTokens(loc), _isYear))
+    })
+}
+
+/** Short weekday and month names: "Do., 29. Okt.", "Thu, Oct 29". */
+function shortDayMonthFormat(locale) {
+    return _cachedFormat(locale, "shortDayMonth", function (loc) {
+        return _joinFormat(_dropField(_longTokens(loc), _isYear), _shortNames)
+    })
+}
+
+/** Day and short month: "29. Okt.", "Oct 29". */
+function dayMonthFormat(locale) {
+    return _cachedFormat(locale, "dayMonth", function (loc) {
+        return _joinFormat(_dropField(_dropField(_longTokens(loc), _isYear), _isWeekday), _shortNames)
+    })
+}
+
+/** Day, short month and year: "29. Okt. 2026", "Oct 29, 2026". */
+function dayMonthYearFormat(locale) {
+    return _cachedFormat(locale, "dayMonthYear", function (loc) {
+        return _joinFormat(_dropField(_longTokens(loc), _isWeekday), _shortNames)
+    })
+}
+
+/** Month and year: "Oktober 2026", "2026年10月"; `shortMonth` for "Okt. 2026". */
+function monthYearFormat(locale, shortMonth) {
+    return _cachedFormat(locale, shortMonth ? "monthYearShort" : "monthYear", function (loc) {
+        var tokens = _dropField(_dropField(_longTokens(loc), _isWeekday), _isDay)
+        return _joinFormat(tokens, shortMonth ? _shortNames : null)
+    })
+}
+
+/** Numeric day and month from the short date format: "29.10.", "10/29", "10/29". */
+function numericDayMonthFormat(locale) {
+    return _cachedFormat(locale, "numericDayMonth", function (loc) {
+        var tokens = _dropField(_dateFormatTokens(loc.dateFormat(Locale.ShortFormat)), _isYear)
+        return _joinFormat(tokens, function (t) {
+            return t.text === "dd" ? "d" : (t.text === "MM" ? "M" : t.text)
+        })
+    })
+}
+
+/**
+ * Format for the start of a day range within one month: only the day where the day comes
+ * before the month ("2." for "2. – 8. Nov.", "2" in en_GB), else the full day and month
+ * ("Nov 2 – Nov 8").
+ */
+function rangeStartFormat(locale) {
+    return _cachedFormat(locale, "rangeStart", function (loc) {
+        var tokens = _dateFormatTokens(dayMonthFormat(loc))
+        var day = -1
+        var month = -1
+        for (var i = 0; i < tokens.length; ++i) {
+            if (_isDay(tokens[i]) && day < 0) {
+                day = i
+            } else if (tokens[i].field && tokens[i].ch === "M" && month < 0) {
+                month = i
+            }
+        }
+        if (day < 0 || month < 0 || day > month) {
+            return dayMonthFormat(loc)
+        }
+        return _joinFormat(_dropField(tokens, function (t) { return t.field && t.ch === "M" }))
+    })
+}
+
+/** Short weekday before the numeric date: "Do. 29.10.", "Thu 10/29". */
+function weekdayNumericFormat(locale) {
+    return "ddd " + numericDayMonthFormat(locale)
+}

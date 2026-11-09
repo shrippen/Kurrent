@@ -6,6 +6,7 @@ import "../colors.js" as Colors
 import "../components"
 import ".."
 import "../Kante"
+import "../datetime.js" as DateTime
 
 // Direction B: details of the clicked task beside the task pane (wide layout).
 // Reads the task live from the backend (taskSnapshotById), so edits made elsewhere show up;
@@ -95,7 +96,7 @@ Item {
         if (!d || isNaN(d)) {
             return i18n("No due date")
         }
-        var day = Qt.locale().toString(d, "ddd, d. MMM")
+        var day = Qt.locale().toString(d, DateTime.shortDayMonthFormat())
         return task.allDay ? day : day + ", " + Qt.locale().toString(d, Qt.locale().timeFormat(Locale.ShortFormat))
     }
 

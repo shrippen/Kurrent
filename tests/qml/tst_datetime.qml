@@ -88,4 +88,57 @@ TestCase {
         compare(DateTime.formatDueRowLabel(null, {}), "")
         compare(DateTime.formatDueRowLabel(new Date(Number.NaN), {}), "")
     }
+
+    // #27: day labels follow the locale's own order instead of fixed German formats.
+    function test_localeDayFormats_data() {
+        return [
+            { tag: "de_DE", locale: "de_DE", longDayMonth: "dddd, d. MMMM", shortDayMonth: "ddd, d. MMM",
+              dayMonth: "d. MMM", dayMonthYear: "d. MMM yyyy", monthYear: "MMMM yyyy", numeric: "d.M." },
+            { tag: "en_US", locale: "en_US", longDayMonth: "dddd, MMMM d", shortDayMonth: "ddd, MMM d",
+              dayMonth: "MMM d", dayMonthYear: "MMM d, yyyy", monthYear: "MMMM yyyy", numeric: "M/d" },
+            { tag: "en_GB", locale: "en_GB", longDayMonth: "dddd, d MMMM", shortDayMonth: "ddd, d MMM",
+              dayMonth: "d MMM", dayMonthYear: "d MMM yyyy", monthYear: "MMMM yyyy", numeric: "d/M" },
+            { tag: "ja_JP", locale: "ja_JP", longDayMonth: "M月d日dddd", shortDayMonth: "M月d日ddd",
+              dayMonth: "M月d日", dayMonthYear: "yyyy年M月d日", monthYear: "yyyy年M月", numeric: "M/d" },
+            { tag: "es_ES", locale: "es_ES", longDayMonth: "dddd, d 'de' MMMM", shortDayMonth: "ddd, d 'de' MMM",
+              dayMonth: "d 'de' MMM", dayMonthYear: "d 'de' MMM 'de' yyyy", monthYear: "MMMM 'de' yyyy", numeric: "d/M" },
+        ]
+    }
+
+    function test_localeDayFormats(row) {
+        var locale = Qt.locale(row.locale)
+        compare(DateTime.longDayMonthFormat(locale), row.longDayMonth)
+        compare(DateTime.shortDayMonthFormat(locale), row.shortDayMonth)
+        compare(DateTime.dayMonthFormat(locale), row.dayMonth)
+        compare(DateTime.dayMonthYearFormat(locale), row.dayMonthYear)
+        compare(DateTime.monthYearFormat(locale), row.monthYear)
+        compare(DateTime.numericDayMonthFormat(locale), row.numeric)
+        compare(DateTime.longDateFormat(locale), locale.dateFormat(Locale.LongFormat))
+    }
+
+    function test_rangeStartFormat() {
+        compare(DateTime.rangeStartFormat(Qt.locale("de_DE")), "d.")
+        compare(DateTime.rangeStartFormat(Qt.locale("en_GB")), "d")
+        compare(DateTime.rangeStartFormat(Qt.locale("en_US")), "MMM d")
+        compare(DateTime.rangeStartFormat(Qt.locale("ja_JP")), "M月d日")
+    }
+
+    // Quoted suffixes stay whole (eu: "d('a')"), no unbalanced parenthesis.
+    function test_quotedSuffix() {
+        var eu = Qt.locale("eu_ES")
+        var label = eu.toString(new Date(2026, 9, 29), DateTime.dayMonthFormat(eu))
+        compare(label.split("(").length, label.split(")").length)
+    }
+
+    function test_localeDayLabels() {
+        var day = new Date(2026, 9, 29)
+        var en = Qt.locale("en_US")
+        compare(en.toString(day, DateTime.longDayMonthFormat(en)), "Thursday, October 29")
+        var de = Qt.locale("de_DE")
+        compare(de.toString(day, DateTime.longDayMonthFormat(de)), "Donnerstag, 29. Oktober")
+        compare(de.toString(day, DateTime.numericDayMonthFormat(de)), "29.10.")
+        var ja = Qt.locale("ja_JP")
+        compare(ja.toString(day, DateTime.longDayMonthFormat(ja)), "10月29日木曜日")
+        compare(ja.toString(day, DateTime.monthYearFormat(ja)), "2026年10月")
+    }
 }
