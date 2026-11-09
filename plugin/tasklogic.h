@@ -327,6 +327,8 @@ struct TaskRebuildOutput {
     VisibleFilterResult filtered;
     /** computeCounts over flatForCounts or allTasks, computed on the worker thread. */
     SidebarCounts counts;
+    /** The input's countsExcludeCollapsed: every count of this output uses the same source. */
+    bool countsExcludeCollapsed = false;
 };
 
 TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate &today);

@@ -5993,7 +5993,7 @@ TaskLogic::TaskRebuildInput TaskController::buildRebuildInput(const QList<TaskEn
 
 void TaskController::applyRebuildOutput(const TaskLogic::TaskRebuildOutput &output)
 {
-    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? output.flatForCounts : output.allTasks;
+    const QList<TaskEntry> &countSource = output.countsExcludeCollapsed ? output.flatForCounts : output.allTasks;
     m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(countSource));
     m_taskModel.setTasks(output.tasks);
 
@@ -6213,7 +6213,6 @@ void TaskController::updateAvailableLocations(const QList<TaskEntry> &tasks)
 
 void TaskController::updateCounts(const TaskLogic::SidebarCounts &counts)
 {
-
     if (m_labelTaskCounts != counts.totalLabels) {
         m_labelTaskCounts = counts.totalLabels;
         Q_EMIT labelTaskCountsChanged();

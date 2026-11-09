@@ -13,6 +13,7 @@
 #include <QQmlPropertyMap>
 #include <QStandardPaths>
 #include <QSignalSpy>
+#include <QScopeGuard>
 #include <QSemaphore>
 #include <QTest>
 #include <QThreadPool>
@@ -299,11 +300,14 @@ void TaskControllerStoreTest::rebuildRequestedDuringRebuildRuns()
         });
     }
     holding.acquire(threads);
+    // Release the pool even when a check below fails and returns early.
+    auto releaseGate = qScopeGuard([&gate, threads] { gate.release(threads); });
 
     m_controller->setSearchQuery(QStringLiteral("alpha"));
     QTRY_VERIFY(m_controller->listReorganizing()); // first rebuild queued
     m_controller->setSearchQuery(QStringLiteral("beta"));
     QTest::qWait(120); // debounce elapses: second rebuild requested while the first waits
+    releaseGate.dismiss();
     gate.release(threads);
 
     QTRY_VERIFY(!m_controller->listReorganizing());

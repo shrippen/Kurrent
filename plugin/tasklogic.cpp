@@ -358,7 +358,7 @@ QList<TaskEntry> sortFlatForListGroup(const QList<TaskEntry> &tasks,
     QHash<QString, int> rankOf;
     rankOf.reserve(ordered.size());
     for (int r = 0; r < ordered.size(); ++r) {
-        rankOf.insert(ordered.at(r), r); // emplace keeps the first, like indexOf
+        rankOf.tryEmplace(ordered.at(r), r); // keeps the first position, like indexOf
     }
 
     struct Segment {
@@ -476,6 +476,7 @@ TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate 
     }
     // Only membership and treeHidden matter for counting: skip sorting siblings.
     out.flatForCounts = flattenTreeImpl(input.allTasks, input.sortMode, input.collapsedUids, SiblingOrder::Unsorted);
+    out.countsExcludeCollapsed = input.countsExcludeCollapsed;
     out.counts = computeCounts(input.countsExcludeCollapsed ? out.flatForCounts : out.allTasks,
                                input.filters, input.extraLabels, today);
     return out;
