@@ -27,7 +27,9 @@ cmake --install "${BUILD}"
 
 if command -v strip >/dev/null 2>&1; then
     find "${DEST}" -type f -name 'libkurrentplugin.so' -exec strip --strip-unneeded {} +
-    find "${DEST}/bin" -type f -name 'kurrent-tui' -exec strip --strip-unneeded {} +
+    if [[ -d "${DEST}/bin" ]]; then
+        find "${DEST}/bin" -type f -name 'kurrent-tui' -exec strip --strip-unneeded {} +
+    fi
 fi
 
 SO="$(find "${DEST}" -name 'libkurrentplugin.so' -print -quit)"

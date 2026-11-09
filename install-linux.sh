@@ -634,7 +634,11 @@ fix_install_ownership() {
     if [[ "${EUID}" -eq 0 ]]; then
         chown -R "${INSTALL_USER}:${INSTALL_USER}" \
             "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
-        # Only our binary: bin/ is shared with other programs.
+        # bin/ holds other programs too: only the directory itself (a root-owned one left by
+        # an earlier sudo install would make the copy fail) and our binary.
+        if [[ -d "${INSTALL_PREFIX}/bin" && "${INSTALL_PREFIX}" == "${INSTALL_HOME}"/* ]]; then
+            chown "${INSTALL_USER}:${INSTALL_USER}" "${INSTALL_PREFIX}/bin"
+        fi
         if [[ -e "${INSTALL_PREFIX}/bin/kurrent-tui" ]]; then
             chown "${INSTALL_USER}:${INSTALL_USER}" "${INSTALL_PREFIX}/bin/kurrent-tui"
         fi
@@ -721,6 +725,9 @@ install_from_overlay() {
     fi
     register_plasmoid "$plasmoid"
     write_qml_env
+    if [[ -x "${INSTALL_PREFIX}/bin/kurrent-tui" ]]; then
+        info "Terminal client: ${INSTALL_PREFIX}/bin/kurrent-tui"
+    fi
     restart_plasmashell
 }
 
