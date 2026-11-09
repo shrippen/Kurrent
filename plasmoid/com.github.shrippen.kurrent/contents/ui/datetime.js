@@ -2,17 +2,22 @@
  * Locale-aware date/time helpers for segmented editor fields.
  */
 
+// QLocale::FormatType as numbers: the Locale enum is not defined when this file is reached
+// through another script's .import (matrixlabels.js), only in a QML component's context.
+var LONG_FORMAT = 0
+var SHORT_FORMAT = 1
+
 function pad2(n) {
     return (n < 10 ? "0" : "") + String(n)
 }
 
 /** Short date format from system locale; year always 4 digits for editing. */
 function dateFormatString() {
-    return String(Qt.locale().dateFormat(Locale.ShortFormat)).replace(/y+/g, "yyyy")
+    return String(Qt.locale().dateFormat(SHORT_FORMAT)).replace(/y+/g, "yyyy")
 }
 
 function timeFormatString() {
-    return String(Qt.locale().timeFormat(Locale.ShortFormat)).replace(/:?s+/g, "").replace(/\s+$/, "")
+    return String(Qt.locale().timeFormat(SHORT_FORMAT)).replace(/:?s+/g, "").replace(/\s+$/, "")
 }
 
 function _parseFormatTokens(fmt) {
@@ -571,13 +576,13 @@ function _cachedFormat(locale, kind, build) {
 }
 
 function _longTokens(locale) {
-    return _dateFormatTokens(locale.dateFormat(Locale.LongFormat))
+    return _dateFormatTokens(locale.dateFormat(LONG_FORMAT))
 }
 
 /** "dddd, d. MMMM yyyy" in German: the locale's long date format. */
 function longDateFormat(locale) {
     return _cachedFormat(locale, "longDate", function (loc) {
-        return loc.dateFormat(Locale.LongFormat)
+        return loc.dateFormat(LONG_FORMAT)
     })
 }
 
@@ -620,7 +625,7 @@ function monthYearFormat(locale, shortMonth) {
 /** Numeric day and month from the short date format: "29.10.", "10/29", "10/29". */
 function numericDayMonthFormat(locale) {
     return _cachedFormat(locale, "numericDayMonth", function (loc) {
-        var tokens = _dropField(_dateFormatTokens(loc.dateFormat(Locale.ShortFormat)), _isYear)
+        var tokens = _dropField(_dateFormatTokens(loc.dateFormat(SHORT_FORMAT)), _isYear)
         return _joinFormat(tokens, function (t) {
             return t.text === "dd" ? "d" : (t.text === "MM" ? "M" : t.text)
         })
@@ -698,9 +703,9 @@ function monthYearLabel(date, shortMonth, locale) {
         var t = tokens[i]
         var glued = i + 1 < tokens.length && !tokens[i + 1].field && /^[^\s,]/.test(tokens[i + 1].text)
         var month = date.getMonth()
-        var inflects = loc.standaloneMonthName(month, Locale.LongFormat) !== loc.monthName(month, Locale.LongFormat)
+        var inflects = loc.standaloneMonthName(month, LONG_FORMAT) !== loc.monthName(month, LONG_FORMAT)
         if (t.field && t.ch === "M" && t.text.length >= 3 && inflects && !glued) {
-            out += loc.standaloneMonthName(month, t.text.length >= 4 ? Locale.LongFormat : Locale.ShortFormat)
+            out += loc.standaloneMonthName(month, t.text.length >= 4 ? LONG_FORMAT : SHORT_FORMAT)
         } else if (t.field) {
             out += loc.toString(date, t.text)
         } else {
