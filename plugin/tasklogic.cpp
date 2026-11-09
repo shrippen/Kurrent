@@ -350,35 +350,71 @@ QList<TaskEntry> sortFlatForListGroup(const QList<TaskEntry> &tasks,
     if (mode.isEmpty() || mode == QLatin1String("default")) {
         mode = QStringLiteral("priority,due,title");
     }
+    const QList<SortLevel> sortKeys = parseSortMode(mode);
 
-    QList<QList<TaskEntry>> segments;
-    segments.reserve(tasks.size());
+    // Group order as compareListGroupKeys defines it, resolved once per segment
+    // instead of once per comparison.
+    const QStringList ordered = listGroupSidebarOrderKeys(normalized, ctx);
+    QHash<QString, int> rankOf;
+    rankOf.reserve(ordered.size());
+    for (int r = 0; r < ordered.size(); ++r) {
+        rankOf.tryEmplace(ordered.at(r), r); // keeps the first position, like indexOf
+    }
+
+    struct Segment {
+        int begin = 0;
+        int end = 0;
+        QString key;
+        int rank = -1;
+        QString label; // only for keys outside the sidebar order
+    };
+    const QDate today = QDate::currentDate();
+    QList<Segment> segments;
     int i = 0;
     while (i < tasks.size()) {
-        QList<TaskEntry> segment;
+        Segment segment;
+        segment.begin = i;
+        const TaskEntry &root = tasks.at(i);
         do {
-            segment.append(tasks.at(i++));
+            ++i;
         } while (i < tasks.size() && tasks.at(i).indentLevel > 0);
+        segment.end = i;
+        segment.key = root.bucket.isEmpty() ? listGroupKey(root, normalized, FilterState{}, today) : root.bucket;
+        const auto rank = rankOf.constFind(segment.key);
+        if (rank != rankOf.cend()) {
+            segment.rank = rank.value();
+        } else {
+            segment.label = listGroupLabel(segment.key, normalized);
+        }
         segments.append(segment);
     }
 
-    const QDate today = QDate::currentDate();
-    std::stable_sort(segments.begin(), segments.end(), [&](const QList<TaskEntry> &left, const QList<TaskEntry> &right) {
-        const TaskEntry &leftRoot = left.first();
-        const TaskEntry &rightRoot = right.first();
-        const QString leftKey = leftRoot.bucket.isEmpty()
-                ? listGroupKey(leftRoot, normalized, FilterState{}, today)
-                : leftRoot.bucket;
-        const QString rightKey = rightRoot.bucket.isEmpty()
-                ? listGroupKey(rightRoot, normalized, FilterState{}, today)
-                : rightRoot.bucket;
-        if (leftKey != rightKey) {
-            const int groupCmp = compareListGroupKeys(leftKey, rightKey, normalized, ctx);
+    const auto groupCompare = [](const Segment &left, const Segment &right) -> int {
+        const bool leftKnown = left.rank >= 0;
+        const bool rightKnown = right.rank >= 0;
+        if (leftKnown && rightKnown) {
+            return left.rank == right.rank ? 0 : (left.rank < right.rank ? -1 : 1);
+        }
+        if (leftKnown != rightKnown) {
+            return leftKnown ? -1 : 1;
+        }
+        const int labelCmp = QString::localeAwareCompare(left.label, right.label);
+        if (labelCmp != 0) {
+            return labelCmp < 0 ? -1 : 1;
+        }
+        return left.key < right.key ? -1 : (left.key > right.key ? 1 : 0);
+    };
+
+    std::stable_sort(segments.begin(), segments.end(), [&](const Segment &left, const Segment &right) {
+        if (left.key != right.key) {
+            const int groupCmp = groupCompare(left, right);
             if (groupCmp != 0) {
                 return groupCmp < 0;
             }
         }
-        const int cmp = compareTasks(leftRoot, rightRoot, mode);
+        const TaskEntry &leftRoot = tasks.at(left.begin);
+        const TaskEntry &rightRoot = tasks.at(right.begin);
+        const int cmp = compareTasks(leftRoot, rightRoot, sortKeys);
         if (cmp != 0) {
             return cmp < 0;
         }
@@ -387,10 +423,22 @@ QList<TaskEntry> sortFlatForListGroup(const QList<TaskEntry> &tasks,
 
     QList<TaskEntry> out;
     out.reserve(tasks.size());
-    for (const QList<TaskEntry> &segment : segments) {
-        out.append(segment);
+    for (const Segment &segment : segments) {
+        for (int k = segment.begin; k < segment.end; ++k) {
+            out.append(tasks.at(k));
+        }
     }
     return out;
+}
+
+namespace
+{
+enum class SiblingOrder { Sorted, Unsorted };
+
+QList<TaskEntry> flattenTreeImpl(const QList<TaskEntry> &input,
+                                 const QString &sortMode,
+                                 const QSet<QString> &collapsedUids,
+                                 SiblingOrder order);
 }
 
 TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate &today)
@@ -426,7 +474,11 @@ TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate 
         }
         out.tasks = drilled;
     }
-    out.flatForCounts = flattenTree(input.allTasks, input.sortMode, input.collapsedUids);
+    // Only membership and treeHidden matter for counting: skip sorting siblings.
+    out.flatForCounts = flattenTreeImpl(input.allTasks, input.sortMode, input.collapsedUids, SiblingOrder::Unsorted);
+    out.countsExcludeCollapsed = input.countsExcludeCollapsed;
+    out.counts = computeCounts(input.countsExcludeCollapsed ? out.flatForCounts : out.allTasks,
+                               input.filters, input.extraLabels, today);
     return out;
 }
 
@@ -476,6 +528,11 @@ QDateTime rescheduleDue(const QDateTime &currentDue, DaySpan daySpan, const QDat
 
 QString joinUrl(const QString &description, const QString &location)
 {
+    // Cheap pre-check: most tasks carry no link, skip the concatenation and regex.
+    const QLatin1String scheme("http");
+    if (!location.contains(scheme, Qt::CaseInsensitive) && !description.contains(scheme, Qt::CaseInsensitive)) {
+        return {};
+    }
     static const QRegularExpression re(QStringLiteral(R"((https?://[^\s<>"'\)\]]+))"),
                                        QRegularExpression::CaseInsensitiveOption);
     const QString haystack = location + QLatin1Char('\n') + description;
@@ -559,26 +616,61 @@ QString progressBandKey(int percentComplete)
     return QStringLiteral("76-100");
 }
 
-int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &sortMode)
+QList<SortLevel> parseSortMode(const QString &sortMode)
 {
-    const QStringList keys = sortMode.split(QLatin1Char(','), Qt::SkipEmptyParts);
-    for (QString raw : keys) {
-        raw = raw.trimmed();
+    using Field = SortLevel::Field;
+    static const QHash<QString, Field> fields = {
+        {QStringLiteral("due"), Field::Due},
+        {QStringLiteral("start"), Field::Start},
+        {QStringLiteral("priority"), Field::Priority},
+        {QStringLiteral("title"), Field::Title},
+        {QStringLiteral("completed"), Field::Completed},
+        {QStringLiteral("reminder"), Field::Reminder},
+        {QStringLiteral("recurring"), Field::Recurring},
+        {QStringLiteral("progress"), Field::Progress},
+        {QStringLiteral("project"), Field::Project},
+        {QStringLiteral("label"), Field::Label},
+        {QStringLiteral("status"), Field::Status},
+        {QStringLiteral("secrecy"), Field::Secrecy},
+        {QStringLiteral("location"), Field::Location},
+    };
+    QList<SortLevel> keys;
+    const QStringList parts = sortMode.split(QLatin1Char(','), Qt::SkipEmptyParts);
+    for (const QString &part : parts) {
+        QString raw = part.trimmed();
         if (raw.isEmpty() || raw == QLatin1String("default")) {
             continue;
         }
-
-        bool descending = false;
-        QString field = raw;
+        SortLevel key;
         if (raw.endsWith(QLatin1String("Desc"))) {
-            descending = true;
-            field = raw.left(raw.size() - 4);
+            key.descending = true;
+            raw.chop(4);
         }
+        const auto it = fields.constFind(raw);
+        if (it == fields.cend()) {
+            continue; // unknown level: compares equal, as before
+        }
+        key.field = it.value();
+        keys.append(key);
+    }
+    return keys;
+}
 
+int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &sortMode)
+{
+    return compareTasks(left, right, parseSortMode(sortMode));
+}
+
+int compareTasks(const TaskEntry &left, const TaskEntry &right, const QList<SortLevel> &keys)
+{
+    using Field = SortLevel::Field;
+    for (const SortLevel &key : keys) {
+        const bool descending = key.descending;
+        const Field field = key.field;
         int cmp = 0;
         // When true, "has value" vs empty stays dated/started-before-empty even if Desc.
         bool flipHasEmpty = true;
-        if (field == QLatin1String("due")) {
+        if (field == Field::Due) {
             const bool leftHasDue = left.dueDate.isValid();
             const bool rightHasDue = right.dueDate.isValid();
             if (leftHasDue != rightHasDue) {
@@ -591,7 +683,7 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
                     cmp = 1;
                 }
             }
-        } else if (field == QLatin1String("start")) {
+        } else if (field == Field::Start) {
             const bool leftHas = left.startDate.isValid();
             const bool rightHas = right.startDate.isValid();
             if (leftHas != rightHas) {
@@ -604,7 +696,7 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
                     cmp = 1;
                 }
             }
-        } else if (field == QLatin1String("priority")) {
+        } else if (field == Field::Priority) {
             const int leftRank = left.priority <= 0 ? 100 : left.priority;
             const int rightRank = right.priority <= 0 ? 100 : right.priority;
             if (leftRank < rightRank) {
@@ -612,18 +704,18 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
             } else if (leftRank > rightRank) {
                 cmp = 1;
             }
-        } else if (field == QLatin1String("title")) {
+        } else if (field == Field::Title) {
             cmp = QString::compare(left.summary, right.summary, Qt::CaseInsensitive);
             if (cmp > 0) {
                 cmp = 1;
             } else if (cmp < 0) {
                 cmp = -1;
             }
-        } else if (field == QLatin1String("completed")) {
+        } else if (field == Field::Completed) {
             if (left.completed != right.completed) {
                 cmp = left.completed ? 1 : -1;
             }
-        } else if (field == QLatin1String("reminder")) {
+        } else if (field == Field::Reminder) {
             const bool leftHas = left.reminderMinutes >= 0;
             const bool rightHas = right.reminderMinutes >= 0;
             if (leftHas != rightHas) {
@@ -635,17 +727,17 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
                     cmp = 1;
                 }
             }
-        } else if (field == QLatin1String("recurring")) {
+        } else if (field == Field::Recurring) {
             if (left.recurring != right.recurring) {
                 cmp = left.recurring ? -1 : 1;
             }
-        } else if (field == QLatin1String("progress")) {
+        } else if (field == Field::Progress) {
             if (left.percentComplete < right.percentComplete) {
                 cmp = -1;
             } else if (left.percentComplete > right.percentComplete) {
                 cmp = 1;
             }
-        } else if (field == QLatin1String("project")) {
+        } else if (field == Field::Project) {
             const QString leftName = left.collectionName.trimmed();
             const QString rightName = right.collectionName.trimmed();
             if (leftName.isEmpty() != rightName.isEmpty()) {
@@ -659,7 +751,7 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
                     cmp = -1;
                 }
             }
-        } else if (field == QLatin1String("label")) {
+        } else if (field == Field::Label) {
             const QString leftLabel = left.categories.isEmpty() ? QString() : left.categories.first().trimmed();
             const QString rightLabel = right.categories.isEmpty() ? QString() : right.categories.first().trimmed();
             if (leftLabel.isEmpty() != rightLabel.isEmpty()) {
@@ -673,7 +765,7 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
                     cmp = -1;
                 }
             }
-        } else if (field == QLatin1String("status")) {
+        } else if (field == Field::Status) {
             const auto statusRank = [](int status, bool completed) -> int {
                 if (completed || status == 3) {
                     return 3;
@@ -696,13 +788,13 @@ int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &s
             } else if (leftRank > rightRank) {
                 cmp = 1;
             }
-        } else if (field == QLatin1String("secrecy")) {
+        } else if (field == Field::Secrecy) {
             if (left.secrecy < right.secrecy) {
                 cmp = -1;
             } else if (left.secrecy > right.secrecy) {
                 cmp = 1;
             }
-        } else if (field == QLatin1String("location")) {
+        } else if (field == Field::Location) {
             const QString leftLoc = left.location.trimmed();
             const QString rightLoc = right.location.trimmed();
             if (leftLoc.isEmpty() != rightLoc.isEmpty()) {
@@ -793,6 +885,23 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
         out.sidebarSecrecy.insert(QString::number(secrecy), 0);
     }
 
+    // Accumulate in plain counters; QVariantMap insert/value per increment was the
+    // main cost. Written into the maps once at the end.
+    const int viewCount = viewIds.size();
+    QVector<int> viewTotals(viewCount, 0);
+    const int completedIndex = viewIds.indexOf(ViewId::Completed);
+    int highTotal = 0;
+    QVector<int> smartTotals(filters.allSmartViews.size(), 0);
+    QHash<QString, int> totalLabels;
+    QHash<QString, int> totalLocations;
+    QHash<qint64, int> sidebarProjects;
+    QHash<QString, int> sidebarLabels;
+    QHash<int, int> sidebarPriorities;
+    QHash<QString, int> sidebarProgress;
+    QHash<int, int> sidebarStatus;
+    QHash<int, int> sidebarSecrecy;
+    QHash<QString, int> sidebarLocations;
+
     const auto passExcept = [&](const TaskEntry &task, bool skipCollection, bool skipLabel, bool skipPriority,
                                 bool skipProgress, bool skipStatus, bool skipSecrecy, bool skipLocation) -> bool {
         if (!skipCollection && filters.selectedCollectionId >= 0 && task.collectionId != filters.selectedCollectionId) {
@@ -829,11 +938,11 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
             if (category.isEmpty()) {
                 continue;
             }
-            out.totalLabels.insert(category, out.totalLabels.value(category).toInt() + 1);
+            ++totalLabels[category];
         }
         const QString location = task.location.trimmed();
         if (!location.isEmpty()) {
-            out.totalLocations.insert(location, out.totalLocations.value(location).toInt() + 1);
+            ++totalLocations[location];
         }
 
         const bool passSearch = matchesSearch(task, filters.searchQuery, filters.searchScope, filters.searchCase);
@@ -841,27 +950,25 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
         const bool passSidebarForViews = passExcept(task, false, false, false, false, false, false, false);
 
         if (passSidebarForViews && passSearch) {
-            for (const QString &viewId : viewIds) {
-                if (viewId == ViewId::Completed) {
-                    if (task.completed && matchesView(task, viewId, today)) {
-                        out.viewCounts.insert(viewId, out.viewCounts.value(viewId).toInt() + 1);
+            for (int v = 0; v < viewCount; ++v) {
+                if (v == completedIndex) {
+                    if (task.completed && matchesView(task, viewIds.at(v), today)) {
+                        ++viewTotals[v];
                     }
-                } else if (passCompleted && matchesView(task, viewId, today)) {
-                    out.viewCounts.insert(viewId, out.viewCounts.value(viewId).toInt() + 1);
+                } else if (passCompleted && matchesView(task, viewIds.at(v), today)) {
+                    ++viewTotals[v];
                 }
             }
             if (passCompleted && !task.completed && priorityBand(task.priority) == PriorityBand::High) {
-                out.viewCounts.insert(QStringLiteral("high"),
-                                      out.viewCounts.value(QStringLiteral("high")).toInt() + 1);
+                ++highTotal;
             }
         }
 
         // Smart view count badges — iterate all registered smart views.
         if (passCompleted && passSearch) {
-            for (const auto &sv : filters.allSmartViews) {
-                if (matchesSmartView(task, sv.second, today)) {
-                    const QString svKey = QStringLiteral("smart:") + sv.first;
-                    out.viewCounts.insert(svKey, out.viewCounts.value(svKey).toInt() + 1);
+            for (int v = 0; v < filters.allSmartViews.size(); ++v) {
+                if (matchesSmartView(task, filters.allSmartViews.at(v).second, today)) {
+                    ++smartTotals[v];
                 }
             }
         }
@@ -872,8 +979,7 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
 
         if (inCurrentView && passSearch
             && passExcept(task, true, false, false, false, false, false, false)) {
-            const QString projectKey = QString::number(task.collectionId);
-            out.sidebarProjects.insert(projectKey, out.sidebarProjects.value(projectKey).toInt() + 1);
+            ++sidebarProjects[task.collectionId];
         }
         if (inCurrentView && passSearch
             && passExcept(task, false, true, false, false, false, false, false)) {
@@ -881,35 +987,65 @@ SidebarCounts computeCounts(const QList<TaskEntry> &tasks, const FilterState &fi
                 if (category.isEmpty()) {
                     continue;
                 }
-                out.sidebarLabels.insert(category, out.sidebarLabels.value(category).toInt() + 1);
+                ++sidebarLabels[category];
             }
         }
         if (inCurrentView && passSearch
             && passExcept(task, false, false, true, false, false, false, false)) {
-            const QString priorityKey = QString::number(priorityBand(task.priority));
-            out.sidebarPriorities.insert(priorityKey, out.sidebarPriorities.value(priorityKey).toInt() + 1);
+            ++sidebarPriorities[priorityBand(task.priority)];
         }
         if (inCurrentView && passSearch
             && passExcept(task, false, false, false, true, false, false, false)) {
-            const QString band = progressBandKey(task.percentComplete);
-            out.sidebarProgress.insert(band, out.sidebarProgress.value(band).toInt() + 1);
+            ++sidebarProgress[progressBandKey(task.percentComplete)];
         }
         if (inCurrentView && passSearch
             && passExcept(task, false, false, false, false, true, false, false)) {
-            const QString statusKey = QString::number(normalizeStatus(task.status));
-            out.sidebarStatus.insert(statusKey, out.sidebarStatus.value(statusKey).toInt() + 1);
+            ++sidebarStatus[normalizeStatus(task.status)];
         }
         if (inCurrentView && passSearch
             && passExcept(task, false, false, false, false, false, true, false)) {
-            const QString secrecyKey = QString::number(qBound(0, task.secrecy, 2));
-            out.sidebarSecrecy.insert(secrecyKey, out.sidebarSecrecy.value(secrecyKey).toInt() + 1);
+            ++sidebarSecrecy[qBound(0, task.secrecy, 2)];
         }
         if (inCurrentView && passSearch
             && passExcept(task, false, false, false, false, false, false, true)
             && !location.isEmpty()) {
-            out.sidebarLocations.insert(location, out.sidebarLocations.value(location).toInt() + 1);
+            ++sidebarLocations[location];
         }
     }
+
+    for (int v = 0; v < viewCount; ++v) {
+        out.viewCounts.insert(viewIds.at(v), viewTotals.at(v));
+    }
+    out.viewCounts.insert(QStringLiteral("high"), highTotal);
+    // Several smart views may share an id: their counts add up, as before.
+    QHash<QString, int> smartById;
+    for (int v = 0; v < filters.allSmartViews.size(); ++v) {
+        if (smartTotals.at(v) > 0) {
+            smartById[QStringLiteral("smart:") + filters.allSmartViews.at(v).first] += smartTotals.at(v);
+        }
+    }
+    for (auto it = smartById.cbegin(); it != smartById.cend(); ++it) {
+        out.viewCounts.insert(it.key(), it.value());
+    }
+    const auto fill = [](QVariantMap &map, const auto &counts) {
+        for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
+            map.insert(it.key(), it.value());
+        }
+    };
+    const auto fillNumbered = [](QVariantMap &map, const auto &counts) {
+        for (auto it = counts.cbegin(); it != counts.cend(); ++it) {
+            map.insert(QString::number(it.key()), it.value());
+        }
+    };
+    fill(out.totalLabels, totalLabels);
+    fill(out.totalLocations, totalLocations);
+    fillNumbered(out.sidebarProjects, sidebarProjects);
+    fill(out.sidebarLabels, sidebarLabels);
+    fillNumbered(out.sidebarPriorities, sidebarPriorities);
+    fill(out.sidebarProgress, sidebarProgress);
+    fillNumbered(out.sidebarStatus, sidebarStatus);
+    fillNumbered(out.sidebarSecrecy, sidebarSecrecy);
+    fill(out.sidebarLocations, sidebarLocations);
 
     for (const QString &extra : extraLabels) {
         if (!extra.isEmpty() && !out.totalLabels.contains(extra)) {
@@ -1006,27 +1142,41 @@ QPointF clampDragProxyOffset(qreal cursorX,
 //         └─ grand
 QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortMode, const QSet<QString> &collapsedUids)
 {
+    return flattenTreeImpl(input, sortMode, collapsedUids, SiblingOrder::Sorted);
+}
+
+namespace
+{
+QList<TaskEntry> flattenTreeImpl(const QList<TaskEntry> &input,
+                                 const QString &sortMode,
+                                 const QSet<QString> &collapsedUids,
+                                 SiblingOrder order)
+{
     QHash<QString, QList<int>> children;
+    children.reserve(input.size());
     for (int i = 0; i < input.size(); ++i) {
         children[input.at(i).parentUid].append(i);
     }
 
-    const auto sortKids = [&](QList<int> &kids) {
-        QString mode = sortMode;
-        if (mode.isEmpty() || mode == QLatin1String("default")) {
-            mode = QStringLiteral("priority,due,title");
-        }
-        if (kids.size() < 2) {
-            return;
-        }
-        std::sort(kids.begin(), kids.end(), [&](int left, int right) {
-            const int cmp = compareTasks(input.at(left), input.at(right), mode);
-            if (cmp != 0) {
-                return cmp < 0;
+    QString mode = sortMode;
+    if (mode.isEmpty() || mode == QLatin1String("default")) {
+        mode = QStringLiteral("priority,due,title");
+    }
+    const QList<SortLevel> sortKeys = order == SiblingOrder::Sorted ? parseSortMode(mode) : QList<SortLevel>{};
+    if (order == SiblingOrder::Sorted) {
+        for (QList<int> &kids : children) {
+            if (kids.size() < 2) {
+                continue;
             }
-            return input.at(left).itemId < input.at(right).itemId;
-        });
-    };
+            std::sort(kids.begin(), kids.end(), [&](int left, int right) {
+                const int cmp = compareTasks(input.at(left), input.at(right), sortKeys);
+                if (cmp != 0) {
+                    return cmp < 0;
+                }
+                return input.at(left).itemId < input.at(right).itemId;
+            });
+        }
+    }
 
     QList<TaskEntry> out;
     QSet<QString> walking;
@@ -1034,18 +1184,23 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
     // Walk the tree depth-first.  Collapsed children stay in the list with
     // treeHidden = true so the ListView can animate their height to 0
     // (TaskDelegate "reveal" binding) without insert/remove row operations.
+    out.reserve(input.size());
     std::function<void(const QString &, int, bool)> walk =
         [&](const QString &parent, int indent, bool parentHidden) {
-        QList<int> kids = children.value(parent);
-        sortKids(kids);
+        const auto kidsIt = children.constFind(parent);
+        if (kidsIt == children.cend()) {
+            return;
+        }
+        const QList<int> kids = kidsIt.value(); // shared copy: walking below never mutates children
         for (int idx : kids) {
-            TaskEntry entry = input.at(idx);
-            if (walking.contains(entry.uid)) {
+            const QString &uid = input.at(idx).uid;
+            if (walking.contains(uid)) {
                 continue;
             }
-            walking.insert(entry.uid);
+            walking.insert(uid);
+            TaskEntry entry = input.at(idx);
             entry.indentLevel = indent;
-            entry.hasChildren = children.contains(entry.uid) && !children.value(entry.uid).isEmpty();
+            entry.hasChildren = children.contains(entry.uid); // lists in children are never empty
             entry.treeCollapsed = entry.hasChildren && collapsedUids.contains(entry.uid);
             entry.treeHidden = parentHidden;
             out.append(entry);
@@ -1099,6 +1254,7 @@ QList<TaskEntry> flattenTree(const QList<TaskEntry> &input, const QString &sortM
 
     return out;
 }
+} // namespace
 
 QString emptyKind(LoadState loading,
                   BackendState backend,

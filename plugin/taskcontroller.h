@@ -530,6 +530,7 @@ public:
     void setAkonadiAvailableForTest(bool available);
     void installTestCollections(const QList<Akonadi::Collection> &collections);
     qint64 installTestTask(qint64 id, const QString &summary, qint64 collectionId);
+    void installTestTodo(qint64 id, const KCalendarCore::Todo::Ptr &todo, qint64 collectionId);
     bool testTaskExists(qint64 id) const;
     bool testTaskSyncing(qint64 id) const;
     bool testTaskPendingDelete(qint64 id) const;
@@ -622,6 +623,8 @@ signals:
     void dbusSearchRequested(const QString &query);
     /** kurrentrc changed (any key); the bound configuration is already up to date. */
     void settingsChanged();
+
+    friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
     void onConfigEdited();
@@ -739,7 +742,7 @@ enum class SyncResult { Error, Ok };
     QVariantMap taskEntryToVariantMap(const TaskEntry &task) const;
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
     void updateAvailableLocations(const QList<TaskEntry> &tasks);
-    void updateCounts(const QList<TaskEntry> &tasks);
+    void updateCounts(const TaskLogic::SidebarCounts &counts);
     void publishSharedCache();
     void scheduleRebuildAll();
     void onItemsFetched(KJob *job, qint64 collectionId);
@@ -770,6 +773,7 @@ enum class SyncResult { Error, Ok };
     // renders first and animations stay uninterrupted.
     bool m_deferredTailPending = false;
     QList<TaskEntry> m_deferredCountSource;
+    TaskLogic::SidebarCounts m_deferredCounts;
     QList<TaskEntry> m_deferredAllTasks;
     int m_deferredFlatCount = 0;
     int m_deferredVisibleCount = 0;

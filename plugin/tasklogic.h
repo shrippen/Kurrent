@@ -257,7 +257,17 @@ void applyListGroupTreeBuckets(QList<TaskEntry> &tasks,
                                const FilterState &filters,
                                const QDate &today);
 
+/** One level of a sort mode ("priority", "dueDesc", …), parsed once per sort. */
+struct SortLevel {
+    enum class Field { Due, Start, Priority, Title, Completed, Reminder, Recurring, Progress, Project, Label, Status, Secrecy, Location };
+    Field field = Field::Title;
+    bool descending = false;
+};
+/** Parses "priority,dueDesc,title"; unknown and "default" levels are skipped. */
+QList<SortLevel> parseSortMode(const QString &sortMode);
+
 int compareTasks(const TaskEntry &left, const TaskEntry &right, const QString &sortMode);
+int compareTasks(const TaskEntry &left, const TaskEntry &right, const QList<SortLevel> &keys);
 
 bool wouldCreateParentCycle(const QString &draggedUid, const QString &newParentUid, const QHash<QString, QString> &parentByUid);
 
@@ -305,6 +315,9 @@ struct TaskRebuildInput {
     QString matrixDrillTime;
     bool matrixDrillIncludeCompleted = true;
     bool hierarchyAware = false;
+    /** Sidebar counts (computeCounts) skip rows hidden under collapsed parents. */
+    bool countsExcludeCollapsed = false;
+    QStringList extraLabels;
 };
 
 struct TaskRebuildOutput {
@@ -312,6 +325,10 @@ struct TaskRebuildOutput {
     QList<TaskEntry> flatForCounts;
     QList<TaskEntry> allTasks;
     VisibleFilterResult filtered;
+    /** computeCounts over flatForCounts or allTasks, computed on the worker thread. */
+    SidebarCounts counts;
+    /** The input's countsExcludeCollapsed: every count of this output uses the same source. */
+    bool countsExcludeCollapsed = false;
 };
 
 TaskRebuildOutput computeTaskRebuild(const TaskRebuildInput &input, const QDate &today);

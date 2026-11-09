@@ -41,6 +41,8 @@ struct TaskEntry {
     bool syncing = false;
     bool pendingDelete = false;
 };
+// Only implicitly shared Qt types and scalars: QList may move rows with memmove.
+Q_DECLARE_TYPEINFO(TaskEntry, Q_RELOCATABLE_TYPE);
 
 class TaskListModel : public QAbstractListModel
 {

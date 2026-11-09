@@ -3,6 +3,8 @@
 
 #include <QElapsedTimer>
 
+#include <algorithm>
+
 namespace {
 constexpr int kSyncRowThreshold = 48;
 constexpr int kChunkRowsPerCall = 64;
@@ -359,9 +361,9 @@ void TaskListModel::chunkStep()
             const int start = m_inPos;
             const int cnt = qMin(kChunkRowsPerCall, m_inEnd - start + 1);
             beginInsertRows(QModelIndex(), start, start + cnt - 1);
-            for (int i = 0; i < cnt; ++i) {
-                m_tasks.insert(start + i, m_chunkTarget.at(start + i));
-            }
+            // One block insert per chunk; row-by-row inserts shifted the tail cnt times.
+            m_tasks.insert(start, cnt, TaskEntry{});
+            std::copy(m_chunkTarget.cbegin() + start, m_chunkTarget.cbegin() + start + cnt, m_tasks.begin() + start);
             endInsertRows();
             m_inPos = start + cnt;
             if (m_inPos > m_inEnd) {

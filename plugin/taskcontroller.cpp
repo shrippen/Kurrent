@@ -471,7 +471,12 @@ qint64 TaskController::installTestTask(qint64 id, const QString &summary, qint64
     KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
     todo->setUid(QStringLiteral("test-uid-%1").arg(id));
     todo->setSummary(summary);
+    installTestTodo(id, todo, collectionId);
+    return id;
+}
 
+void TaskController::installTestTodo(qint64 id, const KCalendarCore::Todo::Ptr &todo, qint64 collectionId)
+{
     Akonadi::Item item;
     item.setId(id);
     item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
@@ -488,7 +493,6 @@ qint64 TaskController::installTestTask(qint64 id, const QString &summary, qint64
     }
 
     scheduleRebuildAll();
-    return id;
 }
 
 bool TaskController::testTaskExists(qint64 id) const
@@ -1567,9 +1571,9 @@ QVariantList TaskController::kanbanTasksForColumn(const QString &columnKey) cons
         return out;
     }
 
-    const QString sortMode = m_sortMode;
+    const QList<TaskLogic::SortLevel> sortKeys = TaskLogic::parseSortMode(m_sortMode);
     std::sort(tasks.begin(), tasks.end(), [&](const TaskEntry &left, const TaskEntry &right) {
-        const int cmp = TaskLogic::compareTasks(left, right, sortMode);
+        const int cmp = TaskLogic::compareTasks(left, right, sortKeys);
         if (cmp != 0) {
             return cmp < 0;
         }
@@ -5979,6 +5983,8 @@ TaskLogic::TaskRebuildInput TaskController::buildRebuildInput(const QList<TaskEn
     input.matrixDrillHorizon = m_matrixDrillHorizon;
     input.matrixDrillTime = m_matrixDrillTime;
     input.matrixDrillIncludeCompleted = m_matrixDrillIncludeCompleted;
+    input.countsExcludeCollapsed = m_countsExcludeCollapsed;
+    input.extraLabels = s_extraLabels;
     input.hierarchyAware = m_currentView == QLatin1String("completed")
             || !m_searchQuery.trimmed().isEmpty()
             || TaskLogic::hasSidebarFilters(input.filters);
@@ -5987,7 +5993,7 @@ TaskLogic::TaskRebuildInput TaskController::buildRebuildInput(const QList<TaskEn
 
 void TaskController::applyRebuildOutput(const TaskLogic::TaskRebuildOutput &output)
 {
-    const QList<TaskEntry> &countSource = m_countsExcludeCollapsed ? output.flatForCounts : output.allTasks;
+    const QList<TaskEntry> &countSource = output.countsExcludeCollapsed ? output.flatForCounts : output.allTasks;
     m_collectionModel.setTaskCounts(TaskLogic::collectionTaskCounts(countSource));
     m_taskModel.setTasks(output.tasks);
 
@@ -5995,6 +6001,7 @@ void TaskController::applyRebuildOutput(const TaskLogic::TaskRebuildOutput &outp
     // update renders first and animations (sidebar highlight, view
     // transitions) are not interrupted by the follow-up main-thread work.
     m_deferredCountSource = countSource;
+    m_deferredCounts = output.counts;
     m_deferredAllTasks = output.allTasks;
     m_deferredFlatCount = output.flatForCounts.size();
     m_deferredVisibleCount = output.tasks.size();
@@ -6023,7 +6030,7 @@ void TaskController::applyDeferredRebuildTail()
     updateSyncingCount();
     updateAvailableLabels(m_deferredAllTasks);
     updateAvailableLocations(m_deferredAllTasks);
-    updateCounts(m_deferredCountSource);
+    updateCounts(m_deferredCounts);
     publishSharedCache();
     updateEmptyKind();
     updateDebugInfo(m_deferredFlatCount,
@@ -6060,13 +6067,13 @@ void TaskController::onRebuildFinished()
         return;
     }
 
-    const quint64 generation = m_pendingRebuildGeneration;
-    if (generation != m_rebuildGeneration) {
-        return;
+    // A rebuild requested meanwhile (rebuildTaskList bumped the generation) makes this
+    // result stale: drop it and compute the latest state instead.
+    const bool stale = m_pendingRebuildGeneration != m_rebuildGeneration;
+    if (!stale) {
+        applyRebuildOutput(m_rebuildWatcher.result());
+        recordRebuildTiming(m_rebuildTiming.elapsed(), m_lastRebuildTaskCount);
     }
-
-    applyRebuildOutput(m_rebuildWatcher.result());
-    recordRebuildTiming(m_rebuildTiming.elapsed(), m_lastRebuildTaskCount);
 
     if (m_rebuildAgainPending) {
         m_rebuildAgainPending = false;
@@ -6204,11 +6211,8 @@ void TaskController::updateAvailableLocations(const QList<TaskEntry> &tasks)
     Q_EMIT availableLocationsChanged();
 }
 
-void TaskController::updateCounts(const QList<TaskEntry> &tasks)
+void TaskController::updateCounts(const TaskLogic::SidebarCounts &counts)
 {
-    const TaskLogic::FilterState filters = filterState();
-    const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts(tasks, filters, s_extraLabels, QDate::currentDate());
-
     if (m_labelTaskCounts != counts.totalLabels) {
         m_labelTaskCounts = counts.totalLabels;
         Q_EMIT labelTaskCountsChanged();

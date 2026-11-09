@@ -140,6 +140,32 @@ set_tests_properties(kurrent-taskcontroller-store PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
 
+# Performance benchmark (tests/perf_bench.cpp); not run by ctest.
+option(KURRENT_BUILD_BENCH "Build the task-list performance benchmark" OFF)
+if(KURRENT_BUILD_BENCH)
+    add_executable(kurrent-perf-bench
+        perf_bench.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/tasklistmodel.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/kurrentdbus.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/akonaditaskstore.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
+    )
+    target_include_directories(kurrent-perf-bench PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+    target_link_libraries(kurrent-perf-bench PRIVATE
+        Qt6::Core Qt6::Gui Qt6::Qml Qt6::DBus Qt6::Concurrent Qt6::Test
+        KF6::CalendarCore KF6::I18n KF6::ConfigCore KPim6::AkonadiCore)
+endif()
+
 set(_kurrent_test_targets
     kurrent-tasklogic-test
     kurrent-agendalogic-test

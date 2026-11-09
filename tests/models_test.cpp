@@ -32,6 +32,7 @@ private Q_SLOTS:
     void taskListRapidCollapseExpand();
     void taskListDeepNestedCollapseExpand();
     void taskListChunkedApply();
+    void taskListChunkedApplyKeepsPrefixAndSuffix();
 };
 
 void ModelsTest::taskListExposesRolesAndCount()
@@ -587,6 +588,49 @@ void ModelsTest::taskListChunkedApply()
 
     // countChanged must have been emitted at least once.
     QVERIFY(countSpy.count() >= 1);
+}
+
+// Chunked replacement in the middle: inserts land between the kept prefix and suffix.
+void ModelsTest::taskListChunkedApplyKeepsPrefixAndSuffix()
+{
+    const auto entry = [](const QString &uid) {
+        TaskEntry t;
+        t.uid = uid;
+        t.summary = uid;
+        return t;
+    };
+    QList<TaskEntry> oldTasks;
+    QList<TaskEntry> newTasks;
+    for (int i = 0; i < 10; ++i) {
+        oldTasks.append(entry(QStringLiteral("head-%1").arg(i)));
+        newTasks.append(entry(QStringLiteral("head-%1").arg(i)));
+    }
+    for (int i = 0; i < 90; ++i) {
+        oldTasks.append(entry(QStringLiteral("old-%1").arg(i)));
+    }
+    for (int i = 0; i < 150; ++i) {
+        newTasks.append(entry(QStringLiteral("new-%1").arg(i)));
+    }
+    for (int i = 0; i < 10; ++i) {
+        oldTasks.append(entry(QStringLiteral("tail-%1").arg(i)));
+        newTasks.append(entry(QStringLiteral("tail-%1").arg(i)));
+    }
+
+    TaskListModel model;
+    model.setTasks(oldTasks);
+    QSignalSpy inserted(&model, &QAbstractItemModel::rowsInserted);
+    model.setTasks(newTasks);
+    const QDeadlineTimer deadline(5000);
+    while (model.chunksActive() && !deadline.hasExpired()) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
+    }
+    QVERIFY(!model.chunksActive());
+    QVERIFY(inserted.count() > 1); // really took the chunked path
+
+    QCOMPARE(model.count(), newTasks.size());
+    for (int i = 0; i < newTasks.size(); ++i) {
+        QCOMPARE(model.taskAt(i).uid, newTasks.at(i).uid);
+    }
 }
 
 QTEST_GUILESS_MAIN(ModelsTest)
