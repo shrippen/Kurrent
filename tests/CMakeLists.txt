@@ -135,7 +135,20 @@ target_link_libraries(kurrent-taskcontroller-store-test PRIVATE
     KF6::ConfigCore
     KPim6::AkonadiCore
 )
+# Expected TaskController::devBuild() for this configuration (#33).
+if(KURRENT_DEV_BUILD)
+    set(_kurrent_expect_dev 1)
+    set(_kurrent_expect_dev_qml true)
+else()
+    set(_kurrent_expect_dev 0)
+    set(_kurrent_expect_dev_qml false)
+endif()
+target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
+    KURRENT_TEST_EXPECT_DEV_BUILD=${_kurrent_expect_dev})
 add_test(NAME kurrent-taskcontroller-store COMMAND kurrent-taskcontroller-store-test)
+add_test(NAME kurrent-devbuild-marker
+    COMMAND ${CMAKE_COMMAND} -DMARKER=${CMAKE_BINARY_DIR}/DevBuildMarker.qml
+            -DEXPECTED=${_kurrent_expect_dev_qml} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_devbuild_marker.cmake)
 set_tests_properties(kurrent-taskcontroller-store PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )

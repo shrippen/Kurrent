@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### English
+
+#### Improved
+- `kurrent-tui` now comes with the prebuilt download, so the one-line installer sets it up too; before, only source builds had it.
+- Large task lists react faster: rebuilding the list after a view switch, a filter or a search takes about half as long, and the sidebar counts no longer hold up the interface.
+
+#### Fixed
+- A list could keep showing an old view or an old search: a change made while the list was still being rebuilt was dropped, and the busy indicator stayed on.
+
+### Deutsch
+
+#### Verbessert
+- `kurrent-tui` ist jetzt im fertigen Download enthalten, der Einzeiler installiert ihn also mit; vorher hatten ihn nur Quellbuilds.
+- Große Aufgabenlisten reagieren schneller: Nach einem Ansichtswechsel, einem Filter oder einer Suche ist die Liste in etwa der halben Zeit neu aufgebaut, und die Zähler in der Seitenleiste halten die Oberfläche nicht mehr auf.
+
+#### Behoben
+- Eine Liste konnte eine alte Ansicht oder eine alte Suche weiter zeigen: Eine Änderung, die kam, während die Liste noch neu aufgebaut wurde, ging verloren, und die Ladeanzeige blieb an.
+
 ## [0.5.0] — 2026-10-30
 
 ### English

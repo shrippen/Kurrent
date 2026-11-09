@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a relocatable plugin+plasmoid tree (lib/ + share/) for ~/.local.
+# Build a relocatable plugin+plasmoid+terminal-client tree (bin/ + lib/ + share/) for ~/.local.
 # Output: dist/kurrent-<version>-linux-<arch>.tar.gz
 #         dist/kurrent-linux-<arch>.tar.gz  (stable name for releases/latest/download)
 set -euo pipefail
@@ -27,11 +27,16 @@ cmake --install "${BUILD}"
 
 if command -v strip >/dev/null 2>&1; then
     find "${DEST}" -type f -name 'libkurrentplugin.so' -exec strip --strip-unneeded {} +
+    find "${DEST}/bin" -type f -name 'kurrent-tui' -exec strip --strip-unneeded {} +
 fi
 
 SO="$(find "${DEST}" -name 'libkurrentplugin.so' -print -quit)"
 if [[ -z "${SO}" ]]; then
     echo "libkurrentplugin.so missing after install" >&2
+    exit 1
+fi
+if [[ ! -x "${DEST}/bin/kurrent-tui" ]]; then
+    echo "bin/kurrent-tui missing after install" >&2
     exit 1
 fi
 
@@ -40,8 +45,8 @@ VERSIONED="${ROOT}/dist/kurrent-${VERSION}-linux-${ARCH}.tar.gz"
 STABLE="${ROOT}/dist/kurrent-linux-${ARCH}.tar.gz"
 rm -f "${VERSIONED}" "${STABLE}"
 
-# Tarball root is lib/ and share/ so extracting into ~/.local overlays the prefix.
-tar -C "${DEST}" -czf "${VERSIONED}" lib share
+# Tarball root is bin/, lib/ and share/ so extracting into ~/.local overlays the prefix.
+tar -C "${DEST}" -czf "${VERSIONED}" bin lib share
 cp -a "${VERSIONED}" "${STABLE}"
 
 echo "${VERSIONED}"
