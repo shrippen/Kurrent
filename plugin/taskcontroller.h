@@ -665,6 +665,7 @@ enum class SyncResult { Error, Ok };
     void updateEmptyKind();
     TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
     void pushUndo(TaskLogic::UndoRecord record);
+    void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
     void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
     /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */

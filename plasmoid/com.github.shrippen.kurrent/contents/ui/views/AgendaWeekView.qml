@@ -114,13 +114,11 @@ ColumnLayout {
                 }
                 KanteButton {
                     text: i18n("All to today")
-                    // Recurring tasks are moved in the editor; nothing to do when only they wait.
-                    enabled: view.overdue.some(function(t) { return !t.recurring })
-                    // Like dropping each card on today: start and due move together, times stay.
-                    // Recurring tasks stay in the tray (agendaShiftToDay leaves them).
+                    enabled: view.overdue.length > 0
+                    // Like dropping each card on today: start and due move together, times stay;
+                    // a recurring task moves only its current occurrence.
                     onClicked: {
-                        var ids = view.overdue.filter(function(t) { return !t.recurring })
-                                              .map(function(t) { return t.itemId })
+                        var ids = view.overdue.map(function(t) { return t.itemId })
                         var today = view.today()
                         for (var i = 0; i < ids.length; ++i) {
                             view.controller.agendaShiftToDay(ids[i], today)
@@ -220,12 +218,7 @@ ColumnLayout {
                         anchors.fill: parent
                         keys: ["application/x-kurrent-task"]
                         onEntered: function(drag) {
-                            // Recurring tasks are not moved here (agendaShiftToDay).
-                            var dragged = view.dragHost ? view.dragHost.draggingTask : null
-                            if (dragged && dragged.recurring) {
-                                drag.accepted = false
-                                return
-                            }
+                            // A recurring task moves only this occurrence (agendaShiftToDay).
                             drag.acceptProposedAction()
                             if (view.dragHost) {
                                 view.dragHost.setDropHint(i18n("Move to %1", Qt.locale().toString(column.date, DateTime.longDayMonthFormat())))
@@ -238,7 +231,7 @@ ColumnLayout {
                         }
                         onDropped: function(event) {
                             var task = view.dragHost ? view.dragHost.draggingTask : null
-                            if (task && !task.recurring) {
+                            if (task) {
                                 view.controller.agendaShiftToDay(task.itemId, column.date)
                                 event.acceptProposedAction()
                             }

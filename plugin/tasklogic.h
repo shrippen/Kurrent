@@ -379,6 +379,13 @@ struct UndoRecord {
     qint64 collectionId = -1;
     QString section;
     QString column;
+    /** Series (#29): start and due above are the current occurrence; these keep the
+     *  series' own DTSTART/DUE, DTRECURRENCE and the moved occurrence's original day. */
+    bool recurs = false;
+    QDateTime seriesStart;
+    QDateTime seriesDue;
+    QDateTime occurrence;
+    QDate occurrenceOrigin;
     /** When true, undo restores kanbanManualOrderJson + sortMode (local kurrentrc). */
     bool restoreLayout = false;
     QString kanbanManualOrderJson;

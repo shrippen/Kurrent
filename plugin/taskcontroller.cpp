@@ -2462,12 +2462,22 @@ void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
         return;
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
-    // Not for recurring tasks (owner decision in #23): moving one day of a series means
-    // rewriting its rule and occurrence; they move in the editor.
+    const QDate from = agendaDayOf(task, AgendaLogic::taskBlock(task));
+    // A series moves only its current occurrence (#29, owner decision): the rule, DTSTART
+    // and DUE stay, completing continues from the original day.
     if (task.recurring) {
+        const qint64 days = from.isValid() ? from.daysTo(day) : 0;
+        CachedTask *cache = days != 0 ? prepareEdit(itemId) : nullptr;
+        if (!cache || !cache->todo) {
+            return;
+        }
+        const TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+        if (TaskCalendar::moveOccurrence(cache->todo, days)) {
+            pushUndo(record);
+            persistTodo(cache->item, cache->todo);
+        }
         return;
     }
-    const QDate from = agendaDayOf(task, AgendaLogic::taskBlock(task));
     if (!task.dueDate.isValid() || !from.isValid()) {
         agendaMoveToDay(itemId, day);
         return;
@@ -3738,6 +3748,15 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
     if (!next.isValid()) {
         return;
     }
+    // A series moves only its current occurrence, by whole days (#29). Hour presets keep
+    // the old behaviour: the occurrence has no time of its own apart from the rule.
+    if (todo->recurs() && currentDue.isValid()
+        && !(preset == QLatin1String("15m") || preset == QLatin1String("1h") || preset == QLatin1String("4h"))) {
+        if (TaskCalendar::moveOccurrence(todo, currentDue.date().daysTo(next.date()))) {
+            persistTodo(cache->item, todo);
+        }
+        return;
+    }
     todo->setDtDue(next);
     if (preset == QLatin1String("15m") || preset == QLatin1String("1h") || preset == QLatin1String("4h")) {
         todo->setAllDay(false);
@@ -4450,13 +4469,21 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(fields.value(QStringLiteral("secrecy")).toInt()));
     }
 
+    // A series edited here changes the series itself (#29): DUE of the first occurrence,
+    // and a moved occurrence goes back to the rule. Values the editor sends back
+    // unchanged (the occurrence it shows) are not written, so saving a title keeps a move.
+    const bool series = todo->recurs();
+    const QDateTime shownDue = todo->hasDueDate() ? todo->dtDue() : QDateTime();
+    const QDateTime shownStart = todo->hasStartDate() ? todo->dtStart() : QDateTime();
+    bool seriesDatesChanged = false;
     const bool clearDue = fields.value(QStringLiteral("clearDue")).toBool();
     if (clearDue) {
         todo->setDtDue(QDateTime());
     } else if (fields.contains(QStringLiteral("dueDate"))) {
         const QDateTime due = dateTimeFromVariant(fields.value(QStringLiteral("dueDate")));
-        if (due.isValid()) {
-            todo->setDtDue(due);
+        if (due.isValid() && !(series && due == shownDue)) {
+            todo->setDtDue(due, true);
+            seriesDatesChanged = series;
         }
     }
 
@@ -4465,9 +4492,14 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         todo->setDtStart(QDateTime());
     } else if (fields.contains(QStringLiteral("startDate"))) {
         const QDateTime start = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
-        if (start.isValid()) {
+        if (start.isValid() && !(series && start == shownStart)) {
             todo->setDtStart(start);
+            seriesDatesChanged = seriesDatesChanged || series;
         }
+    }
+    if (seriesDatesChanged) {
+        todo->setDtRecurrence(QDateTime());
+        todo->removeCustomProperty(QByteArray("KURRENT"), QByteArray("OCCURRENCE-ORIGIN"));
     }
 
     if (fields.contains(QStringLiteral("completed"))) {
@@ -5019,6 +5051,7 @@ void TaskController::undo()
             todo->setDtDue(record.due, true);
             todo->setAllDay(record.allDay);
         }
+        restoreSeriesUndo(todo, record);
         persistTodo(cache->item, todo);
     } else if (record.kind == TaskLogic::UndoRecord::Kind::Reschedule) {
         if (record.hadDue) {
@@ -5027,6 +5060,7 @@ void TaskController::undo()
         } else {
             todo->setDtDue(QDateTime());
         }
+        restoreSeriesUndo(todo, record);
         persistTodo(cache->item, todo);
     }
     m_applyingUndo = false;
@@ -5062,6 +5096,7 @@ void TaskController::applyTaskUndo(const TaskLogic::UndoRecord &record)
     } else {
         todo->setDtStart(QDateTime());
     }
+    restoreSeriesUndo(todo, record);
 }
 
 void TaskController::toggleTreeCollapsed(const QString &uid)
@@ -5102,7 +5137,36 @@ TaskLogic::UndoRecord TaskController::snapshotUndo(TaskLogic::UndoRecord::Kind k
     record.status = static_cast<int>(cache.todo->status());
     record.secrecy = static_cast<int>(cache.todo->secrecy());
     record.column = TaskCalendar::columnFromTodo(cache.todo);
+    if (cache.todo->recurs()) {
+        record.recurs = true;
+        record.seriesStart = cache.todo->dtStart(true);
+        record.seriesDue = cache.todo->hasDueDate() ? cache.todo->dtDue(true) : QDateTime();
+        record.occurrence = cache.todo->dtRecurrence();
+        record.occurrenceOrigin = TaskCalendar::occurrenceOrigin(cache.todo);
+    }
     return record;
+}
+
+void TaskController::restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record)
+{
+    if (!record.recurs || !todo) {
+        return;
+    }
+    // Back to the series' own dates, then the occurrence: setDtDue(…, true) above would
+    // otherwise have written the occurrence as the series' first DUE.
+    if (record.seriesStart.isValid()) {
+        todo->setDtStart(record.seriesStart);
+    }
+    if (record.seriesDue.isValid()) {
+        todo->setDtDue(record.seriesDue, true);
+    }
+    todo->setDtRecurrence(record.occurrence == record.seriesStart ? QDateTime() : record.occurrence);
+    if (record.occurrenceOrigin.isValid()) {
+        todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("OCCURRENCE-ORIGIN"),
+                                record.occurrenceOrigin.toString(Qt::ISODate));
+    } else {
+        todo->removeCustomProperty(QByteArray("KURRENT"), QByteArray("OCCURRENCE-ORIGIN"));
+    }
 }
 
 void TaskController::pushUndo(TaskLogic::UndoRecord record)

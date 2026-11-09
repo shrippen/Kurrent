@@ -50,7 +50,8 @@ private Q_SLOTS:
     void agendaBlockUntilMidnightStaysOnTheDay();
     void agendaBlockUntilNextMidnightStaysOnItsDay();
     void agendaBoardsShiftAndCount();
-    void agendaShiftLeavesSeriesAndUsesLocalDays();
+    void agendaShiftMovesOccurrenceAndUsesLocalDays();
+    void seriesRescheduleMovesOccurrenceEditorEditsSeries();
     void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
@@ -761,12 +762,51 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
 }
 
-void TaskControllerStoreTest::agendaShiftLeavesSeriesAndUsesLocalDays()
+// #29: the inspector's day presets move only the occurrence; the editor saving unchanged
+// dates keeps that move, and changing a date there edits the series.
+void TaskControllerStoreTest::seriesRescheduleMovesOccurrenceEditorEditsSeries()
 {
     const QDate today = QDate::currentDate();
     QSignalSpy spy(m_store, &AbstractTaskStore::finished);
-    // A recurring task is not moved in the week and month boards (owner decision in #23): it
-    // stays as it is, and in the tray.
+    m_controller->installTestTask(1, QStringLiteral("daily"), 10);
+    m_controller->updateTaskFull(1, {
+        {QStringLiteral("startDate"), QDateTime(today, QTime(8, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today, QTime(9, 0))},
+        {QStringLiteral("recurrencePreset"), QStringLiteral("weekly")},
+    });
+    waitStore(spy, 1);
+
+    m_controller->rescheduleTask(1, QStringLiteral("tomorrow"));
+    waitStore(spy, 2);
+    QVariantMap snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(1), QTime(8, 0)));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(1), QTime(9, 0)));
+
+    // The editor sends the shown (moved) dates back with a new title: the move stays.
+    m_controller->updateTaskFull(1, {
+        {QStringLiteral("summary"), QStringLiteral("daily renamed")},
+        {QStringLiteral("startDate"), snap.value(QStringLiteral("startDate"))},
+        {QStringLiteral("dueDate"), snap.value(QStringLiteral("dueDate"))},
+    });
+    waitStore(spy, 3);
+    snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("summary")).toString(), QStringLiteral("daily renamed"));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(1), QTime(9, 0)));
+
+    // A new due date in the editor edits the series and drops the move.
+    m_controller->updateTaskFull(1, {{QStringLiteral("dueDate"), QDateTime(today, QTime(17, 0))}});
+    waitStore(spy, 4);
+    snap = m_controller->taskSnapshotById(1);
+    QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(8, 0)));
+    QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(17, 0)));
+}
+
+void TaskControllerStoreTest::agendaShiftMovesOccurrenceAndUsesLocalDays()
+{
+    const QDate today = QDate::currentDate();
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    // A recurring task moves only its current occurrence (#29): the rule stays, undo brings the
+    // occurrence back, and completing continues from the original day.
     m_controller->installTestTask(1, QStringLiteral("weekly"), 10);
     m_controller->updateTaskFull(1, {
         {QStringLiteral("startDate"), QDateTime(today.addDays(-3), QTime(10, 0))},
@@ -776,13 +816,24 @@ void TaskControllerStoreTest::agendaShiftLeavesSeriesAndUsesLocalDays()
     waitStore(spy, 1);
     QCOMPARE(m_controller->agendaOverdue().size(), 1);
     m_controller->agendaShiftToDay(1, today);
-    QCOMPARE(spy.count(), 1);
-    const QVariantMap kept = m_controller->taskSnapshotById(1);
-    QCOMPARE(kept.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-3), QTime(10, 0)));
-    QCOMPARE(kept.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-3), QTime(11, 0)));
-    QCOMPARE(m_controller->agendaOverdue().size(), 1);
-    m_controller->setTaskCompleted(1, true); // out of the tray for the cases below
     waitStore(spy, 2);
+    const QVariantMap moved = m_controller->taskSnapshotById(1);
+    QCOMPARE(moved.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(10, 0)));
+    QCOMPARE(moved.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(11, 0)));
+    QCOMPARE(moved.value(QStringLiteral("recurrencePreset")).toString(), QStringLiteral("weekly"));
+    QVERIFY(m_controller->agendaOverdue().isEmpty());
+    m_controller->undo();
+    waitStore(spy, 3);
+    QCOMPARE(m_controller->taskSnapshotById(1).value(QStringLiteral("dueDate")).toDateTime().toLocalTime(),
+             QDateTime(today.addDays(-3), QTime(11, 0)));
+    QCOMPARE(m_controller->agendaOverdue().size(), 1);
+    m_controller->agendaShiftToDay(1, today);
+    waitStore(spy, 4);
+    m_controller->setTaskCompleted(1, true);
+    waitStore(spy, 5);
+    const QVariantMap next = m_controller->taskSnapshotById(1);
+    QCOMPARE(next.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(4), QTime(11, 0)));
+    QCOMPARE(next.value(QStringLiteral("completed")).toBool(), false); // next occurrence, not in the tray
 
     // Not recurring, start days before due: both move by the same days.
     m_controller->installTestTask(3, QStringLiteral("long"), 10);
@@ -790,25 +841,25 @@ void TaskControllerStoreTest::agendaShiftLeavesSeriesAndUsesLocalDays()
         {QStringLiteral("startDate"), QDateTime(today.addDays(-5), QTime(10, 0))},
         {QStringLiteral("dueDate"), QDateTime(today.addDays(-3), QTime(11, 0))},
     });
-    waitStore(spy, 3);
+    waitStore(spy, 6);
     m_controller->agendaShiftToDay(3, today);
-    waitStore(spy, 4);
+    waitStore(spy, 7);
     const QVariantMap longMoved = m_controller->taskSnapshotById(3);
     QCOMPARE(longMoved.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(-2), QTime(10, 0)));
     QCOMPARE(longMoved.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(11, 0)));
     m_controller->undo();
-    waitStore(spy, 5);
+    waitStore(spy, 8);
     QCOMPARE(m_controller->taskSnapshotById(3).value(QStringLiteral("dueDate")).toDateTime().toLocalTime(),
              QDateTime(today.addDays(-3), QTime(11, 0)));
     m_controller->setTaskCompleted(3, true);
-    waitStore(spy, 6);
+    waitStore(spy, 9);
 
     // DUE in UTC on the day before but today in local time: on today's column, not in the tray.
     const QDateTime utc = QDateTime(today, QTime(0, 30)).toUTC();
     if (utc.date() < today) {
         m_controller->installTestTask(2, QStringLiteral("utc"), 10);
         m_controller->updateTaskFull(2, {{QStringLiteral("dueDate"), utc}});
-        waitStore(spy, 7);
+        waitStore(spy, 10);
         QVERIFY(m_controller->agendaOverdue().isEmpty());
     }
     // West of UTC: DUE today in UTC but yesterday here is on yesterday's column, so in the tray.
@@ -816,7 +867,7 @@ void TaskControllerStoreTest::agendaShiftLeavesSeriesAndUsesLocalDays()
     if (west.date() == today) {
         m_controller->installTestTask(4, QStringLiteral("west"), 10);
         m_controller->updateTaskFull(4, {{QStringLiteral("dueDate"), west}});
-        waitStore(spy, 7);
+        waitStore(spy, 10);
         QCOMPARE(m_controller->agendaOverdue().size(), 1);
     }
 }
