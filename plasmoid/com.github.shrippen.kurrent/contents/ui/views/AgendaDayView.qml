@@ -71,7 +71,7 @@ RowLayout {
         if (diff === -1) {
             return i18n("Yesterday")
         }
-        return Qt.locale().toString(d, "ddd d. MMM")
+        return Qt.locale().toString(d, DateTime.shortDayMonthFormat())
     }
     function hm(minute) {
         return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
@@ -216,7 +216,7 @@ RowLayout {
             }
             Kirigami.Heading {
                 level: 4
-                text: Qt.locale().toString(view.targetDay, "dddd, d. MMMM")
+                text: Qt.locale().toString(view.targetDay, DateTime.longDayMonthFormat())
             }
             QQC2.Label {
                 Layout.fillWidth: true
@@ -306,7 +306,7 @@ RowLayout {
                 x: Design.spaceMedium
                 text: !parent.entry ? ""
                       : (DateTime.isoDateKey(parent.entry.from) === DateTime.isoDateKey(parent.entry.to)
-                         ? i18n("%1: nothing planned", Qt.locale().toString(parent.entry.from, "dddd, d. MMMM"))
+                         ? i18n("%1: nothing planned", Qt.locale().toString(parent.entry.from, DateTime.longDayMonthFormat()))
                          : i18n("%1 to %2: nothing planned", view.relDay(parent.entry.from), view.relDay(parent.entry.to)))
                 color: KanteStyle.mutedTextColor
             }
@@ -366,7 +366,7 @@ RowLayout {
                     spacing: Design.spaceSmall
                     Kirigami.Heading {
                         level: 4
-                        text: dayCol.day ? Qt.locale().toString(dayCol.day.date, "dddd, d. MMMM") : ""
+                        text: dayCol.day ? Qt.locale().toString(dayCol.day.date, DateTime.longDayMonthFormat()) : ""
                         color: dayCol.isToday ? KanteStyle.accentTextColor : KanteStyle.textColor
                     }
                     QQC2.Label {

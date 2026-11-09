@@ -179,12 +179,12 @@ ColumnLayout {
             return ""
         }
         if (count === 0) {
-            return Qt.locale().toString(d, "ddd, MMM d")
+            return Qt.locale().toString(d, DateTime.shortDayMonthFormat())
         }
         var noun = heatmapMode === "completed"
             ? (count === 1 ? i18n("task completed") : i18n("tasks completed"))
             : (count === 1 ? i18n("task due") : i18n("tasks due"))
-        return i18n("%1 %2 on %3", count, noun, Qt.locale().toString(d, "ddd, MMM d"))
+        return i18n("%1 %2 on %3", count, noun, Qt.locale().toString(d, DateTime.shortDayMonthFormat()))
     }
 
     // ── Year block component (used in year mode Flickable) ─────────
@@ -300,7 +300,7 @@ ColumnLayout {
                   ? (root.visibleYearNumbers.length > 1
                      ? root.visibleYearNumbers[root.visibleYearNumbers.length - 1] + " \u2013 " + root.visibleYearNumbers[0]
                      : Qt.locale().toString(root.monthStart, "yyyy"))
-                  : Qt.locale().toString(root.monthStart, "MMMM yyyy")
+                  : Qt.locale().toString(root.monthStart, DateTime.monthYearFormat())
             elide: Text.ElideRight
             font.bold: true
             font.family: Design.headingFamily
@@ -510,8 +510,8 @@ ColumnLayout {
                     elide: Text.ElideRight
                     text: root.selectedDay
                           ? (root.heatmapMode === "completed"
-                             ? i18n("Completed on %1", Qt.locale().toString(root.selectedDay, "ddd, d. MMM"))
-                             : i18n("Due on %1", Qt.locale().toString(root.selectedDay, "ddd, d. MMM")))
+                             ? i18n("Completed on %1", Qt.locale().toString(root.selectedDay, DateTime.shortDayMonthFormat()))
+                             : i18n("Due on %1", Qt.locale().toString(root.selectedDay, DateTime.shortDayMonthFormat())))
                           : ""
                 }
                 CountBadge {

@@ -177,7 +177,7 @@ RowLayout {
                             }
                             drag.acceptProposedAction()
                             if (view.dragHost) {
-                                view.dragHost.setDropHint(i18n("Move to %1", Qt.locale().toString(cell.modelData.date, "dddd, d. MMMM")))
+                                view.dragHost.setDropHint(i18n("Move to %1", Qt.locale().toString(cell.modelData.date, DateTime.longDayMonthFormat())))
                             }
                         }
                         onExited: {
@@ -344,7 +344,7 @@ RowLayout {
             Layout.fillWidth: true
             level: 4
             wrapMode: Text.Wrap
-            text: Qt.locale().toString(view.shownDay, "dddd, d. MMMM yyyy")
+            text: Qt.locale().toString(view.shownDay, DateTime.longDateFormat())
         }
         KanteButton {
             text: i18n("Open day →")

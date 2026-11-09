@@ -228,7 +228,7 @@ ColumnLayout {
                             }
                             drag.acceptProposedAction()
                             if (view.dragHost) {
-                                view.dragHost.setDropHint(i18n("Move to %1", Qt.locale().toString(column.date, "dddd, d. MMMM")))
+                                view.dragHost.setDropHint(i18n("Move to %1", Qt.locale().toString(column.date, DateTime.longDayMonthFormat())))
                             }
                         }
                         onExited: {
@@ -272,7 +272,7 @@ ColumnLayout {
                                 }
                             }
                             QQC2.Label {
-                                text: Qt.locale().toString(column.date, "d.M.")
+                                text: Qt.locale().toString(column.date, DateTime.numericDayMonthFormat())
                                 color: KanteStyle.mutedTextColor
                             }
                             QQC2.Label {

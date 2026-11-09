@@ -151,12 +151,12 @@ ColumnLayout {
         if (mode === "week") {
             var mon = mondayOf(d)
             var end = addDays(mon, weekend ? 6 : 4)
-            return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, "d. MMM"), Qt.locale().toString(end, "d. MMM yyyy"))
+            return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, DateTime.dayMonthFormat()), Qt.locale().toString(end, DateTime.dayMonthYearFormat()))
         }
         if (mode === "month") {
-            return Qt.locale().toString(d, "MMMM yyyy")
+            return Qt.locale().toString(d, DateTime.monthYearFormat())
         }
-        return Qt.locale().toString(d, "dddd, d. MMMM yyyy") + " · " + i18n("Week %1", week)
+        return Qt.locale().toString(d, DateTime.longDateFormat()) + " · " + i18n("Week %1", week)
     }
     // For a narrow date bar, instead of cutting the long title in the middle of a word.
     readonly property string shortTitle: {
@@ -165,12 +165,12 @@ ColumnLayout {
         if (mode === "week") {
             var mon = mondayOf(d)
             var end = addDays(mon, weekend ? 6 : 4)
-            return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, "d.M."), Qt.locale().toString(end, "d.M."))
+            return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, DateTime.numericDayMonthFormat()), Qt.locale().toString(end, DateTime.numericDayMonthFormat()))
         }
         if (mode === "month") {
-            return Qt.locale().toString(d, "MMM yyyy")
+            return Qt.locale().toString(d, DateTime.monthYearFormat(null, true))
         }
-        return Qt.locale().toString(d, "ddd d. MMM") + " · " + i18n("Week %1", week)
+        return Qt.locale().toString(d, DateTime.shortDayMonthFormat()) + " · " + i18n("Week %1", week)
     }
 
     // Keys while the Agenda is shown (text fields keep their letters and arrows). On the desktop

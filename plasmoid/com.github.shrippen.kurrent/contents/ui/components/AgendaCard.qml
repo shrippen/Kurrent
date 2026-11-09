@@ -87,7 +87,7 @@ Rectangle {
                 visible: card.showDate || (card.task.categories && card.task.categories.length > 0) || card.task.priority > 0
                 QQC2.Label {
                     visible: card.showDate && !!card.task.dueDate
-                    text: card.task.dueDate ? Qt.locale().toString(new Date(card.task.dueDate), "ddd d.M.") : ""
+                    text: card.task.dueDate ? Qt.locale().toString(new Date(card.task.dueDate), DateTime.weekdayNumericFormat()) : ""
                     color: KanteStyle.negativeTextColor
                     font: Kirigami.Theme.smallFont
                 }

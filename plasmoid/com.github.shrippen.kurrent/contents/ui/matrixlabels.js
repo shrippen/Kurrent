@@ -1,3 +1,5 @@
+.import "datetime.js" as DateTime
+
 /*
  * Column / row labels shared by the matrix views (Swimlanes, Project plan).
  *
@@ -74,13 +76,13 @@ function subtitle(matrix, key, bucket) {
     if (bucket === "week" && end) {
         var sameMonth = start.getMonth() === end.getMonth()
         var left = sameMonth ? String(start.getDate()) + "."
-                             : Qt.locale().toString(start, "d. MMM")
-        return left + " – " + Qt.locale().toString(end, "d. MMM")
+                             : Qt.locale().toString(start, DateTime.dayMonthFormat())
+        return left + " – " + Qt.locale().toString(end, DateTime.dayMonthFormat())
     }
     if (bucket === "month") {
         return String(start.getFullYear())
     }
-    return Qt.locale().toString(start, "d. MMM")
+    return Qt.locale().toString(start, DateTime.dayMonthFormat())
 }
 
 /** Long form for tooltips and the list drill-down chip. */
