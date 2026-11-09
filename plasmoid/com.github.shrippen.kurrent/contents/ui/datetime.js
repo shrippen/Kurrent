@@ -512,10 +512,26 @@ function _dropField(tokens, pred) {
     } else if (!hasNextField) {
         rest = ""                      // trailing field: the separator before it goes,
         if (prev) {                    // but not what belongs to the field before
-            out[idx - 1] = { field: false, text: _fieldSuffix(prev.text) }
+            // Up to a comma it is the field's ("d 'd'., dddd" in lt), else only what sticks
+            // to it ("d日"; the "de" before a Spanish year goes with the year).
+            var comma = prev.text.lastIndexOf(",")
+            var keep = comma > 0 ? prev.text.substring(0, comma) : _fieldSuffix(prev.text)
+            out[idx - 1] = { field: false, text: keep }
         }
     } else if (prev && prev.text.length > 0) {
-        rest = ""                      // middle: keep the separator before it
+        // middle: keep the separator before it, unless only the one after separates the
+        // weekday ("d MMMM yyyy, dddd" in az keeps its comma without the year)
+        var nextField = null
+        for (var n = idx + 1; n < tokens.length; ++n) {
+            if (tokens[n].field) {
+                nextField = tokens[n]
+                break
+            }
+        }
+        if (rest.indexOf(",") >= 0 && prev.text.indexOf(",") < 0 && nextField && _isWeekday(nextField)) {
+            out[idx - 1] = { field: false, text: rest }
+        }
+        rest = ""
     }
     out.splice(idx, next ? 2 : 1)
     if (rest.length > 0) {
@@ -635,7 +651,61 @@ function rangeStartFormat(locale) {
     })
 }
 
-/** Short weekday before the numeric date: "Do. 29.10.", "Thu 10/29". */
+/** True where the long date names the weekday after the day (hu, ja, ko, tr, az). */
+function _weekdayLast(locale) {
+    var tokens = _longTokens(locale)
+    var weekday = -1
+    var day = -1
+    for (var i = 0; i < tokens.length; ++i) {
+        if (_isWeekday(tokens[i]) && weekday < 0) {
+            weekday = i
+        } else if (_isDay(tokens[i]) && day < 0) {
+            day = i
+        }
+    }
+    return weekday >= 0 && day >= 0 && weekday > day
+}
+
+/** Short weekday and the numeric date, in the locale's order: "Do. 29.10.", "Thu 10/29", "10/29 木". */
 function weekdayNumericFormat(locale) {
-    return "ddd " + numericDayMonthFormat(locale)
+    return _cachedFormat(locale, "weekdayNumeric", function (loc) {
+        var numeric = numericDayMonthFormat(loc)
+        return _weekdayLast(loc) ? numeric + " ddd" : "ddd " + numeric
+    })
+}
+
+function _unquote(text) {
+    // '…' quotes a literal; '' inside or outside a quote is one apostrophe ("'o''clock'").
+    return String(text).replace(/'((?:[^']|'')*)'/g, function (m, inner) {
+        return inner.length ? inner.replace(/''/g, "'") : "'"
+    })
+}
+
+/**
+ * Month and year as a heading: like monthYearFormat, but with the month's standalone name
+ * (nominative) where the language inflects it: Russian "октябрь 2026 г.", not the "октября"
+ * a date uses. Elsewhere, and where a suffix is glued to the month (bo, mn), the format's own
+ * name stays (German "Okt. 2026" keeps its period).
+ */
+function monthYearLabel(date, shortMonth, locale) {
+    var loc = locale || Qt.locale()
+    if (!date || isNaN(date.getTime())) {
+        return ""
+    }
+    var tokens = _dateFormatTokens(monthYearFormat(loc, shortMonth))
+    var out = ""
+    for (var i = 0; i < tokens.length; ++i) {
+        var t = tokens[i]
+        var glued = i + 1 < tokens.length && !tokens[i + 1].field && /^[^\s,]/.test(tokens[i + 1].text)
+        var month = date.getMonth()
+        var inflects = loc.standaloneMonthName(month, Locale.LongFormat) !== loc.monthName(month, Locale.LongFormat)
+        if (t.field && t.ch === "M" && t.text.length >= 3 && inflects && !glued) {
+            out += loc.standaloneMonthName(month, t.text.length >= 4 ? Locale.LongFormat : Locale.ShortFormat)
+        } else if (t.field) {
+            out += loc.toString(date, t.text)
+        } else {
+            out += _unquote(t.text)
+        }
+    }
+    return out
 }

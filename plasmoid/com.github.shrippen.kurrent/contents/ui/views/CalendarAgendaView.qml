@@ -154,7 +154,7 @@ ColumnLayout {
             return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, DateTime.dayMonthFormat()), Qt.locale().toString(end, DateTime.dayMonthYearFormat()))
         }
         if (mode === "month") {
-            return Qt.locale().toString(d, DateTime.monthYearFormat())
+            return DateTime.monthYearLabel(d)
         }
         return Qt.locale().toString(d, DateTime.longDateFormat()) + " · " + i18n("Week %1", week)
     }
@@ -168,7 +168,7 @@ ColumnLayout {
             return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, DateTime.numericDayMonthFormat()), Qt.locale().toString(end, DateTime.numericDayMonthFormat()))
         }
         if (mode === "month") {
-            return Qt.locale().toString(d, DateTime.monthYearFormat(null, true))
+            return DateTime.monthYearLabel(d, true)
         }
         return Qt.locale().toString(d, DateTime.shortDayMonthFormat()) + " · " + i18n("Week %1", week)
     }

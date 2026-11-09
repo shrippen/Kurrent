@@ -187,6 +187,7 @@ set(_kurrent_test_targets
     kurrent-calendar-test
     kurrent-taskstore-test
     kurrent-taskcontroller-store-test
+    kurrent-tui-screens-test
 )
 
 find_package(Qt6 COMPONENTS QuickTest Qml Quick)
@@ -211,7 +212,10 @@ set_tests_properties(kurrent-plasmoidviewer PROPERTIES
 )
 
 add_custom_target(kurrent-check ALL
-    COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure -C $<CONFIG> -E kurrent-plasmoidviewer
+    # -C only with a configuration: without CMAKE_BUILD_TYPE "-C" would get no value and fail.
+    COMMAND ${CMAKE_CTEST_COMMAND} --force-new-ctest-process --output-on-failure
+            "$<$<BOOL:$<CONFIG>>:-C;$<CONFIG>>" -E kurrent-plasmoidviewer
+    COMMAND_EXPAND_LISTS
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DEPENDS ${_kurrent_test_targets}
     COMMENT "Running Kurrent unit tests"

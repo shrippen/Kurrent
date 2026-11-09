@@ -52,6 +52,7 @@ private Q_SLOTS:
     void agendaBoardsShiftAndCount();
     void agendaShiftMovesOccurrenceAndUsesLocalDays();
     void seriesRescheduleMovesOccurrenceEditorEditsSeries();
+    void allToTodayIsOneUndoStep();
     void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
@@ -760,6 +761,38 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     QCOMPARE(looseNames, (QStringList{QStringLiteral("Ring the port"), QStringLiteral("Whole day")}));
     const QVariantMap tomorrow = m_controller->agendaDays(QDate::currentDate().addDays(1), 1).first().toMap();
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
+}
+
+// "All to today" moves the whole tray; one undo brings every task back.
+void TaskControllerStoreTest::allToTodayIsOneUndoStep()
+{
+    const QDate today = QDate::currentDate();
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->installTestTask(1, QStringLiteral("plain"), 10);
+    m_controller->updateTaskFull(1, {{QStringLiteral("dueDate"), QDateTime(today.addDays(-2), QTime(11, 0))}});
+    m_controller->installTestTask(2, QStringLiteral("series"), 10);
+    m_controller->updateTaskFull(2, {
+        {QStringLiteral("startDate"), QDateTime(today.addDays(-3), QTime(9, 0))},
+        {QStringLiteral("dueDate"), QDateTime(today.addDays(-3), QTime(10, 0))},
+        {QStringLiteral("recurrencePreset"), QStringLiteral("weekly")},
+    });
+    waitStore(spy, 2);
+    QCOMPARE(m_controller->agendaOverdue().size(), 2);
+
+    m_controller->agendaShiftAllToDay({qint64(1), qint64(2)}, today);
+    waitStore(spy, 4);
+    QVERIFY(m_controller->agendaOverdue().isEmpty());
+    QCOMPARE(m_controller->undoKind(), QStringLiteral("batch"));
+    QVERIFY(m_controller->undoLabel().contains(QLatin1Char('2')));
+
+    m_controller->undo();
+    waitStore(spy, 6);
+    QVERIFY(!m_controller->canUndo());
+    QCOMPARE(m_controller->taskSnapshotById(1).value(QStringLiteral("dueDate")).toDateTime().toLocalTime(),
+             QDateTime(today.addDays(-2), QTime(11, 0)));
+    QCOMPARE(m_controller->taskSnapshotById(2).value(QStringLiteral("dueDate")).toDateTime().toLocalTime(),
+             QDateTime(today.addDays(-3), QTime(10, 0)));
+    QCOMPARE(m_controller->agendaOverdue().size(), 2);
 }
 
 // #29: the inspector's day presets move only the occurrence; the editor saving unchanged

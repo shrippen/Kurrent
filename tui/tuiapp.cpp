@@ -14,14 +14,21 @@
 
 namespace
 {
-// Short weekday and the locale's numeric day and month without the year (#27):
-// "Do 29.10", "Thu 10/29" instead of the fixed German "ddd d.M.".
+// Short weekday and the locale's numeric day and month without the year (#27), in the
+// locale's order: "Do 29.10", "Thu 10/29", "10/29 木" instead of the fixed German "ddd d.M.".
 QString weekdayNumericFormat(const QLocale &locale)
 {
     QString format = locale.dateFormat(QLocale::ShortFormat);
     format.remove(QRegularExpression(QStringLiteral("[^dM]*y+[^dM]*$")));
     format.remove(QRegularExpression(QStringLiteral("^y+[^dM]*")));
     format.replace(QStringLiteral("dd"), QStringLiteral("d")).replace(QStringLiteral("MM"), QStringLiteral("M"));
+    // Weekday where the locale's long date has it: after the day in hu, ja, ko, tr.
+    const QString longFormat = locale.dateFormat(QLocale::LongFormat);
+    const qsizetype weekday = longFormat.indexOf(QStringLiteral("ddd"));
+    const QRegularExpressionMatch day = QRegularExpression(QStringLiteral("(?<!d)d{1,2}(?!d)")).match(longFormat);
+    if (weekday >= 0 && day.hasMatch() && weekday > day.capturedStart()) {
+        return format + QStringLiteral(" ddd");
+    }
     return QStringLiteral("ddd ") + format;
 }
 } // namespace

@@ -118,11 +118,9 @@ ColumnLayout {
                     // Like dropping each card on today: start and due move together, times stay;
                     // a recurring task moves only its current occurrence.
                     onClicked: {
-                        var ids = view.overdue.map(function(t) { return t.itemId })
-                        var today = view.today()
-                        for (var i = 0; i < ids.length; ++i) {
-                            view.controller.agendaShiftToDay(ids[i], today)
-                        }
+                        // One undo step for all of them.
+                        view.controller.agendaShiftAllToDay(view.overdue.map(function(t) { return t.itemId }),
+                                                            view.today())
                     }
                 }
             }

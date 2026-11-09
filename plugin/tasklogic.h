@@ -14,6 +14,8 @@
 #include <QVariantList>
 #include <QVariantMap>
 
+#include <vector>
+
 namespace TaskLogic
 {
 
@@ -359,7 +361,7 @@ int clampSidebarWidthUnits(int units);
 qreal overlayDimForStep(int step);
 
 struct UndoRecord {
-    enum class Kind { None, Complete, Reschedule, Move, Delete, Edit, KanbanLayout };
+    enum class Kind { None, Complete, Reschedule, Move, Delete, Edit, KanbanLayout, Batch };
     Kind kind = Kind::None;
     qint64 itemId = -1;
     QString summary;
@@ -386,6 +388,9 @@ struct UndoRecord {
     QDateTime seriesDue;
     QDateTime occurrence;
     QString occurrenceMark; // X-KDE-KURRENT-OCCURRENCE-ORIGIN as stored
+    /** Kind::Batch: one action over several tasks ("All to today"), undone together,
+     *  in reverse order. std::vector: allowed for the record's own incomplete type. */
+    std::vector<UndoRecord> batch;
     /** When true, undo restores kanbanManualOrderJson + sortMode (local kurrentrc). */
     bool restoreLayout = false;
     QString kanbanManualOrderJson;

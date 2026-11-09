@@ -363,6 +363,8 @@ public:
      *  the same number of days (a recurring task moves only its current occurrence, #29);
      *  a task without a date becomes all-day on `day`. Undoable. */
     Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
+    /** agendaShiftToDay for several tasks ("All to today") as one undo step. */
+    Q_INVOKABLE void agendaShiftAllToDay(const QVariantList &itemIds, const QDate &day);
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's
      *  `items` (agendaDays), -1/-1 on busy time or outside 07-22 (AgendaLogic::ghostSlot). */
     Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const;
@@ -666,6 +668,7 @@ enum class SyncResult { Error, Ok };
     void updateEmptyKind();
     TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
     void pushUndo(TaskLogic::UndoRecord record);
+    void applyUndoRecord(const TaskLogic::UndoRecord &record);
     void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
     /** Moves a series' current occurrence by `days` with an undo step (#29); false if nothing moved. */
     bool moveSeriesOccurrence(qint64 itemId, qint64 days);
@@ -855,6 +858,9 @@ enum class SyncResult { Error, Ok };
     TaskLogic::UndoStack m_undo;
     bool m_applyingUndo = false;
     bool m_batchUndo = false;
+    // agendaShiftAllToDay: pushUndo collects here instead of replacing the single record.
+    bool m_collectingUndo = false;
+    std::vector<TaskLogic::UndoRecord> m_collectedUndo;
     QSet<QString> m_collapsedUids;
     QHash<qint64, TaskLogic::UndoRecord> m_recreateAfterDelete;
     int m_pendingCount = 0;

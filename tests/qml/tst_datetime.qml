@@ -141,4 +141,37 @@ TestCase {
         compare(ja.toString(day, DateTime.longDayMonthFormat(ja)), "10月29日木曜日")
         compare(ja.toString(day, DateTime.monthYearFormat(ja)), "2026年10月")
     }
+
+    // Headings use the standalone month name (nominative), not the one inside a date.
+    function test_monthYearLabelStandalone() {
+        var october = new Date(2026, 9, 29)
+        compare(DateTime.monthYearLabel(october, false, Qt.locale("de_DE")), "Oktober 2026")
+        compare(DateTime.monthYearLabel(october, false, Qt.locale("en_US")), "October 2026")
+        compare(DateTime.monthYearLabel(october, false, Qt.locale("ja_JP")), "2026年10月")
+        var ru = Qt.locale("ru_RU")
+        var label = DateTime.monthYearLabel(october, false, ru)
+        verify(label.indexOf(ru.standaloneMonthName(9, Locale.LongFormat)) === 0, label)
+        verify(label.indexOf("2026") > 0, label)
+        compare(DateTime.monthYearLabel(october, false, Qt.locale("es_ES")), "octubre de 2026")
+        // Languages without inflection keep the format's abbreviation, period included.
+        var de = Qt.locale("de_DE")
+        compare(DateTime.monthYearLabel(october, true, de), de.toString(october, DateTime.monthYearFormat(de, true)))
+    }
+
+    function test_unquote() {
+        compare(DateTime._unquote("'o''clock' 'de'"), "o'clock de")
+        compare(DateTime._unquote("''"), "'")
+    }
+
+    // Separators that belong to a field stay with it.
+    function test_dropKeepsFieldPunctuation() {
+        compare(DateTime.longDayMonthFormat(Qt.locale("az_AZ")), "d MMMM, dddd")
+        compare(DateTime.dayMonthFormat(Qt.locale("lt_LT")), "MMM d 'd'.")
+    }
+
+    function test_weekdayNumericOrder() {
+        compare(DateTime.weekdayNumericFormat(Qt.locale("de_DE")), "ddd d.M.")
+        compare(DateTime.weekdayNumericFormat(Qt.locale("en_US")), "ddd M/d")
+        compare(DateTime.weekdayNumericFormat(Qt.locale("ja_JP")), "M/d ddd")
+    }
 }
