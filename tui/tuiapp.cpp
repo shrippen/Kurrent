@@ -7,9 +7,24 @@
 #include <KLocalizedString>
 #include <QCoreApplication>
 #include <QLocale>
+#include <QRegularExpression>
 #include <QVariantMap>
 
 #include <algorithm>
+
+namespace
+{
+// Short weekday and the locale's numeric day and month without the year (#27):
+// "Do 29.10", "Thu 10/29" instead of the fixed German "ddd d.M.".
+QString weekdayNumericFormat(const QLocale &locale)
+{
+    QString format = locale.dateFormat(QLocale::ShortFormat);
+    format.remove(QRegularExpression(QStringLiteral("[^dM]*y+[^dM]*$")));
+    format.remove(QRegularExpression(QStringLiteral("^y+[^dM]*")));
+    format.replace(QStringLiteral("dd"), QStringLiteral("d")).replace(QStringLiteral("MM"), QStringLiteral("M"));
+    return QStringLiteral("ddd ") + format;
+}
+} // namespace
 
 namespace
 {
@@ -250,7 +265,7 @@ Screens::Row TuiApp::rowOf(const TaskEntry &task) const
         row.dueLabel = task.allDay ? i18n("today") : QLocale().toString(task.dueDate.time(), QLocale::ShortFormat);
     } else {
         row.due = Screens::Row::Due::Later;
-        row.dueLabel = QLocale().toString(task.dueDate.date(), QStringLiteral("ddd d.M."));
+        row.dueLabel = QLocale().toString(task.dueDate.date(), weekdayNumericFormat(QLocale()));
     }
     return row;
 }

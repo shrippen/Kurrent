@@ -75,8 +75,8 @@ function subtitle(matrix, key, bucket) {
     }
     if (bucket === "week" && end) {
         var sameMonth = start.getMonth() === end.getMonth()
-        var left = sameMonth ? String(start.getDate()) + "."
-                             : Qt.locale().toString(start, DateTime.dayMonthFormat())
+        var left = Qt.locale().toString(start, sameMonth ? DateTime.rangeStartFormat()
+                                                         : DateTime.dayMonthFormat())
         return left + " – " + Qt.locale().toString(end, DateTime.dayMonthFormat())
     }
     if (bucket === "month") {

@@ -464,9 +464,9 @@ function _dateFormatTokens(fmt) {
     return tokens
 }
 
-/** Leading part of a literal that sticks to the field before it ("." in ". ", "日"). */
+/** Leading part of a literal that sticks to the field before it ("." in ". ", "日", "('a')"). */
 function _fieldSuffix(text) {
-    var m = /^[^\s,']*/.exec(text)
+    var m = /^(?:[^\s,']|'[^']*')*/.exec(text)
     return m ? m[0] : ""
 }
 
@@ -608,6 +608,30 @@ function numericDayMonthFormat(locale) {
         return _joinFormat(tokens, function (t) {
             return t.text === "dd" ? "d" : (t.text === "MM" ? "M" : t.text)
         })
+    })
+}
+
+/**
+ * Format for the start of a day range within one month: only the day where the day comes
+ * before the month ("2." for "2. – 8. Nov.", "2" in en_GB), else the full day and month
+ * ("Nov 2 – Nov 8").
+ */
+function rangeStartFormat(locale) {
+    return _cachedFormat(locale, "rangeStart", function (loc) {
+        var tokens = _dateFormatTokens(dayMonthFormat(loc))
+        var day = -1
+        var month = -1
+        for (var i = 0; i < tokens.length; ++i) {
+            if (_isDay(tokens[i]) && day < 0) {
+                day = i
+            } else if (tokens[i].field && tokens[i].ch === "M" && month < 0) {
+                month = i
+            }
+        }
+        if (day < 0 || month < 0 || day > month) {
+            return dayMonthFormat(loc)
+        }
+        return _joinFormat(_dropField(tokens, function (t) { return t.field && t.ch === "M" }))
     })
 }
 

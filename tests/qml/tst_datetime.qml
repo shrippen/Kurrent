@@ -116,6 +116,20 @@ TestCase {
         compare(DateTime.longDateFormat(locale), locale.dateFormat(Locale.LongFormat))
     }
 
+    function test_rangeStartFormat() {
+        compare(DateTime.rangeStartFormat(Qt.locale("de_DE")), "d.")
+        compare(DateTime.rangeStartFormat(Qt.locale("en_GB")), "d")
+        compare(DateTime.rangeStartFormat(Qt.locale("en_US")), "MMM d")
+        compare(DateTime.rangeStartFormat(Qt.locale("ja_JP")), "M月d日")
+    }
+
+    // Quoted suffixes stay whole (eu: "d('a')"), no unbalanced parenthesis.
+    function test_quotedSuffix() {
+        var eu = Qt.locale("eu_ES")
+        var label = eu.toString(new Date(2026, 9, 29), DateTime.dayMonthFormat(eu))
+        compare(label.split("(").length, label.split(")").length)
+    }
+
     function test_localeDayLabels() {
         var day = new Date(2026, 9, 29)
         var en = Qt.locale("en_US")
