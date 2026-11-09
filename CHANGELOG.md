@@ -10,6 +10,7 @@
 
 #### Fixed
 - A list could keep showing an old view or an old search: a change made while the list was still being rebuilt was dropped, and the busy indicator stayed on.
+- Dates follow your language's order: the Agenda, calendar, heatmap, inspector and the terminal client wrote every date in German order, so English read "Thursday, 29. October" and Japanese "木曜日, 29. 10月"; now "Thursday, October 29" and "10月29日木曜日".
 
 ### Deutsch
 
@@ -19,6 +20,7 @@
 
 #### Behoben
 - Eine Liste konnte eine alte Ansicht oder eine alte Suche weiter zeigen: Eine Änderung, die kam, während die Liste noch neu aufgebaut wurde, ging verloren, und die Ladeanzeige blieb an.
+- Datumsangaben folgen der Reihenfolge deiner Sprache: Agenda, Kalender, Heatmap, Inspektor und Terminal-Client schrieben jedes Datum in deutscher Reihenfolge, auf Englisch also „Thursday, 29. October“ und auf Japanisch „木曜日, 29. 10月“; jetzt „Thursday, October 29“ und „10月29日木曜日“.
 
 ## [0.5.0] — 2026-10-30
 
