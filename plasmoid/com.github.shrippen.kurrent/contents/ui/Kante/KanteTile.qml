@@ -53,6 +53,7 @@ FocusScope {
     activeFocusOnTab: true
 
     Keys.onReturnPressed: clicked()
+    Keys.onEnterPressed: clicked()
     Keys.onSpacePressed: clicked()
 
     KanteCard {

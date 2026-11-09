@@ -9940,6 +9940,217 @@
      "running": false
     }
    ]
+  },
+  "reading": {
+   "note": "Nachtwache read live in the Sendehaus: the lmix demo of moods (lmix's Moods page). `layers` are what a mood sets. A group has a `base` and `variants` that name only the layers they change (null: off). `light` is the hall's brightness in % (0 = dark); a sound is a clip the demo renders from `tone` (Hz) under its `name`. `collections` pick moods (`group` or `group/variant`) and one-shots for a part of the evening; `before` is set first, then `now`: `now` is the mood on the page and `before` the one it came from (its Back).",
+   "name": {
+    "de": "Nachtwache – Lesung im Sendehaus",
+    "en": "Nightwatch – a reading at the Sendehaus"
+   },
+   "layers": [
+    {
+     "id": "light",
+     "name": {
+      "de": "Saallicht",
+      "en": "Hall light"
+     }
+    },
+    {
+     "id": "atmo",
+     "name": {
+      "de": "Atmo",
+      "en": "Ambience"
+     }
+    },
+    {
+     "id": "music",
+     "name": {
+      "de": "Musik",
+      "en": "Music"
+     }
+    }
+   ],
+   "groups": [
+    {
+     "id": "sendehaus",
+     "name": {
+      "de": "Sendehaus",
+      "en": "Sendehaus"
+     },
+     "color": "cyan",
+     "base": {
+      "light": 60,
+      "music": {
+       "name": "Ebbe",
+       "tone": 196
+      }
+     },
+     "variants": [
+      {
+       "id": "onair",
+       "name": {
+        "de": "Auf Sendung",
+        "en": "On air"
+       },
+       "layers": {
+        "light": 25,
+        "music": null
+       }
+      },
+      {
+       "id": "interval",
+       "name": {
+        "de": "Pause",
+        "en": "Interval"
+       },
+       "layers": {
+        "light": 80
+       }
+      }
+     ]
+    },
+    {
+     "id": "lighthouse",
+     "name": {
+      "de": "Leuchtturm",
+      "en": "Lighthouse"
+     },
+     "color": "yellow",
+     "base": {
+      "light": 15,
+      "atmo": {
+       "name": "hl_s02e04_nebelhorn_take2.aac",
+       "tone": 110
+      },
+      "music": {
+       "name": "Leuchtfeuer",
+       "tone": 262
+      }
+     },
+     "variants": [
+      {
+       "id": "fog",
+       "name": {
+        "de": "Nebel",
+        "en": "Fog"
+       },
+       "layers": {
+        "light": 8
+       }
+      },
+      {
+       "id": "storm",
+       "name": {
+        "de": "Sturm",
+        "en": "Storm"
+       },
+       "layers": {
+        "light": 3,
+        "music": {
+         "name": "Nebelhorn",
+         "tone": 147
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "kolk",
+     "name": {
+      "de": "Kolk",
+      "en": "Kolk"
+     },
+     "color": "green",
+     "base": {
+      "light": 10,
+      "atmo": {
+       "name": "nw_atmo_kolk_nacht3.m4a",
+       "tone": 98
+      }
+     },
+     "variants": [
+      {
+       "id": "wisp",
+       "name": {
+        "de": "Irrlicht",
+        "en": "Will-o'-the-wisp"
+       },
+       "layers": {
+        "light": 30
+       }
+      },
+      {
+       "id": "three13",
+       "name": {
+        "de": "Drei Uhr dreizehn",
+        "en": "Three thirteen"
+       },
+       "layers": {
+        "music": {
+         "name": "Drei Uhr dreizehn",
+         "tone": 175
+        }
+       }
+      }
+     ]
+    }
+   ],
+   "oneshots": [
+    {
+     "id": "jingle",
+     "name": {
+      "de": "Jingle Mitternacht",
+      "en": "Midnight jingle"
+     },
+     "tone": 392
+    },
+    {
+     "id": "horn",
+     "name": {
+      "de": "Nebelhorn",
+      "en": "Foghorn"
+     },
+     "tone": 110
+    }
+   ],
+   "collections": [
+    {
+     "id": "part1",
+     "name": {
+      "de": "Erster Teil",
+      "en": "Part one"
+     },
+     "moods": [
+      "sendehaus",
+      "sendehaus/onair",
+      "lighthouse",
+      "lighthouse/fog"
+     ],
+     "oneshots": [
+      "jingle"
+     ]
+    },
+    {
+     "id": "part2",
+     "name": {
+      "de": "Zweiter Teil",
+      "en": "Part two"
+     },
+     "moods": [
+      "lighthouse/storm",
+      "kolk",
+      "kolk/wisp",
+      "kolk/three13",
+      "sendehaus/interval"
+     ],
+     "oneshots": [
+      "jingle",
+      "horn"
+     ]
+    }
+   ],
+   "now": "lighthouse/fog",
+   "before": "lighthouse"
   }
  },
  "oddities": {
@@ -10011,6 +10222,2044 @@
    "deleted": -5,
    "back": -4
   }
+ },
+ "health": {
+  "note": "Mara's watch and what she logs by hand, as a health tracker (HealthLog) shows it; Kladde's demo answers from here. Series under daily end today (last value = today, so far; earlier values one day each further back) and repeat backwards for longer ranges. Night shoots show as days with many steps followed by a short night. Readings are at a day relative to today (0 = today) and a local time. last_night is the night that ended this morning, stage by stage; she was awake from 03:13 for seven minutes.",
+  "account": {
+   "server": "https://health.studio-weber.example.test",
+   "username": "Mara",
+   "email": "mara@studio-weber.example.test",
+   "version": "2.31.0"
+  },
+  "daily": {
+   "steps": [
+    6420,
+    8130,
+    11240,
+    5210,
+    7480,
+    12890,
+    4310,
+    6950,
+    7820,
+    13410,
+    9020,
+    5630,
+    10870,
+    3980,
+    7210,
+    8840,
+    12350,
+    6120,
+    7740,
+    14020,
+    4870,
+    6630,
+    9150,
+    11980,
+    5470,
+    8310,
+    13260,
+    3412
+   ],
+   "sleep_minutes": [
+    412,
+    388,
+    301,
+    455,
+    398,
+    276,
+    488,
+    420,
+    405,
+    262,
+    431,
+    470,
+    298,
+    512,
+    396,
+    418,
+    285,
+    447,
+    402,
+    258,
+    495,
+    410,
+    389,
+    304,
+    466,
+    421,
+    271,
+    433
+   ],
+   "resting_heart_rate": [
+    58,
+    59,
+    62,
+    57,
+    58,
+    63,
+    56,
+    58,
+    59,
+    64,
+    58,
+    57,
+    62,
+    55,
+    58,
+    58,
+    63,
+    57,
+    58,
+    65,
+    56,
+    58,
+    59,
+    62,
+    57,
+    58,
+    63,
+    58
+   ],
+   "pulse": [
+    71,
+    74,
+    79,
+    69,
+    72,
+    81,
+    67,
+    72,
+    74,
+    83,
+    73,
+    70,
+    80,
+    66,
+    72,
+    74,
+    80,
+    71,
+    73,
+    84,
+    68,
+    72,
+    75,
+    79,
+    70,
+    73,
+    82,
+    72
+   ],
+   "mood": [
+    4,
+    4,
+    3,
+    4,
+    5,
+    3,
+    4,
+    4,
+    2,
+    3,
+    4,
+    4,
+    5,
+    4,
+    4,
+    3,
+    4,
+    5,
+    4,
+    3,
+    4,
+    4,
+    3,
+    4,
+    5,
+    4,
+    3,
+    4
+   ]
+  },
+  "readings": {
+   "weight": [
+    {
+     "day": -27,
+     "time": "07:10",
+     "value": 68.9
+    },
+    {
+     "day": -24,
+     "time": "07:05",
+     "value": 68.7
+    },
+    {
+     "day": -21,
+     "time": "07:20",
+     "value": 69.1
+    },
+    {
+     "day": -17,
+     "time": "07:12",
+     "value": 68.6
+    },
+    {
+     "day": -14,
+     "time": "07:08",
+     "value": 68.4
+    },
+    {
+     "day": -10,
+     "time": "07:15",
+     "value": 68.5
+    },
+    {
+     "day": -7,
+     "time": "07:02",
+     "value": 68.2
+    },
+    {
+     "day": -3,
+     "time": "07:11",
+     "value": 68.1
+    },
+    {
+     "day": -1,
+     "time": "07:06",
+     "value": 67.9
+    }
+   ],
+   "blood_pressure": [
+    {
+     "day": -26,
+     "time": "07:30",
+     "systolic": 118,
+     "diastolic": 77,
+     "pulse": 64
+    },
+    {
+     "day": -22,
+     "time": "07:25",
+     "systolic": 121,
+     "diastolic": 79,
+     "pulse": 66
+    },
+    {
+     "day": -19,
+     "time": "21:40",
+     "systolic": 127,
+     "diastolic": 83,
+     "pulse": 72
+    },
+    {
+     "day": -15,
+     "time": "07:32",
+     "systolic": 117,
+     "diastolic": 76,
+     "pulse": 63
+    },
+    {
+     "day": -12,
+     "time": "07:28",
+     "systolic": 119,
+     "diastolic": 78,
+     "pulse": 65
+    },
+    {
+     "day": -8,
+     "time": "22:05",
+     "systolic": 129,
+     "diastolic": 84,
+     "pulse": 74
+    },
+    {
+     "day": -5,
+     "time": "07:35",
+     "systolic": 116,
+     "diastolic": 75,
+     "pulse": 62
+    },
+    {
+     "day": -2,
+     "time": "07:27",
+     "systolic": 118,
+     "diastolic": 76,
+     "pulse": 64
+    }
+   ],
+   "body_fat": [
+    {
+     "day": -21,
+     "time": "07:20",
+     "value": 24.8
+    },
+    {
+     "day": -7,
+     "time": "07:02",
+     "value": 24.3
+    }
+   ]
+  },
+  "last_night": [
+   {
+    "from": "@date-1 23:52",
+    "to": "@date+0 00:04",
+    "stage": "awake"
+   },
+   {
+    "from": "@date+0 00:04",
+    "to": "@date+0 00:51",
+    "stage": "core"
+   },
+   {
+    "from": "@date+0 00:51",
+    "to": "@date+0 01:43",
+    "stage": "deep"
+   },
+   {
+    "from": "@date+0 01:43",
+    "to": "@date+0 02:20",
+    "stage": "core"
+   },
+   {
+    "from": "@date+0 02:20",
+    "to": "@date+0 03:13",
+    "stage": "rem"
+   },
+   {
+    "from": "@date+0 03:13",
+    "to": "@date+0 03:20",
+    "stage": "awake"
+   },
+   {
+    "from": "@date+0 03:20",
+    "to": "@date+0 04:30",
+    "stage": "core"
+   },
+   {
+    "from": "@date+0 04:30",
+    "to": "@date+0 05:05",
+    "stage": "deep"
+   },
+   {
+    "from": "@date+0 05:05",
+    "to": "@date+0 06:00",
+    "stage": "rem"
+   },
+   {
+    "from": "@date+0 06:00",
+    "to": "@date+0 06:41",
+    "stage": "core"
+   },
+   {
+    "from": "@date+0 06:41",
+    "to": "@date+0 06:49",
+    "stage": "awake"
+   },
+   {
+    "from": "@date+0 06:49",
+    "to": "@date+0 07:32",
+    "stage": "rem"
+   }
+  ],
+  "sync": {
+   "note": "What Kladde's More tab shows about the watch sync on Android: the last run a quarter of an hour ago, nothing waiting.",
+   "last_run": "@-15m",
+   "last_success": "@-15m",
+   "uploaded": 214,
+   "pending": 0,
+   "app_order": {
+    "note": "The apps that wrote Mara's sleep and trainings, in her order on More (Pebble real, as Kladde is for it; the others invented): where two saw the same night or training, the upper one's goes to HealthLog.",
+    "sleep": [
+     {
+      "app": "coredevices.coreapp",
+      "label": "Pebble"
+     },
+     {
+      "app": "test.example.nachtruhe",
+      "label": "Nachtruhe"
+     },
+     {
+      "app": "test.example.pulsweg",
+      "label": "Pulsweg"
+     }
+    ],
+    "workouts": [
+     {
+      "app": "test.example.elbtempo",
+      "label": "Elbtempo"
+     },
+     {
+      "app": "coredevices.coreapp",
+      "label": "Pebble"
+     },
+     {
+      "app": "test.example.pulsweg",
+      "label": "Pulsweg"
+     }
+    ]
+   }
+  }
+ },
+ "dojo": {
+  "note": "Emi Hartmann's practice as Mitori (exam programmes of Aikido Shinki Rengo, Daitoryu and Shinki Toho) shows it: she trains Aikido at the Dojo Ottensen (made up) and started Shinki Toho, the sword. Days are offsets from the anchor (the Monday of the week that contains today, -1 = the Sunday before; practice lies before it, so it is past on every day of the week), times local. ratings: [day, time, programme entry id of mitori-daten, level 1-4] (1 seen, 2 with help, 3 sure, 4 ready for the exam); the latest rating of an entry is its level. grades: what she passed; starts: when she began a discipline; calendar: the course calendar (ICS) Mitori reads, with the course teacher as the first line 'mit …' of the description; notebooks: her notes on a course (by calendar uid); exam: the exam she plans on a course; rounds: her mock exams. Entry ids must exist in Mitori's catalog.",
+  "person": "Emi Hartmann",
+  "club": "Dojo Ottensen",
+  "grades": [
+   {
+    "discipline": "aikido",
+    "grade": "k5",
+    "day": -760,
+    "place": "Dojo Ottensen"
+   },
+   {
+    "discipline": "aikido",
+    "grade": "k4",
+    "day": -390,
+    "place": {
+     "de": "Lehrgang in Lüneburg",
+     "en": "Course in Lüneburg"
+    }
+   }
+  ],
+  "starts": [
+   {
+    "discipline": "shinkitoho",
+    "day": -240
+   }
+  ],
+  "calendar": [
+   {
+    "uid": "demo-sommer",
+    "title": {
+     "de": "Aikido-Sommerlehrgang",
+     "en": "Aikido summer course"
+    },
+    "first": -72,
+    "last": -71,
+    "place": "Övelgönne",
+    "teacher": "Hiroshi Tanabe Sensei",
+    "info": {
+     "de": "Samstag und Sonntag, je 10–16 Uhr. Mitbringen: Jo und Bokken.",
+     "en": "Saturday and Sunday, 10 am to 4 pm each. Bring jo and bokken."
+    }
+   },
+   {
+    "uid": "demo-kyu",
+    "title": {
+     "de": "Aikido Kyu-Lehrgang mit Prüfungen",
+     "en": "Aikido Kyu course with exams"
+    },
+    "first": 19,
+    "last": 20,
+    "place": "Lüneburg",
+    "teacher": "Hiroshi Tanabe Sensei",
+    "info": {
+     "de": "Prüfungen am Sonntag ab 13 Uhr. Anmeldung bis eine Woche vorher.",
+     "en": "Exams on Sunday from 1 pm. Sign up a week before."
+    }
+   },
+   {
+    "uid": "demo-toho",
+    "title": {
+     "de": "Shinki Toho – Schwertlehrgang",
+     "en": "Shinki Toho – sword course"
+    },
+    "first": 33,
+    "last": 33,
+    "place": "Hamburg-Ottensen",
+    "teacher": "Ruth Albers",
+    "info": {
+     "de": "Ô-dachi 1–11 für Anfänger, danach Kumidachi.",
+     "en": "Ô-dachi 1 to 11 for beginners, then Kumidachi."
+    }
+   },
+   {
+    "uid": "demo-herbst",
+    "title": {
+     "de": "Wochenendlehrgang Aikido",
+     "en": "Aikido weekend course"
+    },
+    "first": 47,
+    "last": 48,
+    "place": "Kiel",
+    "teacher": "Marta Lindholm",
+    "info": {
+     "de": "Offen für alle Grade.",
+     "en": "Open to all grades."
+    }
+   }
+  ],
+  "notebooks": [
+   {
+    "course": "demo-sommer",
+    "entries": [
+     {
+      "day": -72,
+      "time": "11:20",
+      "text": {
+       "de": "Ikkyo aus Shomen-uchi: zuerst die Mitte, dann der Arm. Nicht ziehen.",
+       "en": "Ikkyo from shomen-uchi: centre first, then the arm. Don't pull."
+      },
+      "techniques": [
+       "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k5/ikkyo-1"
+      ]
+     },
+     {
+      "day": -72,
+      "time": "15:05",
+      "text": {
+       "de": "Jo-Suburi 1–5 mit Partner: Abstand halten, Spitze auf die Kehle.",
+       "en": "Jo suburi 1 to 5 with a partner: keep the distance, tip at the throat."
+      }
+     },
+     {
+      "day": -71,
+      "time": "12:40",
+      "text": {
+       "de": "Sankyo: Handgelenk drehen, bis Uke auf die Zehen geht, dann erst führen.",
+       "en": "Sankyo: turn the wrist until uke goes up on the toes, only then lead."
+      },
+      "techniques": [
+       "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k3/sankyo-1"
+      ]
+     }
+    ]
+   }
+  ],
+  "exam": {
+   "course": "demo-kyu",
+   "discipline": "aikido",
+   "grade": "k3"
+  },
+  "notes": [
+   {
+    "entry": "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k3/sankyo-1",
+    "day": -9,
+    "time": "21:10",
+    "text": {
+     "de": "Ellbogen tief halten, sonst kommt Uke heraus.",
+     "en": "Keep the elbow low, or uke gets out."
+    }
+   },
+   {
+    "entry": "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k3/sankyo-1",
+    "day": -2,
+    "time": "21:30",
+    "text": {
+     "de": "Heute besser: erst Kontakt am Ellbogen, dann drehen.",
+     "en": "Better today: contact at the elbow first, then turn."
+    }
+   },
+   {
+    "entry": "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/tenchi-nage-4",
+    "day": -16,
+    "time": "21:05",
+    "text": {
+     "de": "Die untere Hand geht zum Fuß von Uke, die obere über die Schulter.",
+     "en": "The low hand goes to uke's foot, the high one over the shoulder."
+    }
+   },
+   {
+    "entry": "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/irimi-nage-3",
+    "day": -5,
+    "time": "21:20",
+    "text": {
+     "de": "Tenkan zuerst ganz ausführen, nicht abkürzen.",
+     "en": "Finish the tenkan before going in, no shortcut."
+    }
+   },
+   {
+    "entry": "aikido/kyu-grade/ukemi/ohne/k3/mae-sasae-tobi-1",
+    "day": -12,
+    "time": "21:00",
+    "text": {
+     "de": "Absprung vom hinteren Fuß, Arm rund lassen.",
+     "en": "Jump from the back foot, keep the arm round."
+    }
+   },
+   {
+    "entry": "shinkitoho/suburi/2",
+    "day": -21,
+    "time": "11:45",
+    "text": {
+     "de": "Schnitt endet auf Höhe der Hüfte, Spitze bleibt in der Mitte.",
+     "en": "The cut ends at hip height, the tip stays in the centre."
+    }
+   }
+  ],
+  "rounds": [
+   {
+    "discipline": "aikido",
+    "grade": "k3",
+    "day": -40,
+    "time": "20:30",
+    "count": 12,
+    "average": 1.9
+   },
+   {
+    "discipline": "aikido",
+    "grade": "k3",
+    "day": -26,
+    "time": "20:40",
+    "count": 12,
+    "average": 2.3
+   },
+   {
+    "discipline": "aikido",
+    "grade": "k3",
+    "day": -11,
+    "time": "20:35",
+    "count": 15,
+    "average": 2.6
+   },
+   {
+    "discipline": "aikido",
+    "grade": "k3",
+    "day": -3,
+    "time": "20:50",
+    "count": 15,
+    "average": 2.8
+   }
+  ],
+  "ratings": [
+   [
+    -230,
+    "19:35",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k4/sumi-otoshi-1",
+    1
+   ],
+   [
+    -230,
+    "19:30",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-muna-dori/k5/ikkyo-1",
+    1
+   ],
+   [
+    -230,
+    "19:58",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k4/ikkyo-1",
+    1
+   ],
+   [
+    -230,
+    "19:50",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/ikkyo-1",
+    1
+   ],
+   [
+    -230,
+    "19:56",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-kata-dori/k4/ikkyo-1",
+    1
+   ],
+   [
+    -230,
+    "19:45",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k5/shiho-gaeshi-1",
+    1
+   ],
+   [
+    -228,
+    "19:53",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k5/kokyu-ho-1",
+    1
+   ],
+   [
+    -228,
+    "19:46",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/kokyu-nage-3",
+    1
+   ],
+   [
+    -228,
+    "19:34",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k5/ikkyo-1",
+    1
+   ],
+   [
+    -228,
+    "19:57",
+    "aikido/kyu-grade/ukemi/ohne/k5/ushiro-kaiten-2",
+    1
+   ],
+   [
+    -228,
+    "19:57",
+    "aikido/kyu-grade/ukemi/ohne/k5/mae-kaiten-1",
+    1
+   ],
+   [
+    -224,
+    "10:48",
+    "shinkitoho/kamae",
+    1
+   ],
+   [
+    -224,
+    "10:16",
+    "shinkitoho/kiriotoshi",
+    1
+   ],
+   [
+    -224,
+    "10:53",
+    "shinkitoho/suburi/3",
+    1
+   ],
+   [
+    -224,
+    "10:58",
+    "shinkitoho/odachi/6",
+    1
+   ],
+   [
+    -222,
+    "19:46",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/kokyu-nage-3",
+    1
+   ],
+   [
+    -222,
+    "19:57",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k3/shiho-nage-1",
+    1
+   ],
+   [
+    -222,
+    "19:35",
+    "aikido/kyu-grade/suwari-waza-mae-seme/yokomen-uchi/k4/ikkyo-1",
+    1
+   ],
+   [
+    -222,
+    "19:54",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/sankyo-1",
+    1
+   ],
+   [
+    -215,
+    "19:55",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k5/ikkyo-1",
+    1
+   ],
+   [
+    -215,
+    "19:58",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/tenchi-nage-4",
+    1
+   ],
+   [
+    -215,
+    "19:37",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k5/ikkyo-1",
+    1
+   ],
+   [
+    -215,
+    "19:31",
+    "aikido/kyu-grade/tachi-waza-mae-seme/yokomen-uchi/k4/shiho-nage-2",
+    1
+   ],
+   [
+    -215,
+    "19:47",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k3/shiho-nage-1",
+    1
+   ],
+   [
+    -215,
+    "19:58",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k3/kokyu-nage-2",
+    1
+   ],
+   [
+    -206,
+    "19:36",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/sankyo-1",
+    1
+   ],
+   [
+    -204,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/nikyo-1",
+    1
+   ],
+   [
+    -204,
+    "19:43",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/tenchi-nage-4",
+    1
+   ],
+   [
+    -204,
+    "19:51",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/juji-nage-2",
+    1
+   ],
+   [
+    -195,
+    "19:37",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k5/ikkyo-1",
+    1
+   ],
+   [
+    -195,
+    "19:35",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k4/irimi-nage-2",
+    1
+   ],
+   [
+    -195,
+    "19:56",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-diagonal/k5/ikkyo-1",
+    1
+   ],
+   [
+    -195,
+    "19:52",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k4/nikyo-1",
+    1
+   ],
+   [
+    -193,
+    "19:53",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/fuki-age-2",
+    1
+   ],
+   [
+    -193,
+    "19:52",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k4/fuki-age-2",
+    1
+   ],
+   [
+    -193,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/juji-nage-2",
+    1
+   ],
+   [
+    -193,
+    "19:59",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k4/ikkyo-1",
+    1
+   ],
+   [
+    -190,
+    "19:54",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k5/irimi-nage-2",
+    1
+   ],
+   [
+    -190,
+    "19:56",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k5/shiho-gaeshi-1",
+    1
+   ],
+   [
+    -190,
+    "19:56",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/nikyo-1",
+    1
+   ],
+   [
+    -190,
+    "19:42",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/juji-nage-2",
+    1
+   ],
+   [
+    -186,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/nikyo-1",
+    1
+   ],
+   [
+    -186,
+    "19:35",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/fuki-age-2",
+    1
+   ],
+   [
+    -186,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k3/sankyo-1",
+    1
+   ],
+   [
+    -186,
+    "19:30",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/kiri-otoshi-2",
+    1
+   ],
+   [
+    -184,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/nikyo-1",
+    1
+   ],
+   [
+    -184,
+    "19:43",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k5/shiho-gaeshi-1",
+    1
+   ],
+   [
+    -184,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k4/ikkyo-1",
+    1
+   ],
+   [
+    -182,
+    "10:12",
+    "shinkitoho/suburi/2",
+    1
+   ],
+   [
+    -182,
+    "10:33",
+    "shinkitoho/kamae",
+    1
+   ],
+   [
+    -182,
+    "10:18",
+    "shinkitoho/odachi/4",
+    1
+   ],
+   [
+    -182,
+    "10:17",
+    "shinkitoho/suburi/3",
+    1
+   ],
+   [
+    -182,
+    "10:01",
+    "shinkitoho/suburi/1",
+    1
+   ],
+   [
+    -182,
+    "10:02",
+    "shinkitoho/odachi/3",
+    1
+   ],
+   [
+    -182,
+    "10:46",
+    "shinkitoho/odachi/7",
+    1
+   ],
+   [
+    -177,
+    "19:51",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/kokyu-nage-3",
+    1
+   ],
+   [
+    -177,
+    "19:56",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/nikyo-1",
+    1
+   ],
+   [
+    -177,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/fuki-age-2",
+    1
+   ],
+   [
+    -177,
+    "19:37",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/juji-nage-2",
+    1
+   ],
+   [
+    -177,
+    "19:56",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k4/nikyo-1",
+    1
+   ],
+   [
+    -177,
+    "19:53",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/sumi-otoshi-2",
+    1
+   ],
+   [
+    -172,
+    "19:31",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k5/shiho-nage-1",
+    1
+   ],
+   [
+    -172,
+    "19:57",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k5/ikkyo-1",
+    1
+   ],
+   [
+    -172,
+    "19:49",
+    "aikido/kyu-grade/ukemi/ohne/k5/mae-kaiten-1",
+    1
+   ],
+   [
+    -172,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k5/ikkyo-1",
+    1
+   ],
+   [
+    -167,
+    "19:37",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/sumi-otoshi-2",
+    1
+   ],
+   [
+    -167,
+    "19:58",
+    "aikido/kyu-grade/kata/ohne/k5/kamae-undo-1",
+    1
+   ],
+   [
+    -167,
+    "19:36",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k4/sumi-otoshi-1",
+    1
+   ],
+   [
+    -165,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-muna-dori/k5/ikkyo-1",
+    1
+   ],
+   [
+    -165,
+    "19:54",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/nikyo-1",
+    1
+   ],
+   [
+    -160,
+    "19:49",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-gerade/k4/ikkyo-1",
+    1
+   ],
+   [
+    -160,
+    "19:50",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/kiri-otoshi-2",
+    1
+   ],
+   [
+    -160,
+    "19:46",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k5/kokyu-ho-1",
+    1
+   ],
+   [
+    -157,
+    "19:58",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k3/kokyu-nage-2",
+    1
+   ],
+   [
+    -157,
+    "19:50",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/sankyo-1",
+    1
+   ],
+   [
+    -157,
+    "19:30",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-muna-dori/k3/sankyo-1",
+    1
+   ],
+   [
+    -157,
+    "19:33",
+    "aikido/kyu-grade/ukemi/ohne/k5/ushiro-kaiten-2",
+    1
+   ],
+   [
+    -154,
+    "10:57",
+    "shinkitoho/odachi/4",
+    1
+   ],
+   [
+    -154,
+    "10:04",
+    "shinkitoho/kamae",
+    1
+   ],
+   [
+    -154,
+    "10:30",
+    "shinkitoho/odachi/5",
+    1
+   ],
+   [
+    -154,
+    "10:13",
+    "shinkitoho/odachi/7",
+    1
+   ],
+   [
+    -147,
+    "10:12",
+    "shinkitoho/odachi/3",
+    1
+   ],
+   [
+    -144,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k4/nikyo-1",
+    1
+   ],
+   [
+    -144,
+    "19:45",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k5/shiho-nage-1",
+    1
+   ],
+   [
+    -144,
+    "19:44",
+    "aikido/kyu-grade/ukemi/ohne/k5/mae-kaiten-1",
+    1
+   ],
+   [
+    -144,
+    "19:54",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/irimi-nage-3",
+    1
+   ],
+   [
+    -139,
+    "19:30",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/kokyu-nage-3",
+    1
+   ],
+   [
+    -139,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k4/sumi-otoshi-2",
+    1
+   ],
+   [
+    -137,
+    "19:49",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/irimi-nage-3",
+    1
+   ],
+   [
+    -137,
+    "19:46",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k5/ikkyo-1",
+    2
+   ],
+   [
+    -137,
+    "19:45",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-diagonal/k5/ikkyo-1",
+    2
+   ],
+   [
+    -134,
+    "19:43",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k4/ikkyo-1",
+    1
+   ],
+   [
+    -134,
+    "19:40",
+    "aikido/kyu-grade/ukemi/ohne/k5/yoko-kaiten-3",
+    2
+   ],
+   [
+    -134,
+    "19:40",
+    "aikido/kyu-grade/kata/ohne/k4/tachi-suburi-1-1",
+    1
+   ],
+   [
+    -134,
+    "19:56",
+    "aikido/kyu-grade/kata/ohne/k5/kamae-undo-1",
+    1
+   ],
+   [
+    -134,
+    "19:59",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/sankyo-1",
+    1
+   ],
+   [
+    -131,
+    "19:48",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k4/nikyo-1",
+    2
+   ],
+   [
+    -131,
+    "19:59",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryo-kata-dori/k4/ikkyo-1",
+    1
+   ],
+   [
+    -131,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k5/ikkyo-1",
+    2
+   ],
+   [
+    -131,
+    "19:38",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k4/ikkyo-1",
+    2
+   ],
+   [
+    -131,
+    "19:39",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-gerade/k4/ikkyo-1",
+    1
+   ],
+   [
+    -124,
+    "19:54",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k4/nikyo-1",
+    2
+   ],
+   [
+    -124,
+    "19:58",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/juji-nage-2",
+    1
+   ],
+   [
+    -124,
+    "19:54",
+    "aikido/kyu-grade/ukemi/ohne/k3/mae-sasae-tobi-1",
+    1
+   ],
+   [
+    -124,
+    "19:47",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/fuki-age-2",
+    1
+   ],
+   [
+    -99,
+    "19:59",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/irimi-nage-3",
+    2
+   ],
+   [
+    -99,
+    "19:34",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k5/shiho-gaeshi-1",
+    2
+   ],
+   [
+    -99,
+    "19:38",
+    "aikido/kyu-grade/suwari-waza-mae-seme/shomen-uchi/k4/ikkyo-1",
+    2
+   ],
+   [
+    -99,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/sumi-otoshi-2",
+    1
+   ],
+   [
+    -99,
+    "19:37",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k5/shiho-nage-1",
+    2
+   ],
+   [
+    -99,
+    "19:47",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k4/juji-nage-2",
+    1
+   ],
+   [
+    -91,
+    "10:31",
+    "shinkitoho/suburi/1",
+    2
+   ],
+   [
+    -91,
+    "10:27",
+    "shinkitoho/odachi/6",
+    1
+   ],
+   [
+    -89,
+    "19:42",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-muna-dori/k3/sankyo-1",
+    1
+   ],
+   [
+    -89,
+    "19:45",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/juji-nage-2",
+    1
+   ],
+   [
+    -89,
+    "19:41",
+    "aikido/kyu-grade/ukemi/ohne/k5/ushiro-kaiten-2",
+    2
+   ],
+   [
+    -89,
+    "19:50",
+    "aikido/kyu-grade/suwari-waza-mae-seme/shomen-uchi/k4/ikkyo-1",
+    2
+   ],
+   [
+    -89,
+    "19:57",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-gerade/k4/ikkyo-1",
+    2
+   ],
+   [
+    -87,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-muna-dori/k5/ikkyo-1",
+    2
+   ],
+   [
+    -87,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/juji-nage-2",
+    2
+   ],
+   [
+    -87,
+    "19:57",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k4/nikyo-1",
+    3
+   ],
+   [
+    -85,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/juji-nage-2",
+    2
+   ],
+   [
+    -85,
+    "19:33",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/sankyo-1",
+    2
+   ],
+   [
+    -85,
+    "19:34",
+    "aikido/kyu-grade/kata/ohne/k5/kamae-undo-1",
+    2
+   ],
+   [
+    -85,
+    "19:56",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k5/ikkyo-1",
+    2
+   ],
+   [
+    -85,
+    "19:54",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k4/ikkyo-1",
+    2
+   ],
+   [
+    -85,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k3/kokyu-nage-2",
+    2
+   ],
+   [
+    -80,
+    "19:46",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/shiho-nage-2",
+    3
+   ],
+   [
+    -80,
+    "19:52",
+    "aikido/kyu-grade/kata/ohne/k5/kamae-undo-1",
+    3
+   ],
+   [
+    -80,
+    "19:33",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k5/ikkyo-1",
+    3
+   ],
+   [
+    -80,
+    "19:46",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k4/sumi-otoshi-2",
+    1
+   ],
+   [
+    -80,
+    "19:36",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/ikkyo-1",
+    3
+   ],
+   [
+    -80,
+    "19:30",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/tenchi-nage-4",
+    2
+   ],
+   [
+    -70,
+    "10:45",
+    "shinkitoho/odachi/3",
+    2
+   ],
+   [
+    -70,
+    "10:56",
+    "shinkitoho/odachi/1",
+    1
+   ],
+   [
+    -70,
+    "10:26",
+    "shinkitoho/suburi/3",
+    2
+   ],
+   [
+    -67,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/ikkyo-1",
+    2
+   ],
+   [
+    -67,
+    "19:46",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k4/fuki-age-2",
+    2
+   ],
+   [
+    -67,
+    "19:45",
+    "aikido/kyu-grade/suwari-waza-mae-seme/yokomen-uchi/k4/ikkyo-1",
+    2
+   ],
+   [
+    -67,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k4/irimi-nage-2",
+    3
+   ],
+   [
+    -67,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/juji-nage-2",
+    2
+   ],
+   [
+    -62,
+    "19:51",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k5/irimi-nage-2",
+    3
+   ],
+   [
+    -62,
+    "19:59",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/kiri-otoshi-2",
+    1
+   ],
+   [
+    -62,
+    "19:36",
+    "aikido/kyu-grade/ukemi/ohne/k4/yoko-suberi-3",
+    2
+   ],
+   [
+    -62,
+    "19:49",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k4/ikkyo-1",
+    2
+   ],
+   [
+    -59,
+    "19:58",
+    "aikido/kyu-grade/ukemi/ohne/k4/yoko-suberi-3",
+    3
+   ],
+   [
+    -56,
+    "10:24",
+    "shinkitoho/suburi/2",
+    1
+   ],
+   [
+    -56,
+    "10:28",
+    "shinkitoho/odachi/6",
+    1
+   ],
+   [
+    -56,
+    "10:00",
+    "shinkitoho/odachi/4",
+    2
+   ],
+   [
+    -56,
+    "10:05",
+    "shinkitoho/odachi/3",
+    1
+   ],
+   [
+    -51,
+    "19:56",
+    "aikido/kyu-grade/suwari-waza-mae-seme/yokomen-uchi/k4/ikkyo-1",
+    3
+   ],
+   [
+    -51,
+    "19:55",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k5/ikkyo-1",
+    3
+   ],
+   [
+    -51,
+    "19:36",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-diagonal/k4/nikyo-1",
+    3
+   ],
+   [
+    -47,
+    "19:31",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k4/irimi-nage-2",
+    3
+   ],
+   [
+    -47,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/juji-nage-2",
+    1
+   ],
+   [
+    -47,
+    "19:59",
+    "aikido/kyu-grade/ukemi/ohne/k5/yoko-kaiten-3",
+    3
+   ],
+   [
+    -47,
+    "19:36",
+    "aikido/kyu-grade/suwari-waza-mae-seme/shomen-uchi/k4/ikkyo-1",
+    3
+   ],
+   [
+    -47,
+    "19:40",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k4/nikyo-1",
+    3
+   ],
+   [
+    -43,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/juji-nage-2",
+    3
+   ],
+   [
+    -43,
+    "19:54",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k4/sumi-otoshi-1",
+    2
+   ],
+   [
+    -43,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/shiho-nage-2",
+    3
+   ],
+   [
+    -43,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/yokomen-uchi/k4/ikkyo-1",
+    2
+   ],
+   [
+    -41,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k4/nikyo-1",
+    2
+   ],
+   [
+    -41,
+    "19:49",
+    "aikido/kyu-grade/ukemi/ohne/k3/mae-sasae-tobi-1",
+    1
+   ],
+   [
+    -41,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/kiri-otoshi-2",
+    1
+   ],
+   [
+    -41,
+    "19:32",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k5/ikkyo-1",
+    3
+   ],
+   [
+    -41,
+    "19:43",
+    "aikido/kyu-grade/ukemi/ohne/k4/yoko-suberi-3",
+    2
+   ],
+   [
+    -38,
+    "19:35",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/ikkyo-1",
+    3
+   ],
+   [
+    -38,
+    "19:58",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/irimi-nage-3",
+    2
+   ],
+   [
+    -35,
+    "10:57",
+    "shinkitoho/suburi/3",
+    3
+   ],
+   [
+    -35,
+    "10:54",
+    "shinkitoho/odachi/7",
+    1
+   ],
+   [
+    -35,
+    "10:48",
+    "shinkitoho/odachi/2",
+    3
+   ],
+   [
+    -35,
+    "10:18",
+    "shinkitoho/odachi/3",
+    1
+   ],
+   [
+    -33,
+    "19:48",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k4/nikyo-1",
+    4
+   ],
+   [
+    -33,
+    "19:50",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k4/kokyu-nage-3",
+    3
+   ],
+   [
+    -33,
+    "19:50",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k5/kokyu-ho-1",
+    3
+   ],
+   [
+    -33,
+    "19:31",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k4/juji-nage-2",
+    3
+   ],
+   [
+    -28,
+    "10:58",
+    "shinkitoho/kamae",
+    2
+   ],
+   [
+    -28,
+    "10:56",
+    "shinkitoho/odachi/3",
+    2
+   ],
+   [
+    -28,
+    "10:07",
+    "shinkitoho/suburi/3",
+    2
+   ],
+   [
+    -16,
+    "19:35",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/nikyo-1",
+    2
+   ],
+   [
+    -16,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k5/ikkyo-1",
+    3
+   ],
+   [
+    -16,
+    "19:51",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryo-kata-dori/k4/ikkyo-1",
+    3
+   ],
+   [
+    -11,
+    "19:38",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k4/nikyo-1",
+    2
+   ],
+   [
+    -11,
+    "19:53",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/kote-gaeshi-4",
+    1
+   ],
+   [
+    -8,
+    "19:39",
+    "aikido/kyu-grade/ukemi/ohne/k5/mae-kaiten-1",
+    3
+   ],
+   [
+    -8,
+    "19:31",
+    "aikido/kyu-grade/tachi-waza-mae-seme/yokomen-uchi/k4/shiho-nage-2",
+    2
+   ],
+   [
+    -8,
+    "19:47",
+    "aikido/kyu-grade/suwari-waza-mae-seme/shomen-uchi/k4/ikkyo-1",
+    4
+   ],
+   [
+    -4,
+    "19:39",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/nikyo-1",
+    2
+   ],
+   [
+    -4,
+    "19:58",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-muna-dori/k5/ikkyo-1",
+    3
+   ],
+   [
+    -4,
+    "19:43",
+    "aikido/kyu-grade/kata/ohne/k4/tachi-suburi-1-1",
+    3
+   ],
+   [
+    -4,
+    "19:55",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k4/ikkyo-1",
+    2
+   ],
+   [
+    -1,
+    "19:35",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/juji-nage-2",
+    3
+   ],
+   [
+    -1,
+    "19:56",
+    "aikido/kyu-grade/suwari-waza-mae-seme/ryote-dori/k4/ikkyo-1",
+    3
+   ],
+   [
+    -1,
+    "19:48",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-kata-dori/k4/ikkyo-1",
+    3
+   ],
+   [
+    -1,
+    "19:44",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/irimi-nage-3",
+    3
+   ],
+   [
+    -1,
+    "19:34",
+    "aikido/kyu-grade/kata/ohne/k5/kamae-undo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/ukemi/ohne/k5/ushiro-kaiten-2",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/ukemi/ohne/k5/yoko-kaiten-3",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k5/shiho-nage-2",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k5/shiho-nage-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k5/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k5/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k5/shiho-gaeshi-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k5/irimi-nage-2",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k5/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k5/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k5/shiho-nage-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/suwari-waza-mae-seme/katate-katate-dori-diagonal/k5/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/ukemi/ohne/k4/yoko-suberi-3",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k4/kote-gaeshi-4",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k4/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k4/sumi-otoshi-2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k4/nikyo-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-katate-dori-morote-dori/k4/nikyo-1",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k4/nikyo-1",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k4/sumi-otoshi-2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/yokomen-uchi/k4/shiho-nage-2",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/tsuki/k4/sumi-otoshi-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/katate-muna-dori/k4/nikyo-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-ushiro-seme/ryote-dori/k4/ikkyo-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/suwari-waza-mae-seme/yokomen-uchi/k4/ikkyo-1",
+    4
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/sankyo-1",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/sumi-otoshi-2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-ai-hanmi/k3/kokyu-nage-3",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-katate-dori-gyaku-hanmi/k3/juji-nage-2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/sankyo-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-muna-dori/k3/kiri-otoshi-2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/sankyo-1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/katate-kata-dori/k3/fuki-age-2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/ryote-ryote-dori/k3/tenchi-nage-4",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "aikido/kyu-grade/tachi-waza-mae-seme/shomen-uchi/k3/sankyo-1",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "shinkitoho/suburi/1",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "shinkitoho/suburi/2",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "shinkitoho/suburi/3",
+    3
+   ],
+   [
+    -1,
+    "20:15",
+    "shinkitoho/kiriotoshi",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "shinkitoho/odachi/1",
+    2
+   ],
+   [
+    -1,
+    "20:15",
+    "shinkitoho/odachi/4",
+    3
+   ]
+  ]
  },
  "it_docs": {
   "note": "Obsidian vault with Studio Weber's IT documentation (Hansei). Dates in notes are {{day:N}} placeholders, N = day offset from the anchor. Each check of Hansei finds something: a plain-text password and token, old code names (SW-NAS01, SW-VPS, SW-PI), a missing frontmatter key, an old review date, a dead link, a full compose copy. The restore note carries the returning file of the hidden layer. Three service notes drift from their stacks: Invoice Ninja's URL and port, Nextcloud's image, and Immich runs an older image than its note names (Komodo).",

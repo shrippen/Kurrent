@@ -106,13 +106,12 @@ Item {
             running: visible
         }
 
-        Kirigami.Icon {
+        KanteIcon {
             anchors.centerIn: parent
             width: Kirigami.Units.iconSizes.smallMedium
             height: width
             visible: !pull.refreshing
-            source: "view-refresh"
-            isMask: true
+            iconSource: "view-refresh"
             color: pull.armed ? KanteStyle.accentColor : KanteStyle.textColor
             rotation: indicator.progress * 270
         }

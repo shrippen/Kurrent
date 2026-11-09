@@ -17,6 +17,8 @@ Item {
     id: skin
 
     required property Item control
+    /** The way still to play or go (1.73): on a dark stage the default sunken colour does not show. */
+    property color trackColor: KanteStyle.sunkenColor
 
     visible: KanteStyle.themed
     anchors.fill: parent
@@ -55,7 +57,7 @@ Item {
         width: skin.trackWidth
         height: 4
         anchors.verticalCenter: parent.verticalCenter
-        color: KanteStyle.sunkenColor
+        color: skin.trackColor
 
         Rectangle {
             objectName: "kanteSliderFill"
@@ -85,7 +87,7 @@ Item {
         width: 4
         height: skin.trackHeight
         anchors.horizontalCenter: parent.horizontalCenter
-        color: KanteStyle.sunkenColor
+        color: skin.trackColor
 
         Rectangle {
             objectName: "kanteSliderFillVertical"

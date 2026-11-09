@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Shapes
 import "."
 
@@ -141,13 +142,27 @@ Item {
         restoreMode: Binding.RestoreBindingOrValue
     }
 
-    // Text areas: Material floats the placeholder above filled text, over the frame.
+    // Text areas: the placeholder stays inside the box (1.73, see KanteTextField).
     readonly property bool textArea: control !== null && control.placeholderText !== undefined && control.text !== undefined
+    QQC2.Label {
+        objectName: "kantePlaceholder"
+        visible: KanteStyle.themed && skin.textArea && skin.control.placeholderText !== ""
+                 && skin.control.text === "" && skin.control.preeditText === ""
+        x: skin.control ? skin.control.leftPadding : 0
+        // A text area starts at the top, a one-line field in its middle.
+        y: !skin.control ? 0 : skin.control.textDocument !== undefined ? skin.control.topPadding : (skin.control.height - height) / 2
+        width: skin.control ? skin.control.width - skin.control.leftPadding - skin.control.rightPadding : 0
+        text: skin.textArea ? skin.control.placeholderText : ""
+        horizontalAlignment: skin.control ? skin.control.horizontalAlignment : Text.AlignLeft
+        elide: Text.ElideRight
+        font: skin.control ? skin.control.font : Qt.application.font
+        color: KanteStyle.disabledTextColor
+    }
     Binding {
         target: skin.textArea ? skin.control : null
-        property: "placeholderText"
-        value: ""
-        when: KanteStyle.themed && skin.textArea && skin.control.text.length > 0
+        property: "placeholderTextColor"
+        value: "transparent"
+        when: KanteStyle.themed && skin.textArea
         restoreMode: Binding.RestoreBindingOrValue
     }
 

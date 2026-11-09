@@ -113,12 +113,11 @@ FocusScope {
                         id: content
                         anchors.centerIn: parent
                         spacing: KanteStyle.unit(8)
-                        Kirigami.Icon {
+                        KanteIcon {
                             visible: tab.iconName.length > 0
                             Layout.preferredWidth: Kirigami.Units.iconSizes.small
                             Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            source: tab.iconName
-                            isMask: true
+                            iconSource: tab.iconName
                             color: tab.ink
                         }
                         Text {
