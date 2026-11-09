@@ -6,7 +6,10 @@
 
 #include <KCalendarCore/Todo>
 
+#include <KLocalizedString>
+
 #include <QCoreApplication>
+#include <QFile>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQmlExpression>
@@ -53,6 +56,7 @@ private Q_SLOTS:
     void agendaShiftMovesOccurrenceAndUsesLocalDays();
     void seriesRescheduleMovesOccurrenceEditorEditsSeries();
     void allToTodayIsOneUndoStep();
+    void undoLabelIsTranslated();
     void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
@@ -91,6 +95,8 @@ void TaskControllerStoreTest::initTestCase()
 {
     // SharedSettings::instance() then lives in ~/.qttest, never the user's kurrentrc.
     QStandardPaths::setTestModeEnabled(true);
+    // Before the first i18n(): KLocalizedString reads the catalog paths once per domain.
+    KLocalizedString::addDomainLocaleDir("plasma_applet_com.github.shrippen.kurrent", QStringLiteral(KURRENT_TEST_LOCALE_DIR));
 }
 
 void TaskControllerStoreTest::init()
@@ -761,6 +767,24 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     QCOMPARE(looseNames, (QStringList{QStringLiteral("Ring the port"), QStringLiteral("Whole day")}));
     const QVariantMap tomorrow = m_controller->agendaDays(QDate::currentDate().addDays(1), 1).first().toMap();
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
+}
+
+// The undo tooltip comes from the widget's catalog (TRANSLATION_DOMAIN), not tr().
+void TaskControllerStoreTest::undoLabelIsTranslated()
+{
+    const QString catalog = QStringLiteral(KURRENT_TEST_LOCALE_DIR)
+            + QStringLiteral("/de/LC_MESSAGES/plasma_applet_com.github.shrippen.kurrent.mo");
+    if (!QFile::exists(catalog)) {
+        QSKIP("German catalog not built (msgfmt missing)");
+    }
+    KLocalizedString::setLanguages({QStringLiteral("de")});
+    const auto restore = qScopeGuard([] { KLocalizedString::clearLanguages(); });
+
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->installTestTask(1, QStringLiteral("x"), 10);
+    m_controller->updateTaskFull(1, {{QStringLiteral("summary"), QStringLiteral("x2")}});
+    waitStore(spy, 1);
+    QCOMPARE(m_controller->undoLabel(), QStringLiteral("Bearbeiten von „x“ rückgängig machen"));
 }
 
 // "All to today" moves the whole tray; one undo brings every task back.
