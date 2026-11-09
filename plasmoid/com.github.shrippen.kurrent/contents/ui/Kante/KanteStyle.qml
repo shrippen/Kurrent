@@ -46,6 +46,8 @@ QtObject {
 
     /** Force the dark palette (e.g. an Android app that always runs Material Dark). */
     property bool preferDark: false
+    /** Force Leinen, whatever the platform theme says (an app's style setting); preferDark wins. */
+    property bool preferLight: false
 
     /**
      * The app runs the Material style (Android). Kirigami then derives its
@@ -73,8 +75,8 @@ QtObject {
         }
     }
 
-    /** Leinen when the platform theme is light, unless preferDark. */
-    readonly property bool light: !preferDark && Kirigami.Theme.backgroundColor.hslLightness > 0.5
+    /** Leinen when the platform theme is light or preferLight, unless preferDark. */
+    readonly property bool light: !preferDark && (preferLight || Kirigami.Theme.backgroundColor.hslLightness > 0.5)
     readonly property QtObject palette: light ? KantePalette.light : KantePalette.dark
 
     // ── Theme roles (palette only in Kante; Kante Light keeps the theme) ──
@@ -508,6 +510,20 @@ QtObject {
     }
     function tint(c, alpha) {
         return Qt.rgba(c.r, c.g, c.b, alpha)
+    }
+    /**
+     * (1.61) The colour of a level 0..count on a scale, as KanteHeatmap draws it: 0 (or no
+     * number) the sunken ground, then `base` (the focus colour unless given) in steps of
+     * 0.88 / count opacity, full at `count` (4 unless given). For shares by level
+     * (KanteProgressBar.parts) with a KanteLegend.
+     */
+    function levelColor(level, count, base) {
+        var n = count > 0 ? count : 4
+        var c = base !== undefined ? base : focusColor
+        if (!(level > 0)) {
+            return sunkenColor
+        }
+        return level >= n ? c : tint(c, level * (0.88 / n))
     }
 
     // ── Fonts ────────────────────────────────────────────────────────────

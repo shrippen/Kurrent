@@ -19,6 +19,14 @@ QtObject {
 
     required property var dialog
 
+    // Torn down, the Bindings here give nothing back. The skin goes with its dialog: as
+    // a child of the dialog's content it is deleted inside the popup's destructor, and a
+    // background, header or footer given back there went into the half-deleted popup
+    // (SIGSEGV in QQmlBind::~QQmlBind, lmix). Component.onDestruction comes before that.
+    property bool going: false
+    readonly property int restore: going ? Binding.RestoreNone : Binding.RestoreBindingOrValue
+    Component.onDestruction: going = true
+
     readonly property KanteScope scope: KanteScope { target: skin.dialog ? skin.dialog.contentItem : null }
 
     // Not a child: only handed to `background` while Kante is on.
@@ -33,7 +41,7 @@ QtObject {
         property: "background"
         value: skin.kanteBackground
         when: KanteStyle.themed && skin.dialog !== null
-        restoreMode: Binding.RestoreBindingOrValue
+        restoreMode: skin.restore
     }
 
     // Qt hides a replaced background and does not show it again when it comes back
@@ -77,7 +85,7 @@ QtObject {
         property: "header"
         value: skin.kanteHeader
         when: KanteStyle.themed && skin.dialog !== null && !skin.dialog.hasOwnProperty("subtitle")
-        restoreMode: Binding.RestoreBindingOrValue
+        restoreMode: skin.restore
     }
 
     // Standard buttons and, for a Kirigami.Dialog, its customFooterActions as Kante buttons.
@@ -128,6 +136,6 @@ QtObject {
         property: "footer"
         value: skin.kanteFooter
         when: KanteStyle.themed && skin.dialog !== null
-        restoreMode: Binding.RestoreBindingOrValue
+        restoreMode: skin.restore
     }
 }

@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import "."
 
 /**
@@ -7,6 +8,8 @@ import "."
  * or indeterminate warning stripes. 8 px high.
  * `parts` stacks shares in one bar (web: several `.progress-bar > i`): a list of
  * {value, color}, values 0..1 of the whole, drawn left to right; the rest stays sunken.
+ * (1.61) A part's `text` ("3 sure") shows as its tooltip on hover and names it for screen
+ * readers; colour it with KanteStyle.levelColor and explain it with a KanteLegend.
  * Review progress: accepted, rejected, open.
  */
 Item {
@@ -34,11 +37,20 @@ Item {
             Repeater {
                 model: bar.parts
                 delegate: Rectangle {
+                    id: part
                     required property var modelData
+                    readonly property string tip: modelData.text ? String(modelData.text) : ""
                     width: Math.max(0, Math.min(1, modelData.value || 0)) * bar.width
                     height: bar.height
                     color: modelData.color || bar.color
                     Behavior on width { NumberAnimation { duration: KanteStyle.duration; easing.type: Easing.OutCubic } }
+                    Accessible.role: Accessible.StaticText
+                    Accessible.name: tip
+                    Accessible.ignored: tip.length === 0
+                    HoverHandler { id: partHover; enabled: part.tip.length > 0 }
+                    QQC2.ToolTip.text: part.tip
+                    QQC2.ToolTip.visible: partHover.hovered
+                    QQC2.ToolTip.delay: 300
                 }
             }
         }

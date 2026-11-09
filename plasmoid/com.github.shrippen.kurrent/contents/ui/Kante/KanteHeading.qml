@@ -10,6 +10,8 @@ import "."
  *           followed by a thin rule; above: uppercase Rajdhani title.
  *   Kante Light  the same section labels in theme colors, and the Rajdhani
  *           title for `pageTitle`; other headings stay the platform's.
+ * `wrapMode` (1.68): a title breaks its lines in Kante too (one line and elided without it);
+ * section labels stay one line beside their rule.
  */
 Kirigami.Heading {
     id: control
@@ -24,12 +26,19 @@ Kirigami.Heading {
     // and color stay untouched, so switching back to System restores them exactly.
     QQC2.Label {
         id: kanteText
+
+        // A title that may break its lines (wrapMode set, not a section label).
+        readonly property bool wraps: control.wrapMode !== Text.NoWrap && !control.sectionLabel
+
+        objectName: "kanteText"
         visible: control.kanteDrawn
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
         // centered on the text, not on the padded box
         anchors.verticalCenterOffset: (control.topPadding - control.bottomPadding) / 2
-        width: Math.min(implicitWidth, control.width)
+        width: wraps ? control.width : Math.min(implicitWidth, control.width)
+        wrapMode: wraps ? control.wrapMode : Text.NoWrap
+        maximumLineCount: wraps ? control.maximumLineCount : 1
         text: control.text
         font: control.sectionLabel ? KanteStyle.labelFont()
                                    : KanteStyle.titleFont(KanteStyle.defaultFont.pointSize * (control.level <= 2 ? 1.6 : 1.3))

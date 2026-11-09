@@ -57,18 +57,26 @@ QQC2.TextField {
         when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }
-    // Material floats the placeholder above a filled field, over the Kante frame.
-    Binding {
-        target: control
-        property: "placeholderText"
-        value: ""
-        when: KanteStyle.themed && control.text.length > 0
-        restoreMode: Binding.RestoreBindingOrValue
+    // The placeholder stays inside the box under Kante's own look (1.73), on every platform; the
+    // System look keeps the style's, Material's floating one too. Material floats its own above a
+    // focused or filled field, across the frame and cut off at the edge of a bar: that one is
+    // transparent, this one is the one seen.
+    QQC2.Label {
+        objectName: "kantePlaceholder"
+        visible: KanteStyle.themed && control.placeholderText !== "" && control.text === "" && control.preeditText === ""
+        x: control.leftPadding
+        anchors.verticalCenter: parent.verticalCenter
+        width: control.width - control.leftPadding - control.rightPadding
+        text: control.placeholderText
+        horizontalAlignment: control.horizontalAlignment
+        elide: Text.ElideRight
+        font: control.font
+        color: KanteStyle.disabledTextColor
     }
     Binding {
         target: control
         property: "placeholderTextColor"
-        value: KanteStyle.disabledTextColor
+        value: "transparent"
         when: KanteStyle.themed
         restoreMode: Binding.RestoreBindingOrValue
     }

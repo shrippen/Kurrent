@@ -209,7 +209,11 @@ Item {
         if (!applied) {
             return
         }
-        pending.push(item)
+        // Once per item: a staff of hundreds of notes queued itself once per note, and the sweep
+        // looked at its children that often (Kontra's notation view stood still for 2.7 s).
+        if (pending.indexOf(item) < 0) {
+            pending.push(item)
+        }
         sweepLater.start()
     }
     // Deferred by a timer of the scope's own, not Qt.callLater: a delegate torn down right
@@ -217,7 +221,12 @@ Item {
     Timer {
         id: sweepLater
         interval: 0
-        onTriggered: scope.sweepPending()
+        // The garbage collector takes the scope's functions before the scope and this Timer.
+        onTriggered: {
+            if (typeof scope.sweepPending === "function") {
+                scope.sweepPending()
+            }
+        }
     }
 
     // New children of the items in `pending`; the ones seen before are left alone.
@@ -271,7 +280,12 @@ Item {
     Timer {
         id: resweepLater
         interval: 0
-        onTriggered: scope.resweep()
+        // The garbage collector takes the scope's functions before the scope and this Timer.
+        onTriggered: {
+            if (typeof scope.resweep === "function") {
+                scope.resweep()
+            }
+        }
     }
     // After the event: the themes below take the window's colours first.
     function resweep() {

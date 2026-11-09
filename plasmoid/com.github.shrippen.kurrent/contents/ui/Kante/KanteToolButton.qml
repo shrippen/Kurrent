@@ -45,15 +45,13 @@ QQC2.ToolButton {
         spacing: Math.max(control.spacing, Kirigami.Units.smallSpacing)
         opacity: control.enabled ? 1 : 0.4
 
-        Kirigami.Icon {
-            readonly property var iconSource: control.icon.name !== "" ? control.icon.name : control.icon.source
+        KanteIcon {
             visible: control.display !== T.AbstractButton.TextOnly && String(iconSource).length > 0
             Layout.preferredWidth: control.icon.width > 0 ? control.icon.width : Kirigami.Units.iconSizes.smallMedium
             Layout.preferredHeight: control.icon.height > 0 ? control.icon.height : Kirigami.Units.iconSizes.smallMedium
             Layout.alignment: Qt.AlignVCenter
-            source: iconSource
+            iconSource: control.icon.name !== "" ? control.icon.name : control.icon.source
             color: control.icon.color.a > 0 ? control.icon.color : control.kanteInk
-            isMask: true
         }
 
         QQC2.Label {
