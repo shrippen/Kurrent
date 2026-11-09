@@ -5264,34 +5264,34 @@ void TaskController::pushUndo(TaskLogic::UndoRecord record)
 QString TaskController::undoLabel() const
 {
     if (!m_undo.canUndo()) {
-        return tr("Undo");
+        return i18n("Undo");
     }
     const TaskLogic::UndoRecord rec = m_undo.peek();
-    const QString title = rec.summary.trimmed().isEmpty() ? tr("(Untitled)") : rec.summary.trimmed();
+    const bool untitled = rec.summary.trimmed().isEmpty();
+    const QString title = untitled ? i18n("(Untitled)") : rec.summary.trimmed();
     switch (rec.kind) {
     case TaskLogic::UndoRecord::Kind::Complete:
-        return rec.completed ? tr("Undo marking “%1” incomplete").arg(title)
-                             : tr("Undo complete of “%1”").arg(title);
+        return rec.completed ? i18n("Undo marking “%1” incomplete", title)
+                             : i18n("Undo complete of “%1”", title);
     case TaskLogic::UndoRecord::Kind::Reschedule:
-        return tr("Undo reschedule of “%1”").arg(title);
+        return i18n("Undo reschedule of “%1”", title);
     case TaskLogic::UndoRecord::Kind::Move:
-        return tr("Undo move of “%1”").arg(title);
+        return i18n("Undo move of “%1”", title);
     case TaskLogic::UndoRecord::Kind::Delete:
-        return tr("Undo delete of “%1”").arg(title);
+        return i18n("Undo delete of “%1”", title);
     case TaskLogic::UndoRecord::Kind::Edit:
         if (rec.restoreLayout) {
-            return tr("Undo Kanban change of “%1”").arg(title);
+            return i18n("Undo Kanban change of “%1”", title);
         }
-        return tr("Undo edit of “%1”").arg(title);
+        return i18n("Undo edit of “%1”", title);
     case TaskLogic::UndoRecord::Kind::KanbanLayout:
-        return title == tr("(Untitled)") ? tr("Undo Kanban order")
-                                         : tr("Undo Kanban order of “%1”").arg(title);
+        return untitled ? i18n("Undo Kanban order") : i18n("Undo Kanban order of “%1”", title);
     case TaskLogic::UndoRecord::Kind::Batch:
-        return tr("Undo moving %n task(s)", nullptr, int(rec.batch.size()));
+        return i18np("Undo moving %1 task", "Undo moving %1 tasks", int(rec.batch.size()));
     case TaskLogic::UndoRecord::Kind::None:
         break;
     }
-    return tr("Undo");
+    return i18n("Undo");
 }
 
 void TaskController::recreateTask(const TaskLogic::UndoRecord &record)

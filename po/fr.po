@@ -1625,6 +1625,9 @@ msgstr "Sous-tâches"
 msgid "Suggestions for"
 msgstr "Suggestions pour"
 
+msgid "Summary"
+msgstr "Titre"
+
 msgid "Swimlane options"
 msgstr "Options des couloirs"
 
@@ -1744,6 +1747,36 @@ msgstr "Réessayer"
 
 msgid "Tu"
 msgstr "ma"
+
+msgid "Undo"
+msgstr "Annuler"
+
+msgid "Undo Kanban change of “%1”"
+msgstr "Annuler la modification Kanban de « %1 »"
+
+msgid "Undo Kanban order"
+msgstr "Annuler l’ordre Kanban"
+
+msgid "Undo Kanban order of “%1”"
+msgstr "Annuler l’ordre Kanban de « %1 »"
+
+msgid "Undo complete of “%1”"
+msgstr "Annuler l’achèvement de « %1 »"
+
+msgid "Undo delete of “%1”"
+msgstr "Annuler la suppression de « %1 »"
+
+msgid "Undo edit of “%1”"
+msgstr "Annuler la modification de « %1 »"
+
+msgid "Undo marking “%1” incomplete"
+msgstr "Annuler le marquage de « %1 » comme non terminée"
+
+msgid "Undo move of “%1”"
+msgstr "Annuler le déplacement de « %1 » vers un autre projet"
+
+msgid "Undo reschedule of “%1”"
+msgstr "Annuler la replanification de « %1 »"
 
 msgid "Unfold"
 msgstr "Déplier"
@@ -1996,3 +2029,8 @@ msgid "+%1 more"
 msgid_plural "+%1 more"
 msgstr[0] "+%1 de plus"
 msgstr[1] "+%1 de plus"
+
+msgid "Undo moving %1 task"
+msgid_plural "Undo moving %1 tasks"
+msgstr[0] "Annuler le déplacement de %1 tâche"
+msgstr[1] "Annuler le déplacement de %1 tâches"

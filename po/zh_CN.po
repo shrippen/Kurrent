@@ -63,7 +63,7 @@ msgid "%1–%2 %3 · %4 (fixed)"
 msgstr "%1–%2 %3 · %4（固定）"
 
 msgid "(Untitled)"
-msgstr "（无标题）"
+msgstr "(无标题)"
 
 msgid "+1 day"
 msgstr "+1 天"
@@ -1625,6 +1625,9 @@ msgstr "子任务"
 msgid "Suggestions for"
 msgstr "建议日期"
 
+msgid "Summary"
+msgstr "标题"
+
 msgid "Swimlane options"
 msgstr "泳道选项"
 
@@ -1744,6 +1747,36 @@ msgstr "重试"
 
 msgid "Tu"
 msgstr "二"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Undo Kanban change of “%1”"
+msgstr "撤销“%1”的看板更改"
+
+msgid "Undo Kanban order"
+msgstr "撤销看板排序"
+
+msgid "Undo Kanban order of “%1”"
+msgstr "撤销“%1”的看板排序"
+
+msgid "Undo complete of “%1”"
+msgstr "撤销完成“%1”"
+
+msgid "Undo delete of “%1”"
+msgstr "撤销删除“%1”"
+
+msgid "Undo edit of “%1”"
+msgstr "撤销编辑“%1”"
+
+msgid "Undo marking “%1” incomplete"
+msgstr "撤销将“%1”标记为未完成"
+
+msgid "Undo move of “%1”"
+msgstr "撤销将“%1”移到其他项目"
+
+msgid "Undo reschedule of “%1”"
+msgstr "撤销重新安排“%1”"
 
 msgid "Unfold"
 msgstr "展开"
@@ -1975,3 +2008,7 @@ msgstr[0] "↑ 逾期中有 %1 个"
 msgid "+%1 more"
 msgid_plural "+%1 more"
 msgstr[0] "另有 %1 个"
+
+msgid "Undo moving %1 task"
+msgid_plural "Undo moving %1 tasks"
+msgstr[0] "撤销移动 %1 个任务"
