@@ -624,7 +624,7 @@ restart_plasmashell() {
             echo "Restarting plasmashell..."
             kquitapp6 plasmashell 2>/dev/null || true
             sleep 1
-            env -u KCURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
+            env -u KURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
             disown >/dev/null 2>&1 || true
             echo "plasmashell restarted."
         '
@@ -634,11 +634,19 @@ fix_install_ownership() {
     if [[ "${EUID}" -eq 0 ]]; then
         chown -R "${INSTALL_USER}:${INSTALL_USER}" \
             "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
+        # bin/ holds other programs too: only the directory itself (a root-owned one left by
+        # an earlier sudo install would make the copy fail) and our binary.
+        if [[ -d "${INSTALL_PREFIX}/bin" && "${INSTALL_PREFIX}" == "${INSTALL_HOME}"/* ]]; then
+            chown "${INSTALL_USER}:${INSTALL_USER}" "${INSTALL_PREFIX}/bin"
+        fi
+        if [[ -e "${INSTALL_PREFIX}/bin/kurrent-tui" ]]; then
+            chown "${INSTALL_USER}:${INSTALL_USER}" "${INSTALL_PREFIX}/bin/kurrent-tui"
+        fi
     fi
 }
 
 prepare_install_prefix() {
-    as_user mkdir -p "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
+    as_user mkdir -p "${INSTALL_PREFIX}/bin" "${INSTALL_PREFIX}/lib" "${INSTALL_PREFIX}/share"
     fix_install_ownership
 }
 
@@ -705,6 +713,7 @@ install_from_overlay() {
     local overlay="$1"
     prepare_install_prefix
     remove_legacy_install
+    copy_overlay_tree "${overlay}/bin" "${INSTALL_PREFIX}/bin"
     copy_overlay_tree "${overlay}/lib" "${INSTALL_PREFIX}/lib"
     copy_overlay_tree "${overlay}/share" "${INSTALL_PREFIX}/share"
     fix_install_ownership
@@ -716,6 +725,9 @@ install_from_overlay() {
     fi
     register_plasmoid "$plasmoid"
     write_qml_env
+    if [[ -x "${INSTALL_PREFIX}/bin/kurrent-tui" ]]; then
+        info "Terminal client: ${INSTALL_PREFIX}/bin/kurrent-tui"
+    fi
     restart_plasmashell
 }
 

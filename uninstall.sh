@@ -142,6 +142,9 @@ main() {
     remove_dir_if_empty "${PREFIX}/share/qt6/qml/com/github"
     remove_dir_if_empty "${PREFIX}/share/qt6/qml/com"
 
+    # Terminal client (source builds and the prebuilt download)
+    remove "${PREFIX}/bin/kurrent-tui"
+
     # 4. Remove plasmoid files
     remove "${PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
     remove_dir_if_empty "${PREFIX}/share/plasma/plasmoids"

@@ -33,7 +33,7 @@ restart_plasmashell() {
     echo "Restarting plasmashell..."
     kquitapp6 plasmashell 2>/dev/null || true
     sleep 1
-    env -u KCURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
+    env -u KURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
     disown >/dev/null 2>&1 || true
     echo "plasmashell restarted."
 }
@@ -103,7 +103,7 @@ if [[ "${SKIP_PLASMOIDVIEWER:-0}" != "1" ]]; then
 fi
 
 # Ensure smoke env does not leak into the restarted plasmashell.
-unset KCURRENT_SMOKE
+unset KURRENT_SMOKE
 
 restart_plasmashell
 

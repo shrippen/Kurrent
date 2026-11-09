@@ -57,6 +57,7 @@ private Q_SLOTS:
     void sessionRemembersSorts();
     void sessionFollowsSmartViewMode();
     void newTaskTargetAndProjectLists();
+    void devBuildFollowsCMakeOption();
 
 private:
     Akonadi::Collection makeCollection(qint64 id, const QString &name) const;
@@ -1156,6 +1157,12 @@ void TaskControllerStoreTest::newTaskTargetAndProjectLists()
     QVERIFY(!m_controller->openJoinLink(999));
     m_controller->installTestTask(1, QStringLiteral("plain"), 10);
     QVERIFY(!m_controller->openMapLink(1));
+}
+
+// #33: -DKURRENT_DEV_BUILD=ON must reach the plugin (and the Diagnostics page marker).
+void TaskControllerStoreTest::devBuildFollowsCMakeOption()
+{
+    QCOMPARE(m_controller->devBuild(), bool(KURRENT_TEST_EXPECT_DEV_BUILD));
 }
 
 QTEST_MAIN(TaskControllerStoreTest)
