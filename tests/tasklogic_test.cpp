@@ -45,6 +45,7 @@ private Q_SLOTS:
 
     void searchFiltersViewCounts();
     void completedViewCountIgnoresShowCompletedFlag();
+    void computeCountsFillsEverySidebarMap();
 
     void firstSidebarProjectPrefersNonEmpty();
     void resolveNewTaskTargetModes();
@@ -571,6 +572,65 @@ void TaskLogicTest::completedViewCountIgnoresShowCompletedFlag()
     const TaskLogic::SidebarCounts counts = TaskLogic::computeCounts({openTask, doneTask}, filters, {}, today);
     QCOMPARE(counts.viewCounts.value(QStringLiteral("inbox")).toInt(), 1);
     QCOMPARE(counts.viewCounts.value(QStringLiteral("completed")).toInt(), 1);
+}
+
+// Every map computeCounts fills: keys as QML reads them (numbers as strings),
+// values as int, zero entries for the fixed vocabularies and extra labels.
+void TaskLogicTest::computeCountsFillsEverySidebarMap()
+{
+    const QDate today(2026, 8, 13);
+    TaskEntry urgent = makeTask(QStringLiteral("Urgent"));
+    urgent.collectionId = 7;
+    urgent.priority = 1;
+    urgent.status = 4;
+    urgent.secrecy = 1;
+    urgent.percentComplete = 60;
+    urgent.categories = {QStringLiteral("work"), QStringLiteral("home")};
+    urgent.location = QStringLiteral(" Office ");
+    urgent.dueDate = QDateTime(today, QTime(9, 0));
+    TaskEntry plain = makeTask(QStringLiteral("Plain"));
+    plain.collectionId = 7;
+    plain.categories = {QStringLiteral("work")};
+    TaskEntry other = makeTask(QStringLiteral("Other"));
+    other.collectionId = 8;
+    TaskEntry hidden = makeTask(QStringLiteral("Hidden child"));
+    hidden.collectionId = 8;
+    hidden.treeHidden = true;
+
+    TaskLogic::FilterState filters;
+    filters.currentView = QStringLiteral("inbox");
+    TaskLogic::SmartViewRules workRules;
+    workRules.label = QStringLiteral("work");
+    filters.allSmartViews = {{QStringLiteral("w"), workRules}, {QStringLiteral("none"), TaskLogic::SmartViewRules{}}};
+
+    const TaskLogic::SidebarCounts counts =
+            TaskLogic::computeCounts({urgent, plain, other, hidden}, filters, {QStringLiteral("spare")}, today);
+
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("inbox")).toInt(), 3);
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("today")).toInt(), 1);
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("overdue")).toInt(), 0);
+    QVERIFY(counts.viewCounts.contains(QStringLiteral("overdue")));
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("high")).toInt(), 1);
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("smart:w")).toInt(), 2);
+    QCOMPARE(counts.viewCounts.value(QStringLiteral("smart:none")).toInt(), 3);
+
+    QCOMPARE(counts.sidebarProjects, (QVariantMap{{QStringLiteral("7"), 2}, {QStringLiteral("8"), 1}}));
+    QCOMPARE(counts.sidebarLabels,
+             (QVariantMap{{QStringLiteral("work"), 2}, {QStringLiteral("home"), 1}, {QStringLiteral("spare"), 0}}));
+    QCOMPARE(counts.totalLabels,
+             (QVariantMap{{QStringLiteral("work"), 2}, {QStringLiteral("home"), 1}, {QStringLiteral("spare"), 0}}));
+    QCOMPARE(counts.sidebarPriorities,
+             (QVariantMap{{QStringLiteral("0"), 2}, {QStringLiteral("1"), 1}, {QStringLiteral("5"), 0}, {QStringLiteral("9"), 0}}));
+    QCOMPARE(counts.sidebarProgress.value(QStringLiteral("0-25")).toInt(), 2);
+    QCOMPARE(counts.sidebarProgress.value(QStringLiteral("51-75")).toInt(), 1);
+    QCOMPARE(counts.sidebarProgress.value(QStringLiteral("76-100")).toInt(), 0);
+    QCOMPARE(counts.sidebarStatus.value(QStringLiteral("4")).toInt(), 1);
+    QCOMPARE(counts.sidebarStatus.value(QStringLiteral("0")).toInt(), 2);
+    QCOMPARE(counts.sidebarStatus.value(QStringLiteral("3")).toInt(), 0);
+    QCOMPARE(counts.sidebarSecrecy,
+             (QVariantMap{{QStringLiteral("0"), 2}, {QStringLiteral("1"), 1}, {QStringLiteral("2"), 0}}));
+    QCOMPARE(counts.sidebarLocations, (QVariantMap{{QStringLiteral("Office"), 1}}));
+    QCOMPARE(counts.totalLocations, (QVariantMap{{QStringLiteral("Office"), 1}}));
 }
 
 void TaskLogicTest::firstSidebarProjectPrefersNonEmpty()

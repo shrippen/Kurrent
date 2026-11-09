@@ -13,7 +13,9 @@
 #include <QQmlPropertyMap>
 #include <QStandardPaths>
 #include <QSignalSpy>
+#include <QSemaphore>
 #include <QTest>
+#include <QThreadPool>
 
 class TaskControllerStoreTest : public QObject
 {
@@ -33,6 +35,7 @@ private Q_SLOTS:
     void undoAfterComplete();
     void labelAddRemoveRepeatIgnoresStaleMonitor();
     void coalescedAddThenRemove();
+    void rebuildRequestedDuringRebuildRuns();
     void kanbanPriorityRoundTrip();
     void kanbanStatusAndSecrecyDrop();
     void kanbanLabelColumnDrop();
@@ -273,6 +276,39 @@ void TaskControllerStoreTest::coalescedAddThenRemove()
     waitStore(spy, 2);
     QVERIFY(m_controller->testTaskCategories(8).isEmpty());
     QVERIFY(!m_controller->testTaskSyncing(8));
+}
+
+// A rebuild requested while the worker still computes the previous one must run
+// afterwards: the stale result is dropped, the list shows the latest query.
+void TaskControllerStoreTest::rebuildRequestedDuringRebuildRuns()
+{
+    m_controller->installTestTask(31, QStringLiteral("alpha"), 10);
+    m_controller->installTestTask(32, QStringLiteral("beta"), 10);
+    QTRY_COMPARE(m_controller->taskModel()->count(), 2);
+    QTRY_VERIFY(!m_controller->listReorganizing());
+
+    // Hold every pool thread so the rebuilds queue up behind each other.
+    QThreadPool *pool = QThreadPool::globalInstance();
+    QSemaphore gate;
+    QSemaphore holding;
+    const int threads = pool->maxThreadCount();
+    for (int i = 0; i < threads; ++i) {
+        pool->start([&gate, &holding] {
+            holding.release();
+            gate.acquire();
+        });
+    }
+    holding.acquire(threads);
+
+    m_controller->setSearchQuery(QStringLiteral("alpha"));
+    QTRY_VERIFY(m_controller->listReorganizing()); // first rebuild queued
+    m_controller->setSearchQuery(QStringLiteral("beta"));
+    QTest::qWait(120); // debounce elapses: second rebuild requested while the first waits
+    gate.release(threads);
+
+    QTRY_VERIFY(!m_controller->listReorganizing());
+    QCOMPARE(m_controller->taskModel()->count(), 1);
+    QCOMPARE(m_controller->taskModel()->taskAt(0).summary, QStringLiteral("beta"));
 }
 
 void TaskControllerStoreTest::kanbanPriorityRoundTrip()
