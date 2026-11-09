@@ -28,6 +28,19 @@ void setKanbanSortOrder(const KCalendarCore::Todo::Ptr &todo, int order);
 QStringList attendeesFromTodo(const KCalendarCore::Todo::Ptr &todo);
 QString geoMapUrlFromTodo(const KCalendarCore::Todo::Ptr &todo);
 bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, const QDateTime &now);
+/**
+ * Moves only the current occurrence of a series by `days` (#29): DTRECURRENCE changes,
+ * the rule, DTSTART and DUE stay. The occurrence's original day is kept
+ * (X-KDE-KURRENT-OCCURRENCE-ORIGIN) so completing continues the series from there.
+ * A series without DTSTART moves its DUE occurrence. Returns false for a task without a
+ * rule or dates, or for `days == 0`.
+ */
+bool moveOccurrence(const KCalendarCore::Todo::Ptr &todo, qint64 days);
+/** The original day of a moved occurrence, or an invalid date (also once another client
+ *  moved the occurrence on). */
+QDate occurrenceOrigin(const KCalendarCore::Todo::Ptr &todo);
+/** Back to the rule: no DTRECURRENCE, no origin. */
+void forgetOccurrenceMove(const KCalendarCore::Todo::Ptr &todo);
 
 // -1 = no reminder, 0 = at due, N = N minutes before due.
 int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo);

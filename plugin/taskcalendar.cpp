@@ -238,11 +238,19 @@ bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, c
         return true;
     }
 
+    // The current occurrence (DTRECURRENCE-aware); a moved occurrence continues from its
+    // original day so the next one is not the day it was moved away from (#29).
     QDateTime anchor = todo->hasDueDate() && todo->dtDue().isValid() ? todo->dtDue() : todo->dtStart();
     if (!anchor.isValid()) {
         anchor = now;
     }
     QDateTime seriesStart = (todo->hasStartDate() && todo->dtStart().isValid()) ? todo->dtStart() : anchor;
+    // A moved occurrence continues after the later of its original and its new day: moved
+    // earlier, the next one is not the original again; moved later, not one already past.
+    const QDate origin = occurrenceOrigin(todo);
+    if (origin.isValid() && origin > seriesStart.date()) {
+        seriesStart.setDate(origin);
+    }
     QDateTime next = todo->recurrence()->getNextDateTime(seriesStart.addSecs(1));
     if (!next.isValid() || next.date() <= seriesStart.date()) {
         const int freq = qMax(1, todo->recurrence()->frequency());
@@ -267,22 +275,102 @@ bool completeTodo(const KCalendarCore::Todo::Ptr &todo, CompleteAction action, c
         }
     }
 
-    const qint64 shiftMsecs = seriesStart.msecsTo(next);
-    if (shiftMsecs <= 0) {
+    if (!next.isValid() || seriesStart.msecsTo(next) <= 0) {
         todo->setCompleted(true);
         todo->setPercentComplete(100);
         return true;
     }
-    const QDateTime originalDue = todo->dtDue(true);
-    todo->setDtStart(next);
-    if (originalDue.isValid()) {
-        todo->setDtDue(originalDue.addMSecs(shiftMsecs), true);
-    } else {
-        todo->setDtDue(next, true);
+    // DUE keeps its distance to DTSTART (first occurrence). All-day series count in days:
+    // a millisecond shift across a DST change put DUE on the wrong day.
+    const bool allDay = todo->allDay();
+    const QDateTime firstStart = todo->dtStart(true);
+    const QDateTime firstDue = todo->dtDue(true);
+    QDateTime nextDue = next;
+    if (firstDue.isValid() && firstStart.isValid()) {
+        nextDue = allDay ? next.addDays(firstStart.date().daysTo(firstDue.date()))
+                         : next.addSecs(firstStart.secsTo(firstDue));
+    } else if (firstDue.isValid()) {
+        nextDue = allDay ? firstDue.addDays(seriesStart.date().daysTo(next.date()))
+                         : firstDue.addMSecs(seriesStart.msecsTo(next));
     }
+    todo->setDtStart(next);
+    todo->setDtDue(nextDue, true);
+    // DTSTART now is the current occurrence: drop a DTRECURRENCE left by a move or another
+    // client, which would otherwise keep pointing at the completed one.
+    forgetOccurrenceMove(todo);
     todo->setCompleted(false);
     todo->setPercentComplete(0);
     return true;
+}
+
+namespace
+{
+const QByteArray kOriginApp("KURRENT");
+const QByteArray kOriginKey("OCCURRENCE-ORIGIN");
+
+/** Start of the current occurrence; a series without DTSTART occurs at its DUE. */
+QDateTime occurrenceAnchor(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (todo->hasStartDate() && todo->dtStart().isValid()) {
+        return todo->dtStart();
+    }
+    return todo->hasDueDate() ? todo->dtDue() : QDateTime();
+}
+} // namespace
+
+QDate occurrenceOrigin(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo || !todo->recurs()) {
+        return {};
+    }
+    // "origin/moved": only valid while the occurrence still sits on the day Kurrent moved it
+    // to. Another client completing or editing the series (KOrganizer advances DTRECURRENCE
+    // and keeps unknown properties) makes it stale.
+    const QStringList parts = todo->customProperty(kOriginApp, kOriginKey).split(QLatin1Char('/'));
+    if (parts.size() != 2) {
+        return {};
+    }
+    const QDate origin = QDate::fromString(parts.at(0), Qt::ISODate);
+    const QDate moved = QDate::fromString(parts.at(1), Qt::ISODate);
+    const QDateTime anchor = occurrenceAnchor(todo);
+    if (!origin.isValid() || !moved.isValid() || !anchor.isValid() || anchor.date() != moved) {
+        return {};
+    }
+    return origin;
+}
+
+bool moveOccurrence(const KCalendarCore::Todo::Ptr &todo, qint64 days)
+{
+    if (!todo || !todo->recurs() || days == 0) {
+        return false;
+    }
+    const QDateTime occurrence = occurrenceAnchor(todo);
+    if (!occurrence.isValid()) {
+        return false;
+    }
+    QDate origin = occurrenceOrigin(todo);
+    if (!origin.isValid()) {
+        origin = occurrence.date();
+    }
+    const QDateTime moved = occurrence.addDays(days);
+    if (moved.date() == origin) {
+        todo->removeCustomProperty(kOriginApp, kOriginKey);
+    } else {
+        todo->setCustomProperty(kOriginApp, kOriginKey,
+                                origin.toString(Qt::ISODate) + QLatin1Char('/') + moved.date().toString(Qt::ISODate));
+    }
+    // Without DTSTART the occurrence is the DUE itself (KCalendarCore returns DTRECURRENCE).
+    todo->setDtRecurrence(moved);
+    return true;
+}
+
+void forgetOccurrenceMove(const KCalendarCore::Todo::Ptr &todo)
+{
+    if (!todo) {
+        return;
+    }
+    todo->setDtRecurrence(QDateTime());
+    todo->removeCustomProperty(kOriginApp, kOriginKey);
 }
 
 int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo)

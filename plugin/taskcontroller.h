@@ -356,10 +356,11 @@ public:
     /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
     Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
     /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier
-     *  start day stays. Undoable. */
+     *  start day stays. A recurring task moves only its current occurrence and keeps its times.
+     *  Undoable. */
     Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
-     *  the same number of days (a recurring task is left as it is);
+     *  the same number of days (a recurring task moves only its current occurrence, #29);
      *  a task without a date becomes all-day on `day`. Undoable. */
     Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's
@@ -665,6 +666,11 @@ enum class SyncResult { Error, Ok };
     void updateEmptyKind();
     TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
     void pushUndo(TaskLogic::UndoRecord record);
+    void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
+    /** Moves a series' current occurrence by `days` with an undo step (#29); false if nothing moved. */
+    bool moveSeriesOccurrence(qint64 itemId, qint64 days);
+    bool isSeries(qint64 itemId) const;
+    QDate seriesOccurrenceDay(qint64 itemId) const;
     void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
     /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */

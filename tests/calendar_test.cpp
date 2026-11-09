@@ -1,11 +1,14 @@
 #include "taskcalendar.h"
 
 #include <KCalendarCore/Event>
+#include <KCalendarCore/ICalFormat>
 #include <KCalendarCore/Todo>
 
 #include <QDate>
 #include <QDateTime>
+#include <QBitArray>
 #include <QTime>
+#include <QTimeZone>
 #include <QtTest>
 
 class CalendarTest : public QObject
@@ -28,7 +31,48 @@ private Q_SLOTS:
     void snoozeSetsAbsoluteTime();
     void dueAndStartFromTodo();
     void busyIntervalsAndIsBusyAt();
+    void moveOccurrenceKeepsRule_data();
+    void moveOccurrenceKeepsRule();
+    void completeAfterMovingEarlierContinuesFromOrigin();
+    void completeAfterMovingLaterContinuesFromOrigin();
+    void moveBackToOriginClearsMark();
+    void completeClearsStaleOccurrence();
+    void completeAllDayDailyKeepsDayAcrossDst();
+    void completeAfterMovingLaterSkipsPastOccurrences();
+    void staleOriginIsIgnored();
+    void moveOccurrenceWithoutStart();
 };
+
+namespace
+{
+KCalendarCore::Todo::Ptr icsRoundTrip(const KCalendarCore::Todo::Ptr &todo)
+{
+    KCalendarCore::ICalFormat format;
+    return format.fromString(format.toICalString(todo)).dynamicCast<KCalendarCore::Todo>();
+}
+
+QString rruleOf(const KCalendarCore::Todo::Ptr &todo)
+{
+    KCalendarCore::ICalFormat format;
+    const QStringList lines = format.toICalString(todo).split(QLatin1Char('\n'));
+    for (const QString &line : lines) {
+        if (line.startsWith(QLatin1String("RRULE"))) {
+            return line.trimmed();
+        }
+    }
+    return {};
+}
+
+KCalendarCore::Todo::Ptr seriesTodo(const QDateTime &start, const QDateTime &due)
+{
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setUid(QStringLiteral("series"));
+    todo->setSummary(QStringLiteral("Series"));
+    todo->setDtStart(start);
+    todo->setDtDue(due, true);
+    return todo;
+}
+} // namespace
 
 void CalendarTest::presetNoneWithoutRecurrence()
 {
@@ -244,6 +288,173 @@ void CalendarTest::busyIntervalsAndIsBusyAt()
     QVERIFY(TaskCalendar::isBusyAt(during, intervals));
     QVERIFY(!TaskCalendar::isBusyAt(outside, intervals));
     QVERIFY(!TaskCalendar::isBusyAt({}, intervals));
+}
+
+// #29: moving one occurrence changes only the current occurrence; rule, DTSTART and DUE stay.
+void CalendarTest::moveOccurrenceKeepsRule_data()
+{
+    QTest::addColumn<QString>("kind");
+    QTest::newRow("daily") << QStringLiteral("daily");
+    QTest::newRow("weekly") << QStringLiteral("weekly");
+    QTest::newRow("weekly-byday") << QStringLiteral("weekly-byday");
+    QTest::newRow("monthly") << QStringLiteral("monthly");
+    QTest::newRow("yearly") << QStringLiteral("yearly");
+}
+
+void CalendarTest::moveOccurrenceKeepsRule()
+{
+    QFETCH(QString, kind);
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0)); // a Monday
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    KCalendarCore::Recurrence *rule = todo->recurrence();
+    if (kind == QLatin1String("daily")) {
+        rule->setDaily(1);
+    } else if (kind == QLatin1String("weekly")) {
+        rule->setWeekly(1);
+    } else if (kind == QLatin1String("weekly-byday")) {
+        QBitArray days(7);
+        days.setBit(0); // Monday
+        days.setBit(3); // Thursday
+        rule->setWeekly(1, days);
+    } else if (kind == QLatin1String("monthly")) {
+        rule->setMonthly(1);
+        rule->addMonthlyDate(2);
+    } else {
+        rule->setYearly(1);
+        rule->addYearlyDate(2);
+        rule->addYearlyMonth(11);
+    }
+    const QString rrule = rruleOf(todo);
+    QVERIFY(!rrule.isEmpty());
+
+    QVERIFY(TaskCalendar::moveOccurrence(todo, -3)); // to the Friday before
+    const KCalendarCore::Todo::Ptr back = icsRoundTrip(todo);
+    QCOMPARE(rruleOf(back), rrule);
+    QCOMPARE(back->dtStart(true), start);
+    QCOMPARE(back->dtDue(true), start.addSecs(3600));
+    QCOMPARE(back->dtStart(), QDateTime(QDate(2026, 10, 30), QTime(9, 0)));
+    QCOMPARE(back->dtDue(), QDateTime(QDate(2026, 10, 30), QTime(10, 0)));
+    QCOMPARE(TaskCalendar::occurrenceOrigin(back), QDate(2026, 11, 2));
+}
+
+void CalendarTest::completeAfterMovingEarlierContinuesFromOrigin()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setWeekly(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, -3));
+    todo = icsRoundTrip(todo);
+
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 10, 30), QTime(12, 0))));
+    todo = icsRoundTrip(todo);
+    // Not 2 November again: the moved occurrence was that one.
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 9), QTime(9, 0)));
+    QCOMPARE(todo->dtDue(), QDateTime(QDate(2026, 11, 9), QTime(10, 0)));
+    QVERIFY(!TaskCalendar::occurrenceOrigin(todo).isValid());
+    QVERIFY(!todo->isCompleted());
+}
+
+void CalendarTest::completeAfterMovingLaterContinuesFromOrigin()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setWeekly(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 2));
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 4), QTime(12, 0))));
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 9), QTime(9, 0)));
+    QCOMPARE(todo->dtDue(), QDateTime(QDate(2026, 11, 9), QTime(10, 0)));
+}
+
+void CalendarTest::moveBackToOriginClearsMark()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setDaily(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 1));
+    QVERIFY(TaskCalendar::moveOccurrence(todo, -1));
+    QCOMPARE(todo->dtStart(), start);
+    QVERIFY(!TaskCalendar::occurrenceOrigin(todo).isValid());
+    QVERIFY(!TaskCalendar::moveOccurrence(todo, 0));
+    KCalendarCore::Todo::Ptr single(new KCalendarCore::Todo);
+    single->setDtStart(start);
+    QVERIFY(!TaskCalendar::moveOccurrence(single, 1)); // only series
+}
+
+// A DTRECURRENCE from another client (KOrganizer) must not stay behind when DTSTART moves on.
+void CalendarTest::completeClearsStaleOccurrence()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setDaily(1);
+    todo->setDtRecurrence(QDateTime(QDate(2026, 11, 4), QTime(9, 0)));
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 4), QTime(12, 0))));
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 5), QTime(9, 0)));
+    QCOMPARE(todo->dtDue(), QDateTime(QDate(2026, 11, 5), QTime(10, 0)));
+}
+
+void CalendarTest::completeAllDayDailyKeepsDayAcrossDst()
+{
+    const QTimeZone berlin("Europe/Berlin");
+    // 25 October 2026: clocks go back in Berlin.
+    const QDateTime start(QDate(2026, 10, 24), QTime(0, 0), berlin);
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start);
+    todo->setAllDay(true);
+    todo->recurrence()->setDaily(1);
+    for (int i = 0; i < 3; ++i) {
+        QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark,
+                                           QDateTime(QDate(2026, 10, 24 + i), QTime(12, 0), berlin)));
+        QCOMPARE(todo->dtDue().date(), QDate(2026, 10, 25 + i));
+        QCOMPARE(todo->dtStart().date(), QDate(2026, 10, 25 + i));
+    }
+}
+
+// Moved later than the next occurrence: the series continues after the moved day.
+void CalendarTest::completeAfterMovingLaterSkipsPastOccurrences()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setDaily(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 3)); // Monday -> Thursday
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 5), QTime(12, 0))));
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 6), QTime(9, 0)));
+
+    KCalendarCore::Todo::Ptr weekly = seriesTodo(start, start.addSecs(3600));
+    weekly->recurrence()->setWeekly(1);
+    QVERIFY(TaskCalendar::moveOccurrence(weekly, 7)); // onto the next occurrence
+    QVERIFY(TaskCalendar::completeTodo(weekly, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 9), QTime(12, 0))));
+    QCOMPARE(weekly->dtStart(), QDateTime(QDate(2026, 11, 16), QTime(9, 0)));
+}
+
+// Another client (KOrganizer: Todo::setCompleted) moves DTRECURRENCE on and keeps our mark.
+void CalendarTest::staleOriginIsIgnored()
+{
+    const QDateTime start(QDate(2026, 11, 2), QTime(9, 0));
+    KCalendarCore::Todo::Ptr todo = seriesTodo(start, start.addSecs(3600));
+    todo->recurrence()->setDaily(1);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 2));
+    QCOMPARE(TaskCalendar::occurrenceOrigin(todo), QDate(2026, 11, 2));
+    todo->setDtRecurrence(QDateTime(QDate(2026, 11, 10), QTime(9, 0)));
+    QVERIFY(!TaskCalendar::occurrenceOrigin(todo).isValid());
+    QVERIFY(TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime(QDate(2026, 11, 10), QTime(12, 0))));
+    QCOMPARE(todo->dtStart(), QDateTime(QDate(2026, 11, 11), QTime(9, 0)));
+}
+
+// Series from tasks.org or Nextcloud often have DUE but no DTSTART.
+void CalendarTest::moveOccurrenceWithoutStart()
+{
+    // As Akonadi delivers it: an ICS without DTSTART (KCalendarCore reads the DUE as start).
+    KCalendarCore::Todo::Ptr seed(new KCalendarCore::Todo);
+    seed->setUid(QStringLiteral("no-start"));
+    const QDateTime due(QDate(2026, 11, 2), QTime(10, 0));
+    seed->setDtDue(due, true);
+    seed->recurrence()->setStartDateTime(due, false);
+    seed->recurrence()->setDaily(1);
+    KCalendarCore::Todo::Ptr todo = icsRoundTrip(seed);
+    QVERIFY(TaskCalendar::moveOccurrence(todo, 2));
+    const KCalendarCore::Todo::Ptr back = icsRoundTrip(todo);
+    QCOMPARE(back->dtDue(), QDateTime(QDate(2026, 11, 4), QTime(10, 0)));
+    QCOMPARE(back->dtDue(true), due);
+    QCOMPARE(TaskCalendar::occurrenceOrigin(back), QDate(2026, 11, 2));
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)
