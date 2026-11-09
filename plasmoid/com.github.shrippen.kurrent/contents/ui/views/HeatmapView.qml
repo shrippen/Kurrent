@@ -300,7 +300,7 @@ ColumnLayout {
                   ? (root.visibleYearNumbers.length > 1
                      ? root.visibleYearNumbers[root.visibleYearNumbers.length - 1] + " \u2013 " + root.visibleYearNumbers[0]
                      : Qt.locale().toString(root.monthStart, "yyyy"))
-                  : Qt.locale().toString(root.monthStart, DateTime.monthYearFormat())
+                  : DateTime.monthYearLabel(root.monthStart)
             elide: Text.ElideRight
             font.bold: true
             font.family: Design.headingFamily

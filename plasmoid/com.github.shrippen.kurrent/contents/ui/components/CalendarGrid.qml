@@ -92,7 +92,7 @@ ColumnLayout {
         QQC2.Label {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
-            text: Qt.locale().toString(root._monthStart, DateTime.monthYearFormat())
+            text: DateTime.monthYearLabel(root._monthStart)
             font.bold: true
         }
 

@@ -2468,6 +2468,27 @@ void TaskController::agendaMoveToDay(qint64 itemId, const QDate &day)
     updateTaskFull(itemId, fields);
 }
 
+void TaskController::agendaShiftAllToDay(const QVariantList &itemIds, const QDate &day)
+{
+    // One undo step for the whole tray (#29): the single-record stack would keep only
+    // the last task otherwise.
+    m_collectingUndo = true;
+    m_collectedUndo.clear();
+    for (const QVariant &id : itemIds) {
+        agendaShiftToDay(id.toLongLong(), day);
+    }
+    m_collectingUndo = false;
+    if (m_collectedUndo.size() == 1) {
+        pushUndo(m_collectedUndo.front());
+    } else if (m_collectedUndo.size() > 1) {
+        TaskLogic::UndoRecord batch;
+        batch.kind = TaskLogic::UndoRecord::Kind::Batch;
+        batch.batch = std::move(m_collectedUndo);
+        pushUndo(batch);
+    }
+    m_collectedUndo.clear();
+}
+
 bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
 {
     const auto it = s_tasks.constFind(itemId);
@@ -5031,6 +5052,17 @@ void TaskController::undo()
 
     const TaskLogic::UndoRecord record = m_undo.take();
     Q_EMIT undoChanged();
+    if (record.kind == TaskLogic::UndoRecord::Kind::Batch) {
+        for (auto it = record.batch.crbegin(); it != record.batch.crend(); ++it) {
+            applyUndoRecord(*it);
+        }
+        return;
+    }
+    applyUndoRecord(record);
+}
+
+void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
+{
     m_applyingUndo = true;
 
     if (record.restoreLayout) {
@@ -5215,7 +5247,14 @@ void TaskController::restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, con
 
 void TaskController::pushUndo(TaskLogic::UndoRecord record)
 {
-    if (m_applyingUndo || m_batchUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
+    if (m_applyingUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
+        return;
+    }
+    if (m_collectingUndo) {
+        m_collectedUndo.push_back(record);
+        return;
+    }
+    if (m_batchUndo) {
         return;
     }
     m_undo.push(record);
@@ -5247,6 +5286,8 @@ QString TaskController::undoLabel() const
     case TaskLogic::UndoRecord::Kind::KanbanLayout:
         return title == tr("(Untitled)") ? tr("Undo Kanban order")
                                          : tr("Undo Kanban order of “%1”").arg(title);
+    case TaskLogic::UndoRecord::Kind::Batch:
+        return tr("Undo moving %1 tasks").arg(rec.batch.size());
     case TaskLogic::UndoRecord::Kind::None:
         break;
     }
