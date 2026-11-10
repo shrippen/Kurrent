@@ -109,9 +109,9 @@ public:
         const QString method = data.at(0).toString();
         const QString arg = data.size() > 1 ? data.at(1).toString() : QString();
 
-        QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("org.github.shrippen.Kurrent"),
+        QDBusMessage message = QDBusMessage::createMethodCall(QStringLiteral("io.github.shrippen.Kurrent"),
                                                               QStringLiteral("/Kurrent"),
-                                                              QStringLiteral("org.github.shrippen.Kurrent"),
+                                                              QStringLiteral("io.github.shrippen.Kurrent"),
                                                               method);
         if (!arg.isEmpty()) {
             message << arg;

@@ -6,7 +6,7 @@ import org.kde.kirigami.delegates as KirigamiDelegates
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.ksvg as KSvg
-import com.github.shrippen.kurrent 1.0
+import io.github.shrippen.Kurrent 1.0
 import "../colors.js" as Colors
 import "../components"
 import ".."

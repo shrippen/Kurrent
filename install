@@ -6,7 +6,7 @@ BUILD_DIR="${ROOT}/build"
 PREFIX="${PREFIX:-${HOME}/.local}"
 BUILD_TESTING="${BUILD_TESTING:-ON}"
 INSTALL_USER="${USER:-$(id -un)}"
-PLASMOID="${PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+PLASMOID="${PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent"
 if [[ "${SKIP_TESTS:-0}" == "1" ]]; then
     BUILD_TESTING="OFF"
 fi

@@ -11,8 +11,12 @@
 namespace
 {
 constexpr const char *kGroupName = "General";
-constexpr const char *kDefaultFileName = "com.github.shrippen.kurrent/kurrentrc";
-constexpr const char *kLegacyFileName = "plasma_com.github.shrippen.kurrentrc";
+constexpr const char *kDefaultFileName = "io.github.shrippen.Kurrent/kurrentrc";
+// Earlier homes of the file, newest first: the com.github id (up to 0.7.0), then plasma_*rc.
+constexpr const char *kLegacyFileNames[] = {
+    "com.github.shrippen.kurrent/kurrentrc",
+    "plasma_com.github.shrippen.kurrentrc",
+};
 }
 
 const SharedSettings::KeySpec *SharedSettings::specs()
@@ -192,14 +196,17 @@ void SharedSettings::migrateLegacyConfig(const QString &fileName)
         return;
     }
 
-    const QString oldPath = configHome + QLatin1Char('/') + QLatin1String(kLegacyFileName);
-    if (!QFile::exists(oldPath)) {
-        return;
-    }
+    for (const char *legacyName : kLegacyFileNames) {
+        const QString oldPath = configHome + QLatin1Char('/') + QLatin1String(legacyName);
+        if (!QFile::exists(oldPath)) {
+            continue;
+        }
 
-    QDir().mkpath(QFileInfo(newPath).absolutePath());
-    if (QFile::copy(oldPath, newPath)) {
-        QFile::remove(oldPath);
+        QDir().mkpath(QFileInfo(newPath).absolutePath());
+        if (QFile::copy(oldPath, newPath)) {
+            QFile::remove(oldPath);
+        }
+        return;
     }
 }
 

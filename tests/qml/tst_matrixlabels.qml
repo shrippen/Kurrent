@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/matrixlabels.js" as Labels
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/matrixlabels.js" as Labels
 
 // matrixlabels.js loads datetime.js via .import, so neither script sees the QML
 // context (no Locale enum there). These calls threw "Locale is not defined" before.

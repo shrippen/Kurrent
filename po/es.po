@@ -1,4 +1,4 @@
-# Translation of plasma_applet_com.github.shrippen.kurrent to Spanish.
+# Translation of plasma_applet_io.github.shrippen.Kurrent to Spanish.
 # Copyright (C) 2026 Kurrent Contributors
 # This file is distributed under the same license as the kurrent package.
 #
@@ -278,8 +278,8 @@ msgstr "Mejor día · %1"
 msgid "Both"
 msgstr "Ambos"
 
-msgid "Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
-msgstr "Ambos usan com.github.shrippen.kurrent.akonadi. Info cubre escrituras y sincronización (Qt Info). Detallado añade líneas de obtención y monitor (Qt Debug)."
+msgid "Both use io.github.shrippen.Kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
+msgstr "Ambos usan io.github.shrippen.Kurrent.akonadi. Info cubre escrituras y sincronización (Qt Info). Detallado añade líneas de obtención y monitor (Qt Debug)."
 
 msgid "Briefcase"
 msgstr "Maletín"

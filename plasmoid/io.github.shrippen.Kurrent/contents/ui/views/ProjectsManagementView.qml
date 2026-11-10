@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kirigami.delegates as KirigamiDelegates
 import org.kde.plasma.components as PlasmaComponents3
-import com.github.shrippen.kurrent 1.0
+import io.github.shrippen.Kurrent 1.0
 import "../colors.js" as Colors
 import ".."
 import "../Kante"

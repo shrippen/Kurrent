@@ -133,7 +133,7 @@ ConfigPageBase {
 
             ConfigHint {
                 Kirigami.FormData.label: i18n("Category")
-                text: i18n("Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug).")
+                text: i18n("Both use io.github.shrippen.Kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug).")
             }
 
             ConfigHint {

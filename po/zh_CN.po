@@ -1,4 +1,4 @@
-# Translation of plasma_applet_com.github.shrippen.kurrent to Chinese (Simplified).
+# Translation of plasma_applet_io.github.shrippen.Kurrent to Chinese (Simplified).
 # Copyright (C) 2026 Kurrent Contributors
 # This file is distributed under the same license as the kurrent package.
 #
@@ -278,8 +278,8 @@ msgstr "最佳一天 · %1"
 msgid "Both"
 msgstr "两者"
 
-msgid "Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
-msgstr "两者均使用 com.github.shrippen.kurrent.akonadi。信息包含写入和同步 (Qt Info)，详细另含获取/监视日志 (Qt Debug)。"
+msgid "Both use io.github.shrippen.Kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
+msgstr "两者均使用 io.github.shrippen.Kurrent.akonadi。信息包含写入和同步 (Qt Info)，详细另含获取/监视日志 (Qt Debug)。"
 
 msgid "Briefcase"
 msgstr "公文包"

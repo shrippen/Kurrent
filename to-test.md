@@ -198,7 +198,7 @@ Plugin installiert unter `~/.local/lib/qt6/plugins/kf6/krunner/` (nach `./instal
 
 - [ ] **Meta+Shift+K** — Kurrent öffnen (wenn in System Settings konfiguriert).
 - [ ] **Meta+Shift+N** — Add task.
-- [ ] D-Bus: `qdbus org.github.shrippen.Kurrent /Kurrent org.github.shrippen.Kurrent.show`
+- [ ] D-Bus: `qdbus io.github.shrippen.Kurrent /Kurrent io.github.shrippen.Kurrent.show`
 
 ---
 
@@ -206,7 +206,7 @@ Plugin installiert unter `~/.local/lib/qt6/plugins/kf6/krunner/` (nach `./instal
 
 - [ ] **Desktop-Widget** und **Panel-Flyout** teilen dieselben Werte (Sidebar-Breite, Smart Views, Kanban-Defaults, Multi-Select).
 - [ ] Jede KCM-Seite: **Reset this page** funktioniert.
-- [ ] `~/.config/com.github.shrippen.kurrent/kurrentrc`: neue Keys u. a. `mainPaneMode`, `smartViews`, `kanbanColumnSource`, `kanbanWriteMode`, `swimlaneLaneAxis`, `swimlaneTimeBucket`, `multiSelectEnabled`.
+- [ ] `~/.config/io.github.shrippen.Kurrent/kurrentrc`: neue Keys u. a. `mainPaneMode`, `smartViews`, `kanbanColumnSource`, `kanbanWriteMode`, `swimlaneLaneAxis`, `swimlaneTimeBucket`, `multiSelectEnabled`.
 
 ---
 

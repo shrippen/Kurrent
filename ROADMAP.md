@@ -21,7 +21,7 @@ flowchart LR
 
 Inbox, Today, Tomorrow, Scheduled, Anytime, Recurring, Unlabeled, Completed. Projects, labels, priorities. Create, edit, complete, delete. Subtasks via drag-and-drop. Full editor overlay and inline editor. Shared config between desktop and panel. Translations (de, es, fr, ja, zh_CN). A `.plasmoid` asset on GitHub Releases.
 
-Configure Kurrent has KCM pages for General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels. Spacing comes from `Design.qml` tokens; user overrides (sidebar width, density, colors) live in `~/.config/com.github.shrippen.kurrent/kurrentrc`.
+Configure Kurrent has KCM pages for General, Appearance, Sidebar, Tasks, Editor, Panel, Notifications, Projects, Labels. Spacing comes from `Design.qml` tokens; user overrides (sidebar width, density, colors) live in `~/.config/io.github.shrippen.Kurrent/kurrentrc`.
 
 ---
 
@@ -42,7 +42,7 @@ CalDAV semantics, editor/settings depth, panel and notification polish, backend 
 ## 0.4 — Plasma citizen + chrome settings
 
 - Keyboard: focus search, new task, complete, delete, full editor, sidebar view switching, reschedule shortcuts.
-- Global shortcut / D-Bus to open the flyout or add a task (`org.github.shrippen.Kurrent`).
+- Global shortcut / D-Bus to open the flyout or add a task (`io.github.shrippen.Kurrent`).
 - KRunner (`task tomorrow invoice`) — ship with 1.0 if cheap; not a hard blocker.
 - Join button polish for `http(s)` meeting URLs on row and editor.
 - Sidebar width, section/view order and visibility; per-project and per-label colors; panel badge; overlay dim steps.

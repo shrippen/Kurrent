@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     app.setApplicationName(QStringLiteral("kurrent-tui"));
     // The widget's catalog: the TUI's texts are translated with it.
-    KLocalizedString::setApplicationDomain("plasma_applet_com.github.shrippen.kurrent");
+    KLocalizedString::setApplicationDomain("plasma_applet_io.github.shrippen.Kurrent");
 
     Terminal terminal;
     if (!terminal.open()) {

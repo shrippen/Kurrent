@@ -10,7 +10,7 @@ Kurzfazit vorweg: Liste, Kanban, Heatmap und Kalender+Aufgaben sind spürbar aus
 
 ## 1. Swimlanes — Befunde
 
-**Datei:** `plasmoid/com.github.shrippen.kurrent/contents/ui/views/SwimlaneView.qml`
+**Datei:** `plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SwimlaneView.qml`
 
 ### 1.1 Bug: Klick auf eine Zelle tut nicht, was er soll
 
@@ -87,7 +87,7 @@ Kanban hat einen eigenen Kopfzeilen-Button „Kanban-Spalten“ (`FullView.qml:1
 
 ## 2. Projektplan — Befunde
 
-**Datei:** `plasmoid/com.github.shrippen.kurrent/contents/ui/views/PlanView.qml`
+**Datei:** `plasmoid/io.github.shrippen.Kurrent/contents/ui/views/PlanView.qml`
 
 ### 2.1 Bug: Zellklick kollabiert die Matrix selbst, statt in die Liste zu wechseln
 

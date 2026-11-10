@@ -5,6 +5,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QQmlPropertyMap>
 #include <QStandardPaths>
 #include <QTemporaryDir>
@@ -20,6 +21,7 @@ private Q_SLOTS:
     void seedOnlyWhenEmpty();
     void copyFromIgnoredWhileApplying();
     void migratesLegacyConfigFile();
+    void migratesOldIdConfigDir();
     void persistsNewPlannerKeys();
     void persistsKcmCatalogAndReset();
     void persistsReminderSearchAndColors();
@@ -112,9 +114,10 @@ void SharedSettingsTest::migratesLegacyConfigFile()
     const QString configHome = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
     QVERIFY(QDir().mkpath(configHome));
     const QString legacyPath = configHome + QStringLiteral("/plasma_com.github.shrippen.kurrentrc");
-    const QString newPath = configHome + QStringLiteral("/com.github.shrippen.kurrent/kurrentrc");
+    const QString newPath = configHome + QStringLiteral("/io.github.shrippen.Kurrent/kurrentrc");
     QFile::remove(legacyPath);
     QFile::remove(newPath);
+    QFile::remove(configHome + QStringLiteral("/com.github.shrippen.kurrent/kurrentrc"));
 
     QFile legacy(legacyPath);
     QVERIFY(legacy.open(QIODevice::WriteOnly | QIODevice::Truncate));
@@ -126,6 +129,27 @@ void SharedSettingsTest::migratesLegacyConfigFile()
     QCOMPARE(store.values().value(QStringLiteral("newTaskProjectMode")).toString(), QStringLiteral("first"));
     QVERIFY(QFile::exists(newPath));
     QVERIFY(!QFile::exists(legacyPath));
+}
+
+void SharedSettingsTest::migratesOldIdConfigDir()
+{
+    // Before the id move the file lived under the old com.github id (0.7.0 and earlier).
+    const QString configHome = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+    const QString oldPath = configHome + QStringLiteral("/com.github.shrippen.kurrent/kurrentrc");
+    const QString newPath = configHome + QStringLiteral("/io.github.shrippen.Kurrent/kurrentrc");
+    QVERIFY(QDir().mkpath(QFileInfo(oldPath).absolutePath()));
+    QFile::remove(oldPath);
+    QFile::remove(newPath);
+
+    QFile old(oldPath);
+    QVERIFY(old.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    old.write("[General]\ndefaultView=upcoming\n");
+    old.close();
+
+    SharedSettings store;
+    QCOMPARE(store.values().value(QStringLiteral("defaultView")).toString(), QStringLiteral("upcoming"));
+    QVERIFY(QFile::exists(newPath));
+    QVERIFY(!QFile::exists(oldPath));
 }
 
 void SharedSettingsTest::persistsNewPlannerKeys()

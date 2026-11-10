@@ -6,7 +6,7 @@ BUILD_DIR="${ROOT}/build"
 PREFIX="${PREFIX:-${HOME}/.local}"
 BUILD_TESTING="${BUILD_TESTING:-ON}"
 INSTALL_USER="${USER:-$(id -un)}"
-PLASMOID="${PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+PLASMOID="${PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent"
 if [[ "${SKIP_TESTS:-0}" == "1" ]]; then
     BUILD_TESTING="OFF"
 fi
@@ -106,6 +106,10 @@ fi
 unset KURRENT_SMOKE
 
 restart_plasmashell
+
+# Widgets of the old id (up to 0.7.0) move to the new one; the block lives in install-linux.sh.
+source <(sed -n '/^# BEGIN id-move/,/^# END id-move/p' "${ROOT}/install-linux.sh")
+move_old_widgets "${PREFIX}"
 
 ENV_DIR="${HOME}/.config/plasma-workspace/env"
 mkdir -p "${ENV_DIR}"

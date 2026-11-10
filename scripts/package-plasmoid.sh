@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-META="${ROOT}/plasmoid/com.github.shrippen.kurrent/metadata.json"
+META="${ROOT}/plasmoid/io.github.shrippen.Kurrent/metadata.json"
 VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["KPlugin"]["Version"])' "${META}")"
 ID="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["KPlugin"]["Id"])' "${META}")"
 
@@ -13,7 +13,7 @@ PKG="${STAGE}/${ID}"
 mkdir -p "${PKG}"
 
 cp "${META}" "${PKG}/metadata.json"
-cp -a "${ROOT}/plasmoid/com.github.shrippen.kurrent/contents" "${PKG}/contents"
+cp -a "${ROOT}/plasmoid/io.github.shrippen.Kurrent/contents" "${PKG}/contents"
 cp "${ROOT}/LICENSE" "${PKG}/LICENSE"
 
 # Screenshots and the demo are internal: none of it goes into the published package.

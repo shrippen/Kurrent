@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/datetime.js" as DateTime
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js" as DateTime
 
 TestCase {
     name: "DateTimeJs"
