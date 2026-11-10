@@ -471,12 +471,14 @@ FocusScope {
                 }
             }
 
-            KanteCallout {
+            Kirigami.InlineMessage {
+                id: dateErrorMessage
                 Layout.columnSpan: 2
                 Layout.fillWidth: true
                 visible: root.dateError !== ""
-                kind: KanteCallout.Kind.Danger
+                type: Kirigami.MessageType.Error
                 text: root.dateError
+                KanteMessageSkin { message: dateErrorMessage }
             }
 
             FieldLabel { text: i18n("Repeat") }

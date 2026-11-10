@@ -162,11 +162,13 @@ Item {
             }
         }
 
-        KanteCallout {
+        Kirigami.InlineMessage {
+            id: dateErrorMessage
             Layout.fillWidth: true
             visible: root.dateError !== ""
-            kind: KanteCallout.Kind.Danger
+            type: Kirigami.MessageType.Error
             text: root.dateError
+            KanteMessageSkin { message: dateErrorMessage }
         }
 
         PriorityPicker {

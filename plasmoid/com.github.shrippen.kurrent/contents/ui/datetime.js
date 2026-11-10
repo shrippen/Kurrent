@@ -474,14 +474,12 @@ function parseDate(str, locale) {
     if (d) {
         return d
     }
+    // ISO input in any locale, range-checked like the fields (2026-02-31 is no date).
     var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-    if (m) {
-        var iso = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0, 0)
-        if (!isNaN(iso.getTime())) {
-            return iso
-        }
+    if (!m) {
+        return null
     }
-    return null
+    return _dateFromFields({ year: m[1], month: m[2], day: m[3] })
 }
 
 function parseTime(str, locale) {

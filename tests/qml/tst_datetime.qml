@@ -268,5 +268,11 @@ TestCase {
         verify(DateTime.parseDate("07.11.26", de) === null)
         verify(DateTime.parseTime("24:00", de) === null)
         verify(DateTime.parseTime("21:60", de) === null)
+        // yyyy-MM-dd locales: the ISO fallback must not roll 31.02. into March either.
+        var sv = Qt.locale("sv_SE")
+        verify(DateTime.parseDate("2026-02-31", sv) === null)
+        verify(DateTime.parseDate("2026-13-00", sv) === null)
+        verify(DateTime.parseDate("2026-02-31", de) === null)
+        compare(DateTime.isoDateKey(DateTime.parseDate("2026-02-28", de)), "2026-02-28")
     }
 }
