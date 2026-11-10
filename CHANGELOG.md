@@ -2,10 +2,14 @@
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-11-10
+
 ### English
 
+Recurring tasks join the Agenda: drag them to another day like any other task. Dates now read in your language's order, large task lists react almost twice as fast, and the terminal client comes with the download.
+
 #### New
-- Agenda, Week and Month: recurring tasks can be dragged to another day too, and "All to today" takes them along (one undo brings them all back). Only this occurrence moves; the series keeps its rule, and when you check the task off, the next occurrence follows the original day. The inspector's Today, Tomorrow and Next week and the Day view do the same for a recurring task; its time of day stays the series' time.
+- Agenda, Week and Month: recurring tasks can be dragged to another day too, and "All to today" takes them along. Only this occurrence moves; the series keeps its rule, and when you check the task off, the next occurrence follows the original day. The inspector's Today, Tomorrow and Next week and the Day view do the same for a recurring task; its time of day stays the series' time.
 
 #### Improved
 - `kurrent-tui` now comes with the prebuilt download, so the one-line installer sets it up too; before, only source builds had it.
@@ -13,15 +17,20 @@
 - Large task lists react faster: rebuilding the list after a view switch, a filter or a search takes about half as long, and the sidebar counts no longer hold up the interface.
 
 #### Fixed
+- "All to today" is one undo step: undo brings back every task it moved; before, only the last one came back.
 - A list could keep showing an old view or an old search: a change made while the list was still being rebuilt was dropped, and the busy indicator stayed on.
 - Recurring tasks: checking off an all-day series could put the next occurrence on the wrong day around a change to or from daylight saving time, and a series edited in KOrganizer could stay on the occurrence you had just checked off. Undo restores a series' dates correctly.
 - Dates follow your language's order: the Agenda, calendar, heatmap, inspector and the terminal client wrote every date in German order, so English read "Thursday, 29. October" and Japanese "木曜日, 29. 10月"; now "Thursday, October 29" and "10月29日木曜日". Month headings use the month's own name (Russian "октябрь 2026 г.", not "октября"), and short dates put the weekday where your language does.
 - Editor: with a date format that writes days or months with one digit (English US, for example), a due or start date such as 11/7/2026 turned into "11/72/026", and with a 12-hour clock 9:05 PM turned into "90:5"; the task could not be saved, and a time after 10 PM came back as morning. Date fields now use two digits per field, and time fields use the 24-hour clock (9:05 PM is 21:05), because they cannot keep AM and PM.
 
+All changes: https://github.com/shrippen/Kurrent/compare/v0.5.0...v0.6.0
+
 ### Deutsch
 
+Wiederkehrende Aufgaben gehören jetzt zur Agenda: Du ziehst sie wie jede andere Aufgabe auf einen anderen Tag. Daten stehen in der Reihenfolge deiner Sprache, große Aufgabenlisten reagieren fast doppelt so schnell, und der Terminal-Client ist im Download dabei.
+
 #### Neu
-- Agenda, Woche und Monat: Auch wiederkehrende Aufgaben lassen sich auf einen anderen Tag ziehen, und „Alle auf heute“ nimmt sie mit (ein Rückgängig holt alle zurück). Verschoben wird nur dieses Vorkommen; die Serie behält ihre Regel, und beim Abhaken richtet sich das nächste Vorkommen nach dem ursprünglichen Tag. „Heute“, „Morgen“ und „Nächste Woche“ im Inspektor und die Tagesansicht machen es bei wiederkehrenden Aufgaben genauso; die Uhrzeit bleibt die der Serie.
+- Agenda, Woche und Monat: Auch wiederkehrende Aufgaben lassen sich auf einen anderen Tag ziehen, und „Alle auf heute“ nimmt sie mit. Verschoben wird nur dieses Vorkommen; die Serie behält ihre Regel, und beim Abhaken richtet sich das nächste Vorkommen nach dem ursprünglichen Tag. „Heute“, „Morgen“ und „Nächste Woche“ im Inspektor und die Tagesansicht machen es bei wiederkehrenden Aufgaben genauso; die Uhrzeit bleibt die der Serie.
 
 #### Verbessert
 - `kurrent-tui` ist jetzt im fertigen Download enthalten, der Einzeiler installiert ihn also mit; vorher hatten ihn nur Quellbuilds.
@@ -29,6 +38,7 @@
 - Große Aufgabenlisten reagieren schneller: Nach einem Ansichtswechsel, einem Filter oder einer Suche ist die Liste in etwa der halben Zeit neu aufgebaut, und die Zähler in der Seitenleiste halten die Oberfläche nicht mehr auf.
 
 #### Behoben
+- „Alle auf heute“ ist ein Rückgängig-Schritt: Rückgängig holt jede verschobene Aufgabe zurück; vorher kam nur die letzte zurück.
 - Eine Liste konnte eine alte Ansicht oder eine alte Suche weiter zeigen: Eine Änderung, die kam, während die Liste noch neu aufgebaut wurde, ging verloren, und die Ladeanzeige blieb an.
 - Wiederkehrende Aufgaben: Beim Abhaken einer ganztägigen Serie konnte das nächste Vorkommen um die Zeitumstellung herum auf dem falschen Tag landen, und eine in KOrganizer bearbeitete Serie konnte auf dem gerade abgehakten Vorkommen stehen bleiben. Rückgängig stellt die Daten einer Serie richtig wieder her.
 - Datumsangaben folgen der Reihenfolge deiner Sprache: Agenda, Kalender, Heatmap, Inspektor und Terminal-Client schrieben jedes Datum in deutscher Reihenfolge, auf Englisch also „Thursday, 29. October“ und auf Japanisch „木曜日, 29. 10月“; jetzt „Thursday, October 29“ und „10月29日木曜日“. Monatsüberschriften nehmen die Grundform des Monats (russisch „октябрь 2026 г.“, nicht „октября“), und kurze Daten stellen den Wochentag dorthin, wo deine Sprache ihn hat.

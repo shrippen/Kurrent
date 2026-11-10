@@ -6,12 +6,14 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 OUT="${SHOT_DIR:-${ROOT}/build/demo-shots}"
 LANG_="${DEMO_LANG:-de}"
+# Dates and weekdays follow the locale, not LANGUAGE: give each language its own.
+DEMO_LOCALE="$([ "${LANG_}" = en ] && echo en_US.UTF-8 || echo de_DE.UTF-8)"
 RAW="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-demo-shots-XXXXXX")"
 CONFIG="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-demo-config-XXXXXX")"
 trap 'rm -rf "${RAW}" "${CONFIG}"' EXIT
 demo_config "${CONFIG}"
 
-KURRENT_SCREENSHOT_PLUGIN="${DEMO_PLUGIN}" XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
+KURRENT_SCREENSHOT_PLUGIN="${DEMO_PLUGIN}" XDG_CONFIG_HOME="${CONFIG}" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" LC_ALL="${DEMO_LOCALE}" \
 KURRENT_SCREENSHOT_PLAN="styles=kante;modes=list,kanban,plan,heatmap,calendar,calendar-week,calendar-month;widths=60;editor=1;inspector=1" \
     "${ROOT}/tests/screenshot.sh" "${RAW}"
 

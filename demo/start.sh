@@ -13,6 +13,8 @@ printf 'module com.github.shrippen.kurrent\nplugin kurrentplugin\nclassname Kurr
     > "${WORK}/qml/com/github/shrippen/kurrent/qmldir"
 demo_config "${WORK}/config"
 LANG_="${1:-${DEMO_LANG:-de}}"
-XDG_CONFIG_HOME="${WORK}/config" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" \
+# Dates and weekdays follow the locale, not LANGUAGE: give each language its own.
+DEMO_LOCALE="$([ "${LANG_}" = en ] && echo en_US.UTF-8 || echo de_DE.UTF-8)"
+XDG_CONFIG_HOME="${WORK}/config" KURRENT_DEMO="${LANG_}" KURRENT_DEMO_WORLD="${ROOT}/demo/world.json" LANGUAGE="${LANG_}" LC_ALL="${DEMO_LOCALE}" \
 QML_IMPORT_PATH="${WORK}/qml" QML2_IMPORT_PATH="${WORK}/qml" \
     plasmoidviewer -a "${ROOT}/plasmoid/${APPLET_ID}" -f horizontal -l bottomedge -s 900x60
