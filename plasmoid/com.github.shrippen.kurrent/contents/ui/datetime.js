@@ -500,6 +500,12 @@ function parseTime(str, locale) {
     return { hours: h, minutes: min }
 }
 
+/** Where the date picker opens: the field's date, or today when the field holds none. */
+function pickerDate(str, locale) {
+    var d = parseDate(str, locale)
+    return d ? d : new Date()
+}
+
 function combineDateTime(dateStr, timeStr, allDay, locale) {
     var d = parseDate(dateStr, locale)
     if (!d) {
