@@ -275,4 +275,13 @@ TestCase {
         verify(DateTime.parseDate("2026-02-31", de) === null)
         compare(DateTime.isoDateKey(DateTime.parseDate("2026-02-28", de)), "2026-02-28")
     }
+
+    // The calendar button opens the picker at the field's date, not at today (it checked
+    // `isValid` on a JS Date, which has none, and always fell back to today).
+    function test_pickerDateFollowsField() {
+        var de = Qt.locale("de_DE")
+        compare(DateTime.isoDateKey(DateTime.pickerDate("15.03.2026", de)), "2026-03-15")
+        compare(DateTime.isoDateKey(DateTime.pickerDate("", de)), DateTime.isoDateKey(new Date()))
+        compare(DateTime.isoDateKey(DateTime.pickerDate("31.02.2026", de)), DateTime.isoDateKey(new Date()))
+    }
 }
