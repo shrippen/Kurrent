@@ -1670,6 +1670,9 @@ msgstr "KDE Store のパッケージはウィジェットのみです。プラ�
 msgid "The display name shown in the sidebar."
 msgstr "サイドバーに表示する名前。"
 
+msgid "The due date is not a valid date. Format: %1"
+msgstr "期限が有効な日時ではありません。形式: %1"
+
 msgid "The field of the column (default)"
 msgstr "列のフィールド (既定)"
 
@@ -1678,6 +1681,9 @@ msgstr "フライアウトの準備完了。サーバー応答後にタスクが
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "このスマートビューが有効なときのメイン領域の表示モード。"
+
+msgid "The start is not a valid date. Format: %1"
+msgstr "開始が有効な日時ではありません。形式: %1"
 
 msgid "Then"
 msgstr "次に"
