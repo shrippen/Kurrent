@@ -670,11 +670,13 @@ plasma_script() {
     return 1
 }
 
-# A restarted plasmashell needs a moment before it answers scripts.
+# A restarted plasmashell answers on D-Bus before it has loaded its layout; with no desktop yet
+# no old widget is found, and the old files would go while widgets still use them.
 wait_for_plasma() {
-    local i
+    local i count
     for ((i = 0; i < PLASMA_WAIT_SECONDS; ++i)); do
-        if plasma_script 'print("up")' >/dev/null 2>&1; then
+        count=$(plasma_script 'print(desktops().length)' 2>/dev/null) || count=0
+        if [[ "$count" =~ ^[0-9]+$ ]] && ((count > 0)); then
             return 0
         fi
         sleep 1
@@ -751,6 +753,9 @@ for (let c = 0; c < containments.length; ++c) {
         old[i].remove();
         ++moved;
     }
+}
+if (desktops().length === 0) {
+    ++left;
 }
 print("moved " + moved + " left " + left);
 JS

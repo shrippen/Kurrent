@@ -47,6 +47,11 @@ fi
 mkdir -p "${WORK}/bin"
 cat >"${WORK}/bin/qdbus6" <<'EOF'
 #!/usr/bin/env bash
+# Plasma's layout: FAKE_DESKTOPS containments (0 while plasmashell still starts).
+if [[ "${!#}" == 'print(desktops().length)' ]]; then
+    echo "${FAKE_DESKTOPS:-1}"
+    exit 0
+fi
 if [[ "${!#}" == 'print("up")' ]]; then
     echo up
     exit 0
@@ -111,6 +116,12 @@ FAKE_REPLY="moved 1 left 1" run_move "$P" "${WORK}/bin"
 [[ -d "${P}/share/plasma/plasmoids/${OLD_ID_TEXT}" ]] || fail "old package removed while a widget still uses it"
 [[ -d "${P}/lib/qml/com/github/shrippen/kurrent" ]] || fail "old QML module removed while a widget still uses it"
 [[ -f "${P}/config/${OLD_ID_TEXT}/kurrentrc" ]] || fail "old config removed while a widget still uses it"
+
+# Plasma answers but has not loaded its layout yet: everything stays.
+P="${WORK}/starting"
+old_install "$P"
+FAKE_DESKTOPS=0 FAKE_REPLY="moved 0 left 0" run_move "$P" "${WORK}/bin"
+[[ -d "${P}/share/plasma/plasmoids/${OLD_ID_TEXT}" ]] || fail "old package removed before Plasma loaded its layout"
 
 # No Plasma to ask: everything stays.
 P="${WORK}/noplasma"
