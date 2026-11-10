@@ -18,7 +18,6 @@ fail() {
 # Files allowed to name the old id: the migrations, their tests and the history.
 ALLOWED=(
     CHANGELOG.md
-    docs/index.html
     install-linux.sh
     uninstall.sh
     plugin/sharedsettings.cpp
@@ -32,10 +31,25 @@ while IFS= read -r file; do
             allowed=1
         fi
     done
+    if [[ "$file" == docs/index.html ]]; then
+        allowed=1
+    fi
     if [[ "$allowed" == 0 ]]; then
         fail "old id in ${file}"
     fi
 done < <(git -C "$ROOT" grep -il -e "$OLD_ID_TEXT" -e "com/github/shrippen" -- . ':!*.png' ':!*.webp' || true)
+
+# The landing page may name the old id only in its changelog (#changes and below), as history.
+outside_changes() {
+    awk -v id="$OLD_ID_TEXT" 'index($0, "id=\"changes\"") { changes = 1 } !changes && index($0, id) { print FNR }' "$1"
+}
+LANDING="${ROOT}/docs/index.html"
+if [[ -n "$(outside_changes "$LANDING")" ]]; then
+    fail "old id in docs/index.html outside #changes (line $(outside_changes "$LANDING" | head -1))"
+fi
+# The check itself: an install hint naming the old id above #changes is found.
+printf '<p>%s</p>\n<section id="changes">\n<li>%s</li>\n' "$OLD_ID_TEXT" "$OLD_ID_TEXT" >"${WORK}/landing.html"
+[[ "$(outside_changes "${WORK}/landing.html")" == "1" ]] || fail "landing page check misses the old id above #changes"
 
 BLOCK="${WORK}/block.sh"
 sed -n '/^# BEGIN id-move/,/^# END id-move/p' "${ROOT}/install-linux.sh" >"$BLOCK"
