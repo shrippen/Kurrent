@@ -858,7 +858,10 @@ restart_plasma() {
         echo "plasmashell does not quit; not restarted. Log out and in again." >&2
         return 0
     fi
-    start_plasma "$prefix"
+    if ! start_plasma "$prefix"; then
+        echo "plasmashell did not start. Log out and in again." >&2
+        return 0
+    fi
     echo "plasmashell restarted."
 }
 # END plasma-restart

@@ -30,7 +30,8 @@ fake() {
 fake pgrep '[[ -e "${FAKE_STATE}/running" ]]'
 fake kquitapp6 '[[ -n "${FAKE_QUIT_HANG:-}" ]] && exit 0
 ( sleep "${FAKE_QUIT_DELAY:-0}"; rm -f "${FAKE_STATE}/running" ) >/dev/null 2>&1 &'
-fake pkill '[[ "$1" != -KILL && -n "${FAKE_TERM_IGNORED:-}" ]] && exit 0
+fake pkill '[[ -n "${FAKE_KILL_IGNORED:-}" ]] && exit 0
+[[ "$1" != -KILL && -n "${FAKE_TERM_IGNORED:-}" ]] && exit 0
 rm -f "${FAKE_STATE}/running"'
 fake plasmashell 'if [[ -e "${FAKE_STATE}/running" ]]; then echo clash >>"${FAKE_STATE}/log"; exit 1; fi
 touch "${FAKE_STATE}/running"
@@ -44,6 +45,7 @@ case "$1" in
     show-environment) cat "${FAKE_STATE}/env" 2>/dev/null ;;
     set-environment) shift; for kv in "$@"; do sed -i "/^${kv%%=*}=/d" "${FAKE_STATE}/env"; echo "$kv" >>"${FAKE_STATE}/env"; done ;;
     start)
+        [[ -n "${FAKE_START_FAILS:-}" ]] && exit 1
         if [[ -e "${FAKE_STATE}/running" ]]; then echo clash >>"${FAKE_STATE}/log"; exit 1; fi
         touch "${FAKE_STATE}/running"
         echo "started unit $(grep "^QML_IMPORT_PATH=" "${FAKE_STATE}/env")" >>"${FAKE_STATE}/log" ;;
@@ -64,9 +66,9 @@ run_restart() {
         PATH="${WORK}/bin"
         # shellcheck source=/dev/null
         source "$BLOCK"
-        PLASMA_QUIT_SECONDS=2
+        PLASMA_QUIT_SECONDS="${FAKE_QUIT_SECONDS:-2}"
         restart_plasma "${WORK}/prefix"
-    ) >/dev/null 2>&1 || true
+    ) >"${FAKE_STATE}/out" 2>&1 || echo "restart_plasma failed" >>"${FAKE_STATE}/out"
 
     # A shell started in the background may still be writing its line.
     local i
@@ -104,6 +106,17 @@ echo "QML_IMPORT_PATH=${WORK}/prefix/lib64/qml:${WORK}/prefix/lib/qml:${WORK}/pr
 FAKE_SYSTEMD=1 run_restart again
 grep -q "^started unit QML_IMPORT_PATH=${WORK}/prefix/lib64/qml:${WORK}/prefix/lib/qml:${WORK}/prefix/share/qt6/qml$" <<<"$(log_of again)" ||
     fail "QML path doubled on a second install: $(log_of again)"
+
+# Not even SIGKILL ends it: no second shell, and the user is told.
+FAKE_QUIT_HANG=1 FAKE_KILL_IGNORED=1 FAKE_QUIT_SECONDS=1 run_restart unkillable
+grep -q clash <<<"$(log_of unkillable)" && fail "new plasmashell started next to one that does not die"
+grep -q "Log out and in again" "${WORK}/unkillable/out" || fail "no hint when plasmashell does not die"
+
+# The unit does not start: the install goes on, and the user is told instead of "restarted".
+FAKE_SYSTEMD=1 FAKE_START_FAILS=1 run_restart nostart
+grep -q "Log out and in again" "${WORK}/nostart/out" || fail "no hint when the unit does not start"
+grep -q "plasmashell restarted" "${WORK}/nostart/out" && fail "claims a restart the unit did not do"
+grep -q "restart_plasma failed" "${WORK}/nostart/out" && fail "restart failure stops the install"
 
 # No plasmashell running: none is started.
 FAKE_NOT_RUNNING=1 run_restart idle
