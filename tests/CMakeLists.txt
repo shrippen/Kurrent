@@ -121,7 +121,7 @@ add_executable(kurrent-taskcontroller-store-test
 )
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
     # Same catalog as kurrentcore (plugin/CMakeLists.txt); undoLabelIsTranslated reads it.
-    TRANSLATION_DOMAIN="plasma_applet_com.github.shrippen.kurrent"
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
     KURRENT_TEST_LOCALE_DIR="${CMAKE_BINARY_DIR}/locale"
     KURRENT_WITH_DEMO
     KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")

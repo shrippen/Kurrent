@@ -63,7 +63,7 @@ msgid "%1–%2 %3 · %4 (fixed)"
 msgstr "%1–%2 %3 · %4（固定）"
 
 msgid "(Untitled)"
-msgstr "(无标题)"
+msgstr "（无标题）"
 
 msgid "+1 day"
 msgstr "+1 天"

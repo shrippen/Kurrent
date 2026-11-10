@@ -45,6 +45,9 @@ include(CTest)
 
 set(CMAKE_AUTOMOC ON)
 
+# Gettext domain of the widget catalog; kurrentcore and its tests translate with it.
+set(KURRENT_TRANSLATION_DOMAIN "plasma_applet_com.github.shrippen.kurrent")
+
 add_subdirectory(plugin)
 add_subdirectory(tui)
 
@@ -70,7 +73,7 @@ if(GETTEXT_MSGFMT_EXECUTABLE)
     foreach(_lang ${_kurrent_i18n_langs})
         set(_po "${CMAKE_CURRENT_SOURCE_DIR}/po/${_lang}.po")
         set(_mo_dir "${CMAKE_CURRENT_BINARY_DIR}/locale/${_lang}/LC_MESSAGES")
-        set(_mo "${_mo_dir}/plasma_applet_com.github.shrippen.kurrent.mo")
+        set(_mo "${_mo_dir}/${KURRENT_TRANSLATION_DOMAIN}.mo")
         add_custom_command(
             OUTPUT "${_mo}"
             COMMAND ${CMAKE_COMMAND} -E make_directory "${_mo_dir}"

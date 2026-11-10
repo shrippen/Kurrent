@@ -87,7 +87,8 @@ PLURALS.update(PLURAL_REVIEW)
 PLURALS.update(PLURAL_AGENDA)
 PLURALS.update(PLURAL_UNDO)
 for _lang, _strings in UNDO.items():
-    EXTRA[_lang].update(_strings)
+    for _msgid, _msgstr in _strings.items():
+        EXTRA[_lang].setdefault(_msgid, _msgstr)  # existing translations win
 
 LANGS = {
     "de": ("de", "nplurals=2; plural=(n != 1);"),

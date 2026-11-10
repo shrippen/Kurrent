@@ -5,7 +5,6 @@ UNDO = {
     "de": {
         "Summary": "Titel",
         "Undo": "Rückgängig",
-        "(Untitled)": "(Ohne Titel)",
         "Undo marking “%1” incomplete": "„%1“ wieder als erledigt markieren",
         "Undo complete of “%1”": "Erledigen von „%1“ rückgängig machen",
         "Undo reschedule of “%1”": "Verschieben von „%1“ rückgängig machen",
@@ -19,7 +18,6 @@ UNDO = {
     "es": {
         "Summary": "Título",
         "Undo": "Deshacer",
-        "(Untitled)": "(Sin título)",
         "Undo marking “%1” incomplete": "Deshacer marcar «%1» como pendiente",
         "Undo complete of “%1”": "Deshacer completar «%1»",
         "Undo reschedule of “%1”": "Deshacer reprogramar «%1»",
@@ -33,7 +31,6 @@ UNDO = {
     "fr": {
         "Summary": "Titre",
         "Undo": "Annuler",
-        "(Untitled)": "(Sans titre)",
         "Undo marking “%1” incomplete": "Annuler le marquage de « %1 » comme non terminée",
         "Undo complete of “%1”": "Annuler l’achèvement de « %1 »",
         "Undo reschedule of “%1”": "Annuler la replanification de « %1 »",
@@ -47,7 +44,6 @@ UNDO = {
     "ja": {
         "Summary": "タイトル",
         "Undo": "元に戻す",
-        "(Untitled)": "(無題)",
         "Undo marking “%1” incomplete": "「%1」の未完了への変更を元に戻す",
         "Undo complete of “%1”": "「%1」の完了を元に戻す",
         "Undo reschedule of “%1”": "「%1」の日程変更を元に戻す",
@@ -61,7 +57,6 @@ UNDO = {
     "zh_CN": {
         "Summary": "标题",
         "Undo": "撤销",
-        "(Untitled)": "(无标题)",
         "Undo marking “%1” incomplete": "撤销将“%1”标记为未完成",
         "Undo complete of “%1”": "撤销完成“%1”",
         "Undo reschedule of “%1”": "撤销重新安排“%1”",
