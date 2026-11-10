@@ -2430,9 +2430,18 @@ QVariantList TaskController::agendaSuggestions(const QDate &target) const
 
 void TaskController::agendaPlaceTask(qint64 itemId, const QDate &day, int minute)
 {
+    const QVariantMap place = agendaPlacement(itemId, day, minute);
+    if (place.isEmpty()) {
+        return;
+    }
+    agendaSetBlock(itemId, day, place.value(QStringLiteral("start")).toInt(), place.value(QStringLiteral("end")).toInt());
+}
+
+QVariantMap TaskController::agendaPlacement(qint64 itemId, const QDate &day, int minute) const
+{
     const auto it = s_tasks.constFind(itemId);
     if (it == s_tasks.cend() || !it->todo || !day.isValid()) {
-        return;
+        return {};
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
     const AgendaLogic::Span block = AgendaLogic::taskBlock(task);
@@ -2442,7 +2451,20 @@ void TaskController::agendaPlaceTask(qint64 itemId, const QDate &day, int minute
     const int from = qBound(AgendaLogic::kGridStart, minute / AgendaLogic::kStep * AgendaLogic::kStep,
                             AgendaLogic::kGridEnd - minutes);
     const int start = AgendaLogic::fitFree(agendaBusy(day, agendaEntries(), itemId), from, minutes);
-    agendaSetBlock(itemId, day, start, start + minutes);
+    return {
+        {QStringLiteral("start"), start},
+        {QStringLiteral("end"), start + minutes},
+        {QStringLiteral("detach"), agendaWouldDetach(itemId, start, start + minutes)},
+    };
+}
+
+bool TaskController::agendaWouldDetach(qint64 itemId, int start, int end) const
+{
+    if (!isSeries(itemId)) {
+        return false;
+    }
+    const TaskEntry task = makeTaskEntry(*s_tasks.constFind(itemId), 0, false);
+    return !(AgendaLogic::taskBlock(task) == AgendaLogic::Span{start, end});
 }
 
 void TaskController::agendaSetBlock(qint64 itemId, const QDate &day, int start, int end)
@@ -2454,8 +2476,7 @@ void TaskController::agendaSetBlock(qint64 itemId, const QDate &day, int start, 
     // another day move only this occurrence (#29); another time detaches it into a task of its
     // own, and the series goes on with its next occurrence (owner, 10.11.2026).
     if (isSeries(itemId)) {
-        const TaskEntry task = makeTaskEntry(*s_tasks.constFind(itemId), 0, false);
-        if (AgendaLogic::taskBlock(task) == AgendaLogic::Span{start, end}) {
+        if (!agendaWouldDetach(itemId, start, end)) {
             const QDate from = seriesOccurrenceDay(itemId);
             moveSeriesOccurrence(itemId, from.isValid() ? from.daysTo(day) : 0);
             return;

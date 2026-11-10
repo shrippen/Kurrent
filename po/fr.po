@@ -539,6 +539,15 @@ msgstr "Aperçu de la description"
 msgid "Desktop notifications"
 msgstr "Notifications de bureau"
 
+msgid "Detach"
+msgstr "Détacher"
+
+msgid "Detach at %1: this occurrence becomes a task of its own"
+msgstr "Détacher à %1 : cette occurrence devient une tâche à part"
+
+msgid "Detach this occurrence?"
+msgstr "Détacher cette occurrence ?"
+
 msgid "Diagnostics"
 msgstr "Diagnostics"
 
@@ -1946,6 +1955,9 @@ msgstr "Hier"
 msgid "You can also drag the edge of the sidebar."
 msgstr "Vous pouvez aussi faire glisser le bord de la barre latérale."
 
+msgid "detaches"
+msgstr "sera détachée"
+
 msgid "drag onto a day"
 msgstr "faire glisser sur un jour"
 
@@ -1993,6 +2005,9 @@ msgstr "inconnu"
 
 msgid "yesterday"
 msgstr "hier"
+
+msgid "“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back."
+msgstr "« %1 » devient une tâche à part de %2 à %3. La série garde son heure et continue avec l’occurrence suivante. Annuler rétablit les deux."
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

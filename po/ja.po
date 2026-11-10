@@ -539,6 +539,15 @@ msgstr "説明のプレビュー"
 msgid "Desktop notifications"
 msgstr "デスクトップ通知"
 
+msgid "Detach"
+msgstr "切り離す"
+
+msgid "Detach at %1: this occurrence becomes a task of its own"
+msgstr "%1 に切り離し: この回は独立したタスクになります"
+
+msgid "Detach this occurrence?"
+msgstr "この回を切り離しますか?"
+
 msgid "Diagnostics"
 msgstr "診断"
 
@@ -1946,6 +1955,9 @@ msgstr "昨日"
 msgid "You can also drag the edge of the sidebar."
 msgstr "サイドバーの端をドラッグしても変えられます。"
 
+msgid "detaches"
+msgstr "切り離されます"
+
 msgid "drag onto a day"
 msgstr "日にドラッグ"
 
@@ -1993,6 +2005,9 @@ msgstr "不明"
 
 msgid "yesterday"
 msgstr "昨日"
+
+msgid "“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back."
+msgstr "「%1」は %2–%3 の独立したタスクになります。シリーズは時刻を保ったまま次の回に進みます。元に戻すと両方が戻ります。"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"
