@@ -12,12 +12,29 @@ function pad2(n) {
 }
 
 /** Short date format from system locale; year always 4 digits for editing. */
-function dateFormatString() {
-    return String(Qt.locale().dateFormat(SHORT_FORMAT)).replace(/y+/g, "yyyy")
+/*
+ * The input fields mask digits per field with a fixed width, so every field gets its full
+ * width: "M/d/yy" (en_US) becomes "MM/dd/yyyy" and "h:mm AP" becomes "hh:mm AP". With a
+ * one-digit field, "11/7/2026" was re-split as "11/72/026" and could not be saved.
+ * Quoted literals stay untouched.
+ */
+function _padSingleFields(fmt, letters) {
+    var parts = String(fmt).split("'")
+    for (var i = 0; i < parts.length; i += 2) {
+        parts[i] = parts[i].replace(new RegExp("(^|[^" + letters + "])([" + letters + "])(?![" + letters + "])", "g"),
+                                    function (m, before, ch) { return before + ch + ch })
+    }
+    return parts.join("'")
 }
 
-function timeFormatString() {
-    return String(Qt.locale().timeFormat(SHORT_FORMAT)).replace(/:?s+/g, "").replace(/\s+$/, "")
+function dateFormatString(locale) {
+    var fmt = String((locale || Qt.locale()).dateFormat(SHORT_FORMAT)).replace(/y+/g, "yyyy")
+    return _padSingleFields(_padSingleFields(fmt, "M"), "d")
+}
+
+function timeFormatString(locale) {
+    var fmt = String((locale || Qt.locale()).timeFormat(SHORT_FORMAT)).replace(/:?s+/g, "").replace(/\s+$/, "")
+    return _padSingleFields(_padSingleFields(fmt, "hH"), "m")
 }
 
 function _parseFormatTokens(fmt) {

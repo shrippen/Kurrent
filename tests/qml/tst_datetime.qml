@@ -174,4 +174,19 @@ TestCase {
         compare(DateTime.weekdayNumericFormat(Qt.locale("en_US")), "ddd M/d")
         compare(DateTime.weekdayNumericFormat(Qt.locale("ja_JP")), "M/d ddd")
     }
+
+    // The input mask gives every field its full width; a one-digit field ("M/d/yy",
+    // "h:mm AP") turned 11/7/2026 into "11/72/026", which could not be saved.
+    function test_inputFormatsPadOneDigitFields() {
+        var us = Qt.locale("en_US")
+        compare(DateTime.dateFormatString(us), "MM/dd/yyyy")
+        verify(DateTime.timeFormatString(us).indexOf("hh:mm") === 0)
+        compare(DateTime.dateFormatString(Qt.locale("de_DE")), "dd.MM.yyyy")
+        compare(DateTime.timeFormatString(Qt.locale("de_DE")), "HH:mm")
+        var tokens = DateTime._parseFormatTokens(DateTime.dateFormatString(us))
+        var text = us.toString(new Date(2026, 10, 7), DateTime.dateFormatString(us))
+        compare(text, "11/07/2026")
+        compare(DateTime.formatDigitsWithTokens(DateTime.digitsOnly(text), tokens), "11/07/2026")
+        compare(DateTime._padSingleFields("d 'de' MMMM", "d"), "dd 'de' MMMM")
+    }
 }
