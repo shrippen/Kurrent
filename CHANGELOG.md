@@ -7,10 +7,18 @@
 #### Improved
 - Error messages, reminders, the global shortcuts and the list's group heads ("No location", "Inbox", status names) are translated into all five languages; they were English.
 
+#### Fixed
+- Editor: dates and times can be entered and saved in every language. With Persian, Arabic, Bengali, Nepali, Burmese or Tibetan digits the date field stayed empty and saving removed the date; Korean, Hungarian and Bulgarian dates (trailing "." or "г.") and Low German times ("Kl.") could not be saved. The fields now hold Western digits in your locale's order, and typed native digits count.
+- Editor: when a date or time cannot be saved (31.02., 25:00), the editor says so and shows the expected format; before, Save did nothing.
+
 ### Deutsch
 
 #### Verbessert
 - Fehlermeldungen, Erinnerungen, die globalen Kurzbefehle und die Gruppenköpfe der Liste („Ohne Ort“, „Posteingang“, Status) sind in alle fünf Sprachen übersetzt; sie waren englisch.
+
+#### Behoben
+- Editor: Datum und Uhrzeit lassen sich in jeder Sprache eingeben und speichern. Mit persischen, arabischen, bengalischen, nepalesischen, birmanischen oder tibetischen Ziffern blieb das Datumsfeld leer, und Speichern löschte das Datum; koreanische, ungarische und bulgarische Daten (Punkt oder „г.“ am Ende) und plattdeutsche Uhrzeiten („Kl.“) ließen sich nicht speichern. Die Felder zeigen jetzt westliche Ziffern in der Reihenfolge der Locale, getippte eigene Ziffern zählen mit.
+- Editor: Lässt sich ein Datum oder eine Uhrzeit nicht speichern (31.02., 25:00), sagt der Editor das und nennt das erwartete Format; vorher tat Speichern nichts.
 
 ## [0.6.0] — 2026-11-10
 

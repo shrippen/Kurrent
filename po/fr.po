@@ -1727,6 +1727,9 @@ msgstr "Le paquet KDE Store n’est que le widget. Exécutez ceci dans un termin
 msgid "The display name shown in the sidebar."
 msgstr "Le nom affiché dans la barre latérale."
 
+msgid "The due date is not a valid date. Format: %1"
+msgstr "L’échéance n’est pas une date valide. Format : %1"
+
 msgid "The field of the column (default)"
 msgstr "Le champ de la colonne (par défaut)"
 
@@ -1735,6 +1738,9 @@ msgstr "Le menu est prêt ; les tâches apparaissent lorsque le serveur répond.
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "Le mode d’affichage du panneau principal quand cette vue intelligente est active."
+
+msgid "The start is not a valid date. Format: %1"
+msgstr "Le début n’est pas une date valide. Format : %1"
 
 msgid "Then"
 msgstr "Ensuite"

@@ -1727,6 +1727,9 @@ msgstr "Das Paket aus dem KDE Store ist nur das Widget. Dieses Kommando im Termi
 msgid "The display name shown in the sidebar."
 msgstr "Der Name in der Seitenleiste."
 
+msgid "The due date is not a valid date. Format: %1"
+msgstr "Der Fälligkeitstermin ist kein gültiges Datum. Format: %1"
+
 msgid "The field of the column (default)"
 msgstr "Das Feld der Spalte (Standard)"
 
@@ -1735,6 +1738,9 @@ msgstr "Das Flyout ist bereit; Aufgaben erscheinen, sobald der Server antwortet.
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "Die Darstellung des Hauptbereichs, solange diese Smart View aktiv ist."
+
+msgid "The start is not a valid date. Format: %1"
+msgstr "Der Beginn ist kein gültiges Datum. Format: %1"
 
 msgid "Then"
 msgstr "Danach"
