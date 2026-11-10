@@ -120,9 +120,8 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
 )
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
-    # Same catalog as kurrentcore (plugin/CMakeLists.txt); undoLabelIsTranslated reads it.
+    # Same catalog as kurrentcore (plugin/CMakeLists.txt).
     TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
-    KURRENT_TEST_LOCALE_DIR="${CMAKE_BINARY_DIR}/locale"
     KURRENT_WITH_DEMO
     KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
 target_include_directories(kurrent-taskcontroller-store-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
@@ -149,15 +148,24 @@ endif()
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
     KURRENT_TEST_EXPECT_DEV_BUILD=${_kurrent_expect_dev})
 add_test(NAME kurrent-taskcontroller-store COMMAND kurrent-taskcontroller-store-test)
-if(TARGET kurrent-translations)
-    add_dependencies(kurrent-taskcontroller-store-test kurrent-translations)
-endif()
 add_test(NAME kurrent-devbuild-marker
     COMMAND ${CMAKE_COMMAND} -DMARKER=${CMAKE_BINARY_DIR}/DevBuildMarker.qml
             -DEXPECTED=${_kurrent_expect_dev_qml} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_devbuild_marker.cmake)
 set_tests_properties(kurrent-taskcontroller-store PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
+
+# kurrentcore as built: catches a library that loses TRANSLATION_DOMAIN.
+add_executable(kurrent-core-i18n-test core_i18n_test.cpp)
+target_compile_definitions(kurrent-core-i18n-test PRIVATE
+    KURRENT_TEST_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_TEST_LOCALE_DIR="${CMAKE_BINARY_DIR}/locale")
+target_link_libraries(kurrent-core-i18n-test PRIVATE kurrentcore Qt6::Test KF6::I18n)
+add_test(NAME kurrent-core-i18n COMMAND kurrent-core-i18n-test)
+set_tests_properties(kurrent-core-i18n PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+if(TARGET kurrent-translations)
+    add_dependencies(kurrent-core-i18n-test kurrent-translations)
+endif()
 
 # Performance benchmark (tests/perf_bench.cpp); not run by ctest.
 option(KURRENT_BUILD_BENCH "Build the task-list performance benchmark" OFF)
@@ -193,6 +201,7 @@ set(_kurrent_test_targets
     kurrent-calendar-test
     kurrent-taskstore-test
     kurrent-taskcontroller-store-test
+    kurrent-core-i18n-test
     kurrent-tui-screens-test
 )
 

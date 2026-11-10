@@ -83,12 +83,20 @@ jobs:
     env:
       TZ: Europe/Berlin
       QT_QPA_PLATFORM: offscreen
+      # kurrent-core-i18n fails instead of skipping without catalog or locale (step Locale).
+      KURRENT_REQUIRE_TRANSLATION: "1"
     steps:
       - name: Tools
         run: |
           pacman -Syu --noconfirm --needed git nodejs base-devel cmake extra-cmake-modules tzdata \
             gettext qt6-base qt6-declarative qt6-svg kcalendarcore ki18n kconfig knotifications \
             kglobalaccel krunner akonadi kirigami libplasma
+      # gettext übersetzt unter C/POSIX nicht; der Übersetzungstest (kurrent-core-i18n) braucht
+      # eine echte Locale. Das Image bringt nur die englischen Quellen mit.
+      - name: Locale
+        run: |
+          sed -i 's/^#en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen
+          locale-gen
       - uses: actions/checkout@v4
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug

@@ -77,11 +77,17 @@ msgstr "0–25 %"
 msgid "1 day before"
 msgstr "1 día antes"
 
+msgid "1 hour"
+msgstr "1 hora"
+
 msgid "1 hour before"
 msgstr "1 hora antes"
 
 msgid "1 line"
 msgstr "1 línea"
+
+msgid "15 minutes"
+msgstr "15 minutos"
 
 msgid "15 minutes before"
 msgstr "15 minutos antes"
@@ -98,6 +104,12 @@ msgstr "51–75 %"
 msgid "76–100%"
 msgstr "76–100 %"
 
+msgid "A task cannot be its own parent."
+msgstr "Una tarea no puede ser su propia tarea principal."
+
+msgid "A task is due."
+msgstr "Vence una tarea."
+
 msgid "Accent (highlight)"
 msgstr "Acento (resaltado)"
 
@@ -109,6 +121,9 @@ msgstr "Añade calendarios CalDAV o Nextcloud en %1 (recurso DAV groupware)."
 
 msgid "Add CalDAV or Nextcloud calendars in KOrganizer or Merkuro (DAV groupware resource)."
 msgstr "Añade calendarios CalDAV o Nextcloud en KOrganizer o Merkuro (recurso DAV groupware)."
+
+msgid "Add Kurrent task"
+msgstr "Añadir tarea de Kurrent"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "Añadir una tarea…  tomorrow 18:00 !high #tag @project"
@@ -136,6 +151,9 @@ msgstr "Agenda"
 
 msgid "Akonadi"
 msgstr "Akonadi"
+
+msgid "Akonadi is not available."
+msgstr "Akonadi no está disponible."
 
 msgid "Akonadi is not running"
 msgstr "Akonadi no está en ejecución"
@@ -286,6 +304,9 @@ msgstr "Cancelada"
 
 msgid "Cancelled"
 msgstr "Cancelado"
+
+msgid "Cannot create a circular task hierarchy."
+msgstr "No se puede crear una jerarquía de tareas circular."
 
 msgid "Case sensitive"
 msgstr "Distinguir mayúsculas y minúsculas"
@@ -548,8 +569,14 @@ msgstr "Suelta aquí: este día sin hora"
 msgid "Drop here to make a top-level task"
 msgstr "Suelta aquí para convertirla en tarea principal"
 
+msgid "Drop tasks onto a specific period, not onto Overdue or Later."
+msgstr "Suelta las tareas en un periodo concreto, no en Vencidas ni en Más adelante."
+
 msgid "Due"
 msgstr "Vencimiento"
+
+msgid "Due %1"
+msgstr "Vence %1"
 
 msgid "Due date"
 msgstr "Fecha de vencimiento"
@@ -616,6 +643,12 @@ msgstr "Salir del modo eliminar"
 
 msgid "Expand subtasks"
 msgstr "Expandir subtareas"
+
+msgid "Failed to create task: %1"
+msgstr "No se pudo crear la tarea: %1"
+
+msgid "Failed to fetch collections."
+msgstr "No se pudieron cargar las listas de tareas."
 
 msgid "Fetch, monitor and collection details"
 msgstr "Detalles de obtención, monitor y colecciones"
@@ -1013,6 +1046,9 @@ msgstr "No hay tareas de prioridad alta"
 msgid "No label"
 msgstr "Sin etiqueta"
 
+msgid "No location"
+msgstr "Sin ubicación"
+
 msgid "No matching labels"
 msgstr "No hay etiquetas coincidentes"
 
@@ -1052,11 +1088,17 @@ msgstr "No hay sugerencias para este día."
 msgid "No task lists"
 msgstr "No hay listas de tareas"
 
+msgid "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."
+msgstr "No hay listas de tareas en Akonadi. Configura CalDAV en KOrganizer o Kalendar."
+
 msgid "No tasks in this view."
 msgstr "No hay tareas en esta vista."
 
 msgid "No time"
 msgstr "Sin hora"
+
+msgid "No writable task list selected."
+msgstr "No hay ninguna lista de tareas editable seleccionada."
 
 msgid "None"
 msgstr "Ninguno"
@@ -1195,6 +1237,12 @@ msgstr "Información emergente del panel"
 
 msgid "Parent task"
 msgstr "Tarea principal"
+
+msgid "Parent task must be in the same project."
+msgstr "La tarea principal debe estar en el mismo proyecto."
+
+msgid "Parent task not found."
+msgstr "No se encontró la tarea principal."
 
 msgid "Pending jobs"
 msgstr "Trabajos pendientes"
@@ -1502,6 +1550,9 @@ msgstr "Fijar estado «%1»"
 msgid "Show All"
 msgstr "Mostrar todo"
 
+msgid "Show Kurrent"
+msgstr "Mostrar Kurrent"
+
 msgid "Show a Join button for http(s) links"
 msgstr "Mostrar botón Unirse para enlaces http(s)"
 
@@ -1655,6 +1706,12 @@ msgstr "Tarea"
 msgid "Task for this day, Enter saves"
 msgstr "Tarea para este día, Intro guarda"
 
+msgid "Task not found."
+msgstr "No se encontró la tarea."
+
+msgid "Task reminder"
+msgstr "Recordatorio de tarea"
+
 msgid "Tasks"
 msgstr "Tareas"
 
@@ -1693,6 +1750,9 @@ msgstr "Tercer orden"
 
 msgid "This build has no notification support."
 msgstr "Esta compilación no admite notificaciones."
+
+msgid "This project cannot accept tasks."
+msgstr "Este proyecto no admite tareas."
 
 msgid "This task was changed on the server. Reload to discard your edit."
 msgstr "Esta tarea cambió en el servidor. Recarga para descartar tu edición."
