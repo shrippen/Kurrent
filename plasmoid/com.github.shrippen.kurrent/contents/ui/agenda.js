@@ -35,24 +35,47 @@ function fitWords(text, width, metrics) {
     }
 
     // Split keeps the whitespace runs (odd indices), so spacing stays as typed.
-    var parts = s.split(/(\s+)/)
+    // A no-break space (U+00A0) joins words, so it is no split point.
+    var parts = s.split(/([ \t\n\r]+)/)
     for (var i = 0; i < parts.length; i += 2) {
         parts[i] = _fitWord(parts[i], width, metrics)
     }
     return parts.join("")
 }
 
-// One word, cut part by part where Qt may break a line inside it: after "-" or "/" before a
-// non-digit ("Wochenplanung-Dankeschön" → "Wochenpla…-Dankeschön"); "2026-11-10" stays one part.
+// One word, cut part by part where Qt may break a line inside it: after "-", "/", "–" or "—"
+// before a letter ("Wochenplanung-Dankeschön" → "Wochenpla…-Dankeschön"); "2026-11-10" and
+// 'Mail-"News"' stay one part.
 function _fitWord(word, width, metrics) {
-    var pieces = word.match(/.+?(?:[-\/](?=[^\d\-\/])|$)/g) || [word]
+    var pieces = _breakPieces(word)
     for (var i = 0; i < pieces.length; ++i) {
         if (metrics.advanceWidth(pieces[i]) <= width) {
             continue
         }
-        var mark = /[-\/]$/.test(pieces[i]) ? pieces[i].slice(-1) : ""
+        var mark = _BREAK_MARKS.indexOf(pieces[i].slice(-1)) >= 0 ? pieces[i].slice(-1) : ""
         var stem = pieces[i].slice(0, pieces[i].length - mark.length)
         pieces[i] = metrics.elidedText(stem, Qt.ElideRight, width - metrics.advanceWidth(mark)) + mark
     }
     return pieces.join("")
+}
+
+var _BREAK_MARKS = "-/–—"
+
+// A letter in a cased script (QML's JS has no \p{L}); uncased scripts break anywhere anyway.
+function _isLetter(ch) {
+    return ch !== undefined && ch.toLowerCase() !== ch.toUpperCase()
+}
+
+function _breakPieces(word) {
+    var pieces = []
+    var from = 0
+    for (var i = 0; i + 1 < word.length; ++i) {
+        if (_BREAK_MARKS.indexOf(word.charAt(i)) < 0 || !_isLetter(word.charAt(i + 1))) {
+            continue
+        }
+        pieces.push(word.slice(from, i + 1))
+        from = i + 1
+    }
+    pieces.push(word.slice(from))
+    return pieces
 }

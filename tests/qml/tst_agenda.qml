@@ -51,6 +51,15 @@ TestCase {
         var narrow = fm.advanceWidth("2026-1")
         var date = Agenda.fitWords("2026-11-10", narrow, fm)
         verify(date.endsWith("…") && fm.advanceWidth(date) <= narrow, date)
+        // Only before a letter: "-" before a quote is no break for Qt, so the word stays one
+        // piece and is cut as a whole; after "–" Qt does break.
+        var quoted = Agenda.fitWords('Mail-"Newsletter"', fm.advanceWidth('"Newsletter"'), fm)
+        verify(quoted.endsWith("…") && fm.advanceWidth(quoted) <= fm.advanceWidth('"Newsletter"'), quoted)
+        var dashWidth = Math.max(fm.advanceWidth("Frankfurt–"), fm.advanceWidth("Mannheim"))
+        compare(Agenda.fitWords("Frankfurt–Mannheim", dashWidth, fm), "Frankfurt–Mannheim")
+        // A no-break space joins words: "10 km" is one piece.
+        var nbsp = Agenda.fitWords("10\u00a0km", fm.advanceWidth("10"), fm)
+        verify(nbsp.endsWith("…"), nbsp)
         // Before layout (no width yet) the text passes through.
         compare(Agenda.fitWords("Wochenplanung", 0, fm), "Wochenplanung")
         compare(Agenda.fitWords(undefined, width, fm), "")
