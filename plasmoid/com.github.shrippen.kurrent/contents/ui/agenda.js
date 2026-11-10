@@ -72,9 +72,12 @@ function _fitPiece(piece, width, metrics) {
 var _BREAK_MARKS = "-/–—"
 
 // Scripts Qt 6 breaks between any two characters (checked with WordWrap): Thai, Myanmar,
-// CJK with kana, fullwidth forms. Not Lao, Khmer or Hangul: Korean words are cut like Latin.
-var _BREAK_ANYWHERE = [[0x0E00, 0x0E7F], [0x1000, 0x109F], [0x2E80, 0x9FFF], [0xF900, 0xFAFF],
-                       [0xFF00, 0xFFEF]]
+// symbols and dingbats, CJK with kana, Yi, fullwidth forms, and by their high surrogate emoji
+// (U+1F000…) and CJK beyond the BMP (U+20000…). Not Lao, Khmer or Hangul: Korean words are
+// cut like Latin.
+var _BREAK_ANYWHERE = [[0x0E00, 0x0E7F], [0x1000, 0x109F], [0x2600, 0x27BF], [0x2E80, 0x9FFF],
+                       [0xA000, 0xA4CF], [0xF900, 0xFAFF], [0xFF00, 0xFFEF], [0xD83C, 0xD83E],
+                       [0xD840, 0xD8BF]]
 
 function _breaksAnywhere(code) {
     for (var r = 0; r < _BREAK_ANYWHERE.length; ++r) {
@@ -89,8 +92,11 @@ function _breaksAnywhere(code) {
 function _scriptRuns(piece) {
     var runs = []
     for (var i = 0; i < piece.length; ++i) {
-        var anywhere = _breaksAnywhere(piece.charCodeAt(i))
-        if (runs.length && _breaksAnywhere(runs[runs.length - 1].charCodeAt(0)) === anywhere) {
+        var code = piece.charCodeAt(i)
+        // A low surrogate stays with its high one: one character, one run.
+        var lowSurrogate = code >= 0xDC00 && code <= 0xDFFF
+        var anywhere = _breaksAnywhere(code)
+        if (runs.length && (lowSurrogate || _breaksAnywhere(runs[runs.length - 1].charCodeAt(0)) === anywhere)) {
             runs[runs.length - 1] += piece.charAt(i)
             continue
         }
