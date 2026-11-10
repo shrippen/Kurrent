@@ -31,6 +31,10 @@ Rectangle {
     implicitHeight: body.implicitHeight + Design.padInner * 2
     radius: Design.radius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
+    // The whole title when the label cut it (lines or a word too wide for the row).
+    QQC2.ToolTip.text: titleLabel.fullText
+    QQC2.ToolTip.visible: hover.hovered && (titleLabel.truncated || titleLabel.text !== titleLabel.fullText)
+    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     border.width: inspected ? KanteStyle.borderWidth : 0
     border.color: KanteStyle.accentColor
     opacity: task.completed ? KanteStyle.doneOpacity : 1
@@ -92,8 +96,9 @@ Rectangle {
 
             QQC2.Label {
                 id: titleLabel
+                readonly property string fullText: row.task.summary || i18n("(Untitled)")
                 Layout.fillWidth: true
-                text: Agenda.fitWords(row.task.summary || i18n("(Untitled)"), width, titleMetrics)
+                text: Agenda.fitWords(fullText, width, titleMetrics)
                 wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight

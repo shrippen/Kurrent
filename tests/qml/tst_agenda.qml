@@ -45,6 +45,12 @@ TestCase {
         var cut = Agenda.fitWords("Wochenplanung-Dankeschön", width, fm)
         verify(cut.startsWith("Wochen") && cut.endsWith("…-Dankeschön"), cut)
         verify(fm.advanceWidth(cut.split("-")[0] + "-") <= width, cut)
+        // Qt breaks after "/" but not between "-" or "/" and a digit (UAX #14 LB25): a date is
+        // one piece, "Kunde/Lieferant" two.
+        compare(Agenda.fitWords("Kunde/Lieferant", fm.advanceWidth("Lieferant"), fm), "Kunde/Lieferant")
+        var narrow = fm.advanceWidth("2026-1")
+        var date = Agenda.fitWords("2026-11-10", narrow, fm)
+        verify(date.endsWith("…") && fm.advanceWidth(date) <= narrow, date)
         // Before layout (no width yet) the text passes through.
         compare(Agenda.fitWords("Wochenplanung", 0, fm), "Wochenplanung")
         compare(Agenda.fitWords(undefined, width, fm), "")

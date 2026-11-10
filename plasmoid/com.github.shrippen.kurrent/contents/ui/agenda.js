@@ -25,7 +25,8 @@ function dragPayload(task) {
 
 // Title for a narrow column (wrapMode WordWrap): each word wider than `width` is cut with "…",
 // so lines break only between words ("Wochenplanung" → "Wochenpla…", not "Wochenplanun/g").
-// A line may also break after a hyphen, so "Anwohner-Dankeschön" is measured in its two parts.
+// A line may also break inside a word (after a hyphen, see _fitWord), so "Anwohner-Dankeschön"
+// is measured in its two parts.
 // `metrics` is a FontMetrics in the label's font. Without a width yet the text passes through.
 function fitWords(text, width, metrics) {
     var s = text === undefined || text === null ? "" : String(text)
@@ -41,16 +42,17 @@ function fitWords(text, width, metrics) {
     return parts.join("")
 }
 
-// One word, cut part by part at its hyphens: "Wochenplanung-Dankeschön" → "Wochenpla…-Dankeschön".
+// One word, cut part by part where Qt may break a line inside it: after "-" or "/" before a
+// non-digit ("Wochenplanung-Dankeschön" → "Wochenpla…-Dankeschön"); "2026-11-10" stays one part.
 function _fitWord(word, width, metrics) {
-    var pieces = word.match(/[^-]+-?|-/g) || [word]
+    var pieces = word.match(/.+?(?:[-\/](?=[^\d\-\/])|$)/g) || [word]
     for (var i = 0; i < pieces.length; ++i) {
         if (metrics.advanceWidth(pieces[i]) <= width) {
             continue
         }
-        var hyphen = pieces[i].endsWith("-") ? "-" : ""
-        var stem = pieces[i].slice(0, pieces[i].length - hyphen.length)
-        pieces[i] = metrics.elidedText(stem, Qt.ElideRight, width - metrics.advanceWidth(hyphen)) + hyphen
+        var mark = /[-\/]$/.test(pieces[i]) ? pieces[i].slice(-1) : ""
+        var stem = pieces[i].slice(0, pieces[i].length - mark.length)
+        pieces[i] = metrics.elidedText(stem, Qt.ElideRight, width - metrics.advanceWidth(mark)) + mark
     }
     return pieces.join("")
 }
