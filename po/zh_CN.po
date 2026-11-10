@@ -77,11 +77,17 @@ msgstr "0–25%"
 msgid "1 day before"
 msgstr "提前 1 天"
 
+msgid "1 hour"
+msgstr "1 小时"
+
 msgid "1 hour before"
 msgstr "提前 1 小时"
 
 msgid "1 line"
 msgstr "1 行"
+
+msgid "15 minutes"
+msgstr "15 分钟"
 
 msgid "15 minutes before"
 msgstr "提前 15 分钟"
@@ -98,6 +104,12 @@ msgstr "51–75%"
 msgid "76–100%"
 msgstr "76–100%"
 
+msgid "A task cannot be its own parent."
+msgstr "任务不能成为自己的父任务。"
+
+msgid "A task is due."
+msgstr "有任务到期。"
+
 msgid "Accent (highlight)"
 msgstr "强调色（高亮）"
 
@@ -109,6 +121,9 @@ msgstr "在 %1 中添加 CalDAV 或 Nextcloud 日历（DAV 群件资源）。"
 
 msgid "Add CalDAV or Nextcloud calendars in KOrganizer or Merkuro (DAV groupware resource)."
 msgstr "在 KOrganizer 或 Merkuro 中添加 CalDAV 或 Nextcloud 日历（DAV 群件资源）。"
+
+msgid "Add Kurrent task"
+msgstr "添加 Kurrent 任务"
 
 msgid "Add a task…  tomorrow 18:00 !high #tag @project"
 msgstr "添加任务…  tomorrow 18:00 !high #tag @project"
@@ -136,6 +151,9 @@ msgstr "日程"
 
 msgid "Akonadi"
 msgstr "Akonadi"
+
+msgid "Akonadi is not available."
+msgstr "Akonadi 不可用。"
 
 msgid "Akonadi is not running"
 msgstr "Akonadi 未运行"
@@ -286,6 +304,9 @@ msgstr "已取消"
 
 msgid "Cancelled"
 msgstr "已取消"
+
+msgid "Cannot create a circular task hierarchy."
+msgstr "无法创建循环的任务层级。"
 
 msgid "Case sensitive"
 msgstr "区分大小写"
@@ -548,8 +569,14 @@ msgstr "放到这里：当天不设时间"
 msgid "Drop here to make a top-level task"
 msgstr "拖到此处设为顶级任务"
 
+msgid "Drop tasks onto a specific period, not onto Overdue or Later."
+msgstr "请将任务拖放到具体时段，而不是“逾期”或“更晚”。"
+
 msgid "Due"
 msgstr "到期"
+
+msgid "Due %1"
+msgstr "到期 %1"
 
 msgid "Due date"
 msgstr "截止日期"
@@ -616,6 +643,12 @@ msgstr "退出删除模式"
 
 msgid "Expand subtasks"
 msgstr "展开子任务"
+
+msgid "Failed to create task: %1"
+msgstr "无法创建任务：%1"
+
+msgid "Failed to fetch collections."
+msgstr "无法加载任务列表。"
 
 msgid "Fetch, monitor and collection details"
 msgstr "获取、监视与集合详情"
@@ -1013,6 +1046,9 @@ msgstr "没有高优先级任务"
 msgid "No label"
 msgstr "无标签"
 
+msgid "No location"
+msgstr "无地点"
+
 msgid "No matching labels"
 msgstr "没有匹配的标签"
 
@@ -1052,11 +1088,17 @@ msgstr "这一天没有建议。"
 msgid "No task lists"
 msgstr "没有任务列表"
 
+msgid "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."
+msgstr "Akonadi 中没有任务列表。请在 KOrganizer 或 Kalendar 中配置 CalDAV。"
+
 msgid "No tasks in this view."
 msgstr "此视图中没有任务。"
 
 msgid "No time"
 msgstr "无时间"
+
+msgid "No writable task list selected."
+msgstr "未选择可写的任务列表。"
 
 msgid "None"
 msgstr "无"
@@ -1195,6 +1237,12 @@ msgstr "面板提示"
 
 msgid "Parent task"
 msgstr "父任务"
+
+msgid "Parent task must be in the same project."
+msgstr "父任务必须位于同一项目中。"
+
+msgid "Parent task not found."
+msgstr "未找到父任务。"
 
 msgid "Pending jobs"
 msgstr "待处理作业"
@@ -1502,6 +1550,9 @@ msgstr "设置状态“%1”"
 msgid "Show All"
 msgstr "全部显示"
 
+msgid "Show Kurrent"
+msgstr "显示 Kurrent"
+
 msgid "Show a Join button for http(s) links"
 msgstr "为 http(s) 链接显示加入按钮"
 
@@ -1655,6 +1706,12 @@ msgstr "任务"
 msgid "Task for this day, Enter saves"
 msgstr "这一天的任务，回车保存"
 
+msgid "Task not found."
+msgstr "未找到任务。"
+
+msgid "Task reminder"
+msgstr "任务提醒"
+
 msgid "Tasks"
 msgstr "任务"
 
@@ -1687,6 +1744,9 @@ msgstr "第三排序"
 
 msgid "This build has no notification support."
 msgstr "此版本不支持通知。"
+
+msgid "This project cannot accept tasks."
+msgstr "此项目无法接收任务。"
 
 msgid "This task was changed on the server. Reload to discard your edit."
 msgstr "此任务已在服务器上更改。重新加载将放弃你的编辑。"

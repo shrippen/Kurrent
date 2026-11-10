@@ -1172,7 +1172,7 @@ QString TaskController::kanbanColumnLabelForKey(const QString &key) const
         if (id > 0) {
             return m_collectionNames.value(id, key);
         }
-        return tr("Inbox");
+        return i18n("Inbox");
     }
     if (m_kanbanColumnSource == TaskLogic::KanbanSource::Label && key != QLatin1String("none")) {
         return key;
@@ -1180,19 +1180,19 @@ QString TaskController::kanbanColumnLabelForKey(const QString &key) const
     if (m_kanbanColumnSource == TaskLogic::KanbanSource::Status) {
         const QString nk = TaskLogic::normalizeStatusColumnKey(key);
         if (nk == QLatin1String("0")) {
-            return tr("None");
+            return i18n("None");
         }
         if (nk == QLatin1String("4")) {
-            return tr("Needs action");
+            return i18n("Needs action");
         }
         if (nk == QLatin1String("6")) {
-            return tr("In process");
+            return i18n("In process");
         }
         if (nk == QLatin1String("3")) {
-            return tr("Completed");
+            return i18n("Completed");
         }
         if (nk == QLatin1String("5")) {
-            return tr("Canceled");
+            return i18n("Canceled");
         }
     }
     return TaskLogic::kanbanColumnLabel(key, m_kanbanColumnSource);
@@ -1209,43 +1209,43 @@ QString TaskController::listGroupLabelForKey(const QString &key) const
         if (id > 0) {
             return m_collectionNames.value(id, key);
         }
-        return tr("Inbox");
+        return i18n("Inbox");
     }
     if (mode == TaskLogic::ListGroupSource::Label) {
-        return key == QLatin1String("none") ? tr("Unlabeled") : key;
+        return key == QLatin1String("none") ? i18n("Unlabeled") : key;
     }
     if (mode == TaskLogic::ListGroupSource::Location) {
-        return key == QLatin1String("none") ? tr("No location") : key;
+        return key == QLatin1String("none") ? i18n("No location") : key;
     }
     if (mode == TaskLogic::ListGroupSource::Progress) {
         if (key == QLatin1String("0-25")) {
-            return tr("0–25%");
+            return i18n("0–25%");
         }
         if (key == QLatin1String("26-50")) {
-            return tr("26–50%");
+            return i18n("26–50%");
         }
         if (key == QLatin1String("51-75")) {
-            return tr("51–75%");
+            return i18n("51–75%");
         }
         if (key == QLatin1String("76-100")) {
-            return tr("76–100%");
+            return i18n("76–100%");
         }
     }
     if (mode == TaskLogic::ListGroupSource::Status) {
         if (key == QLatin1String("0")) {
-            return tr("None");
+            return i18n("None");
         }
         if (key == QLatin1String("4")) {
-            return tr("Needs action");
+            return i18n("Needs action");
         }
         if (key == QLatin1String("6")) {
-            return tr("In process");
+            return i18n("In process");
         }
         if (key == QLatin1String("3")) {
-            return tr("Completed");
+            return i18n("Completed");
         }
         if (key == QLatin1String("5")) {
-            return tr("Canceled");
+            return i18n("Canceled");
         }
     }
     return TaskLogic::listGroupLabel(key, mode);
@@ -1792,7 +1792,7 @@ QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
     QStringList lanes = result.value(QStringLiteral("lanes")).toStringList();
     if (m_swimlaneLaneAxis == QLatin1String("project")) {
         for (const QString &lane : std::as_const(lanes)) {
-            labels.insert(lane, lane == QLatin1String("inbox") ? tr("Inbox") : m_collectionNames.value(lane.toLongLong(), lane));
+            labels.insert(lane, lane == QLatin1String("inbox") ? i18n("Inbox") : m_collectionNames.value(lane.toLongLong(), lane));
         }
     } else if (m_swimlaneLaneAxis == QLatin1String("parent")) {
         QHash<QString, QString> summaries;
@@ -1856,7 +1856,7 @@ QVariantMap TaskController::planMatrixGridForVisibleTasks() const
     QVariantMap labels;
     const QStringList rows = result.value(QStringLiteral("projects")).toStringList();
     for (const QString &row : rows) {
-        labels.insert(row, row == QLatin1String("inbox") ? tr("Inbox") : m_collectionNames.value(row.toLongLong(), row));
+        labels.insert(row, row == QLatin1String("inbox") ? i18n("Inbox") : m_collectionNames.value(row.toLongLong(), row));
     }
     result.insert(QStringLiteral("laneLabels"), labels);
     return result;
@@ -1889,7 +1889,7 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
         return;
     }
     if (timeChanged && (timeKey == QLatin1String("overdue") || timeKey == QLatin1String("later"))) {
-        setErrorMessage(tr("Drop tasks onto a specific period, not onto Overdue or Later."));
+        setErrorMessage(i18n("Drop tasks onto a specific period, not onto Overdue or Later."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -3588,7 +3588,7 @@ void TaskController::syncNow()
         // Try to (re)connect; retry timer keeps trying if this still fails.
         refresh();
         if (!m_akonadiAvailable) {
-            setErrorMessage(tr("Akonadi is not available."));
+            setErrorMessage(i18n("Akonadi is not available."));
             return;
         }
     }
@@ -3628,7 +3628,7 @@ void TaskController::createQuickTask(const QString &summary, qint64 collectionId
     }
 
     if (!CollectionListModel::isTaskWritable(collection)) {
-        setErrorMessage(tr("No writable task list selected."));
+        setErrorMessage(i18n("No writable task list selected."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -3795,7 +3795,7 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4462,7 +4462,7 @@ void TaskController::updateTask(qint64 itemId,
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4490,7 +4490,7 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4598,7 +4598,7 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
                 moveToCollectionId = targetCollectionId;
                 cache->item.setParentCollection(destination);
             } else {
-                setErrorMessage(tr("This project cannot accept tasks."));
+                setErrorMessage(i18n("This project cannot accept tasks."));
                 Q_EMIT error(m_errorMessage);
             }
         }
@@ -4630,7 +4630,7 @@ void TaskController::createTaskFull(const QVariantMap &fields)
         collection = firstWritableCollection();
     }
     if (!CollectionListModel::isTaskWritable(collection)) {
-        setErrorMessage(tr("No writable task list selected."));
+        setErrorMessage(i18n("No writable task list selected."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4711,7 +4711,7 @@ void TaskController::createTaskFull(const QVariantMap &fields)
     auto *job = new Akonadi::ItemCreateJob(item, collection, this);
     connect(job, &KJob::result, this, [this, job]() {
         if (job->error() != KJob::NoError) {
-            setErrorMessage(tr("Failed to create task: %1").arg(job->errorText()));
+            setErrorMessage(i18n("Failed to create task: %1", job->errorText()));
             Q_EMIT error(m_errorMessage);
         }
     });
@@ -4721,7 +4721,7 @@ void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4788,7 +4788,7 @@ QVariantList TaskController::parentCandidates(qint64 itemId, qint64 collectionId
         row.uid = uid;
         row.summary = it->todo->summary().trimmed();
         if (row.summary.isEmpty()) {
-            row.summary = tr("(Untitled)");
+            row.summary = i18n("(Untitled)");
         }
         row.priority = it->todo->priority();
         row.categories = it->todo->categories();
@@ -4827,12 +4827,12 @@ bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid,
     }
 
     if (trimmedParent == todo->uid()) {
-        setErrorMessage(tr("A task cannot be its own parent."));
+        setErrorMessage(i18n("A task cannot be its own parent."));
         Q_EMIT error(m_errorMessage);
         return false;
     }
     if (wouldCreateParentCycle(cache->item.id(), trimmedParent)) {
-        setErrorMessage(tr("Cannot create a circular task hierarchy."));
+        setErrorMessage(i18n("Cannot create a circular task hierarchy."));
         Q_EMIT error(m_errorMessage);
         return false;
     }
@@ -4845,12 +4845,12 @@ bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid,
         }
     }
     if (!parentCache) {
-        setErrorMessage(tr("Parent task not found."));
+        setErrorMessage(i18n("Parent task not found."));
         Q_EMIT error(m_errorMessage);
         return false;
     }
     if (collectionId > 0 && parentCache->item.parentCollection().id() != collectionId) {
-        setErrorMessage(tr("Parent task must be in the same project."));
+        setErrorMessage(i18n("Parent task must be in the same project."));
         Q_EMIT error(m_errorMessage);
         return false;
     }
@@ -4871,7 +4871,7 @@ void TaskController::addTaskCategory(qint64 itemId, const QString &category)
 
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4897,7 +4897,7 @@ void TaskController::removeTaskCategory(qint64 itemId, const QString &category)
 
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4919,7 +4919,7 @@ void TaskController::setTaskPriority(qint64 itemId, int priority)
     const int normalized = TaskLogic::priorityBand(priority);
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4943,7 +4943,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
 
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(tr("Task not found."));
+        setErrorMessage(i18n("Task not found."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -4956,7 +4956,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
 
     const Akonadi::Collection destination = collectionById(collectionId);
     if (!CollectionListModel::isTaskWritable(destination)) {
-        setErrorMessage(tr("This project cannot accept tasks."));
+        setErrorMessage(i18n("This project cannot accept tasks."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -5301,7 +5301,7 @@ void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
         collection = firstWritableCollection();
     }
     if (!CollectionListModel::isTaskWritable(collection)) {
-        setErrorMessage(tr("No writable task list selected."));
+        setErrorMessage(i18n("No writable task list selected."));
         Q_EMIT error(m_errorMessage);
         return;
     }
@@ -5630,7 +5630,7 @@ void TaskController::loadCollections()
         auto *fetchJob = qobject_cast<Akonadi::CollectionFetchJob *>(kjob);
         if (!fetchJob || kjob->error()) {
             setLoading(false);
-            setErrorMessage(kjob ? kjob->errorString() : tr("Failed to fetch collections."));
+            setErrorMessage(kjob ? kjob->errorString() : i18n("Failed to fetch collections."));
             logDebug(QStringLiteral("loadCollections failed: %1").arg(m_errorMessage));
             updateDebugInfo(0, 0, 0, 0, 0);
             if (m_collectionsReloadPending) {
@@ -5685,7 +5685,7 @@ void TaskController::loadCollections()
         }
 
         if (collections.isEmpty()) {
-            setErrorMessage(tr("No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."));
+            setErrorMessage(i18n("No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."));
         } else {
             setErrorMessage(QString());
         }
@@ -6681,7 +6681,7 @@ void TaskController::registerGlobalShortcuts()
     }
     auto *showAction = new QAction(this);
     showAction->setObjectName(QStringLiteral("show-kurrent"));
-    showAction->setText(tr("Show Kurrent"));
+    showAction->setText(i18n("Show Kurrent"));
     KGlobalAccel::self()->setDefaultShortcut(showAction, {QKeySequence(QStringLiteral("Meta+Shift+K"))});
     KGlobalAccel::self()->setShortcut(showAction, {QKeySequence(QStringLiteral("Meta+Shift+K"))});
     connect(showAction, &QAction::triggered, this, []() {
@@ -6690,7 +6690,7 @@ void TaskController::registerGlobalShortcuts()
 
     auto *addAction = new QAction(this);
     addAction->setObjectName(QStringLiteral("add-kurrent-task"));
-    addAction->setText(tr("Add Kurrent task"));
+    addAction->setText(i18n("Add Kurrent task"));
     KGlobalAccel::self()->setDefaultShortcut(addAction, {QKeySequence(QStringLiteral("Meta+Shift+N"))});
     KGlobalAccel::self()->setShortcut(addAction, {QKeySequence(QStringLiteral("Meta+Shift+N"))});
     connect(addAction, &QAction::triggered, this, []() {
@@ -6883,11 +6883,11 @@ void TaskController::notifyReminder(qint64 itemId, const QString &summary, const
 {
 #ifdef KURRENT_HAS_NOTIFICATIONS
     auto *notification = new KNotification(QStringLiteral("taskReminder"), KNotification::CloseOnTimeout, this);
-    notification->setTitle(summary.isEmpty() ? tr("Task reminder") : summary);
-    notification->setText(when.isValid() ? tr("Due %1").arg(QLocale().toString(when, QLocale::ShortFormat)) : tr("A task is due."));
-    KNotificationAction *snooze15 = notification->addAction(tr("15 minutes"));
-    KNotificationAction *snoozeHour = notification->addAction(tr("1 hour"));
-    KNotificationAction *snoozeTomorrow = notification->addAction(tr("Tomorrow"));
+    notification->setTitle(summary.isEmpty() ? i18n("Task reminder") : summary);
+    notification->setText(when.isValid() ? i18n("Due %1", QLocale().toString(when, QLocale::ShortFormat)) : i18n("A task is due."));
+    KNotificationAction *snooze15 = notification->addAction(i18n("15 minutes"));
+    KNotificationAction *snoozeHour = notification->addAction(i18n("1 hour"));
+    KNotificationAction *snoozeTomorrow = notification->addAction(i18n("Tomorrow"));
     connect(snooze15, &KNotificationAction::activated, this, [this, itemId]() {
         snoozeTask(itemId, QStringLiteral("15m"));
     });

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### English
+
+#### Improved
+- Error messages, reminders, the global shortcuts and the list's group heads ("No location", "Inbox", status names) are translated into all five languages; they were English.
+
+### Deutsch
+
+#### Verbessert
+- Fehlermeldungen, Erinnerungen, die globalen Kurzbefehle und die Gruppenköpfe der Liste („Ohne Ort“, „Posteingang“, Status) sind in alle fünf Sprachen übersetzt; sie waren englisch.
+
 ## [0.6.0] — 2026-11-10
 
 ### English
