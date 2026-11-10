@@ -41,6 +41,10 @@ bool moveOccurrence(const KCalendarCore::Todo::Ptr &todo, qint64 days);
 QDate occurrenceOrigin(const KCalendarCore::Todo::Ptr &todo);
 /** Back to the rule: no DTRECURRENCE, no origin. */
 void forgetOccurrenceMove(const KCalendarCore::Todo::Ptr &todo);
+/** The series' current occurrence as a task of its own, from start to due, without the rule
+ *  (owner, 10.11.2026: a time of its own means detaching, as KOrganizer's "Dissociate"). */
+KCalendarCore::Todo::Ptr detachOccurrence(const KCalendarCore::Todo::Ptr &series, const QDateTime &start,
+                                          const QDateTime &due);
 
 // -1 = no reminder, 0 = at due, N = N minutes before due.
 int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo);

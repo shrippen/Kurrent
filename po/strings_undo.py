@@ -3,6 +3,7 @@ conflict dialog's field names not used in QML."""
 
 UNDO = {
     "de": {
+        "Undo detaching “%1”": "Ablösen von „%1“ rückgängig machen",
         "Summary": "Titel",
         "Undo": "Rückgängig",
         "Undo marking “%1” incomplete": "„%1“ wieder als erledigt markieren",
@@ -16,6 +17,7 @@ UNDO = {
         "Undo Kanban order of “%1”": "Kanban-Reihenfolge von „%1“ rückgängig machen",
     },
     "es": {
+        "Undo detaching “%1”": "Deshacer separar «%1»",
         "Summary": "Título",
         "Undo": "Deshacer",
         "Undo marking “%1” incomplete": "Deshacer marcar «%1» como pendiente",
@@ -29,6 +31,7 @@ UNDO = {
         "Undo Kanban order of “%1”": "Deshacer orden de Kanban de «%1»",
     },
     "fr": {
+        "Undo detaching “%1”": "Annuler le détachement de « %1 »",
         "Summary": "Titre",
         "Undo": "Annuler",
         "Undo marking “%1” incomplete": "Annuler le marquage de « %1 » comme non terminée",
@@ -42,6 +45,7 @@ UNDO = {
         "Undo Kanban order of “%1”": "Annuler l’ordre Kanban de « %1 »",
     },
     "ja": {
+        "Undo detaching “%1”": "「%1」の切り離しを元に戻す",
         "Summary": "タイトル",
         "Undo": "元に戻す",
         "Undo marking “%1” incomplete": "「%1」の未完了への変更を元に戻す",
@@ -55,6 +59,7 @@ UNDO = {
         "Undo Kanban order of “%1”": "「%1」のカンバンの並び順を元に戻す",
     },
     "zh_CN": {
+        "Undo detaching “%1”": "撤销分离“%1”",
         "Summary": "标题",
         "Undo": "撤销",
         "Undo marking “%1” incomplete": "撤销将“%1”标记为未完成",

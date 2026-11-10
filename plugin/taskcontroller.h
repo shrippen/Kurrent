@@ -672,6 +672,8 @@ enum class SyncResult { Error, Ok };
     void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
     /** Moves a series' current occurrence by `days` with an undo step (#29); false if nothing moved. */
     bool moveSeriesOccurrence(qint64 itemId, qint64 days);
+    void detachSeriesOccurrence(qint64 itemId, const QDateTime &start, const QDateTime &due);
+    void deleteDetached(const QString &uid);
     bool isSeries(qint64 itemId) const;
     QDate seriesOccurrenceDay(qint64 itemId) const;
     void applyTaskUndo(const TaskLogic::UndoRecord &record);
@@ -863,6 +865,8 @@ enum class SyncResult { Error, Ok };
     std::vector<TaskLogic::UndoRecord> m_collectedUndo;
     QSet<QString> m_collapsedUids;
     QHash<qint64, TaskLogic::UndoRecord> m_recreateAfterDelete;
+    /** Detached tasks undone while their create was still in flight: deleted once it lands. */
+    QSet<QString> m_deleteAfterCreate;
     int m_pendingCount = 0;
     int m_syncingCount = 0;
     QStringList m_availableLabels;

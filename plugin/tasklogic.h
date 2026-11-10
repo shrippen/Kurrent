@@ -361,7 +361,7 @@ int clampSidebarWidthUnits(int units);
 qreal overlayDimForStep(int step);
 
 struct UndoRecord {
-    enum class Kind { None, Complete, Reschedule, Move, Delete, Edit, KanbanLayout, Batch };
+    enum class Kind { None, Complete, Reschedule, Move, Delete, Edit, KanbanLayout, Batch, Detach };
     Kind kind = Kind::None;
     qint64 itemId = -1;
     QString summary;
@@ -388,6 +388,9 @@ struct UndoRecord {
     QDateTime seriesDue;
     QDateTime occurrence;
     QString occurrenceMark; // X-KDE-KURRENT-OCCURRENCE-ORIGIN as stored
+    /** Kind::Detach: the task made from the occurrence; undo deletes it and restores the
+     *  series (the fields above, as for Edit). */
+    QString detachedUid;
     /** Kind::Batch: one action over several tasks ("All to today"), undone together,
      *  in reverse order. std::vector: allowed for the record's own incomplete type. */
     std::vector<UndoRecord> batch;

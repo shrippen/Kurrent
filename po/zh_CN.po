@@ -1832,6 +1832,9 @@ msgstr "撤销完成“%1”"
 msgid "Undo delete of “%1”"
 msgstr "撤销删除“%1”"
 
+msgid "Undo detaching “%1”"
+msgstr "撤销分离“%1”"
+
 msgid "Undo edit of “%1”"
 msgstr "撤销编辑“%1”"
 
