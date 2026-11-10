@@ -6,6 +6,7 @@ import com.github.shrippen.kurrent 1.0
 import ".."
 import "../Kante"
 import "../taps.js" as Taps
+import "../agenda.js" as Agenda
 
 // One task in the Agenda's day view (loose tasks, suggestions): project as colour edge, a
 // check box, the title and one meta line. Drag it onto a day's hour grid to give it a time.
@@ -30,6 +31,10 @@ Rectangle {
     implicitHeight: body.implicitHeight + Design.padInner * 2
     radius: Design.radius
     color: inspected ? KanteStyle.selectionColor : (hover.hovered ? KanteStyle.sunkenColor : KanteStyle.cardColor)
+    // The whole title when the label cut it (lines or a word too wide for the row).
+    QQC2.ToolTip.text: titleLabel.fullText
+    QQC2.ToolTip.visible: hover.hovered && (titleLabel.truncated || titleLabel.text !== titleLabel.fullText)
+    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
     border.width: inspected ? KanteStyle.borderWidth : 0
     border.color: KanteStyle.accentColor
     opacity: task.completed ? KanteStyle.doneOpacity : 1
@@ -90,12 +95,19 @@ Rectangle {
             spacing: Design.spaceTiny
 
             QQC2.Label {
+                id: titleLabel
+                readonly property string fullText: row.task.summary || i18n("(Untitled)")
                 Layout.fillWidth: true
-                text: row.task.summary || i18n("(Untitled)")
-                wrapMode: Text.Wrap
+                text: Agenda.fitWords(fullText, width, titleMetrics)
+                wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
                 font.strikeout: row.task.completed
+
+                FontMetrics {
+                    id: titleMetrics
+                    font: titleLabel.font
+                }
             }
             Flow {
                 Layout.fillWidth: true

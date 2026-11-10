@@ -5,6 +5,7 @@ import org.kde.kirigami 2.20 as Kirigami
 import ".."
 import "../Kante"
 import "../datetime.js" as DateTime
+import "../agenda.js" as Agenda
 
 // An appointment on the Agenda's week and month boards: no box, a stripe in the calendar's
 // colour, a fixed time column (start, the end below it) and the title in full text colour.
@@ -89,11 +90,16 @@ Item {
             QQC2.Label {
                 id: titleLabel
                 Layout.fillWidth: true
-                text: row.event.summary
-                wrapMode: Text.Wrap
+                text: Agenda.fitWords(row.event.summary, width, titleMetrics)
+                wrapMode: Text.WordWrap
                 maximumLineCount: row.maximumLineCount > 0 ? row.maximumLineCount : 1000
                 elide: row.maximumLineCount > 0 ? Text.ElideRight : Text.ElideNone
                 color: KanteStyle.textColor
+
+                FontMetrics {
+                    id: titleMetrics
+                    font: titleLabel.font
+                }
             }
         }
     }
