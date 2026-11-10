@@ -14,6 +14,13 @@
  * This test links the library as built, so it fails when kurrentcore loses that definition;
  * the store test compiles the sources itself and would not notice.
  */
+// Skip, or fail where the CI promises a catalog and a real locale (KURRENT_REQUIRE_TRANSLATION).
+#define SKIP_OR_FAIL(why) \
+    if (qEnvironmentVariableIsSet("KURRENT_REQUIRE_TRANSLATION")) { \
+        QFAIL(why); \
+    } \
+    QSKIP(why)
+
 class CoreI18nTest : public QObject
 {
     Q_OBJECT
@@ -26,7 +33,7 @@ void CoreI18nTest::undoLabelUsesWidgetCatalog()
 {
     const QString catalog = QStringLiteral(KURRENT_TEST_LOCALE_DIR "/de/LC_MESSAGES/" KURRENT_TEST_DOMAIN ".mo");
     if (!QFile::exists(catalog)) {
-        QSKIP("German catalog not built (msgfmt missing)");
+        SKIP_OR_FAIL("German catalog not built (msgfmt missing)");
     }
 
     // glibc's gettext ignores LANGUAGE (which KI18n sets) while LC_MESSAGES is C or POSIX.
@@ -35,7 +42,7 @@ void CoreI18nTest::undoLabelUsesWidgetCatalog()
     const auto restoreLocale = qScopeGuard([messagesLocale] { setlocale(LC_MESSAGES, messagesLocale.constData()); });
     if (messagesLocale == "C" || messagesLocale == "POSIX" || messagesLocale.startsWith("C.")) {
         if (!setlocale(LC_MESSAGES, "de_DE.UTF-8") && !setlocale(LC_MESSAGES, "en_US.UTF-8")) {
-            QSKIP("Only the C locale is installed; gettext cannot translate here");
+            SKIP_OR_FAIL("Only the C locale is installed; gettext cannot translate here");
         }
     }
 
