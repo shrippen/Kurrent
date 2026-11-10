@@ -215,4 +215,58 @@ TestCase {
         var d = new Date(2026, 10, 7)
         compare(DateTime.displayDate(d), Qt.locale().toString(d, String(Qt.locale().dateFormat(Locale.ShortFormat)).replace(/y+/g, "yyyy")))
     }
+
+    // Date and time input round-trip in every locale: what formatDate/formatTime write, the
+    // digit mask keeps, and parseDate/parseTime read back. Native digits (fa_IR "۲۰۲۶") were
+    // stripped by the mask; a literal after the last field (ko_KR "dd.", bg_BG " г.") or before
+    // the first (nds_DE "Kl. ") made the parse fail, so Save did nothing or dropped the date.
+    function test_inputRoundTrip_data() {
+        return ["en_US", "de_DE", "fa_IR", "ar_EG", "ko_KR", "hu_HU", "bg_BG", "nds_DE", "dz_BT",
+                "ja_JP", "bn_BD", "my_MM", "ne_NP", "fr_CA", "ckb_IQ"].map(function (n) {
+            return { tag: n, name: n }
+        })
+    }
+
+    function test_inputRoundTrip(row) {
+        var loc = Qt.locale(row.name)
+        var evening = new Date(2026, 10, 7, 21, 5)
+
+        var dateText = DateTime.formatDate(evening, loc)
+        var dateTokens = DateTime.dateTokens(loc)
+        var masked = DateTime.formatDigitsWithTokens(DateTime.digitsOnly(dateText), dateTokens)
+        compare(DateTime.digitsOnly(masked).length, 8, dateText)
+        var d = DateTime.parseDate(masked, loc)
+        verify(d !== null, masked)
+        compare(DateTime.isoDateKey(d), "2026-11-07")
+        compare(DateTime.isoDateKey(DateTime.parseDate(dateText, loc)), "2026-11-07")
+
+        var timeText = DateTime.formatTime(evening, loc)
+        var timeMasked = DateTime.formatDigitsWithTokens(DateTime.digitsOnly(timeText), DateTime.timeTokens(loc))
+        var t = DateTime.parseTime(timeMasked, loc)
+        verify(t !== null, timeMasked)
+        compare(t.hours, 21)
+        compare(t.minutes, 5)
+
+        var resolved = DateTime.resolveDateFields(masked, timeMasked, false, false, loc)
+        verify(resolved && !resolved.clear)
+        compare(resolved.date.getHours(), 21)
+        compare(DateTime.isoDateKey(resolved.date), "2026-11-07")
+    }
+
+    // Typed native digits count as digits ("۲" is 2).
+    function test_digitsOnlyReadsNativeDigits() {
+        compare(DateTime.digitsOnly("۲۰۲۶/۱۱/۰۷"), "20261107")
+        compare(DateTime.digitsOnly("٠٧‏/١١‏/٢٠٢٦"), "07112026")
+        compare(DateTime.digitsOnly("༢༠༢༦-༡༡-༠༧"), "20261107")
+    }
+
+    // Field values out of range never become a date: 31.02. is no date, 24:00 no time.
+    function test_parseRejectsOutOfRange() {
+        var de = Qt.locale("de_DE")
+        verify(DateTime.parseDate("31.02.2026", de) === null)
+        verify(DateTime.parseDate("07.13.2026", de) === null)
+        verify(DateTime.parseDate("07.11.26", de) === null)
+        verify(DateTime.parseTime("24:00", de) === null)
+        verify(DateTime.parseTime("21:60", de) === null)
+    }
 }

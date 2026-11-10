@@ -107,7 +107,8 @@ RowLayout {
 
         Keys.onPressed: function(event) {
             // When a segment is selected, digit input replaces that segment.
-            if (event.text && /\d/.test(event.text) && field.selectionStart !== field.selectionEnd) {
+            // Native digits ("۲" on a Persian keyboard) count too.
+            if (event.text && DateTime.digitsOnly(event.text).length > 0 && field.selectionStart !== field.selectionEnd) {
                 var start = field.selectionStart
                 var end = field.selectionEnd
                 var before = field.text.substring(0, start)

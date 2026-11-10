@@ -130,12 +130,12 @@ function _parseFormatTokens(fmt) {
     return tokens
 }
 
-function dateTokens() {
-    return _parseFormatTokens(dateFormatString())
+function dateTokens(locale) {
+    return _parseFormatTokens(dateFormatString(locale))
 }
 
-function timeTokens() {
-    return _parseFormatTokens(timeFormatString())
+function timeTokens(locale) {
+    return _parseFormatTokens(timeFormatString(locale))
 }
 
 /**
@@ -241,18 +241,42 @@ function formatDueRowLabel(due, options) {
     return label
 }
 
-function formatDate(dt) {
-    if (!isValidDate(dt)) {
-        return ""
+/*
+ * Input fields hold ASCII digits in the locale's field order, exactly as the digit mask writes
+ * them: fa_IR "2026/11/07", not "۲۰۲۶/۱۱/۰۷" (the mask kept no native digit), ko_KR
+ * "2026. 11. 07" (the mask writes no literal after the last field).
+ */
+function _fieldDigits(tokens, values) {
+    var digits = ""
+    for (var i = 0; i < tokens.length; ++i) {
+        var v = values[tokens[i].kind]
+        if (v === undefined) {
+            continue
+        }
+        var text = String(v)
+        while (text.length < tokens[i].maxLen) {
+            text = "0" + text
+        }
+        digits += text
     }
-    return safeFormatDate(dt, dateFormatString())
+    return digits
 }
 
-function formatTime(dt) {
+function formatDate(dt, locale) {
     if (!isValidDate(dt)) {
         return ""
     }
-    return safeFormatTime(dt, timeFormatString())
+    var tokens = dateTokens(locale)
+    var values = { year: dt.getFullYear(), month: dt.getMonth() + 1, day: dt.getDate() }
+    return formatDigitsWithTokens(_fieldDigits(tokens, values), tokens)
+}
+
+function formatTime(dt, locale) {
+    if (!isValidDate(dt)) {
+        return ""
+    }
+    var tokens = timeTokens(locale)
+    return formatDigitsWithTokens(_fieldDigits(tokens, { hour: dt.getHours(), minute: dt.getMinutes() }), tokens)
 }
 
 function datePlaceholder() {
@@ -263,8 +287,28 @@ function timePlaceholder() {
     return timeFormatString()
 }
 
+// Zero of each Unicode decimal digit block a locale may write or a keyboard may type
+// (Arabic-Indic, Persian, Devanagari, Bengali, …, Thai, Tibetan, Myanmar, fullwidth).
+var _NATIVE_ZEROS = [0x0660, 0x06F0, 0x07C0, 0x0966, 0x09E6, 0x0A66, 0x0AE6, 0x0B66, 0x0BE6,
+                     0x0C66, 0x0CE6, 0x0D66, 0x0DE6, 0x0E50, 0x0ED0, 0x0F20, 0x1040, 0x1090,
+                     0x17E0, 0x1810, 0x1946, 0x19D0, 0x1A80, 0x1A90, 0x1B50, 0x1BB0, 0x1C40,
+                     0x1C50, 0xA620, 0xA8D0, 0xA900, 0xA9D0, 0xA9F0, 0xAA50, 0xABF0, 0xFF10]
+
+/** Native digits as ASCII: "۲۰۲۶" → "2026"; everything else stays. */
+function asciiDigits(str) {
+    return String(str || "").replace(/[^\x00-\x7F]/g, function (ch) {
+        var code = ch.charCodeAt(0)
+        for (var i = 0; i < _NATIVE_ZEROS.length; ++i) {
+            if (code >= _NATIVE_ZEROS[i] && code <= _NATIVE_ZEROS[i] + 9) {
+                return String(code - _NATIVE_ZEROS[i])
+            }
+        }
+        return ch
+    })
+}
+
 function digitsOnly(str) {
-    return String(str || "").replace(/\D/g, "")
+    return asciiDigits(str).replace(/\D/g, "")
 }
 
 function maxDigitsFor(tokens) {
@@ -389,13 +433,45 @@ function segmentAtPosition(text, tokens, pos) {
     return segments[segments.length - 1]
 }
 
-function parseDate(str) {
-    var s = String(str || "").trim()
+/*
+ * Field values of an input text by the format's field order: { year: "2026", month: "11", … }.
+ * Reads the digits, not the literals, so a missing trailing "." (ko_KR) or leading "Kl. "
+ * (nds_DE) does not matter.
+ */
+function _readFields(s, tokens) {
+    var fields = {}
+    var segments = computeSegments(s, tokens)
+    for (var i = 0; i < segments.length; ++i) {
+        var seg = segments[i]
+        if (seg.end > seg.start) {
+            fields[seg.kind] = s.substring(seg.start, seg.end)
+        }
+    }
+    return fields
+}
+
+function _dateFromFields(f) {
+    if (!f.year || f.year.length !== 4 || !f.month || !f.day) {
+        return null
+    }
+    var y = Number(f.year)
+    var m = Number(f.month)
+    var day = Number(f.day)
+    var d = new Date(y, m - 1, day, 0, 0, 0, 0)
+    // 31.02. rolls over into March: no such day.
+    if (d.getFullYear() !== y || d.getMonth() !== m - 1 || d.getDate() !== day) {
+        return null
+    }
+    return d
+}
+
+function parseDate(str, locale) {
+    var s = asciiDigits(str).trim()
     if (!s.length) {
         return null
     }
-    var d = Date.fromLocaleDateString(Qt.locale(), s, dateFormatString())
-    if (isValidDate(d)) {
+    var d = _dateFromFields(_readFields(s, dateTokens(locale)))
+    if (d) {
         return d
     }
     var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -408,16 +484,13 @@ function parseDate(str) {
     return null
 }
 
-function parseTime(str) {
-    var s = String(str || "").trim()
+function parseTime(str, locale) {
+    var s = asciiDigits(str).trim()
     if (!s.length) {
         return { hours: 0, minutes: 0 }
     }
-    var t = Date.fromLocaleTimeString(Qt.locale(), s, timeFormatString())
-    if (isValidDate(t)) {
-        return { hours: t.getHours(), minutes: t.getMinutes() }
-    }
-    var m = s.match(/^(\d{1,2}):(\d{2})$/)
+    var f = _readFields(s, timeTokens(locale))
+    var m = f.hour && f.minute && f.minute.length === 2 ? [s, f.hour, f.minute] : s.match(/^(\d{1,2}):(\d{2})$/)
     if (!m) {
         return null
     }
@@ -429,8 +502,8 @@ function parseTime(str) {
     return { hours: h, minutes: min }
 }
 
-function combineDateTime(dateStr, timeStr, allDay) {
-    var d = parseDate(dateStr)
+function combineDateTime(dateStr, timeStr, allDay, locale) {
+    var d = parseDate(dateStr, locale)
     if (!d) {
         return null
     }
@@ -438,7 +511,7 @@ function combineDateTime(dateStr, timeStr, allDay) {
         d.setHours(0, 0, 0, 0)
         return d
     }
-    var t = parseTime(timeStr)
+    var t = parseTime(timeStr, locale)
     if (!t) {
         return null
     }
@@ -449,7 +522,7 @@ function combineDateTime(dateStr, timeStr, allDay) {
 /**
  * Editor save helper: { clear: true } | { clear: false, date: Date } | null on invalid input.
  */
-function resolveDateFields(dateStr, timeStr, allDay, clearRequested) {
+function resolveDateFields(dateStr, timeStr, allDay, clearRequested, locale) {
     if (clearRequested) {
         return { clear: true }
     }
@@ -457,7 +530,7 @@ function resolveDateFields(dateStr, timeStr, allDay, clearRequested) {
     if (!ds.length) {
         return { clear: true }
     }
-    var combined = combineDateTime(dateStr, timeStr, allDay)
+    var combined = combineDateTime(dateStr, timeStr, allDay, locale)
     if (!combined) {
         return null
     }

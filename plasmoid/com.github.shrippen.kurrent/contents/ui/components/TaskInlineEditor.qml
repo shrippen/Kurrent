@@ -22,6 +22,8 @@ Item {
     readonly property int innerPad: Design.padInner
 
     property bool clearDueRequested: false
+    /** Why Save did not close: a date the fields cannot hold. */
+    property string dateError: ""
     property real openReveal: 1
 
     readonly property real fullHeight: editorColumn.implicitHeight + innerPad * 2
@@ -53,13 +55,18 @@ Item {
         priorityPicker.priority = Colors.normalizePriority(task.priority || 0)
         labelPicker.selectedLabels = (task.categories || []).slice()
         clearDueRequested = false
+        dateError = ""
     }
 
     function save() {
+        // A date the fields cannot hold (31.02., 25:00) keeps the editor open and says so.
         var dueResult = DateTime.resolveDateFields(dueDateField.text, dueTimeField.text, allDayCheck.checked, clearDueRequested)
         if (!dueResult) {
+            dateError = i18n("The due date is not a valid date. Format: %1",
+                             DateTime.datePlaceholder() + (allDayCheck.checked ? "" : " " + DateTime.timePlaceholder()))
             return
         }
+        dateError = ""
 
         var fields = {
             "summary": summaryField.text,
@@ -153,6 +160,13 @@ Item {
                 QQC2.ToolTip.text: i18n("Clear due date")
                 QQC2.ToolTip.visible: hovered
             }
+        }
+
+        KanteCallout {
+            Layout.fillWidth: true
+            visible: root.dateError !== ""
+            kind: KanteCallout.Kind.Danger
+            text: root.dateError
         }
 
         PriorityPicker {
