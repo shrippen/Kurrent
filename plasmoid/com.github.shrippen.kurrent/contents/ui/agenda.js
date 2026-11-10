@@ -45,38 +45,58 @@ function fitWords(text, width, metrics) {
 
 // One word, cut part by part where Qt may break a line inside it: after "-", "/", "–" or "—"
 // before a letter ("Wochenplanung-Dankeschön" → "Wochenpla…-Dankeschön"); "2026-11-10" and
-// 'Mail-"News"' stay one part.
+// 'Mail-"News"' stay one part. Runs of a script Qt breaks anywhere are left to Qt.
 function _fitWord(word, width, metrics) {
     var pieces = _breakPieces(word)
     for (var i = 0; i < pieces.length; ++i) {
-        // Fits, or Qt breaks it between characters anyway (Chinese, Japanese, Thai …).
-        if (metrics.advanceWidth(pieces[i]) <= width || _breaksAnywhere(pieces[i])) {
-            continue
-        }
-        var mark = _BREAK_MARKS.indexOf(pieces[i].slice(-1)) >= 0 ? pieces[i].slice(-1) : ""
-        var stem = pieces[i].slice(0, pieces[i].length - mark.length)
-        pieces[i] = metrics.elidedText(stem, Qt.ElideRight, width - metrics.advanceWidth(mark)) + mark
+        pieces[i] = _fitPiece(pieces[i], width, metrics)
     }
     return pieces.join("")
 }
 
+// "会议Wochenplanungsbesprechung": Qt breaks after "会议", so only the Latin run is measured.
+function _fitPiece(piece, width, metrics) {
+    var runs = _scriptRuns(piece)
+    for (var i = 0; i < runs.length; ++i) {
+        var run = runs[i]
+        if (_breaksAnywhere(run.charCodeAt(0)) || metrics.advanceWidth(run) <= width) {
+            continue
+        }
+        var mark = _BREAK_MARKS.indexOf(run.slice(-1)) >= 0 ? run.slice(-1) : ""
+        var stem = run.slice(0, run.length - mark.length)
+        runs[i] = metrics.elidedText(stem, Qt.ElideRight, width - metrics.advanceWidth(mark)) + mark
+    }
+    return runs.join("")
+}
+
 var _BREAK_MARKS = "-/–—"
 
-// Scripts written without spaces, where Qt breaks a line between any two characters:
-// Thai, Lao, Myanmar, Khmer, CJK (with kana and fullwidth forms), Hangul syllables.
-var _BREAK_ANYWHERE = [[0x0E00, 0x0EFF], [0x1000, 0x109F], [0x1780, 0x17FF], [0x2E80, 0x9FFF],
-                       [0xAC00, 0xD7AF], [0xF900, 0xFAFF], [0xFF00, 0xFFEF]]
+// Scripts Qt 6 breaks between any two characters (checked with WordWrap): Thai, Myanmar,
+// CJK with kana, fullwidth forms. Not Lao, Khmer or Hangul: Korean words are cut like Latin.
+var _BREAK_ANYWHERE = [[0x0E00, 0x0E7F], [0x1000, 0x109F], [0x2E80, 0x9FFF], [0xF900, 0xFAFF],
+                       [0xFF00, 0xFFEF]]
 
-function _breaksAnywhere(piece) {
-    for (var i = 0; i < piece.length; ++i) {
-        var code = piece.charCodeAt(i)
-        for (var r = 0; r < _BREAK_ANYWHERE.length; ++r) {
-            if (code >= _BREAK_ANYWHERE[r][0] && code <= _BREAK_ANYWHERE[r][1]) {
-                return true
-            }
+function _breaksAnywhere(code) {
+    for (var r = 0; r < _BREAK_ANYWHERE.length; ++r) {
+        if (code >= _BREAK_ANYWHERE[r][0] && code <= _BREAK_ANYWHERE[r][1]) {
+            return true
         }
     }
     return false
+}
+
+// Split into runs inside and outside the break-anywhere scripts: "会议Wo" → ["会议", "Wo"].
+function _scriptRuns(piece) {
+    var runs = []
+    for (var i = 0; i < piece.length; ++i) {
+        var anywhere = _breaksAnywhere(piece.charCodeAt(i))
+        if (runs.length && _breaksAnywhere(runs[runs.length - 1].charCodeAt(0)) === anywhere) {
+            runs[runs.length - 1] += piece.charAt(i)
+            continue
+        }
+        runs.push(piece.charAt(i))
+    }
+    return runs
 }
 
 // A letter in a cased script (QML's JS has no \p{L}).

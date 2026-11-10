@@ -65,6 +65,12 @@ TestCase {
         var narrowCjk = fm.advanceWidth("每周计划")
         compare(Agenda.fitWords("每周计划会议与团队讨论", narrowCjk, fm), "每周计划会议与团队讨论")
         compare(Agenda.fitWords("ประชุมวางแผนประจำสัปดาห์", fm.advanceWidth("ประชุม"), fm), "ประชุมวางแผนประจำสัปดาห์")
+        // Hangul (and Khmer, Lao) Qt does not break between characters: a word too wide is cut.
+        var korean = Agenda.fitWords("주간계획회의준비사항점검 내일", fm.advanceWidth("주간계획"), fm)
+        verify(korean.split(" ")[0].endsWith("…"), korean)
+        // Only the part outside a break-anywhere script is cut: "会议" stays, the Latin word is cut.
+        var mixed = Agenda.fitWords("会议Wochenplanungsbesprechung", fm.advanceWidth("Wochenplan"), fm)
+        verify(mixed.startsWith("会议Wochen") && mixed.endsWith("…"), mixed)
         // Before layout (no width yet) the text passes through.
         compare(Agenda.fitWords("Wochenplanung", 0, fm), "Wochenplanung")
         compare(Agenda.fitWords(undefined, width, fm), "")
