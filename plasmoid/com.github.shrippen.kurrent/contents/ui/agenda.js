@@ -22,3 +22,35 @@ function dragPayload(task) {
         "recurring": !!task.recurring
     }
 }
+
+// Title for a narrow column (wrapMode WordWrap): each word wider than `width` is cut with "…",
+// so lines break only between words ("Wochenplanung" → "Wochenpla…", not "Wochenplanun/g").
+// A line may also break after a hyphen, so "Anwohner-Dankeschön" is measured in its two parts.
+// `metrics` is a FontMetrics in the label's font. Without a width yet the text passes through.
+function fitWords(text, width, metrics) {
+    var s = text === undefined || text === null ? "" : String(text)
+    if (width <= 0) {
+        return s
+    }
+
+    // Split keeps the whitespace runs (odd indices), so spacing stays as typed.
+    var parts = s.split(/(\s+)/)
+    for (var i = 0; i < parts.length; i += 2) {
+        parts[i] = _fitWord(parts[i], width, metrics)
+    }
+    return parts.join("")
+}
+
+// One word, cut part by part at its hyphens: "Wochenplanung-Dankeschön" → "Wochenpla…-Dankeschön".
+function _fitWord(word, width, metrics) {
+    var pieces = word.match(/[^-]+-?|-/g) || [word]
+    for (var i = 0; i < pieces.length; ++i) {
+        if (metrics.advanceWidth(pieces[i]) <= width) {
+            continue
+        }
+        var hyphen = pieces[i].endsWith("-") ? "-" : ""
+        var stem = pieces[i].slice(0, pieces[i].length - hyphen.length)
+        pieces[i] = metrics.elidedText(stem, Qt.ElideRight, width - metrics.advanceWidth(hyphen)) + hyphen
+    }
+    return pieces.join("")
+}

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### English
+
+#### Fixed
+- Agenda: titles in narrow columns no longer break mid-word ("Wochenplanun/g"); a word too long for the column ends in "…", and the tooltip shows the whole title.
+
+### Deutsch
+
+#### Behoben
+- Agenda: Titel in schmalen Spalten brechen nicht mehr mitten im Wort um („Wochenplanun/g“); ein Wort, das nicht in die Spalte passt, endet mit „…“, der Tooltip zeigt den ganzen Titel.
+
 ## [0.6.0] — 2026-11-10
 
 ### English

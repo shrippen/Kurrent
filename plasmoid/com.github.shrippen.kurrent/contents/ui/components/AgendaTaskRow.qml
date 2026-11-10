@@ -6,6 +6,7 @@ import com.github.shrippen.kurrent 1.0
 import ".."
 import "../Kante"
 import "../taps.js" as Taps
+import "../agenda.js" as Agenda
 
 // One task in the Agenda's day view (loose tasks, suggestions): project as colour edge, a
 // check box, the title and one meta line. Drag it onto a day's hour grid to give it a time.
@@ -90,12 +91,18 @@ Rectangle {
             spacing: Design.spaceTiny
 
             QQC2.Label {
+                id: titleLabel
                 Layout.fillWidth: true
-                text: row.task.summary || i18n("(Untitled)")
-                wrapMode: Text.Wrap
+                text: Agenda.fitWords(row.task.summary || i18n("(Untitled)"), width, titleMetrics)
+                wrapMode: Text.WordWrap
                 maximumLineCount: 2
                 elide: Text.ElideRight
                 font.strikeout: row.task.completed
+
+                FontMetrics {
+                    id: titleMetrics
+                    font: titleLabel.font
+                }
             }
             Flow {
                 Layout.fillWidth: true

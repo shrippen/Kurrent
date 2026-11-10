@@ -24,4 +24,29 @@ TestCase {
         compare(p.recurring, true)
         compare(Agenda.dragPayload({"itemId": 8}).recurring, false)
     }
+
+    FontMetrics {
+        id: fm
+    }
+
+    // Titles wrap at word boundaries; a word wider than the column ends in "…" instead of
+    // breaking mid-word ("Wochenplanun/g" in the week view).
+    function test_fitWords() {
+        var width = fm.advanceWidth("Wochenplan")
+        var fitted = Agenda.fitWords("09:00 Wochenplanung", width, fm)
+        var words = fitted.split(" ")
+        compare(words[0], "09:00")
+        verify(words[1].endsWith("…"), words[1])
+        verify(fm.advanceWidth(words[1]) <= width, words[1])
+        // Words that fit and the spacing between them stay as they are.
+        compare(Agenda.fitWords("Call  mit Speiche", width, fm), "Call  mit Speiche")
+        // A line may break after a hyphen: only a part too wide is cut.
+        compare(Agenda.fitWords("Anwohner-Dankeschön", width, fm), "Anwohner-Dankeschön")
+        var cut = Agenda.fitWords("Wochenplanung-Dankeschön", width, fm)
+        verify(cut.startsWith("Wochen") && cut.endsWith("…-Dankeschön"), cut)
+        verify(fm.advanceWidth(cut.split("-")[0] + "-") <= width, cut)
+        // Before layout (no width yet) the text passes through.
+        compare(Agenda.fitWords("Wochenplanung", 0, fm), "Wochenplanung")
+        compare(Agenda.fitWords(undefined, width, fm), "")
+    }
 }
