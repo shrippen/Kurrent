@@ -144,6 +144,28 @@
   <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
   <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
   <ol class="changelog">
+    <li class="release" id="v0.7.0">
+      <div class="release-head"><b class="release-version">0.7.0</b><time datetime="2026-11-10"><span lang="en">10 Nov 2026</span><span lang="de">10. Nov. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">An occurrence of a recurring task can now get a time of its own: drag it in the Day view and it becomes a task of its own, with a clear warning and a question first. Agenda titles no longer break mid-word, and the editor takes dates and times in every language.</span><span lang="de">Ein Vorkommen einer wiederkehrenden Aufgabe kann jetzt eine eigene Uhrzeit bekommen: In der Tagesansicht gezogen, wird es eine eigene Aufgabe, mit deutlichem Hinweis und Rückfrage vorher. Titel in der Agenda brechen nicht mehr mitten im Wort um, und der Editor nimmt Datum und Uhrzeit in jeder Sprache an.</span></p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+          <li><span lang="en">Agenda, Day view: dragging an occurrence of a recurring task to another time, or changing its length, makes it a task of its own at that time (like KOrganizer's "Dissociate"); the series goes on with its next occurrence. Before, only the day moved. While dragging, the drop place shows in the warning colour marked "Detach" when that will happen, and Kurrent asks before it detaches; one undo brings both back.</span><span lang="de">Agenda, Tag: Ein Vorkommen einer wiederkehrenden Aufgabe, das auf eine andere Uhrzeit gezogen oder in der Länge geändert wird, wird zu einer eigenen Aufgabe zu dieser Zeit (wie „Vorkommen lösen“ in KOrganizer); die Serie geht mit dem nächsten Vorkommen weiter. Vorher verschob sich nur der Tag. Beim Ziehen zeigt der Ablageplatz in der Warnfarbe „Ablösen“, wenn das passiert, und Kurrent fragt vor dem Ablösen nach; ein Rückgängig nimmt beides zurück.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+          <li><span lang="en">Error messages, reminders, the global shortcuts and the list's group heads ("No location", "Inbox", status names) are translated into all five languages; they were English.</span><span lang="de">Fehlermeldungen, Erinnerungen, die globalen Kurzbefehle und die Gruppenköpfe der Liste („Ohne Ort“, „Posteingang“, Status) sind in alle fünf Sprachen übersetzt; sie waren englisch.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">Agenda: titles in narrow columns no longer break mid-word ("Wochenplanun/g"); a word too long for the column ends in "…", and the tooltip shows the whole title.</span><span lang="de">Agenda: Titel in schmalen Spalten brechen nicht mehr mitten im Wort um („Wochenplanun/g“); ein Wort, das nicht in die Spalte passt, endet mit „…“, der Tooltip zeigt den ganzen Titel.</span></li>
+          <li><span lang="en">Editor: dates and times can be entered and saved in every language. With Persian, Arabic, Bengali, Nepali, Burmese or Tibetan digits the date field stayed empty and saving removed the date; Korean, Hungarian and Bulgarian dates (trailing "." or "г.") and Low German times ("Kl.") could not be saved. The fields now hold Western digits in your locale's order, and typed native digits count.</span><span lang="de">Editor: Datum und Uhrzeit lassen sich in jeder Sprache eingeben und speichern. Mit persischen, arabischen, bengalischen, nepalesischen, birmanischen oder tibetischen Ziffern blieb das Datumsfeld leer, und Speichern löschte das Datum; koreanische, ungarische und bulgarische Daten (Punkt oder „г.“ am Ende) und plattdeutsche Uhrzeiten („Kl.“) ließen sich nicht speichern. Die Felder zeigen jetzt westliche Ziffern in der Reihenfolge der Locale, getippte eigene Ziffern zählen mit.</span></li>
+          <li><span lang="en">Editor: when a date or time cannot be saved (31.02., 25:00), the editor says so and shows the expected format; before, Save did nothing.</span><span lang="de">Editor: Lässt sich ein Datum oder eine Uhrzeit nicht speichern (31.02., 25:00), sagt der Editor das und nennt das erwartete Format; vorher tat Speichern nichts.</span></li>
+          <li><span lang="en">Editor: the calendar button opens the date picker at the date in the field; it always showed today.</span><span lang="de">Editor: Der Kalender-Knopf öffnet die Datumswahl beim Datum im Feld; sie zeigte immer den heutigen Tag.</span></li>
+        </ul></div>
+        <div class="release-shots">
+          <figure><img lang="en" src="shots/release-0.7.0-agenda-week-en.webp" alt="The Agenda week in English: titles wrap between words" loading="lazy"><img lang="de" src="shots/release-0.7.0-agenda-week-de.webp" alt="Die Agenda-Woche auf Deutsch: „Wochenplan…“ statt „Wochenplanun/g“" loading="lazy"><figcaption><span lang="en">Agenda, week: titles break between words only</span><span lang="de">Agenda, Woche: Titel brechen nur zwischen Wörtern um</span></figcaption></figure>
+        </div>
+        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.6.0...v0.7.0"><span lang="en">All changes since 0.6.0 →</span><span lang="de">Alle Änderungen seit 0.6.0 →</span></a>
+      </div>
+    </li>
     <li class="release" id="v0.6.0">
       <div class="release-head"><b class="release-version">0.6.0</b><time datetime="2026-11-10"><span lang="en">10 Nov 2026</span><span lang="de">10. Nov. 2026</span></time></div>
       <div class="release-body">
@@ -234,41 +256,41 @@
         <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.4.0...v0.5.0"><span lang="en">All changes since 0.4.0 →</span><span lang="de">Alle Änderungen seit 0.4.0 →</span></a>
       </div>
     </li>
-    <li class="release" id="v0.4.0">
-      <div class="release-head"><b class="release-version">0.4.0</b><time datetime="2026-09-03"><span lang="en">3 Sep 2026</span><span lang="de">3. Sep. 2026</span></time></div>
-      <div class="release-body">
-        <p class="release-lead"><span lang="en">Four new ways to look at your tasks: Swimlanes, a Project plan, a Heatmap and Calendar with tasks. Smart Views finally show their results and counts, and edits that clash with a sync now ask you which version to keep.</span><span lang="de">Vier neue Ansichten auf die Aufgaben: Swimlanes, ein Projektplan, eine Heatmap und Kalender mit Aufgaben. Intelligente Ansichten zeigen endlich ihre Treffer und Zähler, und Änderungen, die mit einer Synchronisation kollidieren, fragen jetzt, welche Fassung bleiben soll.</span></p>
-        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
-          <li><span lang="en">Swimlanes: tasks in a lane × time matrix; rows by project, label, priority or parent task, columns by day, week or month.</span><span lang="de">Swimlanes: Aufgaben in einer Matrix aus Bahnen × Zeit; Zeilen nach Projekt, Label, Priorität oder übergeordneter Aufgabe, Spalten nach Tag, Woche oder Monat.</span></li>
-          <li><span lang="en">Project plan: projects × time, with a planning horizon (0–52 periods), one column for overdue tasks, an optional column for undated tasks and optional completed tasks.</span><span lang="de">Projektplan: Projekte × Zeit, mit Planungshorizont (0–52 Zeiträume), einer Spalte für Überfälliges, wahlweise einer Spalte für Aufgaben ohne Datum und erledigten Aufgaben.</span></li>
-          <li><span lang="en">Heatmap: one cell per day, counting tasks due or tasks completed.</span><span lang="de">Heatmap: eine Zelle je Tag, gezählt nach fälligen oder erledigten Aufgaben.</span></li>
-          <li><span lang="en">Calendar with tasks: the day's events as chips next to its tasks, in a day or week mode.</span><span lang="de">Kalender mit Aufgaben: die Termine des Tages als Chips neben seinen Aufgaben, als Tag oder Woche.</span></li>
-          <li><span lang="en">Smart Views have their own folder in the sidebar, with a count badge, sorted by name.</span><span lang="de">Intelligente Ansichten haben einen eigenen Ordner in der Seitenleiste, mit Zähler und nach Namen sortiert.</span></li>
-          <li><span lang="en">Merge conflict dialog: when a task was changed in Kurrent and elsewhere at the same time, Kurrent goes through the differing fields one at a time and lets you pick the Kurrent or the Akonadi value.</span><span lang="de">Dialog für Konflikte: Wurde eine Aufgabe zugleich in Kurrent und anderswo geändert, geht Kurrent die abweichenden Felder einzeln durch und lässt den Wert aus Kurrent oder aus Akonadi wählen.</span></li>
-          <li><span lang="en">Settings › Views: options for Swimlanes (row and column axis) and the Project plan (time grouping, horizon, undated and completed tasks).</span><span lang="de">Einstellungen › Ansichten: Optionen für Swimlanes (Zeilen- und Spaltenachse) und den Projektplan (Zeiteinteilung, Horizont, Aufgaben ohne Datum und erledigte).</span></li>
-          <li><span lang="en">Task rows show their project when no project filter is active.</span><span lang="de">Aufgabenzeilen zeigen ihr Projekt, solange kein Projektfilter aktiv ist.</span></li>
-        </ul></div>
-        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
-          <li><span lang="en">The Smart View editor offers drop-downs for project, label, status, due date and priority instead of free-text fields.</span><span lang="de">Der Editor für intelligente Ansichten bietet Auswahllisten für Projekt, Label, Status, Fälligkeit und Priorität statt Freitextfeldern.</span></li>
-          <li><span lang="en">Entering a date without a time ticks "All day" automatically.</span><span lang="de">Ein Datum ohne Uhrzeit setzt „Ganztägig“ von selbst.</span></li>
-          <li><span lang="en">Clicking the Quick Add button with an empty field opens the full editor.</span><span lang="de">Ein Klick auf den Schnelleingabe-Knopf bei leerem Feld öffnet den vollen Editor.</span></li>
-          <li><span lang="en">Calendar view: a steady toolbar, an icon-only Today button and an animated Day/Week switch.</span><span lang="de">Kalenderansicht: eine ruhige Werkzeugleiste, ein Heute-Knopf nur mit Symbol und ein animierter Tag/Woche-Schalter.</span></li>
-          <li><span lang="en">Smoother animations when the list changes; the sidebar highlight slides instead of dimming.</span><span lang="de">Flüssigere Animationen, wenn sich die Liste ändert; die Markierung in der Seitenleiste gleitet, statt abzudunkeln.</span></li>
-        </ul></div>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
-          <li><span lang="en">Smart Views showed no tasks when they had no project rule, and their sidebar counts only appeared after a click.</span><span lang="de">Intelligente Ansichten ohne Projektregel zeigten keine Aufgaben, und ihre Zähler erschienen erst nach einem Klick.</span></li>
-          <li><span lang="en">A stale sync echo could overwrite a task you had just edited; Kurrent now ignores it and refetches before saving.</span><span lang="de">Ein veraltetes Echo der Synchronisation konnte eine gerade bearbeitete Aufgabe überschreiben; Kurrent ignoriert es jetzt und lädt vor dem Speichern neu.</span></li>
-          <li><span lang="en">The Views settings dialog did not fill its space.</span><span lang="de">Der Einstellungsdialog für Ansichten füllte seinen Platz nicht aus.</span></li>
-        </ul></div>
-        <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
-          <li><span lang="en">The merge conflict dialog, multi-select bulk actions, KRunner, the global shortcuts and the offline/syncing banner are covered by tests but were not yet checked by hand in a live session.</span><span lang="de">Konfliktdialog, Mehrfachauswahl mit Sammelaktionen, KRunner, die globalen Kürzel und das Offline-/Synchronisierungsbanner sind durch Tests abgedeckt, aber noch nicht von Hand in einer echten Sitzung geprüft.</span></li>
-        </ul></div>
-        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3.1...v0.4.0"><span lang="en">All changes since 0.3.1 →</span><span lang="de">Alle Änderungen seit 0.3.1 →</span></a>
-      </div>
-    </li>
   </ol>
   <details class="changelog-more"><summary><span lang="en">Older releases</span><span lang="de">Ältere Versionen</span></summary>
     <ol class="changelog">
+      <li class="release" id="v0.4.0">
+        <div class="release-head"><b class="release-version">0.4.0</b><time datetime="2026-09-03"><span lang="en">3 Sep 2026</span><span lang="de">3. Sep. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">Four new ways to look at your tasks: Swimlanes, a Project plan, a Heatmap and Calendar with tasks. Smart Views finally show their results and counts, and edits that clash with a sync now ask you which version to keep.</span><span lang="de">Vier neue Ansichten auf die Aufgaben: Swimlanes, ein Projektplan, eine Heatmap und Kalender mit Aufgaben. Intelligente Ansichten zeigen endlich ihre Treffer und Zähler, und Änderungen, die mit einer Synchronisation kollidieren, fragen jetzt, welche Fassung bleiben soll.</span></p>
+          <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+            <li><span lang="en">Swimlanes: tasks in a lane × time matrix; rows by project, label, priority or parent task, columns by day, week or month.</span><span lang="de">Swimlanes: Aufgaben in einer Matrix aus Bahnen × Zeit; Zeilen nach Projekt, Label, Priorität oder übergeordneter Aufgabe, Spalten nach Tag, Woche oder Monat.</span></li>
+            <li><span lang="en">Project plan: projects × time, with a planning horizon (0–52 periods), one column for overdue tasks, an optional column for undated tasks and optional completed tasks.</span><span lang="de">Projektplan: Projekte × Zeit, mit Planungshorizont (0–52 Zeiträume), einer Spalte für Überfälliges, wahlweise einer Spalte für Aufgaben ohne Datum und erledigten Aufgaben.</span></li>
+            <li><span lang="en">Heatmap: one cell per day, counting tasks due or tasks completed.</span><span lang="de">Heatmap: eine Zelle je Tag, gezählt nach fälligen oder erledigten Aufgaben.</span></li>
+            <li><span lang="en">Calendar with tasks: the day's events as chips next to its tasks, in a day or week mode.</span><span lang="de">Kalender mit Aufgaben: die Termine des Tages als Chips neben seinen Aufgaben, als Tag oder Woche.</span></li>
+            <li><span lang="en">Smart Views have their own folder in the sidebar, with a count badge, sorted by name.</span><span lang="de">Intelligente Ansichten haben einen eigenen Ordner in der Seitenleiste, mit Zähler und nach Namen sortiert.</span></li>
+            <li><span lang="en">Merge conflict dialog: when a task was changed in Kurrent and elsewhere at the same time, Kurrent goes through the differing fields one at a time and lets you pick the Kurrent or the Akonadi value.</span><span lang="de">Dialog für Konflikte: Wurde eine Aufgabe zugleich in Kurrent und anderswo geändert, geht Kurrent die abweichenden Felder einzeln durch und lässt den Wert aus Kurrent oder aus Akonadi wählen.</span></li>
+            <li><span lang="en">Settings › Views: options for Swimlanes (row and column axis) and the Project plan (time grouping, horizon, undated and completed tasks).</span><span lang="de">Einstellungen › Ansichten: Optionen für Swimlanes (Zeilen- und Spaltenachse) und den Projektplan (Zeiteinteilung, Horizont, Aufgaben ohne Datum und erledigte).</span></li>
+            <li><span lang="en">Task rows show their project when no project filter is active.</span><span lang="de">Aufgabenzeilen zeigen ihr Projekt, solange kein Projektfilter aktiv ist.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+            <li><span lang="en">The Smart View editor offers drop-downs for project, label, status, due date and priority instead of free-text fields.</span><span lang="de">Der Editor für intelligente Ansichten bietet Auswahllisten für Projekt, Label, Status, Fälligkeit und Priorität statt Freitextfeldern.</span></li>
+            <li><span lang="en">Entering a date without a time ticks "All day" automatically.</span><span lang="de">Ein Datum ohne Uhrzeit setzt „Ganztägig“ von selbst.</span></li>
+            <li><span lang="en">Clicking the Quick Add button with an empty field opens the full editor.</span><span lang="de">Ein Klick auf den Schnelleingabe-Knopf bei leerem Feld öffnet den vollen Editor.</span></li>
+            <li><span lang="en">Calendar view: a steady toolbar, an icon-only Today button and an animated Day/Week switch.</span><span lang="de">Kalenderansicht: eine ruhige Werkzeugleiste, ein Heute-Knopf nur mit Symbol und ein animierter Tag/Woche-Schalter.</span></li>
+            <li><span lang="en">Smoother animations when the list changes; the sidebar highlight slides instead of dimming.</span><span lang="de">Flüssigere Animationen, wenn sich die Liste ändert; die Markierung in der Seitenleiste gleitet, statt abzudunkeln.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">Smart Views showed no tasks when they had no project rule, and their sidebar counts only appeared after a click.</span><span lang="de">Intelligente Ansichten ohne Projektregel zeigten keine Aufgaben, und ihre Zähler erschienen erst nach einem Klick.</span></li>
+            <li><span lang="en">A stale sync echo could overwrite a task you had just edited; Kurrent now ignores it and refetches before saving.</span><span lang="de">Ein veraltetes Echo der Synchronisation konnte eine gerade bearbeitete Aufgabe überschreiben; Kurrent ignoriert es jetzt und lädt vor dem Speichern neu.</span></li>
+            <li><span lang="en">The Views settings dialog did not fill its space.</span><span lang="de">Der Einstellungsdialog für Ansichten füllte seinen Platz nicht aus.</span></li>
+          </ul></div>
+          <div class="release-group" data-kind="note"><h3><span lang="en">Note</span><span lang="de">Hinweis</span></h3><ul>
+            <li><span lang="en">The merge conflict dialog, multi-select bulk actions, KRunner, the global shortcuts and the offline/syncing banner are covered by tests but were not yet checked by hand in a live session.</span><span lang="de">Konfliktdialog, Mehrfachauswahl mit Sammelaktionen, KRunner, die globalen Kürzel und das Offline-/Synchronisierungsbanner sind durch Tests abgedeckt, aber noch nicht von Hand in einer echten Sitzung geprüft.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3.1...v0.4.0"><span lang="en">All changes since 0.3.1 →</span><span lang="de">Alle Änderungen seit 0.3.1 →</span></a>
+        </div>
+      </li>
       <li class="release" id="v0.3.1">
         <div class="release-head"><b class="release-version">0.3.1</b><time datetime="2026-08-29"><span lang="en">29 Aug 2026</span><span lang="de">29. Aug. 2026</span></time></div>
         <div class="release-body">
@@ -386,7 +408,7 @@
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Kurrent">GitHub</a><a href="https://github.com/shrippen/Kurrent/issues">Issues</a><a href="https://github.com/shrippen/Kurrent/releases">Releases</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v0.6.0</a></p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v0.7.0</a></p></div>
 </footer>
 
 </body>

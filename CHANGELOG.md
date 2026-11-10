@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-11-10
+
 ### English
+
+An occurrence of a recurring task can now get a time of its own: drag it in the Day view and it becomes a task of its own, with a clear warning and a question first. Agenda titles no longer break mid-word, and the editor takes dates and times in every language.
 
 #### New
 - Agenda, Day view: dragging an occurrence of a recurring task to another time, or changing its length, makes it a task of its own at that time (like KOrganizer's "Dissociate"); the series goes on with its next occurrence. Before, only the day moved. While dragging, the drop place shows in the warning colour marked "Detach" when that will happen, and Kurrent asks before it detaches; one undo brings both back.
@@ -16,7 +20,11 @@
 - Editor: when a date or time cannot be saved (31.02., 25:00), the editor says so and shows the expected format; before, Save did nothing.
 - Editor: the calendar button opens the date picker at the date in the field; it always showed today.
 
+All changes: https://github.com/shrippen/Kurrent/compare/v0.6.0...v0.7.0
+
 ### Deutsch
+
+Ein Vorkommen einer wiederkehrenden Aufgabe kann jetzt eine eigene Uhrzeit bekommen: In der Tagesansicht gezogen, wird es eine eigene Aufgabe, mit deutlichem Hinweis und Rückfrage vorher. Titel in der Agenda brechen nicht mehr mitten im Wort um, und der Editor nimmt Datum und Uhrzeit in jeder Sprache an.
 
 #### Neu
 - Agenda, Tag: Ein Vorkommen einer wiederkehrenden Aufgabe, das auf eine andere Uhrzeit gezogen oder in der Länge geändert wird, wird zu einer eigenen Aufgabe zu dieser Zeit (wie „Vorkommen lösen“ in KOrganizer); die Serie geht mit dem nächsten Vorkommen weiter. Vorher verschob sich nur der Tag. Beim Ziehen zeigt der Ablageplatz in der Warnfarbe „Ablösen“, wenn das passiert, und Kurrent fragt vor dem Ablösen nach; ein Rückgängig nimmt beides zurück.
