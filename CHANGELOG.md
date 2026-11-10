@@ -2,12 +2,20 @@
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-11-10
+
 ### English
+
+The installer no longer leaves Plasma without a desktop and panel when it restarts it.
 
 #### Fixed
 - After an install, Plasma could be left without a desktop and panel: the installer started the new plasmashell while the old one was still quitting, which is slow after a Qt update. It now waits until the old one is gone and restarts it through systemd where available.
 
+All changes: https://github.com/shrippen/Kurrent/compare/v0.8.0...v0.8.1
+
 ### Deutsch
+
+Der Installer lässt Plasma beim Neustart nicht mehr ohne Desktop und Leiste zurück.
 
 #### Behoben
 - Nach einer Installation konnte Plasma ohne Desktop und Leiste dastehen: Der Installer startete die neue plasmashell, während die alte noch beendet wurde, was nach einem Qt-Update dauert. Jetzt wartet er, bis die alte weg ist, und startet sie, wo vorhanden, über systemd neu.
