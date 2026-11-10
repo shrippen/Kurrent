@@ -180,7 +180,6 @@ TestCase {
     function test_inputFormatsPadOneDigitFields() {
         var us = Qt.locale("en_US")
         compare(DateTime.dateFormatString(us), "MM/dd/yyyy")
-        verify(DateTime.timeFormatString(us).indexOf("hh:mm") === 0)
         compare(DateTime.dateFormatString(Qt.locale("de_DE")), "dd.MM.yyyy")
         compare(DateTime.timeFormatString(Qt.locale("de_DE")), "HH:mm")
         var tokens = DateTime._parseFormatTokens(DateTime.dateFormatString(us))
@@ -188,5 +187,32 @@ TestCase {
         compare(text, "11/07/2026")
         compare(DateTime.formatDigitsWithTokens(DateTime.digitsOnly(text), tokens), "11/07/2026")
         compare(DateTime._padSingleFields("d 'de' MMMM", "d"), "dd 'de' MMMM")
+    }
+
+    // Time fields are 24 hours: the mask drops AM/PM, so "9:05 PM" saved as 09:05 in the morning.
+    function test_timeInputIs24Hours() {
+        var us = Qt.locale("en_US")
+        compare(DateTime.timeFormatString(us), "HH:mm")
+        compare(DateTime.timeFormatString(Qt.locale("ko_KR")), "HH:mm")
+        compare(DateTime.timeFormatString(Qt.locale("hi_IN")), "HH:mm")
+        compare(DateTime.timeFormatString(Qt.locale("de_DE")), "HH:mm")
+        var evening = new Date(2026, 10, 7, 21, 5)
+        var text = us.toString(evening, DateTime.timeFormatString(us))
+        compare(text, "21:05")
+        var masked = DateTime.formatDigitsWithTokens(DateTime.digitsOnly(text),
+                                                     DateTime._parseFormatTokens(DateTime.timeFormatString(us)))
+        compare(masked, "21:05")
+        var t = DateTime.parseTime(masked)
+        compare(t.hours, 21)
+        compare(t.minutes, 5)
+        var resolved = DateTime.resolveDateFields(DateTime.formatDate(evening), masked, false, false)
+        verify(resolved && !resolved.clear)
+        compare(resolved.date.getHours(), 21)
+        compare(resolved.date.getDate(), 7)
+    }
+
+    function test_displayDateKeepsLocaleForm() {
+        var d = new Date(2026, 10, 7)
+        compare(DateTime.displayDate(d), Qt.locale().toString(d, String(Qt.locale().dateFormat(Locale.ShortFormat)).replace(/y+/g, "yyyy")))
     }
 }

@@ -27,14 +27,35 @@ function _padSingleFields(fmt, letters) {
     return parts.join("'")
 }
 
-function dateFormatString(locale) {
-    var fmt = String((locale || Qt.locale()).dateFormat(SHORT_FORMAT)).replace(/y+/g, "yyyy")
-    return _padSingleFields(_padSingleFields(fmt, "M"), "d")
+function _shortDateFormat(locale) {
+    return String((locale || Qt.locale()).dateFormat(SHORT_FORMAT)).replace(/y+/g, "yyyy")
 }
 
+/** Format of the date input fields (and of parsing what they hold): every field full width. */
+function dateFormatString(locale) {
+    return _padSingleFields(_padSingleFields(_shortDateFormat(locale), "M"), "d")
+}
+
+/*
+ * Format of the time input fields: always 24 hours. The digit mask cannot carry AM/PM, so a
+ * 12-hour format ("h:mm AP") lost the marker and 9:05 PM came back as 09:05 in the morning.
+ */
 function timeFormatString(locale) {
-    var fmt = String((locale || Qt.locale()).timeFormat(SHORT_FORMAT)).replace(/:?s+/g, "").replace(/\s+$/, "")
-    return _padSingleFields(_padSingleFields(fmt, "hH"), "m")
+    var parts = String((locale || Qt.locale()).timeFormat(SHORT_FORMAT)).split("'")
+    for (var i = 0; i < parts.length; i += 2) {
+        parts[i] = parts[i].replace(/:?s+/g, "").replace(/\s*(?:[Aa][Pp]|[Aa])\s*/g, "").replace(/h/g, "H")
+    }
+    // A literal that only belonged to the AM/PM marker (Korean "AP h:mm") goes with it.
+    var fmt = parts.join("'").replace(/^(?:'[^']*')+(?=H)/, "").trim()
+    return _padSingleFields(_padSingleFields(fmt, "H"), "m")
+}
+
+/** A date for display, in the locale's own short form (one-digit fields stay one digit). */
+function displayDate(dt) {
+    if (!isValidDate(dt)) {
+        return ""
+    }
+    return safeFormatDate(dt, _shortDateFormat())
 }
 
 function _parseFormatTokens(fmt) {
