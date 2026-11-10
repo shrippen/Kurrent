@@ -5,7 +5,7 @@
 ### English
 
 #### New
-- Agenda, Day view: dragging an occurrence of a recurring task to another time, or changing its length, makes it a task of its own at that time (like KOrganizer's "Dissociate"); the series goes on with its next occurrence. Before, only the day moved. One undo brings both back.
+- Agenda, Day view: dragging an occurrence of a recurring task to another time, or changing its length, makes it a task of its own at that time (like KOrganizer's "Dissociate"); the series goes on with its next occurrence. Before, only the day moved. While dragging, the drop place shows in the warning colour marked "Detach" when that will happen, and Kurrent asks before it detaches; one undo brings both back.
 
 #### Improved
 - Error messages, reminders, the global shortcuts and the list's group heads ("No location", "Inbox", status names) are translated into all five languages; they were English.
@@ -19,7 +19,7 @@
 ### Deutsch
 
 #### Neu
-- Agenda, Tag: Ein Vorkommen einer wiederkehrenden Aufgabe, das auf eine andere Uhrzeit gezogen oder in der Länge geändert wird, wird zu einer eigenen Aufgabe zu dieser Zeit (wie „Vorkommen lösen“ in KOrganizer); die Serie geht mit dem nächsten Vorkommen weiter. Vorher verschob sich nur der Tag. Ein Rückgängig nimmt beides zurück.
+- Agenda, Tag: Ein Vorkommen einer wiederkehrenden Aufgabe, das auf eine andere Uhrzeit gezogen oder in der Länge geändert wird, wird zu einer eigenen Aufgabe zu dieser Zeit (wie „Vorkommen lösen“ in KOrganizer); die Serie geht mit dem nächsten Vorkommen weiter. Vorher verschob sich nur der Tag. Beim Ziehen zeigt der Ablageplatz in der Warnfarbe „Ablösen“, wenn das passiert, und Kurrent fragt vor dem Ablösen nach; ein Rückgängig nimmt beides zurück.
 
 #### Verbessert
 - Fehlermeldungen, Erinnerungen, die globalen Kurzbefehle und die Gruppenköpfe der Liste („Ohne Ort“, „Posteingang“, Status) sind in alle fünf Sprachen übersetzt; sie waren englisch.

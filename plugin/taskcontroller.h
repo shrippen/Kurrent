@@ -353,6 +353,11 @@ public:
     /** Give a task a time on `day`: the first free stretch from `minute` that fits its length
      *  (its block, else AgendaLogic::defaultMinutes). Undoable. */
     Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute);
+    /** Where agendaPlaceTask would put the task: { start, end, detach }; detach when a series'
+     *  occurrence would get a time of its own (the view warns and asks first). */
+    Q_INVOKABLE QVariantMap agendaPlacement(qint64 itemId, const QDate &day, int minute) const;
+    /** True when agendaSetBlock with these times detaches a series' occurrence. */
+    Q_INVOKABLE bool agendaWouldDetach(qint64 itemId, int start, int end) const;
     /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
     Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
     /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier

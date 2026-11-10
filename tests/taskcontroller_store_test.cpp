@@ -832,6 +832,17 @@ void TaskControllerStoreTest::seriesBlockAtOtherTimeDetaches()
     QCOMPARE(undoneEarly.size(), 1);
     QCOMPARE(undoneEarly.first().value(QStringLiteral("itemId")).toLongLong(), qint64(1));
 
+    // The view asks before a drop or a resize whether it detaches (the hint and the question).
+    const QVariantMap sameTime = m_controller->agendaPlacement(1, day.addDays(3), 9 * 60);
+    QCOMPARE(sameTime.value(QStringLiteral("start")).toInt(), 9 * 60);
+    QCOMPARE(sameTime.value(QStringLiteral("end")).toInt(), 9 * 60 + 30);
+    QCOMPARE(sameTime.value(QStringLiteral("detach")).toBool(), false);
+    const QVariantMap otherTime = m_controller->agendaPlacement(1, day.addDays(3), 14 * 60 + 7);
+    QCOMPARE(otherTime.value(QStringLiteral("start")).toInt(), 14 * 60);
+    QCOMPARE(otherTime.value(QStringLiteral("detach")).toBool(), true);
+    QVERIFY(m_controller->agendaWouldDetach(1, 9 * 60, 10 * 60));
+    QVERIFY(!m_controller->agendaWouldDetach(1, 9 * 60, 9 * 60 + 30));
+
     // Same times on another day: only the occurrence moves, nothing is detached.
     m_controller->agendaSetBlock(1, day.addDays(2), 9 * 60, 9 * 60 + 30);
     waitStore(spy, 10);

@@ -539,6 +539,15 @@ msgstr "描述预览"
 msgid "Desktop notifications"
 msgstr "桌面通知"
 
+msgid "Detach"
+msgstr "分离"
+
+msgid "Detach at %1: this occurrence becomes a task of its own"
+msgstr "在 %1 分离：此次将成为独立任务"
+
+msgid "Detach this occurrence?"
+msgstr "分离此次重复？"
+
 msgid "Diagnostics"
 msgstr "诊断"
 
@@ -1946,6 +1955,9 @@ msgstr "昨天"
 msgid "You can also drag the edge of the sidebar."
 msgstr "也可以拖动侧边栏边缘。"
 
+msgid "detaches"
+msgstr "将被分离"
+
 msgid "drag onto a day"
 msgstr "拖到某一天"
 
@@ -1993,6 +2005,9 @@ msgstr "未知"
 
 msgid "yesterday"
 msgstr "昨天"
+
+msgid "“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back."
+msgstr "“%1”将成为 %2–%3 的独立任务。系列保持其时间，并继续下一次重复。撤销会同时恢复两者。"
 
 msgid "%1 open task"
 msgid_plural "%1 open tasks"

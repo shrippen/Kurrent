@@ -183,21 +183,36 @@ Item {
         keys: ["application/x-kurrent-task"]
         enabled: !!grid.dragHost
         property int minute: -1
+        // Where the task would land ({ start, end, detach }, TaskController::agendaPlacement).
+        property var place: null
+
+        function follow(y) {
+            var task = grid.dragHost ? grid.dragHost.draggingTask : null
+            var at = grid.minuteAt(y)
+            if (at === minute && place) {
+                return
+            }
+            minute = at
+            place = task ? grid.controller.agendaPlacement(task.itemId, grid.day.date, minute) : null
+            if (!grid.dragHost) {
+                return
+            }
+            // A series' occurrence at another time becomes a task of its own: say so while dragging.
+            grid.dragHost.setDropHint(place && place.detach
+                ? i18n("Detach at %1: this occurrence becomes a task of its own", grid.hm(place.start))
+                : i18n("Plan at %1 or the next free time", grid.hm(minute)))
+        }
+
         onEntered: function(drag) {
             drag.acceptProposedAction()
-            minute = grid.minuteAt(drag.y)
-            if (grid.dragHost) {
-                grid.dragHost.setDropHint(i18n("Plan at %1 or the next free time", grid.hm(minute)))
-            }
+            follow(drag.y)
         }
         onPositionChanged: function(drag) {
-            minute = grid.minuteAt(drag.y)
-            if (grid.dragHost) {
-                grid.dragHost.setDropHint(i18n("Plan at %1 or the next free time", grid.hm(minute)))
-            }
+            follow(drag.y)
         }
         onExited: {
             minute = -1
+            place = null
             if (grid.dragHost) {
                 grid.dragHost.clearDropHint()
             }
@@ -205,19 +220,43 @@ Item {
         onDropped: function(event) {
             var task = grid.dragHost ? grid.dragHost.draggingTask : null
             if (task) {
-                grid.controller.agendaPlaceTask(task.itemId, grid.day.date, grid.minuteAt(event.y))
+                var p = grid.controller.agendaPlacement(task.itemId, grid.day.date, grid.minuteAt(event.y))
+                if (p && p.detach) {
+                    grid.askDetach(task.itemId, task.summary, p.start, p.end, null)
+                } else {
+                    grid.controller.agendaPlaceTask(task.itemId, grid.day.date, grid.minuteAt(event.y))
+                }
                 event.acceptProposedAction()
             }
             minute = -1
+            place = null
         }
     }
+    // Where the dragged task lands; in the warning colour, marked "Detach", when a series'
+    // occurrence would become a task of its own there.
     Rectangle {
-        visible: drop.containsDrag && drop.minute >= 0
-        x: grid.gutter
-        width: grid.width - grid.gutter
-        y: grid.yOf(drop.minute)
-        height: KanteStyle.lineWidth
-        color: KanteStyle.accentColor
+        id: landing
+        readonly property bool detach: !!drop.place && drop.place.detach
+        visible: drop.containsDrag && !!drop.place && drop.place.end > drop.place.start
+        x: grid.gutter + Design.spaceTiny
+        width: grid.width - grid.gutter - Design.spaceTiny * 2
+        y: visible ? grid.yOf(drop.place.start) : 0
+        height: visible ? (drop.place.end - drop.place.start) * grid.px : 0
+        z: 4
+        radius: Design.radius
+        color: KanteStyle.tint(detach ? KanteStyle.warningColor : KanteStyle.accentColor, KanteStyle.washLevel)
+        border.width: KanteStyle.lineWidth
+        border.color: detach ? KanteStyle.warningColor : KanteStyle.accentColor
+
+        QQC2.Label {
+            anchors.fill: parent
+            anchors.margins: Design.spaceTiny
+            visible: landing.detach
+            text: i18n("Detach")
+            font: Kirigami.Theme.smallFont
+            color: KanteStyle.warningColor
+            elide: Text.ElideRight
+        }
     }
 
     // Appointments and task blocks, overlapping ones side by side.
@@ -232,6 +271,9 @@ Item {
             // While resizing: the edges being dragged.
             property int liveStart: modelData.start
             property int liveEnd: modelData.end
+            // Resizing a series' occurrence detaches it: drawn in the warning colour meanwhile.
+            readonly property bool wouldDetach: isTask && (liveStart !== modelData.start || liveEnd !== modelData.end)
+                                                && grid.controller.agendaWouldDetach(modelData.itemId, liveStart, liveEnd)
 
             x: grid.gutter + Design.spaceTiny + modelData.lane * laneWidth
             width: laneWidth - Design.spaceTiny
@@ -249,9 +291,10 @@ Item {
             radius: Design.radius
             clip: true
             color: isTask ? KanteStyle.tint(Design.colorForKey(String(modelData.collectionId)), KanteStyle.strongFillLevel) : KanteStyle.sunkenColor
-            border.width: selected ? KanteStyle.lineWidth : KanteStyle.borderWidth
-            border.color: selected ? KanteStyle.accentColor
-                                   : (isTask ? Design.colorForKey(String(modelData.collectionId)) : KanteStyle.frameColor)
+            border.width: selected || wouldDetach ? KanteStyle.lineWidth : KanteStyle.borderWidth
+            border.color: wouldDetach ? KanteStyle.warningColor
+                                      : selected ? KanteStyle.accentColor
+                                                 : (isTask ? Design.colorForKey(String(modelData.collectionId)) : KanteStyle.frameColor)
             opacity: isTask && modelData.completed ? KanteStyle.doneOpacity : 1
 
             QQC2.Label {
@@ -266,6 +309,7 @@ Item {
                 text: grid.hm(block.liveStart) + "–" + grid.hm(block.liveEnd)
                       + (block.liveEnd - block.liveStart !== block.modelData.end - block.modelData.start
                          ? " · " + grid.duration(block.liveEnd - block.liveStart) : "")
+                      + (block.wouldDetach ? " · " + i18n("detaches") : "")
                       + "  " + (block.modelData.summary || i18n("(Untitled)"))
                 wrapMode: block.low ? Text.NoWrap : Text.Wrap
                 elide: Text.ElideRight
@@ -334,9 +378,14 @@ Item {
                         }
                         onReleased: {
                             var m = block.modelData
-                            if (block.liveStart !== m.start || block.liveEnd !== m.end) {
-                                grid.controller.agendaSetBlock(m.itemId, grid.day.date, block.liveStart, block.liveEnd)
+                            if (block.liveStart === m.start && block.liveEnd === m.end) {
+                                return
                             }
+                            if (block.wouldDetach) {
+                                grid.askDetach(m.itemId, m.summary, block.liveStart, block.liveEnd, block)
+                                return
+                            }
+                            grid.controller.agendaSetBlock(m.itemId, grid.day.date, block.liveStart, block.liveEnd)
                         }
                         QQC2.ToolTip.text: parent.atTop ? i18n("Drag to change the start") : i18n("Drag to change the end")
                         QQC2.ToolTip.visible: containsMouse && !pressed
@@ -471,5 +520,54 @@ Item {
         height: KanteStyle.lineWidth
         z: 4
         color: KanteStyle.negativeTextColor
+    }
+
+    // Detaching asks first (owner, 10.11.2026): the series loses this occurrence to a task of
+    // its own. `resizing` is the block whose edges were dragged; Cancel puts them back.
+    property var pendingDetach: null
+
+    function askDetach(itemId, summary, start, end, resizing) {
+        pendingDetach = { itemId: itemId, summary: summary, start: start, end: end, block: resizing }
+        detachDialog.open()
+    }
+
+    function settleDetach(accepted) {
+        var p = pendingDetach
+        pendingDetach = null
+        if (!p) {
+            return
+        }
+        if (accepted) {
+            controller.agendaSetBlock(p.itemId, day.date, p.start, p.end)
+            return
+        }
+        if (p.block) {
+            p.block.liveStart = p.block.modelData.start
+            p.block.liveEnd = p.block.modelData.end
+        }
+    }
+
+    QQC2.Dialog {
+        id: detachDialog
+        KanteDialogSkin { dialog: detachDialog }
+        parent: grid.dragHost || grid
+        popupType: QQC2.Popup.Item
+        modal: true
+        title: i18n("Detach this occurrence?")
+        // Yes / No to the question in the title, like the list's delete question (KanteDialogSkin
+        // builds its buttons from standardButtons, so they cannot be renamed).
+        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
+        onAccepted: grid.settleDetach(true)
+        onRejected: grid.settleDetach(false)
+
+        QQC2.Label {
+            width: Kirigami.Units.gridUnit * 18
+            wrapMode: Text.WordWrap
+            text: grid.pendingDetach
+                  ? i18n("“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back.",
+                         grid.pendingDetach.summary || i18n("(Untitled)"),
+                         grid.hm(grid.pendingDetach.start), grid.hm(grid.pendingDetach.end))
+                  : ""
+        }
     }
 }
