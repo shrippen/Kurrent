@@ -49,7 +49,8 @@ function fitWords(text, width, metrics) {
 function _fitWord(word, width, metrics) {
     var pieces = _breakPieces(word)
     for (var i = 0; i < pieces.length; ++i) {
-        if (metrics.advanceWidth(pieces[i]) <= width) {
+        // Fits, or Qt breaks it between characters anyway (Chinese, Japanese, Thai …).
+        if (metrics.advanceWidth(pieces[i]) <= width || _breaksAnywhere(pieces[i])) {
             continue
         }
         var mark = _BREAK_MARKS.indexOf(pieces[i].slice(-1)) >= 0 ? pieces[i].slice(-1) : ""
@@ -61,7 +62,24 @@ function _fitWord(word, width, metrics) {
 
 var _BREAK_MARKS = "-/–—"
 
-// A letter in a cased script (QML's JS has no \p{L}); uncased scripts break anywhere anyway.
+// Scripts written without spaces, where Qt breaks a line between any two characters:
+// Thai, Lao, Myanmar, Khmer, CJK (with kana and fullwidth forms), Hangul syllables.
+var _BREAK_ANYWHERE = [[0x0E00, 0x0EFF], [0x1000, 0x109F], [0x1780, 0x17FF], [0x2E80, 0x9FFF],
+                       [0xAC00, 0xD7AF], [0xF900, 0xFAFF], [0xFF00, 0xFFEF]]
+
+function _breaksAnywhere(piece) {
+    for (var i = 0; i < piece.length; ++i) {
+        var code = piece.charCodeAt(i)
+        for (var r = 0; r < _BREAK_ANYWHERE.length; ++r) {
+            if (code >= _BREAK_ANYWHERE[r][0] && code <= _BREAK_ANYWHERE[r][1]) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// A letter in a cased script (QML's JS has no \p{L}).
 function _isLetter(ch) {
     return ch !== undefined && ch.toLowerCase() !== ch.toUpperCase()
 }

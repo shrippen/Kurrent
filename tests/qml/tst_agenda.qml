@@ -60,6 +60,11 @@ TestCase {
         // A no-break space joins words: "10 km" is one piece.
         var nbsp = Agenda.fitWords("10\u00a0km", fm.advanceWidth("10"), fm)
         verify(nbsp.endsWith("…"), nbsp)
+        // Chinese, Japanese and Thai have no spaces; Qt breaks between their characters, so
+        // such a title must not be cut to one line.
+        var narrowCjk = fm.advanceWidth("每周计划")
+        compare(Agenda.fitWords("每周计划会议与团队讨论", narrowCjk, fm), "每周计划会议与团队讨论")
+        compare(Agenda.fitWords("ประชุมวางแผนประจำสัปดาห์", fm.advanceWidth("ประชุม"), fm), "ประชุมวางแผนประจำสัปดาห์")
         // Before layout (no width yet) the text passes through.
         compare(Agenda.fitWords("Wochenplanung", 0, fm), "Wochenplanung")
         compare(Agenda.fitWords(undefined, width, fm), "")
