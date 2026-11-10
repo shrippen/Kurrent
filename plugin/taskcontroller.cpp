@@ -1248,6 +1248,31 @@ QString TaskController::listGroupLabelForKey(const QString &key) const
             return i18n("Canceled");
         }
     }
+    if (mode == TaskLogic::ListGroupSource::Priority) {
+        if (key == QLatin1String("high")) {
+            return i18n("High");
+        }
+        if (key == QLatin1String("medium")) {
+            return i18n("Medium");
+        }
+        if (key == QLatin1String("low")) {
+            return i18n("Low");
+        }
+        if (key == QLatin1String("none")) {
+            return i18n("None");
+        }
+    }
+    if (mode == TaskLogic::ListGroupSource::Secrecy) {
+        if (key == QLatin1String("public")) {
+            return i18n("Public");
+        }
+        if (key == QLatin1String("private")) {
+            return i18n("Private");
+        }
+        if (key == QLatin1String("confidential")) {
+            return i18n("Confidential");
+        }
+    }
     return TaskLogic::listGroupLabel(key, mode);
 }
 

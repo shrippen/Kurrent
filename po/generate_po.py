@@ -19,7 +19,8 @@ DOMAIN = "plasma_applet_com.github.shrippen.kurrent"
 VERSION = "1.0.0"
 YEAR = datetime.date.today().year
 QML_ROOT = Path(__file__).resolve().parent.parent / "plasmoid"
-# The plugin's C++ i18n() (undo labels); the terminal client stays English for now.
+# The plugin's C++ i18n() (undo labels, list group heads, messages, reminders, shortcuts);
+# the terminal client stays English for now.
 CPP_ROOT = Path(__file__).resolve().parent.parent / "plugin"
 
 QML_I18N = re.compile(r'i18n(?:c\s*\(\s*"[^"]*"\s*,\s*)?\(\s*"((?:[^"\\]|\\.)*)"')
