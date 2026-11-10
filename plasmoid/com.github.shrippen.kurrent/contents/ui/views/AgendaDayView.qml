@@ -481,6 +481,9 @@ RowLayout {
                 nowMinute: view.nowMinute
                 showFree: !dayCol.past
                 selectedItemId: view.selectedBlock
+                onDetachRequested: function(request) {
+                    view.askDetach(request)
+                }
                 onBlockClicked: function(task) {
                     view.selectedBlock = task.itemId
                     if (view.dragHost && view.dragHost.inspectorActive) {
@@ -501,4 +504,54 @@ RowLayout {
 
     /** The block whose edges can be dragged; a click on a block picks it. */
     property var selectedBlock: -1
+
+    // One question for all day grids (AgendaTimeline.detachRequested): it outlives their
+    // rebuilds, so a sync while it is open does not close it.
+    property var pendingDetach: null
+
+    function askDetach(request) {
+        pendingDetach = request
+        detachDialog.open()
+    }
+
+    function settleDetach(accepted) {
+        var p = pendingDetach
+        pendingDetach = null
+        if (!p) {
+            return
+        }
+        if (accepted) {
+            controller.agendaSetBlock(p.itemId, p.day, p.start, p.end)
+            return
+        }
+        // A dragged edge goes back; a block rebuilt meanwhile already shows the stored times.
+        if (p.block && p.block.modelData) {
+            p.block.liveStart = p.block.modelData.start
+            p.block.liveEnd = p.block.modelData.end
+        }
+    }
+
+    QQC2.Dialog {
+        id: detachDialog
+        KanteDialogSkin { dialog: detachDialog }
+        parent: view.dragHost || view
+        popupType: QQC2.Popup.Item
+        modal: true
+        title: i18n("Detach this occurrence?")
+        // Yes / No to the question in the title, like the list's delete question (KanteDialogSkin
+        // builds its buttons from standardButtons, so they cannot be renamed).
+        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
+        onAccepted: view.settleDetach(true)
+        onRejected: view.settleDetach(false)
+
+        QQC2.Label {
+            width: Kirigami.Units.gridUnit * 18
+            wrapMode: Text.WordWrap
+            text: view.pendingDetach
+                  ? i18n("“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back.",
+                         view.pendingDetach.summary || i18n("(Untitled)"),
+                         view.hm(view.pendingDetach.start), view.hm(view.pendingDetach.end))
+                  : ""
+        }
+    }
 }

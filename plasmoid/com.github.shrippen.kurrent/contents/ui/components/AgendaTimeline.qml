@@ -522,52 +522,12 @@ Item {
         color: KanteStyle.negativeTextColor
     }
 
-    // Detaching asks first (owner, 10.11.2026): the series loses this occurrence to a task of
-    // its own. `resizing` is the block whose edges were dragged; Cancel puts them back.
-    property var pendingDetach: null
+    // Detaching asks first (owner, 10.11.2026). The question lives in the day view, not here:
+    // a grid is rebuilt with every change and would take an open dialog with it. `resizing` is
+    // the block whose edges were dragged; No puts them back.
+    signal detachRequested(var request)
 
     function askDetach(itemId, summary, start, end, resizing) {
-        pendingDetach = { itemId: itemId, summary: summary, start: start, end: end, block: resizing }
-        detachDialog.open()
-    }
-
-    function settleDetach(accepted) {
-        var p = pendingDetach
-        pendingDetach = null
-        if (!p) {
-            return
-        }
-        if (accepted) {
-            controller.agendaSetBlock(p.itemId, day.date, p.start, p.end)
-            return
-        }
-        if (p.block) {
-            p.block.liveStart = p.block.modelData.start
-            p.block.liveEnd = p.block.modelData.end
-        }
-    }
-
-    QQC2.Dialog {
-        id: detachDialog
-        KanteDialogSkin { dialog: detachDialog }
-        parent: grid.dragHost || grid
-        popupType: QQC2.Popup.Item
-        modal: true
-        title: i18n("Detach this occurrence?")
-        // Yes / No to the question in the title, like the list's delete question (KanteDialogSkin
-        // builds its buttons from standardButtons, so they cannot be renamed).
-        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
-        onAccepted: grid.settleDetach(true)
-        onRejected: grid.settleDetach(false)
-
-        QQC2.Label {
-            width: Kirigami.Units.gridUnit * 18
-            wrapMode: Text.WordWrap
-            text: grid.pendingDetach
-                  ? i18n("“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back.",
-                         grid.pendingDetach.summary || i18n("(Untitled)"),
-                         grid.hm(grid.pendingDetach.start), grid.hm(grid.pendingDetach.end))
-                  : ""
-        }
+        detachRequested({ itemId: itemId, summary: summary, day: day.date, start: start, end: end, block: resizing })
     }
 }
