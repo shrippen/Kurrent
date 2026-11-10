@@ -1670,6 +1670,9 @@ msgstr "KDE 商店安装包只有部件界面。在终端运行下面的命令�
 msgid "The display name shown in the sidebar."
 msgstr "侧边栏中显示的名称。"
 
+msgid "The due date is not a valid date. Format: %1"
+msgstr "到期时间不是有效的日期。格式：%1"
+
 msgid "The field of the column (default)"
 msgstr "该列对应的字段（默认）"
 
@@ -1678,6 +1681,9 @@ msgstr "弹出窗口已就绪；服务器响应后显示任务。"
 
 msgid "The main-pane view mode used when this Smart View is active."
 msgstr "此智能视图激活时主区域使用的视图模式。"
+
+msgid "The start is not a valid date. Format: %1"
+msgstr "开始时间不是有效的日期。格式：%1"
 
 msgid "Then"
 msgstr "然后"

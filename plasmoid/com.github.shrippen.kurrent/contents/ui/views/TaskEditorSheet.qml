@@ -36,6 +36,8 @@ FocusScope {
 
     property bool clearDueRequested: false
     property bool clearStartRequested: false
+    /** Why Save did not close: a date the fields cannot hold. */
+    property string dateError: ""
     property int statusValue: 0
     property int secrecyValue: 0
 
@@ -57,6 +59,7 @@ FocusScope {
 
     function loadFields() {
         clearDueRequested = false
+        dateError = ""
         clearStartRequested = false
         summaryField.text = task.summary || ""
         summaryField.cursorPosition = 0
@@ -140,14 +143,19 @@ FocusScope {
     }
 
     function accept() {
+        // A date the fields cannot hold (31.02., 25:00) keeps the editor open and says so.
+        var inputFormat = DateTime.datePlaceholder() + (allDayCheck.checked ? "" : " " + DateTime.timePlaceholder())
         var dueResult = DateTime.resolveDateFields(dueDateField.text, dueTimeField.text, allDayCheck.checked, clearDueRequested)
         if (!dueResult) {
+            dateError = i18n("The due date is not a valid date. Format: %1", inputFormat)
             return
         }
         var startResult = DateTime.resolveDateFields(startDateField.text, startTimeField.text, allDayCheck.checked, clearStartRequested)
         if (!startResult) {
+            dateError = i18n("The start is not a valid date. Format: %1", inputFormat)
             return
         }
+        dateError = ""
 
         var fields = {
             "summary": summaryField.text,
@@ -461,6 +469,16 @@ FocusScope {
                     QQC2.ToolTip.text: i18n("Clear due date")
                     QQC2.ToolTip.visible: hovered
                 }
+            }
+
+            Kirigami.InlineMessage {
+                id: dateErrorMessage
+                Layout.columnSpan: 2
+                Layout.fillWidth: true
+                visible: root.dateError !== ""
+                type: Kirigami.MessageType.Error
+                text: root.dateError
+                KanteMessageSkin { message: dateErrorMessage }
             }
 
             FieldLabel { text: i18n("Repeat") }
