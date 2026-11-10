@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.7.0"><img alt="Version" src="https://img.shields.io/badge/version-0.7.0-e8dcc4?labelColor=1c1c20"></a>
+  <a href="https://github.com/shrippen/Kurrent/releases/tag/v0.8.0"><img alt="Version" src="https://img.shields.io/badge/version-0.8.0-e8dcc4?labelColor=1c1c20"></a>
   <img alt="Plasma 6" src="https://img.shields.io/badge/Plasma-6-3daee9?labelColor=1c1c20">
   <img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-lightgrey?labelColor=1c1c20">
 </p>
@@ -87,7 +87,7 @@ Each GitHub Release includes:
 - `install-linux.sh` — the one-liner above
 
 ```bash
-kpackagetool6 -t Plasma/Applet -i io.github.shrippen.Kurrent-0.3.plasmoid
+kpackagetool6 -t Plasma/Applet -i io.github.shrippen.Kurrent-X.Y.Z.plasmoid
 ```
 
 The Akonadi backend is a compiled QML plugin. The `.plasmoid` from the KDE Store is only the widget UI — if you install that alone, Kurrent shows how to get the plugin instead of a QML error. Full task access needs the one-liner, `./install.sh`, or a distro package so `libkurrentplugin.so` is on the QML import path. The prebuilt tarball is linked against Arch’s Plasma 6 / KDE PIM; on other distros the installer falls back to compiling from source.

@@ -2,15 +2,23 @@
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-11-10
+
 ### English
 
+Kurrent now has the widget id `io.github.shrippen.Kurrent`, like the other shrippen widgets; the installer moves placed widgets and their settings to it.
+
 #### Note
-- The widget id is now `io.github.shrippen.Kurrent` (was `com.github.shrippen.kurrent`), like the other shrippen widgets. The installer replaces placed Kurrent widgets with the new one in the same place, with their settings and shortcut, and then removes the old package; settings move to `~/.config/io.github.shrippen.Kurrent/`. If Plasma is not running during the install, the old widgets keep working until the next install.
+- The widget id is now `io.github.shrippen.Kurrent` (was `com.github.shrippen.kurrent`). The installer replaces placed Kurrent widgets with the new one in the same place, with their settings and shortcut, and then removes the old package; settings move to `~/.config/io.github.shrippen.Kurrent/`. If Plasma is not running during the install, the old widgets keep working until the next install.
+
+All changes: https://github.com/shrippen/Kurrent/compare/v0.7.0...v0.8.0
 
 ### Deutsch
 
+Kurrent hat jetzt die Widget-Id `io.github.shrippen.Kurrent`, wie die anderen shrippen-Widgets; der Installer zieht platzierte Widgets und ihre Einstellungen um.
+
 #### Hinweis
-- Die Widget-Id ist jetzt `io.github.shrippen.Kurrent` (vorher `com.github.shrippen.kurrent`), wie bei den anderen shrippen-Widgets. Der Installer ersetzt platzierte Kurrent-Widgets an derselben Stelle durch das neue, mit Einstellungen und Kurzbefehl, und entfernt danach das alte Paket; die Einstellungen ziehen nach `~/.config/io.github.shrippen.Kurrent/` um. Läuft Plasma beim Installieren nicht, arbeiten die alten Widgets bis zur nächsten Installation weiter.
+- Die Widget-Id ist jetzt `io.github.shrippen.Kurrent` (vorher `com.github.shrippen.kurrent`). Der Installer ersetzt platzierte Kurrent-Widgets an derselben Stelle durch das neue, mit Einstellungen und Kurzbefehl, und entfernt danach das alte Paket; die Einstellungen ziehen nach `~/.config/io.github.shrippen.Kurrent/` um. Läuft Plasma beim Installieren nicht, arbeiten die alten Widgets bis zur nächsten Installation weiter.
 
 ## [0.7.0] — 2026-11-10
 
