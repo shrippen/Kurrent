@@ -17,25 +17,9 @@ restart_plasmashell() {
         return 0
     fi
 
-    if ! command -v plasmashell >/dev/null 2>&1; then
-        echo "plasmashell not found; skipping restart."
-        return 0
-    fi
-
-    if ! pgrep -x plasmashell >/dev/null 2>&1; then
-        echo "plasmashell is not running; skipping restart."
-        return 0
-    fi
-
-    export QML_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
-    export QML2_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
-
-    echo "Restarting plasmashell..."
-    kquitapp6 plasmashell 2>/dev/null || true
-    sleep 1
-    env -u KURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
-    disown >/dev/null 2>&1 || true
-    echo "plasmashell restarted."
+    # The restart lives in install-linux.sh, shared with the binary install.
+    source <(sed -n '/^# BEGIN plasma-restart/,/^# END plasma-restart/p' "${ROOT}/install-linux.sh")
+    restart_plasma "${PREFIX}"
 }
 
 check_install_prefix_writable() {

@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### English
+
+#### Fixed
+- After an install, Plasma could be left without a desktop and panel: the installer started the new plasmashell while the old one was still quitting, which is slow after a Qt update. It now waits until the old one is gone and restarts it through systemd where available.
+
+### Deutsch
+
+#### Behoben
+- Nach einer Installation konnte Plasma ohne Desktop und Leiste dastehen: Der Installer startete die neue plasmashell, während die alte noch beendet wurde, was nach einem Qt-Update dauert. Jetzt wartet er, bis die alte weg ist, und startet sie, wo vorhanden, über systemd neu.
+
 ## [0.8.0] — 2026-11-10
 
 ### English

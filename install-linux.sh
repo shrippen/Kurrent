@@ -606,28 +606,16 @@ restart_plasmashell() {
         info "Skipping plasmashell restart (--no-restart)"
         return 0
     fi
+    # sudo passes neither the session bus nor the runtime dir that systemctl --user needs.
+    local uid
+    uid="$(id -u "$INSTALL_USER")"
     as_user env \
-        PREFIX="$INSTALL_PREFIX" \
         HOME="$INSTALL_HOME" \
-        SKIP_PLASMA_RESTART=0 \
-        bash -c '
-            if ! command -v plasmashell >/dev/null 2>&1; then
-                echo "plasmashell not found; skipping restart."
-                exit 0
-            fi
-            if ! pgrep -x plasmashell >/dev/null 2>&1; then
-                echo "plasmashell is not running; skipping restart."
-                exit 0
-            fi
-            export QML_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}"
-            export QML2_IMPORT_PATH="${PREFIX}/lib64/qml:${PREFIX}/lib/qml:${PREFIX}/share/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
-            echo "Restarting plasmashell..."
-            kquitapp6 plasmashell 2>/dev/null || true
-            sleep 1
-            env -u KURRENT_SMOKE nohup plasmashell --replace >/dev/null 2>&1 &
-            disown >/dev/null 2>&1 || true
-            echo "plasmashell restarted."
-        '
+        XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/${uid}}" \
+        DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/${uid}/bus}" \
+        bash -c \
+        "$(declare -p PLASMA_UNIT PLASMA_QUIT_SECONDS); $(declare -f plasma_running has_plasma_unit wait_plasma_gone stop_plasma qml_dirs set_unit_qml_path start_plasma restart_plasma); restart_plasma \"\$1\"" \
+        _ "$INSTALL_PREFIX"
 }
 
 fix_install_ownership() {
@@ -771,6 +759,112 @@ JS
     remove_old_id_files "$prefix"
 }
 # END id-move
+
+# BEGIN plasma-restart (install.sh sources this part; tests/plasma_restart_test.sh runs it)
+# A new plasmashell started while the old one still quits cannot take its D-Bus name and exits:
+# no shell is left. Quitting can take long or crash, e.g. after a Qt update replaced the old
+# one's libraries. So the old one goes first, by force if need be. Under systemd the unit starts
+# the new one, which takes its QML path from the user manager's environment.
+PLASMA_UNIT="plasma-plasmashell.service"
+PLASMA_QUIT_SECONDS=15
+
+plasma_running() {
+    pgrep -u "$(id -u)" -x plasmashell >/dev/null 2>&1
+}
+
+has_plasma_unit() {
+    systemctl --user cat "$PLASMA_UNIT" >/dev/null 2>&1
+}
+
+# Polls five times a second, up to PLASMA_QUIT_SECONDS.
+wait_plasma_gone() {
+    local i
+    for ((i = 0; i < PLASMA_QUIT_SECONDS * 5; ++i)); do
+        if ! plasma_running; then
+            return 0
+        fi
+        sleep 0.2
+    done
+    ! plasma_running
+}
+
+# Asks plasmashell to quit, then SIGTERM, then SIGKILL; each gets PLASMA_QUIT_SECONDS.
+stop_plasma() {
+    if has_plasma_unit; then
+        systemctl --user stop "$PLASMA_UNIT" 2>/dev/null || true
+    fi
+    if plasma_running; then
+        kquitapp6 plasmashell 2>/dev/null || true
+    fi
+    if wait_plasma_gone; then
+        return 0
+    fi
+    pkill -u "$(id -u)" -x plasmashell 2>/dev/null || true
+    if wait_plasma_gone; then
+        return 0
+    fi
+    pkill -KILL -u "$(id -u)" -x plasmashell 2>/dev/null || true
+    wait_plasma_gone
+}
+
+# PREFIX/lib64/qml:PREFIX/lib/qml:PREFIX/share/qt6/qml
+qml_dirs() {
+    echo "${1}/lib64/qml:${1}/lib/qml:${1}/share/qt6/qml"
+}
+
+# Puts the QML dirs of PREFIX ($1) in front of the user manager's import paths, once.
+set_unit_qml_path() {
+    local dirs var current
+    dirs="$(qml_dirs "$1")"
+    for var in QML_IMPORT_PATH QML2_IMPORT_PATH; do
+        current="$(systemctl --user show-environment 2>/dev/null | sed -n "s/^${var}=//p")"
+        if [[ ":${current}:" == *":${dirs}:"* ]]; then
+            continue
+        fi
+        systemctl --user set-environment "${var}=${dirs}${current:+:${current}}"
+    done
+}
+
+start_plasma() {
+    local prefix="$1" dirs
+    if has_plasma_unit; then
+        set_unit_qml_path "$prefix"
+        systemctl --user start "$PLASMA_UNIT"
+        return
+    fi
+
+    # Without systemd: started from here, with the QML path in its own environment.
+    dirs="$(qml_dirs "$prefix")"
+    QML_IMPORT_PATH="${dirs}${QML_IMPORT_PATH:+:${QML_IMPORT_PATH}}" \
+        QML2_IMPORT_PATH="${dirs}${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}" \
+        env -u KURRENT_SMOKE nohup plasmashell >/dev/null 2>&1 &
+    disown >/dev/null 2>&1 || true
+}
+
+# Restarts a running plasmashell with the QML modules under PREFIX ($1) on its import path.
+restart_plasma() {
+    local prefix="$1"
+    if ! command -v plasmashell >/dev/null 2>&1; then
+        echo "plasmashell not found; skipping restart."
+        return 0
+    fi
+    if ! plasma_running; then
+        echo "plasmashell is not running; skipping restart."
+        return 0
+    fi
+
+    echo "Restarting plasmashell..."
+    if ! stop_plasma; then
+        echo "plasmashell does not quit; not restarted. Log out and in again." >&2
+        return 0
+    fi
+    if ! start_plasma "$prefix"; then
+        echo "plasmashell did not start. Log out and in again." >&2
+        return 0
+    fi
+    echo "plasmashell restarted."
+}
+# END plasma-restart
 
 remove_legacy_install() {
     as_user rm -rf \
