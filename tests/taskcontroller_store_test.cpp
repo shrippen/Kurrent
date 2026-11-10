@@ -53,6 +53,7 @@ private Q_SLOTS:
     void agendaShiftMovesOccurrenceAndUsesLocalDays();
     void seriesRescheduleMovesOccurrenceEditorEditsSeries();
     void allToTodayIsOneUndoStep();
+    void seriesBlockAtOtherTimeDetaches();
     void agendaQuickAddParsesAndTakesTheSlot();
     void demoModeLoadsWorldTasks();
     void sessionBridgesConfiguration();
@@ -763,6 +764,82 @@ void TaskControllerStoreTest::agendaQuickAddParsesAndTakesTheSlot()
     QCOMPARE(tomorrow.value(QStringLiteral("loose")).toList().size(), 1);
 }
 
+// A series' block dragged to another time detaches this occurrence (owner, 10.11.2026): it
+// becomes a task of its own at that time, the series goes on with its next occurrence, and one
+// undo brings both back. The same times on another day still only move the occurrence (#29).
+void TaskControllerStoreTest::seriesBlockAtOtherTimeDetaches()
+{
+    const QDate day = QDate::currentDate().addDays(1);
+    QSignalSpy spy(m_store, &AbstractTaskStore::finished);
+    m_controller->installTestTask(1, QStringLiteral("standup"), 10);
+    m_controller->updateTaskFull(1, {
+        {QStringLiteral("startDate"), QDateTime(day, QTime(9, 0))},
+        {QStringLiteral("dueDate"), QDateTime(day, QTime(9, 30))},
+        {QStringLiteral("recurrencePreset"), QStringLiteral("daily")},
+        {QStringLiteral("priority"), 2},
+        {QStringLiteral("categories"), QStringList{QStringLiteral("calls")}},
+        {QStringLiteral("description"), QStringLiteral("notes")},
+    });
+    waitStore(spy, 1);
+
+    const auto itemsOn = [this](const QDate &d) {
+        QList<QVariantMap> out;
+        const QVariantList items = m_controller->agendaDays(d, 1).first().toMap().value(QStringLiteral("items")).toList();
+        for (const QVariant &v : items) {
+            out.append(v.toMap());
+        }
+        return out;
+    };
+
+    m_controller->agendaSetBlock(1, day, 14 * 60, 15 * 60 + 30);
+    waitStore(spy, 3); // series advanced, detached task created
+
+    // The day holds the detached occurrence at the new time, not the series.
+    const QList<QVariantMap> onDay = itemsOn(day);
+    QCOMPARE(onDay.size(), 1);
+    const QVariantMap detached = onDay.first();
+    QCOMPARE(detached.value(QStringLiteral("summary")).toString(), QStringLiteral("standup"));
+    QCOMPARE(detached.value(QStringLiteral("start")).toInt(), 14 * 60);
+    QCOMPARE(detached.value(QStringLiteral("end")).toInt(), 15 * 60 + 30);
+    QCOMPARE(detached.value(QStringLiteral("recurring")).toBool(), false);
+    const qint64 detachedId = detached.value(QStringLiteral("itemId")).toLongLong();
+    QVERIFY(detachedId != 1);
+    const QVariantMap copy = m_controller->taskSnapshotById(detachedId);
+    QCOMPARE(copy.value(QStringLiteral("priority")).toInt(), 2);
+    QCOMPARE(copy.value(QStringLiteral("categories")).toStringList(), QStringList{QStringLiteral("calls")});
+    QCOMPARE(copy.value(QStringLiteral("description")).toString(), QStringLiteral("notes"));
+
+    // The series goes on with the next day, at its own time.
+    const QVariantMap series = m_controller->taskSnapshotById(1);
+    QCOMPARE(series.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(day.addDays(1), QTime(9, 0)));
+    QCOMPARE(series.value(QStringLiteral("recurrencePreset")).toString(), QStringLiteral("daily"));
+    QCOMPARE(m_controller->undoKind(), QStringLiteral("detach"));
+
+    // One undo: the series back on the day, the detached task gone.
+    m_controller->undo();
+    waitStore(spy, 5);
+    const QList<QVariantMap> back = itemsOn(day);
+    QCOMPARE(back.size(), 1);
+    QCOMPARE(back.first().value(QStringLiteral("itemId")).toLongLong(), qint64(1));
+    QCOMPARE(back.first().value(QStringLiteral("start")).toInt(), 9 * 60);
+    QVERIFY(m_controller->taskSnapshotById(detachedId).isEmpty());
+
+    // Undo while the detached task is still being created: it goes once its create lands.
+    m_controller->agendaSetBlock(1, day, 14 * 60, 15 * 60);
+    m_controller->undo();
+    waitStore(spy, 9); // series advanced, created, series restored, detached deleted
+    const QList<QVariantMap> undoneEarly = itemsOn(day);
+    QCOMPARE(undoneEarly.size(), 1);
+    QCOMPARE(undoneEarly.first().value(QStringLiteral("itemId")).toLongLong(), qint64(1));
+
+    // Same times on another day: only the occurrence moves, nothing is detached.
+    m_controller->agendaSetBlock(1, day.addDays(2), 9 * 60, 9 * 60 + 30);
+    waitStore(spy, 10);
+    const QList<QVariantMap> later = itemsOn(day.addDays(2));
+    QCOMPARE(later.size(), 1);
+    QCOMPARE(later.first().value(QStringLiteral("itemId")).toLongLong(), qint64(1));
+}
+
 // "All to today" moves the whole tray; one undo brings every task back.
 void TaskControllerStoreTest::allToTodayIsOneUndoStep()
 {
@@ -840,12 +917,13 @@ void TaskControllerStoreTest::seriesRescheduleMovesOccurrenceEditorEditsSeries()
     QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(8), QTime(8, 0)));
     QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(8), QTime(17, 0)));
 
-    // Day view: no time on another day and a block both move only the occurrence, by days.
+    // Day view: no time on another day and a block at the series' times both move only the
+    // occurrence, by days (another time detaches it: seriesBlockAtOtherTimeDetaches).
     m_controller->agendaMoveToDay(1, today.addDays(9));
     waitStore(spy, 6);
     snap = m_controller->taskSnapshotById(1);
     QCOMPARE(snap.value(QStringLiteral("dueDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(9), QTime(17, 0)));
-    m_controller->agendaSetBlock(1, today.addDays(10), 13 * 60, 14 * 60);
+    m_controller->agendaSetBlock(1, today.addDays(10), 8 * 60, 17 * 60);
     waitStore(spy, 7);
     snap = m_controller->taskSnapshotById(1);
     QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today.addDays(10), QTime(8, 0)));

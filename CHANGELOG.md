@@ -4,6 +4,9 @@
 
 ### English
 
+#### New
+- Agenda, Day view: dragging an occurrence of a recurring task to another time, or changing its length, makes it a task of its own at that time (like KOrganizer's "Dissociate"); the series goes on with its next occurrence. Before, only the day moved. One undo brings both back.
+
 #### Improved
 - Error messages, reminders, the global shortcuts and the list's group heads ("No location", "Inbox", status names) are translated into all five languages; they were English.
 
@@ -14,6 +17,9 @@
 - Editor: the calendar button opens the date picker at the date in the field; it always showed today.
 
 ### Deutsch
+
+#### Neu
+- Agenda, Tag: Ein Vorkommen einer wiederkehrenden Aufgabe, das auf eine andere Uhrzeit gezogen oder in der Länge geändert wird, wird zu einer eigenen Aufgabe zu dieser Zeit (wie „Vorkommen lösen“ in KOrganizer); die Serie geht mit dem nächsten Vorkommen weiter. Vorher verschob sich nur der Tag. Ein Rückgängig nimmt beides zurück.
 
 #### Verbessert
 - Fehlermeldungen, Erinnerungen, die globalen Kurzbefehle und die Gruppenköpfe der Liste („Ohne Ort“, „Posteingang“, Status) sind in alle fünf Sprachen übersetzt; sie waren englisch.

@@ -1832,6 +1832,9 @@ msgstr "Annuler l’achèvement de « %1 »"
 msgid "Undo delete of “%1”"
 msgstr "Annuler la suppression de « %1 »"
 
+msgid "Undo detaching “%1”"
+msgstr "Annuler le détachement de « %1 »"
+
 msgid "Undo edit of “%1”"
 msgstr "Annuler la modification de « %1 »"
 

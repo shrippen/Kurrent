@@ -1396,6 +1396,8 @@ QString undoKindName(UndoRecord::Kind kind)
         return QStringLiteral("kanban");
     case UndoRecord::Kind::Batch:
         return QStringLiteral("batch");
+    case UndoRecord::Kind::Detach:
+        return QStringLiteral("detach");
     case UndoRecord::Kind::None:
         break;
     }

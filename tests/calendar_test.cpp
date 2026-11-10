@@ -17,6 +17,7 @@ class CalendarTest : public QObject
 
 private Q_SLOTS:
     void presetNoneWithoutRecurrence();
+    void detachKeepsEveryAlarm();
     void applyAndReadPresets();
     void clearPresetRemovesRecurrence();
     void sectionPrefersKurrentThenVCalendar();
@@ -455,6 +456,38 @@ void CalendarTest::moveOccurrenceWithoutStart()
     QCOMPARE(back->dtDue(), QDateTime(QDate(2026, 11, 4), QTime(10, 0)));
     QCOMPARE(back->dtDue(true), due);
     QCOMPARE(TaskCalendar::occurrenceOrigin(back), QDate(2026, 11, 2));
+}
+
+// Detaching copies the series' alarms as they are (review #51): one before the start stays
+// before the start, a second one is not lost.
+void CalendarTest::detachKeepsEveryAlarm()
+{
+    KCalendarCore::Todo::Ptr series(new KCalendarCore::Todo);
+    series->setSummary(QStringLiteral("standup"));
+    series->setDtStart(QDateTime(QDate(2026, 11, 11), QTime(9, 0)));
+    series->setDtDue(QDateTime(QDate(2026, 11, 11), QTime(9, 30)), true);
+    series->recurrence()->setDaily(1);
+    KCalendarCore::Alarm::Ptr beforeStart = series->newAlarm();
+    beforeStart->setDisplayAlarm(QStringLiteral("standup"));
+    beforeStart->setStartOffset(KCalendarCore::Duration(-15 * 60, KCalendarCore::Duration::Seconds));
+    beforeStart->setEnabled(true);
+    KCalendarCore::Alarm::Ptr atDue = series->newAlarm();
+    atDue->setDisplayAlarm(QStringLiteral("standup"));
+    atDue->setEndOffset(KCalendarCore::Duration(0, KCalendarCore::Duration::Seconds));
+    atDue->setEnabled(true);
+
+    const KCalendarCore::Todo::Ptr detached = TaskCalendar::detachOccurrence(
+        series, QDateTime(QDate(2026, 11, 11), QTime(14, 0)), QDateTime(QDate(2026, 11, 11), QTime(15, 30)));
+    QVERIFY(detached);
+    QCOMPARE(detached->alarms().size(), 2);
+    const KCalendarCore::Alarm::Ptr first = detached->alarms().at(0);
+    QVERIFY(first->hasStartOffset());
+    QCOMPARE(first->startOffset().asSeconds(), -15 * 60);
+    QCOMPARE(first->time(), QDateTime(QDate(2026, 11, 11), QTime(13, 45)));
+    QVERIFY(detached->alarms().at(1)->hasEndOffset());
+    // The copies belong to the new task, not to the series.
+    QCOMPARE(series->alarms().size(), 2);
+    QCOMPARE(first->parentUid(), detached->uid());
 }
 
 QTEST_GUILESS_MAIN(CalendarTest)

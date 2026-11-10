@@ -373,6 +373,37 @@ void forgetOccurrenceMove(const KCalendarCore::Todo::Ptr &todo)
     todo->removeCustomProperty(kOriginApp, kOriginKey);
 }
 
+KCalendarCore::Todo::Ptr detachOccurrence(const KCalendarCore::Todo::Ptr &series, const QDateTime &start,
+                                          const QDateTime &due)
+{
+    if (!series || !start.isValid() || !due.isValid()) {
+        return {};
+    }
+    // What the user sees of the task, copied; the rule, the occurrence and Kurrent's own
+    // marks stay with the series. A new UID: other clients see an ordinary task.
+    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
+    todo->setSummary(series->summary());
+    todo->setDescription(series->description());
+    todo->setLocation(series->location());
+    todo->setCategories(series->categories());
+    todo->setPriority(series->priority());
+    todo->setSecrecy(series->secrecy());
+    todo->setStatus(series->status());
+    todo->setRelatedTo(series->relatedTo());
+    setSection(todo, sectionFromTodo(series));
+    setColumn(todo, columnFromTodo(series));
+    todo->setAllDay(false);
+    todo->setDtStart(start);
+    todo->setDtDue(due);
+    // Every alarm as it is (before the start stays before the start), now the new task's.
+    for (const KCalendarCore::Alarm::Ptr &alarm : series->alarms()) {
+        KCalendarCore::Alarm::Ptr copy(new KCalendarCore::Alarm(*alarm));
+        copy->setParent(todo.data());
+        todo->addAlarm(copy);
+    }
+    return todo;
+}
+
 int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo)
 {
     if (!todo) {

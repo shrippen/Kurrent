@@ -2450,11 +2450,17 @@ void TaskController::agendaSetBlock(qint64 itemId, const QDate &day, int start, 
     if (!day.isValid() || start < 0 || end > 24 * 60 || end <= start) {
         return;
     }
-    // A series moves only this occurrence, by whole days (#29): KCalendarCore keeps one time
-    // of day for all occurrences, so a block's time stays the series' time.
+    // A series keeps one time of day for all occurrences (KCalendarCore). The same times on
+    // another day move only this occurrence (#29); another time detaches it into a task of its
+    // own, and the series goes on with its next occurrence (owner, 10.11.2026).
     if (isSeries(itemId)) {
-        const QDate from = seriesOccurrenceDay(itemId);
-        moveSeriesOccurrence(itemId, from.isValid() ? from.daysTo(day) : 0);
+        const TaskEntry task = makeTaskEntry(*s_tasks.constFind(itemId), 0, false);
+        if (AgendaLogic::taskBlock(task) == AgendaLogic::Span{start, end}) {
+            const QDate from = seriesOccurrenceDay(itemId);
+            moveSeriesOccurrence(itemId, from.isValid() ? from.daysTo(day) : 0);
+            return;
+        }
+        detachSeriesOccurrence(itemId, atMinute(day, start), atMinute(day, end));
         return;
     }
     updateTaskFull(itemId, {
@@ -2531,6 +2537,62 @@ bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
     pushUndo(record);
     persistTodo(cache->item, cache->todo);
     return true;
+}
+
+void TaskController::detachSeriesOccurrence(qint64 itemId, const QDateTime &start, const QDateTime &due)
+{
+    CachedTask *cache = prepareEdit(itemId);
+    if (!cache || !cache->todo || !cache->todo->recurs()) {
+        return;
+    }
+    const KCalendarCore::Todo::Ptr detached = TaskCalendar::detachOccurrence(cache->todo, start, due);
+    if (!detached) {
+        return;
+    }
+    TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Detach, *cache);
+    record.detachedUid = detached->uid();
+    const Akonadi::Collection collection = cache->item.parentCollection();
+
+    // The series skips this occurrence like a completed one, without counting as done.
+    TaskCalendar::completeTodo(cache->todo, TaskCalendar::CompleteAction::Mark, QDateTime::currentDateTime());
+    persistTodo(cache->item, cache->todo);
+
+    Akonadi::Item jobItem;
+    jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+    jobItem.setPayload<KCalendarCore::Todo::Ptr>(detached);
+    const qint64 tempId = s_nextTempId--;
+    CachedTask cached;
+    cached.item = jobItem;
+    cached.item.setId(tempId);
+    cached.item.setParentCollection(collection);
+    cached.todo = detached;
+    cached.syncing = true;
+    cached.inflight = 1;
+    s_tasks.insert(tempId, cached);
+    scheduleRebuildAll();
+    submitCreate(jobItem, collection, tempId);
+
+    pushUndo(record);
+}
+
+// Undo of a detach: the task made from the occurrence goes. Still being created, it goes as
+// soon as its create lands (onStoreFinished).
+void TaskController::deleteDetached(const QString &uid)
+{
+    if (uid.isEmpty()) {
+        return;
+    }
+    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        if (!it->todo || it->todo->uid() != uid) {
+            continue;
+        }
+        if (it.key() < 0) {
+            m_deleteAfterCreate.insert(uid);
+            return;
+        }
+        deleteTask(it.key());
+        return;
+    }
 }
 
 bool TaskController::isSeries(qint64 itemId) const
@@ -4018,6 +4080,12 @@ void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
         }
         upsertTask(result.item, result.collectionId);
         scheduleRebuildAll();
+        if (result.item.hasPayload<KCalendarCore::Todo::Ptr>()
+            && m_deleteAfterCreate.remove(result.item.payload<KCalendarCore::Todo::Ptr>()->uid())) {
+            m_applyingUndo = true;
+            deleteTask(result.item.id());
+            m_applyingUndo = false;
+        }
         return;
 
     case AbstractTaskStore::Kind::Delete:
@@ -5100,6 +5168,15 @@ void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
         return;
     }
 
+    if (record.kind == TaskLogic::UndoRecord::Kind::Detach) {
+        deleteDetached(record.detachedUid);
+        TaskLogic::UndoRecord series = record;
+        series.kind = TaskLogic::UndoRecord::Kind::Edit;
+        m_applyingUndo = false;
+        applyUndoRecord(series);
+        return;
+    }
+
     if (record.kind == TaskLogic::UndoRecord::Kind::Delete) {
         auto it = s_tasks.find(record.itemId);
         if (it != s_tasks.end() && it->pendingDelete) {
@@ -5313,6 +5390,8 @@ QString TaskController::undoLabel() const
         return untitled ? i18n("Undo Kanban order") : i18n("Undo Kanban order of “%1”", title);
     case TaskLogic::UndoRecord::Kind::Batch:
         return i18np("Undo moving %1 task", "Undo moving %1 tasks", int(rec.batch.size()));
+    case TaskLogic::UndoRecord::Kind::Detach:
+        return i18n("Undo detaching “%1”", title);
     case TaskLogic::UndoRecord::Kind::None:
         break;
     }

@@ -1832,6 +1832,9 @@ msgstr "Deshacer completar «%1»"
 msgid "Undo delete of “%1”"
 msgstr "Deshacer eliminar «%1»"
 
+msgid "Undo detaching “%1”"
+msgstr "Deshacer separar «%1»"
+
 msgid "Undo edit of “%1”"
 msgstr "Deshacer edición de «%1»"
 

@@ -1832,6 +1832,9 @@ msgstr "Erledigen von „%1“ rückgängig machen"
 msgid "Undo delete of “%1”"
 msgstr "Löschen von „%1“ rückgängig machen"
 
+msgid "Undo detaching “%1”"
+msgstr "Ablösen von „%1“ rückgängig machen"
+
 msgid "Undo edit of “%1”"
 msgstr "Bearbeiten von „%1“ rückgängig machen"
 
