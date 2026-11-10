@@ -21,6 +21,7 @@ Recurring tasks join the Agenda: drag them to another day like any other task. D
 - A list could keep showing an old view or an old search: a change made while the list was still being rebuilt was dropped, and the busy indicator stayed on.
 - Recurring tasks: checking off an all-day series could put the next occurrence on the wrong day around a change to or from daylight saving time, and a series edited in KOrganizer could stay on the occurrence you had just checked off. Undo restores a series' dates correctly.
 - Dates follow your language's order: the Agenda, calendar, heatmap, inspector and the terminal client wrote every date in German order, so English read "Thursday, 29. October" and Japanese "木曜日, 29. 10月"; now "Thursday, October 29" and "10月29日木曜日". Month headings use the month's own name (Russian "октябрь 2026 г.", not "октября"), and short dates put the weekday where your language does.
+- Editor: with a date format that writes days or months with one digit (English US, for example), a due or start date such as 11/7/2026 turned into "11/72/026", and with a 12-hour clock 9:05 PM turned into "90:5"; the task could not be saved, and a time after 10 PM came back as morning. Date fields now use two digits per field, and time fields use the 24-hour clock (9:05 PM is 21:05), because they cannot keep AM and PM.
 
 All changes: https://github.com/shrippen/Kurrent/compare/v0.5.0...v0.6.0
 
@@ -41,6 +42,7 @@ Wiederkehrende Aufgaben gehören jetzt zur Agenda: Du ziehst sie wie jede andere
 - Eine Liste konnte eine alte Ansicht oder eine alte Suche weiter zeigen: Eine Änderung, die kam, während die Liste noch neu aufgebaut wurde, ging verloren, und die Ladeanzeige blieb an.
 - Wiederkehrende Aufgaben: Beim Abhaken einer ganztägigen Serie konnte das nächste Vorkommen um die Zeitumstellung herum auf dem falschen Tag landen, und eine in KOrganizer bearbeitete Serie konnte auf dem gerade abgehakten Vorkommen stehen bleiben. Rückgängig stellt die Daten einer Serie richtig wieder her.
 - Datumsangaben folgen der Reihenfolge deiner Sprache: Agenda, Kalender, Heatmap, Inspektor und Terminal-Client schrieben jedes Datum in deutscher Reihenfolge, auf Englisch also „Thursday, 29. October“ und auf Japanisch „木曜日, 29. 10月“; jetzt „Thursday, October 29“ und „10月29日木曜日“. Monatsüberschriften nehmen die Grundform des Monats (russisch „октябрь 2026 г.“, nicht „октября“), und kurze Daten stellen den Wochentag dorthin, wo deine Sprache ihn hat.
+- Editor: Bei einem Datumsformat mit einstelligen Tagen oder Monaten (etwa Englisch, USA) wurde aus einem Datum wie 11/7/2026 „11/72/026“, und mit 12-Stunden-Uhr aus 9:05 PM „90:5“; die Aufgabe ließ sich nicht speichern, und eine Uhrzeit nach 22 Uhr kam als Vormittag zurück. Datumsfelder nutzen jetzt zwei Stellen je Feld, Zeitfelder die 24-Stunden-Uhr (9:05 PM ist 21:05), weil sie AM und PM nicht halten können.
 
 ## [0.5.0] — 2026-10-30
 

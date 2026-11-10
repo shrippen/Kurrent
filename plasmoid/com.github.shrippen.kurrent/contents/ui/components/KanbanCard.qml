@@ -274,7 +274,7 @@ Kirigami.AbstractCard {
 
             QQC2.Label {
                 visible: Plasmoid.configuration.showDateChip !== false && DateTime.isValidDate(task.dueDate)
-                text: DateTime.formatDate(task.dueDate)
+                text: DateTime.displayDate(task.dueDate)
                 opacity: 0.85
                 font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 color: Kirigami.Theme.highlightColor
