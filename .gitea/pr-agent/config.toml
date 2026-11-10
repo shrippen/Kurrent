@@ -12,7 +12,7 @@ publish_output_progress = false
 enable_claude_adaptive_thinking = true
 reasoning_effort = "high"
 # The repository rules and the review guide go along as context.
-repo_context_files = ["agent.md", "REVIEW.md"]
+repo_context_files = ["agent.md", "RULES.md", "REVIEW.md"]
 
 [pr_reviewer]
 num_max_findings = 5
@@ -36,7 +36,7 @@ Report only findings that matter:
 - Kante copies edited instead of synced; raw colours or sizes instead
   of Kante roles.
 - Missing tests for new behaviour.
-- Breaches of the repository rules (agent.md).
+- Breaches of the repository rules (agent.md, RULES.md).
 
 Label each finding **Wichtig**, **Kleinigkeit** or **Bestand** as REVIEW.md
 defines them, at the start of its title.
