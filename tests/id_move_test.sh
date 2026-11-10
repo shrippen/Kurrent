@@ -18,6 +18,7 @@ fail() {
 # Files allowed to name the old id: the migrations, their tests and the history.
 ALLOWED=(
     CHANGELOG.md
+    docs/index.html
     install-linux.sh
     uninstall.sh
     plugin/sharedsettings.cpp
