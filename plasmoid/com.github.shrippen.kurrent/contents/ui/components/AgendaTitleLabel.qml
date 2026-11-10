@@ -5,7 +5,8 @@ import "../agenda.js" as Agenda
 // A title for the Agenda's narrow columns. It breaks between words only and cuts a word too
 // wide for the column with "…" (Agenda.fitWords): "Wochenplanung" → "Wochenpla…", not
 // "Wochenplanun/g". Where fitWords cannot foresee Qt's line breaking (a Latin word glued to
-// Thai or to CJK punctuation), a hidden probe sees the overflow and the label breaks anywhere.
+// Thai or to CJK punctuation), a hidden probe sees the overflow and the label shows the whole
+// title, broken anywhere.
 QQC2.Label {
     id: label
 
@@ -14,21 +15,25 @@ QQC2.Label {
     /** A word was cut or lines were dropped: show the whole title as tooltip. */
     readonly property bool cut: truncated || text !== fullText
 
-    text: Agenda.fitWords(fullText, width, metrics)
-    wrapMode: probe.contentWidth > width + 0.5 ? Text.Wrap : Text.WordWrap
+    readonly property string fitted: Agenda.fitWords(fullText, width, metrics)
+    readonly property bool overflows: probe.contentWidth > width + 0.5
+
+    text: overflows ? fullText : fitted
+    wrapMode: overflows ? Text.Wrap : Text.WordWrap
 
     FontMetrics {
         id: metrics
         font: label.font
     }
 
-    // Lays the text out with WordWrap at the label's width; its widest line tells overflow.
+    // Lays the fitted text out with WordWrap at the label's width; its widest line tells
+    // overflow. It reads `fitted`, not `text`, so the switch cannot feed back.
     Text {
         id: probe
         visible: false
         width: label.width
         wrapMode: Text.WordWrap
-        text: label.text
+        text: label.fitted
         font: label.font
     }
 }

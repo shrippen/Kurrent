@@ -32,5 +32,9 @@ TestCase {
         tryVerify(function () { return label.contentWidth <= label.width + 0.5 }, 1000,
                   row.text + ": " + label.contentWidth + " > " + label.width)
         compare(label.wrapMode, row.wrap)
+        // Breaking anywhere, the label shows the whole title, not the one cut for WordWrap.
+        if (row.wrap === Text.Wrap) {
+            compare(label.text, row.text)
+        }
     }
 }
