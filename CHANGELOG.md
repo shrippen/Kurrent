@@ -11,6 +11,7 @@
 - Agenda: titles in narrow columns no longer break mid-word ("Wochenplanun/g"); a word too long for the column ends in "…", and the tooltip shows the whole title.
 - Editor: dates and times can be entered and saved in every language. With Persian, Arabic, Bengali, Nepali, Burmese or Tibetan digits the date field stayed empty and saving removed the date; Korean, Hungarian and Bulgarian dates (trailing "." or "г.") and Low German times ("Kl.") could not be saved. The fields now hold Western digits in your locale's order, and typed native digits count.
 - Editor: when a date or time cannot be saved (31.02., 25:00), the editor says so and shows the expected format; before, Save did nothing.
+- Editor: the calendar button opens the date picker at the date in the field; it always showed today.
 
 ### Deutsch
 
@@ -21,6 +22,7 @@
 - Agenda: Titel in schmalen Spalten brechen nicht mehr mitten im Wort um („Wochenplanun/g“); ein Wort, das nicht in die Spalte passt, endet mit „…“, der Tooltip zeigt den ganzen Titel.
 - Editor: Datum und Uhrzeit lassen sich in jeder Sprache eingeben und speichern. Mit persischen, arabischen, bengalischen, nepalesischen, birmanischen oder tibetischen Ziffern blieb das Datumsfeld leer, und Speichern löschte das Datum; koreanische, ungarische und bulgarische Daten (Punkt oder „г.“ am Ende) und plattdeutsche Uhrzeiten („Kl.“) ließen sich nicht speichern. Die Felder zeigen jetzt westliche Ziffern in der Reihenfolge der Locale, getippte eigene Ziffern zählen mit.
 - Editor: Lässt sich ein Datum oder eine Uhrzeit nicht speichern (31.02., 25:00), sagt der Editor das und nennt das erwartete Format; vorher tat Speichern nichts.
+- Editor: Der Kalender-Knopf öffnet die Datumswahl beim Datum im Feld; sie zeigte immer den heutigen Tag.
 
 ## [0.6.0] — 2026-11-10
 
