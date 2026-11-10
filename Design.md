@@ -1,6 +1,6 @@
 # Kurrent — Design
 
-Prosa-Referenz für UI- und UX-Entscheidungen. Laufzeit-Tokens: `plasmoid/com.github.shrippen.kurrent/contents/ui/Design.qml`. Akzente: `contents/ui/colors.js`. Projektübergreifende Designsprache (Farbpalette, Typografie, Icon-Stil, Landing-Page-Template): **[DesignDefault](https://github.com/shrippen/shrippen.github.io)**.
+Prosa-Referenz für UI- und UX-Entscheidungen. Laufzeit-Tokens: `plasmoid/io.github.shrippen.Kurrent/contents/ui/Design.qml`. Akzente: `contents/ui/colors.js`. Projektübergreifende Designsprache (Farbpalette, Typografie, Icon-Stil, Landing-Page-Template): **[DesignDefault](https://github.com/shrippen/shrippen.github.io)**.
 
 Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die **maschinelle Quelle** für Maße. Beides bei jeder neuen visuellen Entscheidung im selben Change aktualisieren (Cursor-Regel `.cursor/rules/kurrent-ui.mdc`). Es gibt keinen Datei-Watcher — „automatisch“ heißt: jeder Agent-Change an der UI muss diese Datei mitziehen.
 
@@ -8,7 +8,7 @@ Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die 
 
 ## Produkt
 
-- Name: **Kurrent**. Plasmoid-ID `com.github.shrippen.kurrent`.
+- Name: **Kurrent**. Plasmoid-ID `io.github.shrippen.Kurrent`.
 - Autor: shrippen. Website und Issues: GitHub-Repo `https://github.com/shrippen/Kurrent` (About-Dialog im Widget).
 - Plasma 6, Akonadi/CalDAV, kein eigenes Login.
 - Panel: kompaktes Masken-Icon (`Kirigami.Icon { isMask: true; color: textColor }`), Breeze `ColorScheme-Text` / `currentColor`. Badge unten rechts: Zahl oder Punkt (`panelBadgeStyle`). Quelle (`panelBadge`): off, open roots, today, overdue, tomorrow, high (`viewCounts.high`). Overdue-Farbe (`panelBadgeOverdueColor`): Accent oder Negative — bei Modus overdue immer; bei Modus today nur wenn overdue &gt; 0. Zahl und Farbe berechnet der Controller (`badgeCount`, `badgeAlert`; `TaskLogic::panelBadgeCount` / `panelBadgeAlert`). Tooltip (`panelTooltip`): open, today, today+overdue, overdue, high, all views (Zeilen pro View mit count &gt; 0), off.
@@ -34,7 +34,7 @@ Diese Datei ist die **menschliche Quelle** für das Warum. `Design.qml` ist die 
 
 ## Datenmodell
 
-- **Akonadi ist Source of Truth.** Alle Task-Mutationen laufen als Akonadi-Jobs über `AkonadiTaskStore`; das Plasmoid hält einen optimistischen Cache (`syncing`, `pendingDelete`, Revert bei Fehler). Weitere Edits während eines Jobs (z. B. Label per DnD entfernen, dann wieder setzen) werden **zusammengeführt** und erst nach der Bestätigung mit aktueller Revision geschrieben. Monitor-/Fetch-Updates mit **älterer Item-Revision** dürfen den Cache nicht überschreiben — sonst kommen Labels nach dem zweiten Entfernen wieder. Keine parallele Task-Datenbank im Widget. Akonadi-Logs unter `com.github.shrippen.kurrent.akonadi` (KCM Diagnostics: **Info journal** / **Verbose journal** in `kurrentrc`, Default Info an / Verbose aus).
+- **Akonadi ist Source of Truth.** Alle Task-Mutationen laufen als Akonadi-Jobs über `AkonadiTaskStore`; das Plasmoid hält einen optimistischen Cache (`syncing`, `pendingDelete`, Revert bei Fehler). Weitere Edits während eines Jobs (z. B. Label per DnD entfernen, dann wieder setzen) werden **zusammengeführt** und erst nach der Bestätigung mit aktueller Revision geschrieben. Monitor-/Fetch-Updates mit **älterer Item-Revision** dürfen den Cache nicht überschreiben — sonst kommen Labels nach dem zweiten Entfernen wieder. Keine parallele Task-Datenbank im Widget. Akonadi-Logs unter `io.github.shrippen.Kurrent.akonadi` (KCM Diagnostics: **Info journal** / **Verbose journal** in `kurrentrc`, Default Info an / Verbose aus).
 - Unbekannte **`X-*`- und fremde Vendor-Properties** auf VTODO beim Lesen/Schreiben **durchreichen** (nicht verwerfen), damit andere CalDAV-Clients Metadaten erhalten.
 
 ## Hauptfläche
@@ -138,7 +138,7 @@ Beide teilen sich `components/MatrixGrid.qml`: **ein** `GridLayout` in einer `Fl
 
 ### Diagnostics
 
-- KCM **Diagnostics**: Server-Status, Plugin-/Build-Version, Pending/Syncing-Jobs, `debugInfo`-Text (via `PluginController` wie andere KCMs), „Debug kopieren“ (`plasmoid.copyToClipboard`). **Info journal** (`infoJournalLogging`, Default an) und **Verbose journal** (`verboseJournalLogging`, Default aus) in `kurrentrc` → `KurrentLogging::info` / `::verbose` unter `com.github.shrippen.kurrent.akonadi`. Kein `PluginBackend`/`Plasmoid.configuration` in der KCM-Seite — das verhindert den Load. Multiline: `ScrollableTextArea`, nicht `ScrollView`.
+- KCM **Diagnostics**: Server-Status, Plugin-/Build-Version, Pending/Syncing-Jobs, `debugInfo`-Text (via `PluginController` wie andere KCMs), „Debug kopieren“ (`plasmoid.copyToClipboard`). **Info journal** (`infoJournalLogging`, Default an) und **Verbose journal** (`verboseJournalLogging`, Default aus) in `kurrentrc` → `KurrentLogging::info` / `::verbose` unter `io.github.shrippen.Kurrent.akonadi`. Kein `PluginBackend`/`Plasmoid.configuration` in der KCM-Seite — das verhindert den Load. Multiline: `ScrollableTextArea`, nicht `ScrollView`.
 
 ### Kollaboration (CalDAV)
 
@@ -263,7 +263,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 
 - An: Desktop-Widget → `StandardBackground` (`DefaultBackground`). Plasma zeichnet `widgets/background` mit Prefix `blurred` und blurrt das Wallpaper im `AppletContainer`. Panel-Flyout → zusätzlich `AppletPopup.StandardBackground` am Popup-Fenster.
 - Aus: Desktop → `TranslucentBackground` (durchscheinend, ohne Container-Blur). Panel-Flyout → `AppletPopup.SolidBackground`.
-- Einstellungen gemeinsam in `~/.config/com.github.shrippen.kurrent/kurrentrc`.
+- Einstellungen gemeinsam in `~/.config/io.github.shrippen.Kurrent/kurrentrc`.
 - Kein eigenes Blur-Shader im Plasmoid.
 - Alle Stile respektieren das: durchscheinend, solange Plasma durchscheinend zeichnet (siehe **Stil › Transparenz**).
 
@@ -288,7 +288,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 - Ein Schritt **Undo** (Complete / Reschedule / Move / Delete / Edit / Kanban-Layout): **Undo-Button** links neben Ansichtsmodus (alle Modi) plus Toolbar/Shortcut — siehe § Hauptfläche · Undo.
 - Unteraufgaben: Pfeil klappt den Teilbaum ein (`flattenTree` lässt Kinder weg).
 - Akonadi aus / keine Kalender / leere View: `Kirigami.PlaceholderMessage`, kein nackter Fehlerstring.
-- **KDE Store / `.plasmoid`:** nur Widget-UI. Das Akonadi-Backend ist ein kompiliertes QML-Modul (`com.github.shrippen.kurrent`). `main.qml` importiert es nicht statisch — fehlt das Plugin, bleibt das Widget stehen und zeigt `PluginMissingView` statt „module is not installed“: Placeholder, danach der Release-Einzeiler `https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh` in einem wählbaren Feld (`padInner`, `inputRadius`, Rahmen wie Editor-Felder) plus **Copy command** und GitHub. Vollständig: One-Liner (Binary aus dem Release) oder `./install.sh`.
+- **KDE Store / `.plasmoid`:** nur Widget-UI. Das Akonadi-Backend ist ein kompiliertes QML-Modul (`io.github.shrippen.Kurrent`). `main.qml` importiert es nicht statisch — fehlt das Plugin, bleibt das Widget stehen und zeigt `PluginMissingView` statt „module is not installed“: Placeholder, danach der Release-Einzeiler `https://github.com/shrippen/Kurrent/releases/latest/download/install-linux.sh` in einem wählbaren Feld (`padInner`, `inputRadius`, Rahmen wie Editor-Felder) plus **Copy command** und GitHub. Vollständig: One-Liner (Binary aus dem Release) oder `./install.sh`.
 - **Versions-Mismatch:** Widget (`metadata.json` major.minor) und Backend (`TaskController.pluginVersion`, CMake `KURRENT_RELEASE_VERSION`) vergleichen. Bei Abweichung (oder leerem/legacy Backend) zeigt `VersionMismatchBanner` oben in `FullView` und in **General**-KCM ein kompaktes `Kirigami.InlineMessage` (Warning) mit Widget-/Backend-Version (Backend leer → „unknown“), Reinstall-Hinweis und denselben **Copy command** / GitHub-Aktionen wie `PluginMissingView`. Nicht anzeigen wenn das Plugin fehlt (`PluginMissingView` übernimmt).
 - Widget-Load darf Akonadi nicht blockieren: Icon und Chrome zuerst, dann D-Bus/Shortcuts (`QTimer::singleShot(0)`), dann `refresh()` (`Qt.callLater`). `ServerManager::start()` ist async, nie `Control::start()`. Cache darf Badge/Liste sofort füllen. Solange der Server startet: Placeholder `loading`; wenn er down bleibt: `offline` plus 5s-Retry. Erst nach `Running` Monitor + Fetch.
 - Panel: `preloadFullRepresentation: true` — Plasma lädt die Flyout-Shell beim Applet-Start; `FullView.qml` startet asynchron sobald `PluginBackend` ready ist (nicht erst beim ersten Klick). `pluginLoader` und `fullLoader` bleiben async; Akonadi-Connect blockiert plasmashell nicht.
@@ -300,7 +300,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 - **Filter-Kompatibilität (Sidebar):** Wenn eine Sidebar-Filter-Dimension bereits durch den **Hauptansichtsmodus** oder dessen Optionen materialisiert ist, **verschwindet** der zugehörige Abschnitt bzw. die View (nicht nur ausgegraut). Beispiele: Kanban mit Label-Spalten → Labels-Abschnitt und „Unlabeled“-View; Kanban mit Projekt-Spalten → Projekte; Swimlanes mit Projekt-Zeilen → Projekte; Plan → Projekte. Regel in `TaskLogic::blockedSidebarFilters`, vom Controller als `blockedFilters` (Key → Layout) geliefert; die Sidebar filtert `visibleSectionIdList` / `visibleViewItems` und hält nur die Begründungstexte. Ausgeblendete Projekte/Labels/Orte (`hidden*`) und „leere Projekte zeigen“ wendet der Controller an (`sidebarProjects` / `sidebarLabels` / `sidebarLocations`, Projektauswahl `projectChoices`); das Ziel einer neuen Aufgabe (gewähltes Projekt, `newTaskProjectMode`, einziges beschreibbares Projekt, sonst Frage) liefert `newTaskTarget()`. Smart Views kommen geparst als `smartViews` (`TaskLogic::parseSmartViews`), nie als JSON in QML. Höhen neu über `sectionContentKey` (inkl. Counts/Modus); **Abschnitt-Reparent/`applySectionOrder` nur über `sectionLayoutKey`** (Order/Visibility/Modus) — nicht bei jedem Count-Refresh, sonst bleiben untere Abschnitte (Progress/Status/…) leer trotz allokierter Höhe.
 - Sidebar-Counts: Standard zählt auch eingeklappte Subtasks. Option „Exclude collapsed subtasks from counts“ in Sidebar-Einstellungen.
 - Erinnerung: VALARM im Full-Editor; Plasma-Benachrichtigung mit Snooze (15 min / 1 h / morgen, schreibt nur den Alarm). Quiet Hours unterdrücken Popups. Optional: Erinnerungen während laufender Kalendertermine unterdrücken (KCM Notifications → „During events“); nur **opaque** (busy) Events zählen, transparente Termine werden ignoriert. Kalenderauswahl wie bei Projekten (CSV `busyCalendarIds`, leer = alle Event-Kalender). Event-Cache wird alle 5 Minuten aus Akonadi neu geladen (±1 Tag Fenster).
-- Tastatur im fokussierten Widget: Suche, Neu, Undo, Complete, Delete, Full-Editor, Reschedule, Views 1–5. Global: Meta+Shift+K zeigt das Flyout, Meta+Shift+N legt an (Plasma-Shortcuts, D-Bus `org.github.shrippen.Kurrent`).
+- Tastatur im fokussierten Widget: Suche, Neu, Undo, Complete, Delete, Full-Editor, Reschedule, Views 1–5. Global: Meta+Shift+K zeigt das Flyout, Meta+Shift+N legt an (Plasma-Shortcuts, D-Bus `io.github.shrippen.Kurrent`).
 - Wiederkehrende Aufgaben: Abhaken schiebt DTSTART/DUE auf die nächste Instanz und lässt die RRULE stehen.
 - Today: nur Aufgaben mit Fälligkeit **heute**, gruppiert nach Morning/Afternoon/Evening (`Design` + Stunden im KCM). Überfällige Aufgaben erscheinen **nicht** in Today — dafür ist die Sidebar-View **Overdue** zuständig.
 - Meeting-URL in Beschreibung/Ort: kompakter Join-Knopf als **erstes** Element in der Chip-Zeile (vor Labels/Priorität/Recurring; Datum rechts; `internet-services`).
@@ -331,7 +331,7 @@ Drei Stile, Einstellung `uiStyle` (Darstellung › Stil, gemeinsam in `kurrentrc
 - Panel-Flyout-Größe: Plasma merkt sich Resize per Drag; keine KCM-Spinboxen für Breite/Höhe. Startgröße über `implicitWidth`/`implicitHeight` der FullView-Hülle.
 - Formularseiten nutzen `ConfigFormShell`: zentrierte Spalte, begrenzte Breite. Root = `ConfigPageBase` (deklariert alle `cfg_*` aus `main.xml`, inkl. `*Default`; Plasma 6 setzt sonst „does not have property cfg_…“ auf jeder Seite). Plugin-Zugriff in KCMs: unsichtbarer `ConfigControllerLoader` (0×0), nicht als sichtbares Scroll-Kind. `SimpleKCM` scrollt selbst — keine innere `Flickable`. Schmale Fenster stapeln Labels/Steuerelemente über `Kirigami.FormLayout`. Listen-artige Optionen (Dichte, Vorschauzeilen, Stunden) als Dropdown, nicht SpinBox mit Pfeilen.
 - Sidebar-Reihenfolge (Sektionen/Views) in der Sidebar-KCM per Drag-and-drop (`ConfigOrderList` + `Kirigami.ListItemDragHandle`); Mehrfachschritte in einem Griff — Persistenz erst beim Drop.
-- Quelle: `~/.config/com.github.shrippen.kurrent/kurrentrc` (Gruppe `General`), im Prozess ein Singleton `SharedSettings`. Instanz-Config in `appletsrc` ist nur ein Cache. Ältere `~/.config/plasma_com.github.shrippen.kurrentrc` wird einmalig dorthin verschoben.
+- Quelle: `~/.config/io.github.shrippen.Kurrent/kurrentrc` (Gruppe `General`), im Prozess ein Singleton `SharedSettings`. Instanz-Config in `appletsrc` ist nur ein Cache. Ältere `~/.config/plasma_io.github.shrippen.Kurrentrc` wird einmalig dorthin verschoben.
 - **Der Controller besitzt die Einstellungen.** QML kennt `SharedSettings` nicht; `PluginBackend.qml` ruft einmal `startSession(Plasmoid.configuration)`. Der Controller liest `kurrentrc` in seine Properties (`loadSettings`), folgt `SharedSettings::changed` und hält `Plasmoid.configuration` als einzige generische Brücke aktuell (KCM-Seiten schreiben `cfg_*` dorthin; jede Key-Änderung → `copyFrom`, jede `kurrentrc`-Änderung → `applyTo`). Views schreiben nie die Config, sondern rufen `select*` (Modus, Sort, Gruppe, Kanban-Spalten, Matrix-Bucket/-Horizont) oder `storeSetting(key, value)`; nur diese persistieren, Property-Setter nicht (Smoke-Test). Start-View (`defaultView` / `lastView`), `lastView`, Sortierung je View (`sortMode` / `sortModeByView` / `kanbanSortModeByViewColumn`) und der Smart-View-Modus liegen im Controller, die Regeln in `TaskLogic`.
 
 ```

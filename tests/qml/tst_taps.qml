@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/taps.js" as Taps
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/taps.js" as Taps
 
 TestCase {
     name: "TapsJs"

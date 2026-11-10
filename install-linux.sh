@@ -650,6 +650,128 @@ prepare_install_prefix() {
     fix_install_ownership
 }
 
+# BEGIN id-move (install.sh sources this part; tests/id_move_test.sh runs it)
+# Up to 0.7.0 the widget had the id OLD_ID. Plasma knows no renaming: each placed widget of the
+# old id is replaced by one of the new id in the same place, with its settings and shortcut.
+# The old package, QML module and translations go once no widget uses them. Without a running
+# Plasma they stay (the old widgets keep working), and the next install moves them.
+OLD_ID="com.github.shrippen.kurrent"
+OLD_QML_DIR="com/github/shrippen/kurrent"
+PLASMA_WAIT_SECONDS=30
+
+plasma_script() {
+    local q
+    for q in qdbus6 qdbus-qt6 qdbus; do
+        if command -v "$q" >/dev/null 2>&1; then
+            "$q" org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$1"
+            return
+        fi
+    done
+    return 1
+}
+
+# A restarted plasmashell answers on D-Bus before it has loaded its layout; with no desktop yet
+# no old widget is found, and the old files would go while widgets still use them.
+wait_for_plasma() {
+    local i count
+    for ((i = 0; i < PLASMA_WAIT_SECONDS; ++i)); do
+        count=$(plasma_script 'print(desktops().length)' 2>/dev/null) || count=0
+        if [[ "$count" =~ ^[0-9]+$ ]] && ((count > 0)); then
+            return 0
+        fi
+        sleep 1
+    done
+    return 1
+}
+
+remove_old_id_files() {
+    local prefix="$1" dir
+    for dir in lib lib64 share/qt6; do
+        rm -rf "${prefix}/${dir}/qml/${OLD_QML_DIR}"
+        rmdir -p "${prefix}/${dir}/qml/com/github/shrippen" 2>/dev/null || true
+    done
+    find "${prefix}/share/locale" -name "plasma_applet_${OLD_ID}.mo" -delete 2>/dev/null || true
+    rm -rf "${prefix}/share/plasma/plasmoids/${OLD_ID}"
+
+    # The plugin copies the old settings over on first start, but an old widget still
+    # running after a restart writes its file again: once the new one exists, the old goes.
+    local config="${XDG_CONFIG_HOME:-${HOME}/.config}"
+    if [[ -f "${config}/io.github.shrippen.Kurrent/kurrentrc" ]]; then
+        rm -rf "${config}/${OLD_ID}"
+    fi
+}
+
+move_old_widgets() {
+    local prefix="$1" result
+    if [[ ! -d "${prefix}/share/plasma/plasmoids/${OLD_ID}" ]]; then
+        remove_old_id_files "$prefix"
+        return 0
+    fi
+    if ! wait_for_plasma; then
+        echo "note: widgets of the old id stay until Plasma runs; install again then." >&2
+        return 0
+    fi
+
+    result=$(plasma_script "$(cat <<'JS'
+const OLD = "com.github.shrippen.kurrent";
+const NEW = "io.github.shrippen.Kurrent";
+let moved = 0;
+let left = 0;
+function copyConfig(from, to, path) {
+    from.currentConfigGroup = path;
+    to.currentConfigGroup = path;
+    const keys = from.configKeys;
+    const groups = from.configGroups;
+    for (let i = 0; i < keys.length; ++i) {
+        to.writeConfig(keys[i], from.readConfig(keys[i]));
+    }
+    for (let i = 0; i < groups.length; ++i) {
+        copyConfig(from, to, path.concat([groups[i]]));
+        from.currentConfigGroup = path;
+        to.currentConfigGroup = path;
+    }
+}
+const inPanels = panels();
+const containments = inPanels.concat(desktops());
+for (let c = 0; c < containments.length; ++c) {
+    const box = containments[c];
+    const old = box.widgets(OLD);
+    for (let i = 0; i < old.length; ++i) {
+        const g = old[i].geometry;
+        const index = old[i].index;
+        const added = box.addWidget(NEW, g.x, g.y, g.width, g.height);
+        if (!added || added.type !== NEW) {
+            ++left;
+            continue;
+        }
+        copyConfig(old[i], added, []);
+        added.globalShortcut = old[i].globalShortcut;
+        if (c < inPanels.length) {
+            added.index = index;
+        }
+        added.reloadConfig();
+        old[i].remove();
+        ++moved;
+    }
+}
+if (desktops().length === 0) {
+    ++left;
+}
+print("moved " + moved + " left " + left);
+JS
+)" 2>/dev/null) || result=""
+
+    if [[ "$result" != *" left 0" ]]; then
+        echo "note: widgets of the old id stay until Plasma runs; install again then." >&2
+        return 0
+    fi
+    if [[ "$result" != "moved 0 left 0" ]]; then
+        echo "Widgets moved to the new id (${result% left 0})."
+    fi
+    remove_old_id_files "$prefix"
+}
+# END id-move
+
 remove_legacy_install() {
     as_user rm -rf \
         "${INSTALL_PREFIX}/lib/qml/org/planify" \
@@ -676,7 +798,7 @@ copy_overlay_tree() {
 }
 
 verify_install_ownership() {
-    local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+    local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent"
     local meta="${plasmoid}/metadata.json"
     local owner
     if [[ ! -f "$meta" ]]; then
@@ -706,7 +828,7 @@ register_plasmoid() {
         error "Plasmoid metadata missing: ${plasmoid}/metadata.json"
         exit 1
     fi
-    info "Plasmoid com.github.shrippen.kurrent installed"
+    info "Plasmoid io.github.shrippen.Kurrent installed"
 }
 
 install_from_overlay() {
@@ -718,7 +840,7 @@ install_from_overlay() {
     copy_overlay_tree "${overlay}/share" "${INSTALL_PREFIX}/share"
     fix_install_ownership
     verify_install_ownership
-    local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+    local plasmoid="${INSTALL_PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent"
     if [[ ! -d "$plasmoid" ]]; then
         error "Plasmoid missing after extract: ${plasmoid}"
         exit 1
@@ -729,6 +851,15 @@ install_from_overlay() {
         info "Terminal client: ${INSTALL_PREFIX}/bin/kurrent-tui"
     fi
     restart_plasmashell
+    move_old_widgets_as_user
+}
+
+# Plasma answers on the install user's session bus, which sudo does not pass on.
+move_old_widgets_as_user() {
+    local bus="${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u "$INSTALL_USER")/bus}"
+    as_user env DBUS_SESSION_BUS_ADDRESS="$bus" bash -c \
+        "$(declare -p OLD_ID OLD_QML_DIR PLASMA_WAIT_SECONDS); $(declare -f plasma_script wait_for_plasma remove_old_id_files move_old_widgets); move_old_widgets \"\$1\"" \
+        _ "$INSTALL_PREFIX"
 }
 
 try_install_binary() {
@@ -826,6 +957,7 @@ build_and_install() {
         "HOME=${INSTALL_HOME}"
         "SKIP_TESTS=1"
         "SKIP_PLASMOIDVIEWER=1"
+        "DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS:-unix:path=/run/user/$(id -u "$INSTALL_USER")/bus}"
         "KURRENT_DEV_BUILD=OFF"
     )
     if [[ "$SKIP_RESTART" == true ]]; then

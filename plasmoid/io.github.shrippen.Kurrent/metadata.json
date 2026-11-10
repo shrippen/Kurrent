@@ -16,7 +16,7 @@
         "Description[ja]": "Akonadi と Nextcloud CalDAV によるタスク管理",
         "Description[zh_CN]": "基于 Akonadi 和 Nextcloud CalDAV 的任务管理器",
         "Icon": "kurrent",
-        "Id": "com.github.shrippen.kurrent",
+        "Id": "io.github.shrippen.Kurrent",
         "License": "GPL-3.0+",
         "Name": "Kurrent",
         "Name[de]": "Kurrent",

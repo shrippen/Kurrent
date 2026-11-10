@@ -5,12 +5,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEMO_BUILD="${ROOT}/build-demo"
 cmake -S "${ROOT}" -B "${DEMO_BUILD}" -DCMAKE_BUILD_TYPE=Release -DKURRENT_DEMO=ON -DBUILD_TESTING=OFF >/dev/null
 cmake --build "${DEMO_BUILD}" --parallel "$(nproc)" --target kurrentplugin >/dev/null
-DEMO_PLUGIN="${DEMO_BUILD}/qml/com/github/shrippen/kurrent/libkurrentplugin.so"
+DEMO_PLUGIN="${DEMO_BUILD}/qml/io/github/shrippen/Kurrent/libkurrentplugin.so"
 
 demo_config() {   # DIR: config home with kdeglobals and the demo project colours
-    mkdir -p "$1/com.github.shrippen.kurrent"
+    mkdir -p "$1/io.github.shrippen.Kurrent"
     cp -p "${XDG_CONFIG_HOME:-${HOME}/.config}/kdeglobals" "$1/" 2>/dev/null || true
-    python3 - "${ROOT}/demo/world.json" > "$1/com.github.shrippen.kurrent/kurrentrc" <<'PY'
+    python3 - "${ROOT}/demo/world.json" > "$1/io.github.shrippen.Kurrent/kurrentrc" <<'PY'
 import json, sys
 collections = json.load(open(sys.argv[1]))["tasks"]["collections"]
 colors = {str(9001 + i): c["color"] for i, c in enumerate(collections)}   # ids as in plugin/demodata.cpp

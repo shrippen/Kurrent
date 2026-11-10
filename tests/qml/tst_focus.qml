@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/focus.js" as Focus
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/focus.js" as Focus
 
 TestCase {
     name: "FocusJs"

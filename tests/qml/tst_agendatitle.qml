@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/components"
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/components"
 
 // AgendaTitleLabel never runs out of its column: where fitWords cannot foresee Qt's line
 // breaking (a Latin word glued to Thai or to CJK punctuation), the label breaks anywhere.

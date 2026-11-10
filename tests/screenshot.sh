@@ -28,10 +28,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${1:-${ROOT}/build/screenshots}"
 TIMEOUT_SEC="${KURRENT_SCREENSHOT_TIMEOUT:-240}"
-APPLET_ID="com.github.shrippen.kurrent"
+APPLET_ID="io.github.shrippen.Kurrent"
 
 command -v plasmoidviewer >/dev/null 2>&1 || { echo "plasmoidviewer not found (install plasma-sdk)"; exit 77; }
-PLUGIN="${KURRENT_SCREENSHOT_PLUGIN:-${ROOT}/build/qml/com/github/shrippen/kurrent/libkurrentplugin.so}"
+PLUGIN="${KURRENT_SCREENSHOT_PLUGIN:-${ROOT}/build/qml/io/github/shrippen/Kurrent/libkurrentplugin.so}"
 [[ -f "${PLUGIN}" ]] || { echo "Plugin not built: ${PLUGIN}"; exit 1; }
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-shots-XXXXXX")"
@@ -54,14 +54,14 @@ backup "${VIEWER_RC}"
 trap cleanup EXIT
 
 # Stage the package (plus the generated dev marker) and an import dir with the fresh plugin.
-mkdir -p "${WORK}/pkg" "${WORK}/qml/com/github/shrippen/kurrent"
+mkdir -p "${WORK}/pkg" "${WORK}/qml/io/github/shrippen/Kurrent"
 cp -a "${ROOT}/plasmoid/${APPLET_ID}" "${WORK}/pkg/"
 if [[ -f "${ROOT}/build/DevBuildMarker.qml" ]]; then
     cp "${ROOT}/build/DevBuildMarker.qml" "${WORK}/pkg/${APPLET_ID}/contents/config/"
 fi
-cp "${PLUGIN}" "${WORK}/qml/com/github/shrippen/kurrent/"
-printf 'module com.github.shrippen.kurrent\nplugin kurrentplugin\nclassname KurrentPlugin\n' \
-    > "${WORK}/qml/com/github/shrippen/kurrent/qmldir"
+cp "${PLUGIN}" "${WORK}/qml/io/github/shrippen/Kurrent/"
+printf 'module io.github.shrippen.Kurrent\nplugin kurrentplugin\nclassname KurrentPlugin\n' \
+    > "${WORK}/qml/io/github/shrippen/Kurrent/qmldir"
 
 # Offscreen screen large enough for wide layouts (the flyout is clamped to the screen).
 cat > "${WORK}/screens.json" <<'JSON'

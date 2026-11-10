@@ -4,13 +4,13 @@
 # Nothing is written to Akonadi; edits live in memory until the viewer closes.
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
-APPLET_ID="com.github.shrippen.kurrent"
+APPLET_ID="io.github.shrippen.Kurrent"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/kurrent-demo-XXXXXX")"
 trap 'rm -rf "${WORK}"' EXIT
-mkdir -p "${WORK}/qml/com/github/shrippen/kurrent"
-cp "${DEMO_PLUGIN}" "${WORK}/qml/com/github/shrippen/kurrent/"
-printf 'module com.github.shrippen.kurrent\nplugin kurrentplugin\nclassname KurrentPlugin\n' \
-    > "${WORK}/qml/com/github/shrippen/kurrent/qmldir"
+mkdir -p "${WORK}/qml/io/github/shrippen/Kurrent"
+cp "${DEMO_PLUGIN}" "${WORK}/qml/io/github/shrippen/Kurrent/"
+printf 'module io.github.shrippen.Kurrent\nplugin kurrentplugin\nclassname KurrentPlugin\n' \
+    > "${WORK}/qml/io/github/shrippen/Kurrent/qmldir"
 demo_config "${WORK}/config"
 LANG_="${1:-${DEMO_LANG:-de}}"
 # Dates and weekdays follow the locale, not LANGUAGE: give each language its own.

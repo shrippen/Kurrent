@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 import org.kde.plasma.plasmoid 2.0
 import org.kde.kirigami 2.20 as Kirigami
-import com.github.shrippen.kurrent 1.0
+import io.github.shrippen.Kurrent 1.0
 import "views"
 import "components"
 import "colors.js" as Colors

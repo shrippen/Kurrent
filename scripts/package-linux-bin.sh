@@ -5,7 +5,7 @@
 set -euo pipefail
 
 ROOT="$(cd "${KURRENT_SRC:-$(dirname "${BASH_SOURCE[0]}")/..}" && pwd)"
-META="${ROOT}/plasmoid/com.github.shrippen.kurrent/metadata.json"
+META="${ROOT}/plasmoid/io.github.shrippen.Kurrent/metadata.json"
 ARCH="$(uname -m)"
 VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["KPlugin"]["Version"])' "${META}")"
 

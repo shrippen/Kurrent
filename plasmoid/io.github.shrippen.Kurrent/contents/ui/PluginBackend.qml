@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import org.kde.plasma.plasmoid 2.0
-import com.github.shrippen.kurrent 1.0
+import io.github.shrippen.Kurrent 1.0
 
 // Loaded from main.qml so a missing Store-only install does not fail the applet import.
 Item {

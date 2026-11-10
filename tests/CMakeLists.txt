@@ -219,6 +219,10 @@ if(TARGET Qt6::QuickTest AND TARGET Qt6::Qml AND TARGET Qt6::Quick)
     list(APPEND _kurrent_test_targets kurrent-qml-test)
 endif()
 
+add_test(NAME kurrent-id-move
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/id_move_test.sh"
+)
+
 add_test(NAME kurrent-plasmoidviewer
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/plasmoidviewer_smoke.sh"
 )

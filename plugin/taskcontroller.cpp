@@ -6759,7 +6759,7 @@ void TaskController::registerSessionInterface()
     if (!bus.isConnected()) {
         return;
     }
-    if (!bus.registerService(QStringLiteral("org.github.shrippen.Kurrent"))) {
+    if (!bus.registerService(QStringLiteral("io.github.shrippen.Kurrent"))) {
         return;
     }
     new KurrentDBusAdaptor(this);

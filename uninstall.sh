@@ -108,7 +108,7 @@ main() {
     fi
 
     # 1. Unregister plasmoid via kpackagetool6
-    PLASMOID_ID="com.github.shrippen.kurrent"
+    PLASMOID_ID="io.github.shrippen.Kurrent"
     if command -v kpackagetool6 >/dev/null 2>&1; then
         if kpackagetool6 -t Plasma/Applet -r "$PLASMOID_ID" 2>/dev/null; then
             info "Unregistered plasmoid: $PLASMOID_ID"
@@ -120,7 +120,7 @@ main() {
     fi
 
 # Clean up old / alternative plasmoid IDs (exact paths from install.sh)
-    for _old_id in org.planify.plasmoid org.kde.kurrent; do
+    for _old_id in org.planify.plasmoid org.kde.kurrent com.github.shrippen.kurrent; do
         if command -v kpackagetool6 >/dev/null 2>&1; then
             kpackagetool6 -t Plasma/Applet -r "$_old_id" 2>/dev/null || true
         fi
@@ -131,14 +131,22 @@ main() {
     remove "${PREFIX}/share/qt6/qml/org/planify"
     remove "${PREFIX}/lib/qml/org/kde/kurrent"
     remove "${PREFIX}/share/qt6/qml/org/kde/kurrent"
-
-    # 3. Remove QML plugin (libkurrentplugin.so + qmldir)
     remove "${PREFIX}/lib/qml/com/github/shrippen/kurrent"
     remove "${PREFIX}/share/qt6/qml/com/github/shrippen/kurrent"
     remove_dir_if_empty "${PREFIX}/lib/qml/com/github/shrippen"
+    remove_dir_if_empty "${PREFIX}/share/qt6/qml/com/github/shrippen"
+
+    # 3. Remove QML plugin (libkurrentplugin.so + qmldir)
+    remove "${PREFIX}/lib/qml/io/github/shrippen/Kurrent"
+    remove "${PREFIX}/share/qt6/qml/io/github/shrippen/Kurrent"
+    remove_dir_if_empty "${PREFIX}/lib/qml/io/github/shrippen"
+    remove_dir_if_empty "${PREFIX}/lib/qml/io/github"
+    remove_dir_if_empty "${PREFIX}/lib/qml/io"
     remove_dir_if_empty "${PREFIX}/lib/qml/com/github"
     remove_dir_if_empty "${PREFIX}/lib/qml/com"
-    remove_dir_if_empty "${PREFIX}/share/qt6/qml/com/github/shrippen"
+    remove_dir_if_empty "${PREFIX}/share/qt6/qml/io/github/shrippen"
+    remove_dir_if_empty "${PREFIX}/share/qt6/qml/io/github"
+    remove_dir_if_empty "${PREFIX}/share/qt6/qml/io"
     remove_dir_if_empty "${PREFIX}/share/qt6/qml/com/github"
     remove_dir_if_empty "${PREFIX}/share/qt6/qml/com"
 
@@ -146,7 +154,7 @@ main() {
     remove "${PREFIX}/bin/kurrent-tui"
 
     # 4. Remove plasmoid files
-    remove "${PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+    remove "${PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent"
     remove_dir_if_empty "${PREFIX}/share/plasma/plasmoids"
 
     # 5. Remove icon
@@ -168,7 +176,7 @@ main() {
         remove_dir_if_empty "$lang_dir"
         share_locale="$(dirname "$lang_dir")"
         remove_dir_if_empty "$share_locale"
-    done < <(find "${PREFIX}/share/locale" -name 'plasma_applet_com.github.shrippen.kurrent.mo' -print0 2>/dev/null || true)
+    done < <(find "${PREFIX}/share/locale" \( -name 'plasma_applet_io.github.shrippen.Kurrent.mo' -o -name 'plasma_applet_com.github.shrippen.kurrent.mo' \) -print0 2>/dev/null || true)
 
     # 8. Remove QML import path helper
     remove "${HOME}/.config/plasma-workspace/env/kurrent-qml.sh"
@@ -176,7 +184,7 @@ main() {
     remove_dir_if_empty "${HOME}/.config/plasma-workspace"
 
     # 9. Remove user configuration (ask before wiping settings)
-    CONFIG_DIR="${HOME}/.config/com.github.shrippen.kurrent"
+    CONFIG_DIR="${HOME}/.config/io.github.shrippen.Kurrent"
     if [[ -d "$CONFIG_DIR" ]]; then
         echo ""
         warn "User configuration directory found: ${CONFIG_DIR}"

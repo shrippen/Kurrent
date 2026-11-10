@@ -13,7 +13,7 @@ class KurrentPlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri) override
     {
-        Q_ASSERT(QLatin1String(uri) == QLatin1String("com.github.shrippen.kurrent"));
+        Q_ASSERT(QLatin1String(uri) == QLatin1String("io.github.shrippen.Kurrent"));
 
         qmlRegisterType<TaskController>(uri, 1, 0, "TaskController");
         qmlRegisterUncreatableType<TaskListModel>(uri, 1, 0, "TaskListModel",

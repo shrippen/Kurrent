@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/colors.js" as Colors
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/colors.js" as Colors
 
 TestCase {
     name: "ColorsJs"

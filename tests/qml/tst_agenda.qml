@@ -1,6 +1,6 @@
 import QtQuick
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/agenda.js" as Agenda
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/agenda.js" as Agenda
 
 TestCase {
     name: "AgendaJs"

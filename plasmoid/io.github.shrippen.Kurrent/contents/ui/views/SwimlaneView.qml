@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
-import com.github.shrippen.kurrent 1.0
+import io.github.shrippen.Kurrent 1.0
 import "../components"
 import "../colors.js" as Colors
 import "../matrixlabels.js" as Labels

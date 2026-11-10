@@ -8,7 +8,7 @@ class TaskController;
 class KurrentDBusAdaptor : public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.github.shrippen.Kurrent")
+    Q_CLASSINFO("D-Bus Interface", "io.github.shrippen.Kurrent")
 
 public:
     explicit KurrentDBusAdaptor(TaskController *parent);

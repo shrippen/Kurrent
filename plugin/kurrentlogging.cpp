@@ -2,7 +2,7 @@
 
 #include "sharedsettings.h"
 
-Q_LOGGING_CATEGORY(KURRENT_AKONADI, "com.github.shrippen.kurrent.akonadi", QtInfoMsg)
+Q_LOGGING_CATEGORY(KURRENT_AKONADI, "io.github.shrippen.Kurrent.akonadi", QtInfoMsg)
 
 namespace
 {

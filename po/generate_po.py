@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate .po files for plasma_applet_com.github.shrippen.kurrent."""
+"""Generate .po files for plasma_applet_io.github.shrippen.Kurrent."""
 from __future__ import annotations
 
 import datetime
@@ -15,7 +15,7 @@ from strings_agenda import PLURAL_AGENDA
 from strings_undo import PLURAL_UNDO, UNDO
 from strings_controller import CONTROLLER
 
-DOMAIN = "plasma_applet_com.github.shrippen.kurrent"
+DOMAIN = "plasma_applet_io.github.shrippen.Kurrent"
 VERSION = "1.0.0"
 YEAR = datetime.date.today().year
 QML_ROOT = Path(__file__).resolve().parent.parent / "plasmoid"

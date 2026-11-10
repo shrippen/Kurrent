@@ -1,4 +1,4 @@
-# Translation of plasma_applet_com.github.shrippen.kurrent to Japanese.
+# Translation of plasma_applet_io.github.shrippen.Kurrent to Japanese.
 # Copyright (C) 2026 Kurrent Contributors
 # This file is distributed under the same license as the kurrent package.
 #
@@ -278,8 +278,8 @@ msgstr "最多の日 · %1"
 msgid "Both"
 msgstr "両方"
 
-msgid "Both use com.github.shrippen.kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
-msgstr "どちらも com.github.shrippen.kurrent.akonadi を使用します。情報は書き込みと同期 (Qt Info)、詳細は取得・監視の行 (Qt Debug) を追加します。"
+msgid "Both use io.github.shrippen.Kurrent.akonadi. Info covers writes and sync (Qt Info). Verbose adds fetch/monitor lines (Qt Debug)."
+msgstr "どちらも io.github.shrippen.Kurrent.akonadi を使用します。情報は書き込みと同期 (Qt Info)、詳細は取得・監視の行 (Qt Debug) を追加します。"
 
 msgid "Briefcase"
 msgstr "ブリーフケース"

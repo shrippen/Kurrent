@@ -46,7 +46,7 @@ include(CTest)
 set(CMAKE_AUTOMOC ON)
 
 # Gettext domain of the widget catalog; kurrentcore and its tests translate with it.
-set(KURRENT_TRANSLATION_DOMAIN "plasma_applet_com.github.shrippen.kurrent")
+set(KURRENT_TRANSLATION_DOMAIN "plasma_applet_io.github.shrippen.Kurrent")
 
 add_subdirectory(plugin)
 add_subdirectory(tui)
@@ -91,15 +91,15 @@ else()
 endif()
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/plasmoid/com.github.shrippen.kurrent/contents/config/DevBuildMarker.qml.in"
+    "${CMAKE_CURRENT_SOURCE_DIR}/plasmoid/io.github.shrippen.Kurrent/contents/config/DevBuildMarker.qml.in"
     "${CMAKE_CURRENT_BINARY_DIR}/DevBuildMarker.qml"
     @ONLY
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DevBuildMarker.qml"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent/contents/config"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent/contents/config"
 )
-install(DIRECTORY plasmoid/com.github.shrippen.kurrent/
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/plasma/plasmoids/com.github.shrippen.kurrent"
+install(DIRECTORY plasmoid/io.github.shrippen.Kurrent/
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/plasma/plasmoids/io.github.shrippen.Kurrent"
 )
 install(FILES icons/kurrent.svg
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps"

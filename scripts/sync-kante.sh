@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Copies the Kante QML module from the design system repo into the plasmoid.
 #
-#   plasmoid/com.github.shrippen.kurrent/contents/ui/Kante        KanteStyle, wrappers, skins, fonts
-#   plasmoid/com.github.shrippen.kurrent/contents/ui/KantePlasma  the PlasmaComponents3 wrappers
+#   plasmoid/io.github.shrippen.Kurrent/contents/ui/Kante        KanteStyle, wrappers, skins, fonts
+#   plasmoid/io.github.shrippen.Kurrent/contents/ui/KantePlasma  the PlasmaComponents3 wrappers
 #
 # Source: KANTE_DS, default ../Kante (https://github.com/shrippen/Kante).
 # The copies are not edited here; change the design system and sync again.
@@ -15,7 +15,7 @@ if [ ! -f "$DS/qml/Kante/qmldir" ]; then
     exit 1
 fi
 
-UI=plasmoid/com.github.shrippen.kurrent/contents/ui
+UI=plasmoid/io.github.shrippen.Kurrent/contents/ui
 for module in Kante KantePlasma; do
     rm -rf "$UI/$module"
     cp -r "$DS/qml/$module" "$UI/$module"

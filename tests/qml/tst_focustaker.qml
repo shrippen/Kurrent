@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtTest
-import "../../plasmoid/com.github.shrippen.kurrent/contents/ui/components"
+import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/components"
 
 // The Agenda takes the focus on a press, so its keys work on the desktop; the press must still
 // reach the buttons in it (the week's "Overdue" tray and the folds of done and overdue tasks).

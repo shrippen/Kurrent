@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15 as QQC2
 import QtQuick.Layouts 1.15
 import QtQuick.Window 2.15
 import org.kde.kirigami 2.20 as Kirigami
-import com.github.shrippen.kurrent 1.0
+import io.github.shrippen.Kurrent 1.0
 import "../components"
 import ".."
 import "../datetime.js" as DateTime

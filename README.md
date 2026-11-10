@@ -87,7 +87,7 @@ Each GitHub Release includes:
 - `install-linux.sh` — the one-liner above
 
 ```bash
-kpackagetool6 -t Plasma/Applet -i com.github.shrippen.kurrent-0.3.plasmoid
+kpackagetool6 -t Plasma/Applet -i io.github.shrippen.Kurrent-0.3.plasmoid
 ```
 
 The Akonadi backend is a compiled QML plugin. The `.plasmoid` from the KDE Store is only the widget UI — if you install that alone, Kurrent shows how to get the plugin instead of a QML error. Full task access needs the one-liner, `./install.sh`, or a distro package so `libkurrentplugin.so` is on the QML import path. The prebuilt tarball is linked against Arch’s Plasma 6 / KDE PIM; on other distros the installer falls back to compiling from source.
@@ -115,7 +115,7 @@ Right-click the widget → **Configure Kurrent**:
 - Sidebar row size and default project for new tasks
 - Which calendars/projects and labels are enabled or hidden
 
-Settings are stored in `~/.config/com.github.shrippen.kurrent/kurrentrc` and apply to every Kurrent instance.
+Settings are stored in `~/.config/io.github.shrippen.Kurrent/kurrentrc` and apply to every Kurrent instance.
 
 ## Development
 
@@ -124,7 +124,7 @@ cmake -S . -B build -DCMAKE_INSTALL_PREFIX=$HOME/.local \
     -DKDE_INSTALL_USE_QT_SYS_PATHS=ON -DKURRENT_DEV_BUILD=ON
 cmake --build build
 cmake --install build
-kpackagetool6 -t Plasma/Applet -i plasmoid/com.github.shrippen.kurrent
+kpackagetool6 -t Plasma/Applet -i plasmoid/io.github.shrippen.Kurrent
 ```
 
 `./install.sh` keeps the developer build label (`Build N`) on. Release builds default `KURRENT_DEV_BUILD` to off.

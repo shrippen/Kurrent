@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### English
+
+#### Note
+- The widget id is now `io.github.shrippen.Kurrent` (was `com.github.shrippen.kurrent`), like the other shrippen widgets. The installer replaces placed Kurrent widgets with the new one in the same place, with their settings and shortcut, and then removes the old package; settings move to `~/.config/io.github.shrippen.Kurrent/`. If Plasma is not running during the install, the old widgets keep working until the next install.
+
+### Deutsch
+
+#### Hinweis
+- Die Widget-Id ist jetzt `io.github.shrippen.Kurrent` (vorher `com.github.shrippen.kurrent`), wie bei den anderen shrippen-Widgets. Der Installer ersetzt platzierte Kurrent-Widgets an derselben Stelle durch das neue, mit Einstellungen und Kurzbefehl, und entfernt danach das alte Paket; die Einstellungen ziehen nach `~/.config/io.github.shrippen.Kurrent/` um. Läuft Plasma beim Installieren nicht, arbeiten die alten Widgets bis zur nächsten Installation weiter.
+
 ## [0.7.0] — 2026-11-10
 
 ### English
