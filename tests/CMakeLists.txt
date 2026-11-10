@@ -223,6 +223,10 @@ add_test(NAME kurrent-id-move
     COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/id_move_test.sh"
 )
 
+add_test(NAME kurrent-plasma-restart
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/plasma_restart_test.sh"
+)
+
 add_test(NAME kurrent-plasmoidviewer
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/plasmoidviewer_smoke.sh"
 )
