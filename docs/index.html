@@ -144,6 +144,30 @@
   <h2 lang="en">Changes</h2><h2 lang="de">Änderungen</h2>
   <p lang="en">What each release brought, newest first. Every release adds an entry here and the same notes on the release page.</p><p lang="de">Was jede Version gebracht hat, die neueste zuerst. Jede Version bekommt hier einen Eintrag und dieselben Notizen auf der Release-Seite.</p>
   <ol class="changelog">
+    <li class="release" id="v0.6.0">
+      <div class="release-head"><b class="release-version">0.6.0</b><time datetime="2026-11-10"><span lang="en">10 Nov 2026</span><span lang="de">10. Nov. 2026</span></time></div>
+      <div class="release-body">
+        <p class="release-lead"><span lang="en">Recurring tasks join the Agenda: drag them to another day like any other task. Dates now read in your language's order, large task lists react about twice as fast, and the terminal client comes with the download.</span><span lang="de">Wiederkehrende Aufgaben gehören jetzt zur Agenda: Du ziehst sie wie jede andere Aufgabe auf einen anderen Tag. Daten stehen in der Reihenfolge deiner Sprache, große Aufgabenlisten reagieren etwa doppelt so schnell, und der Terminal-Client ist im Download dabei.</span></p>
+        <div class="release-group" data-kind="new"><h3><span lang="en">New</span><span lang="de">Neu</span></h3><ul>
+          <li><span lang="en">Agenda, Week and Month: recurring tasks can be dragged to another day too, and "All to today" takes them along (one undo brings them all back). Only this occurrence moves; the series keeps its rule, and when you check the task off, the next occurrence follows the original day. The inspector's Today, Tomorrow and Next week and the Day view do the same for a recurring task; its time of day stays the series' time.</span><span lang="de">Agenda, Woche und Monat: Auch wiederkehrende Aufgaben lassen sich auf einen anderen Tag ziehen, und „Alle auf heute“ nimmt sie mit (ein Rückgängig holt alle zurück). Verschoben wird nur dieses Vorkommen; die Serie behält ihre Regel, und beim Abhaken richtet sich das nächste Vorkommen nach dem ursprünglichen Tag. „Heute“, „Morgen“ und „Nächste Woche“ im Inspektor und die Tagesansicht machen es bei wiederkehrenden Aufgaben genauso; die Uhrzeit bleibt die der Serie.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="improved"><h3><span lang="en">Improved</span><span lang="de">Verbessert</span></h3><ul>
+          <li><span lang="en"><code>kurrent-tui</code> now comes with the prebuilt download, so the one-line installer sets it up too; before, only source builds had it.</span><span lang="de"><code>kurrent-tui</code> ist jetzt im fertigen Download enthalten, der Einzeiler installiert ihn also mit; vorher hatten ihn nur Quellbuilds.</span></li>
+          <li><span lang="en">The undo button's tooltip ("Undo edit of …") is translated into all five languages; it was always English.</span><span lang="de">Der Tooltip des Rückgängig-Knopfs („Bearbeiten von … rückgängig machen“) ist in alle fünf Sprachen übersetzt; er war immer Englisch.</span></li>
+          <li><span lang="en">Large task lists react faster: rebuilding the list after a view switch, a filter or a search takes about half as long, and the sidebar counts no longer hold up the interface.</span><span lang="de">Große Aufgabenlisten reagieren schneller: Nach einem Ansichtswechsel, einem Filter oder einer Suche ist die Liste in etwa der halben Zeit neu aufgebaut, und die Zähler in der Seitenleiste halten die Oberfläche nicht mehr auf.</span></li>
+        </ul></div>
+        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+          <li><span lang="en">A list could keep showing an old view or an old search: a change made while the list was still being rebuilt was dropped, and the busy indicator stayed on.</span><span lang="de">Eine Liste konnte eine alte Ansicht oder eine alte Suche weiter zeigen: Eine Änderung, die kam, während die Liste noch neu aufgebaut wurde, ging verloren, und die Ladeanzeige blieb an.</span></li>
+          <li><span lang="en">Recurring tasks: checking off an all-day series could put the next occurrence on the wrong day around a change to or from daylight saving time, and a series edited in KOrganizer could stay on the occurrence you had just checked off. Undo restores a series' dates correctly.</span><span lang="de">Wiederkehrende Aufgaben: Beim Abhaken einer ganztägigen Serie konnte das nächste Vorkommen um die Zeitumstellung herum auf dem falschen Tag landen, und eine in KOrganizer bearbeitete Serie konnte auf dem gerade abgehakten Vorkommen stehen bleiben. Rückgängig stellt die Daten einer Serie richtig wieder her.</span></li>
+          <li><span lang="en">Dates follow your language's order: the Agenda, calendar, heatmap, inspector and the terminal client wrote every date in German order, so English read "Thursday, 29. October" and Japanese "木曜日, 29. 10月"; now "Thursday, October 29" and "10月29日木曜日". Month headings use the month's own name (Russian "октябрь 2026 г.", not "октября"), and short dates put the weekday where your language does.</span><span lang="de">Datumsangaben folgen der Reihenfolge deiner Sprache: Agenda, Kalender, Heatmap, Inspektor und Terminal-Client schrieben jedes Datum in deutscher Reihenfolge, auf Englisch also „Thursday, 29. October“ und auf Japanisch „木曜日, 29. 10月“; jetzt „Thursday, October 29“ und „10月29日木曜日“. Monatsüberschriften nehmen die Grundform des Monats (russisch „октябрь 2026 г.“, nicht „октября“), und kurze Daten stellen den Wochentag dorthin, wo deine Sprache ihn hat.</span></li>
+        </ul></div>
+        <div class="release-shots">
+          <figure><img lang="en" src="shots/release-0.6.0-agenda-week-en.webp" alt="The Agenda week in English: dates in English order, such as Nov 9 – Nov 15 and Mon 11/9" loading="lazy"><img lang="de" src="shots/release-0.6.0-agenda-week-de.webp" alt="Die Agenda-Woche auf Deutsch: Daten in deutscher Reihenfolge, etwa 9. Nov. – 15. Nov. und Mo. 9.11." loading="lazy"><figcaption><span lang="en">Agenda, week: dates in your language's order</span><span lang="de">Agenda, Woche: Daten in der Reihenfolge deiner Sprache</span></figcaption></figure>
+          <figure><svg class="chart" viewBox="0 0 320 150" role="img" aria-label="Milliseconds for 5000 tasks: list rebuild 45 in 0.5.0, 17 in 0.6.0; sidebar counts on the UI thread 9.7 in 0.5.0, 0 in 0.6.0"><line class="grid" x1="118" y1="22" x2="118" y2="118"/><text x="118" y="128" text-anchor="middle">0</text><line class="grid" x1="156" y1="22" x2="156" y2="118"/><text x="156" y="128" text-anchor="middle">10</text><line class="grid" x1="194" y1="22" x2="194" y2="118"/><text x="194" y="128" text-anchor="middle">20</text><line class="grid" x1="232" y1="22" x2="232" y2="118"/><text x="232" y="128" text-anchor="middle">30</text><line class="grid" x1="270" y1="22" x2="270" y2="118"/><text x="270" y="128" text-anchor="middle">40</text><line class="grid" x1="308" y1="22" x2="308" y2="118"/><text x="308" y="128" text-anchor="middle">50</text><rect class="s2" x="118" y="6" width="8" height="8"/><text x="130" y="13">0.5.0</text><rect class="s4" x="178" y="6" width="8" height="8"/><text x="190" y="13">0.6.0</text><text x="112" y="47" text-anchor="end"><tspan lang="en">List rebuild</tspan><tspan lang="de">Liste neu aufbauen</tspan></text><rect class="s2" x="118" y="34" width="171.0" height="11"/><text x="293.0" y="43">45</text><rect class="s4" x="118" y="48" width="64.6" height="11"/><text x="186.6" y="57">17</text><text x="112" y="97" text-anchor="end"><tspan lang="en">Sidebar counts (UI)</tspan><tspan lang="de">Zähler Seitenleiste (UI)</tspan></text><rect class="s2" x="118" y="84" width="36.9" height="11"/><text x="158.9" y="93">9.7</text><rect class="s4" x="118" y="98" width="0.0" height="11"/><text x="122.0" y="107">0</text><text x="213" y="144" text-anchor="middle"><tspan lang="en">ms, 5000 tasks (fastest of 21 runs)</tspan><tspan lang="de">ms, 5000 Aufgaben (schnellster von 21 Läufen)</tspan></text></svg><figcaption><span lang="en">Rebuild time</span><span lang="de">Aufbauzeit</span></figcaption></figure>
+        </div>
+        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.5.0...v0.6.0"><span lang="en">All changes since 0.5.0 →</span><span lang="de">Alle Änderungen seit 0.5.0 →</span></a>
+      </div>
+    </li>
     <li class="release" id="v0.5.0">
       <div class="release-head"><b class="release-version">0.5.0</b><time datetime="2026-10-30"><span lang="en">30 Oct 2026</span><span lang="de">30. Okt. 2026</span></time></div>
       <div class="release-body">
@@ -240,19 +264,19 @@
         <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3.1...v0.4.0"><span lang="en">All changes since 0.3.1 →</span><span lang="de">Alle Änderungen seit 0.3.1 →</span></a>
       </div>
     </li>
-    <li class="release" id="v0.3.1">
-      <div class="release-head"><b class="release-version">0.3.1</b><time datetime="2026-08-29"><span lang="en">29 Aug 2026</span><span lang="de">29. Aug. 2026</span></time></div>
-      <div class="release-body">
-        <p class="release-lead"><span lang="en">A translation release: every string of the widget is now translated.</span><span lang="de">Eine Übersetzungsversion: Jeder Text im Widget ist jetzt übersetzt.</span></p>
-        <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
-          <li><span lang="en">All 304 interface strings are translated into German, Spanish, French, Japanese and Simplified Chinese; before, about 158 of them fell back to English.</span><span lang="de">Alle 304 Texte der Oberfläche sind ins Deutsche, Spanische, Französische, Japanische und vereinfachte Chinesisch übersetzt; vorher fielen etwa 158 davon auf Englisch zurück.</span></li>
-        </ul></div>
-        <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3...v0.3.1"><span lang="en">All changes since 0.3 →</span><span lang="de">Alle Änderungen seit 0.3 →</span></a>
-      </div>
-    </li>
   </ol>
   <details class="changelog-more"><summary><span lang="en">Older releases</span><span lang="de">Ältere Versionen</span></summary>
     <ol class="changelog">
+      <li class="release" id="v0.3.1">
+        <div class="release-head"><b class="release-version">0.3.1</b><time datetime="2026-08-29"><span lang="en">29 Aug 2026</span><span lang="de">29. Aug. 2026</span></time></div>
+        <div class="release-body">
+          <p class="release-lead"><span lang="en">A translation release: every string of the widget is now translated.</span><span lang="de">Eine Übersetzungsversion: Jeder Text im Widget ist jetzt übersetzt.</span></p>
+          <div class="release-group" data-kind="fixed"><h3><span lang="en">Fixed</span><span lang="de">Behoben</span></h3><ul>
+            <li><span lang="en">All 304 interface strings are translated into German, Spanish, French, Japanese and Simplified Chinese; before, about 158 of them fell back to English.</span><span lang="de">Alle 304 Texte der Oberfläche sind ins Deutsche, Spanische, Französische, Japanische und vereinfachte Chinesisch übersetzt; vorher fielen etwa 158 davon auf Englisch zurück.</span></li>
+          </ul></div>
+          <a class="release-notes" href="https://github.com/shrippen/Kurrent/compare/v0.3...v0.3.1"><span lang="en">All changes since 0.3 →</span><span lang="de">Alle Änderungen seit 0.3 →</span></a>
+        </div>
+      </li>
       <li class="release" id="v0.3">
         <div class="release-head"><b class="release-version">0.3</b><time datetime="2026-08-29"><span lang="en">29 Aug 2026</span><span lang="de">29. Aug. 2026</span></time></div>
         <div class="release-body">
@@ -360,7 +384,7 @@
       <div><h4><span lang="en">Source</span><span lang="de">Quelltext</span></h4><a href="https://github.com/shrippen/Kurrent">GitHub</a><a href="https://github.com/shrippen/Kurrent/issues">Issues</a><a href="https://github.com/shrippen/Kurrent/releases">Releases</a></div>
     </nav>
   </div>
-  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v0.5.0</a></p></div>
+  <div class="foot-meta"><p>GPL-3.0-or-later · shrippen · <a href="#changes">v0.6.0</a></p></div>
 </footer>
 
 </body>

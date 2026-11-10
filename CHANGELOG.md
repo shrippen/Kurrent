@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-11-10
+
 ### English
+
+Recurring tasks join the Agenda: drag them to another day like any other task. Dates now read in your language's order, large task lists react about twice as fast, and the terminal client comes with the download.
 
 #### New
 - Agenda, Week and Month: recurring tasks can be dragged to another day too, and "All to today" takes them along (one undo brings them all back). Only this occurrence moves; the series keeps its rule, and when you check the task off, the next occurrence follows the original day. The inspector's Today, Tomorrow and Next week and the Day view do the same for a recurring task; its time of day stays the series' time.
@@ -17,7 +21,11 @@
 - Recurring tasks: checking off an all-day series could put the next occurrence on the wrong day around a change to or from daylight saving time, and a series edited in KOrganizer could stay on the occurrence you had just checked off. Undo restores a series' dates correctly.
 - Dates follow your language's order: the Agenda, calendar, heatmap, inspector and the terminal client wrote every date in German order, so English read "Thursday, 29. October" and Japanese "木曜日, 29. 10月"; now "Thursday, October 29" and "10月29日木曜日". Month headings use the month's own name (Russian "октябрь 2026 г.", not "октября"), and short dates put the weekday where your language does.
 
+All changes: https://github.com/shrippen/Kurrent/compare/v0.5.0...v0.6.0
+
 ### Deutsch
+
+Wiederkehrende Aufgaben gehören jetzt zur Agenda: Du ziehst sie wie jede andere Aufgabe auf einen anderen Tag. Daten stehen in der Reihenfolge deiner Sprache, große Aufgabenlisten reagieren etwa doppelt so schnell, und der Terminal-Client ist im Download dabei.
 
 #### Neu
 - Agenda, Woche und Monat: Auch wiederkehrende Aufgaben lassen sich auf einen anderen Tag ziehen, und „Alle auf heute“ nimmt sie mit (ein Rückgängig holt alle zurück). Verschoben wird nur dieses Vorkommen; die Serie behält ihre Regel, und beim Abhaken richtet sich das nächste Vorkommen nach dem ursprünglichen Tag. „Heute“, „Morgen“ und „Nächste Woche“ im Inspektor und die Tagesansicht machen es bei wiederkehrenden Aufgaben genauso; die Uhrzeit bleibt die der Serie.
