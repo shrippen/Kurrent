@@ -71,6 +71,15 @@ TestCase {
         // Only the part outside a break-anywhere script is cut: "会议" stays, the Latin word is cut.
         var mixed = Agenda.fitWords("会议Wochenplanungsbesprechung", fm.advanceWidth("Wochenplan"), fm)
         verify(mixed.startsWith("会议Wochen") && mixed.endsWith("…"), mixed)
+        // Emoji and CJK beyond the BMP (surrogate pairs) Qt breaks anywhere too: never cut, and
+        // a pair is never split into runs.
+        var emoji = "🎉🎂🎁🎈🎊🎄🎃🎆🎇🧨✨🎍🎋🎏"
+        compare(Agenda.fitWords(emoji, fm.advanceWidth("🎉🎂🎁"), fm), emoji)
+        compare(Agenda.fitWords("𠀀𠀁𠀂𠀃𠀄𠀅𠀆𠀇", fm.advanceWidth("𠀀𠀁"), fm), "𠀀𠀁𠀂𠀃𠀄𠀅𠀆𠀇")
+        // Symbols such as "✓" Qt does not break around: the word with it is cut as one.
+        var check = Agenda.fitWords("✓Wochenplanungsbesprechung", fm.advanceWidth("✓Wochenplan"), fm)
+        verify(check.startsWith("✓Wochen") && check.endsWith("…")
+               && fm.advanceWidth(check) <= fm.advanceWidth("✓Wochenplan"), check)
         // Before layout (no width yet) the text passes through.
         compare(Agenda.fitWords("Wochenplanung", 0, fm), "Wochenplanung")
         compare(Agenda.fitWords(undefined, width, fm), "")

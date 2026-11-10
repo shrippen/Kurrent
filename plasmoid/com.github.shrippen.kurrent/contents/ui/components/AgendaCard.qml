@@ -7,7 +7,6 @@ import ".."
 import "../Kante"
 import "../taps.js" as Taps
 import "../datetime.js" as DateTime
-import "../agenda.js" as Agenda
 
 // A task as a dense card for narrow week columns: project as colour edge, the title up to
 // three lines (with its time when it has a block), then labels and priority. With `showDate`
@@ -33,7 +32,7 @@ Rectangle {
     opacity: task.completed ? KanteStyle.doneOpacity : 1
 
     QQC2.ToolTip.text: (task.summary || i18n("(Untitled)")) + (task.collectionName ? " · " + task.collectionName : "")
-    QQC2.ToolTip.visible: hover.hovered && (titleLabel.truncated || titleLabel.text !== titleLabel.fullText)
+    QQC2.ToolTip.visible: hover.hovered && titleLabel.cut
     QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
 
     function hm(minute) {
@@ -72,20 +71,13 @@ Rectangle {
             Layout.fillWidth: true
             spacing: Design.spaceTiny
 
-            QQC2.Label {
+            AgendaTitleLabel {
                 id: titleLabel
-                readonly property string fullText: (card.task.start !== undefined ? card.hm(card.task.start) + "  " : "") + (card.task.summary || i18n("(Untitled)"))
+                fullText: (card.task.start !== undefined ? card.hm(card.task.start) + "  " : "") + (card.task.summary || i18n("(Untitled)"))
                 Layout.fillWidth: true
-                text: Agenda.fitWords(fullText, width, titleMetrics)
-                wrapMode: Text.WordWrap
                 maximumLineCount: 3
                 elide: Text.ElideRight
                 font.strikeout: card.task.completed
-
-                FontMetrics {
-                    id: titleMetrics
-                    font: titleLabel.font
-                }
             }
 
             Flow {
