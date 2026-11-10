@@ -824,9 +824,17 @@ void TaskControllerStoreTest::seriesBlockAtOtherTimeDetaches()
     QCOMPARE(back.first().value(QStringLiteral("start")).toInt(), 9 * 60);
     QVERIFY(m_controller->taskSnapshotById(detachedId).isEmpty());
 
+    // Undo while the detached task is still being created: it goes once its create lands.
+    m_controller->agendaSetBlock(1, day, 14 * 60, 15 * 60);
+    m_controller->undo();
+    waitStore(spy, 9); // series advanced, created, series restored, detached deleted
+    const QList<QVariantMap> undoneEarly = itemsOn(day);
+    QCOMPARE(undoneEarly.size(), 1);
+    QCOMPARE(undoneEarly.first().value(QStringLiteral("itemId")).toLongLong(), qint64(1));
+
     // Same times on another day: only the occurrence moves, nothing is detached.
     m_controller->agendaSetBlock(1, day.addDays(2), 9 * 60, 9 * 60 + 30);
-    waitStore(spy, 6);
+    waitStore(spy, 10);
     const QList<QVariantMap> later = itemsOn(day.addDays(2));
     QCOMPARE(later.size(), 1);
     QCOMPARE(later.first().value(QStringLiteral("itemId")).toLongLong(), qint64(1));

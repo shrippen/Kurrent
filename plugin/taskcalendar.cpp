@@ -395,7 +395,12 @@ KCalendarCore::Todo::Ptr detachOccurrence(const KCalendarCore::Todo::Ptr &series
     todo->setAllDay(false);
     todo->setDtStart(start);
     todo->setDtDue(due);
-    setReminderMinutes(todo, reminderMinutesFromTodo(series));
+    // Every alarm as it is (before the start stays before the start), now the new task's.
+    for (const KCalendarCore::Alarm::Ptr &alarm : series->alarms()) {
+        KCalendarCore::Alarm::Ptr copy(new KCalendarCore::Alarm(*alarm));
+        copy->setParent(todo.data());
+        todo->addAlarm(copy);
+    }
     return todo;
 }
 
