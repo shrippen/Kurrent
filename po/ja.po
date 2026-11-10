@@ -1625,6 +1625,9 @@ msgstr "サブタスク"
 msgid "Suggestions for"
 msgstr "提案の対象日"
 
+msgid "Summary"
+msgstr "タイトル"
+
 msgid "Swimlane options"
 msgstr "スイムレーンのオプション"
 
@@ -1744,6 +1747,36 @@ msgstr "再試行"
 
 msgid "Tu"
 msgstr "火"
+
+msgid "Undo"
+msgstr "元に戻す"
+
+msgid "Undo Kanban change of “%1”"
+msgstr "「%1」のカンバン変更を元に戻す"
+
+msgid "Undo Kanban order"
+msgstr "カンバンの並び順を元に戻す"
+
+msgid "Undo Kanban order of “%1”"
+msgstr "「%1」のカンバンの並び順を元に戻す"
+
+msgid "Undo complete of “%1”"
+msgstr "「%1」の完了を元に戻す"
+
+msgid "Undo delete of “%1”"
+msgstr "「%1」の削除を元に戻す"
+
+msgid "Undo edit of “%1”"
+msgstr "「%1」の編集を元に戻す"
+
+msgid "Undo marking “%1” incomplete"
+msgstr "「%1」の未完了への変更を元に戻す"
+
+msgid "Undo move of “%1”"
+msgstr "「%1」の別プロジェクトへの移動を元に戻す"
+
+msgid "Undo reschedule of “%1”"
+msgstr "「%1」の日程変更を元に戻す"
 
 msgid "Unfold"
 msgstr "展開"
@@ -1975,3 +2008,7 @@ msgstr[0] "↑ 期限切れに %1 件"
 msgid "+%1 more"
 msgid_plural "+%1 more"
 msgstr[0] "他 %1 件"
+
+msgid "Undo moving %1 task"
+msgid_plural "Undo moving %1 tasks"
+msgstr[0] "%1 件のタスクの移動を元に戻す"

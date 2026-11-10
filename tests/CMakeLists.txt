@@ -120,6 +120,9 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
 )
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
+    # Same catalog as kurrentcore (plugin/CMakeLists.txt); undoLabelIsTranslated reads it.
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_TEST_LOCALE_DIR="${CMAKE_BINARY_DIR}/locale"
     KURRENT_WITH_DEMO
     KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
 target_include_directories(kurrent-taskcontroller-store-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
@@ -146,6 +149,9 @@ endif()
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
     KURRENT_TEST_EXPECT_DEV_BUILD=${_kurrent_expect_dev})
 add_test(NAME kurrent-taskcontroller-store COMMAND kurrent-taskcontroller-store-test)
+if(TARGET kurrent-translations)
+    add_dependencies(kurrent-taskcontroller-store-test kurrent-translations)
+endif()
 add_test(NAME kurrent-devbuild-marker
     COMMAND ${CMAKE_COMMAND} -DMARKER=${CMAKE_BINARY_DIR}/DevBuildMarker.qml
             -DEXPECTED=${_kurrent_expect_dev_qml} -P ${CMAKE_CURRENT_SOURCE_DIR}/check_devbuild_marker.cmake)

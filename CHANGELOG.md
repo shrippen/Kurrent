@@ -9,6 +9,7 @@
 
 #### Improved
 - `kurrent-tui` now comes with the prebuilt download, so the one-line installer sets it up too; before, only source builds had it.
+- The undo button's tooltip ("Undo edit of …") is translated into all five languages; it was always English.
 - Large task lists react faster: rebuilding the list after a view switch, a filter or a search takes about half as long, and the sidebar counts no longer hold up the interface.
 
 #### Fixed
@@ -23,6 +24,7 @@
 
 #### Verbessert
 - `kurrent-tui` ist jetzt im fertigen Download enthalten, der Einzeiler installiert ihn also mit; vorher hatten ihn nur Quellbuilds.
+- Der Tooltip des Rückgängig-Knopfs („Bearbeiten von … rückgängig machen“) ist in alle fünf Sprachen übersetzt; er war immer Englisch.
 - Große Aufgabenlisten reagieren schneller: Nach einem Ansichtswechsel, einem Filter oder einer Suche ist die Liste in etwa der halben Zeit neu aufgebaut, und die Zähler in der Seitenleiste halten die Oberfläche nicht mehr auf.
 
 #### Behoben

@@ -12,11 +12,14 @@ from extra_translations import EXTRA
 from strings_style import PLURAL_OVERDUE
 from strings_review import PLURAL_REVIEW
 from strings_agenda import PLURAL_AGENDA
+from strings_undo import PLURAL_UNDO, UNDO
 
 DOMAIN = "plasma_applet_com.github.shrippen.kurrent"
 VERSION = "1.0.0"
 YEAR = datetime.date.today().year
 QML_ROOT = Path(__file__).resolve().parent.parent / "plasmoid"
+# The plugin's C++ i18n() (undo labels); the terminal client stays English for now.
+CPP_ROOT = Path(__file__).resolve().parent.parent / "plugin"
 
 QML_I18N = re.compile(r'i18n(?:c\s*\(\s*"[^"]*"\s*,\s*)?\(\s*"((?:[^"\\]|\\.)*)"')
 
@@ -82,6 +85,10 @@ PLURALS = {
 PLURALS.update(PLURAL_OVERDUE)
 PLURALS.update(PLURAL_REVIEW)
 PLURALS.update(PLURAL_AGENDA)
+PLURALS.update(PLURAL_UNDO)
+for _lang, _strings in UNDO.items():
+    for _msgid, _msgstr in _strings.items():
+        EXTRA[_lang].setdefault(_msgid, _msgstr)  # existing translations win
 
 LANGS = {
     "de": ("de", "nplurals=2; plural=(n != 1);"),
@@ -102,8 +109,9 @@ LANG_NAMES = {
 
 def extract_qml_strings() -> list[str]:
     found: set[str] = set()
-    for qml in sorted(QML_ROOT.rglob("*.qml")):
-        for match in QML_I18N.finditer(qml.read_text(encoding="utf-8")):
+    sources = sorted(QML_ROOT.rglob("*.qml")) + sorted(CPP_ROOT.glob("*.cpp"))
+    for source in sources:
+        for match in QML_I18N.finditer(source.read_text(encoding="utf-8")):
             found.add(match.group(1))
     return sorted(found)
 

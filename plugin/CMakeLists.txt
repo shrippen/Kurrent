@@ -36,6 +36,9 @@ add_library(kurrentcore STATIC
     memorytaskstore.cpp
     memorytaskstore.h
 )
+# i18n() in kurrentcore (undo labels) uses the widget's catalog, also inside plasmashell,
+# whose application domain is not ours. The terminal client sets the same domain.
+target_compile_definitions(kurrentcore PRIVATE TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}")
 
 # Internal demo mode for the landing-page screenshots (demo/). Never on in releases.
 option(KURRENT_DEMO "Internal demo mode for screenshots; never enable for releases" OFF)

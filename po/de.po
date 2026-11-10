@@ -1625,6 +1625,9 @@ msgstr "Unteraufgaben"
 msgid "Suggestions for"
 msgstr "Vorschläge für"
 
+msgid "Summary"
+msgstr "Titel"
+
 msgid "Swimlane options"
 msgstr "Swimlane-Optionen"
 
@@ -1744,6 +1747,36 @@ msgstr "Erneut versuchen"
 
 msgid "Tu"
 msgstr "Di"
+
+msgid "Undo"
+msgstr "Rückgängig"
+
+msgid "Undo Kanban change of “%1”"
+msgstr "Kanban-Änderung an „%1“ rückgängig machen"
+
+msgid "Undo Kanban order"
+msgstr "Kanban-Reihenfolge rückgängig machen"
+
+msgid "Undo Kanban order of “%1”"
+msgstr "Kanban-Reihenfolge von „%1“ rückgängig machen"
+
+msgid "Undo complete of “%1”"
+msgstr "Erledigen von „%1“ rückgängig machen"
+
+msgid "Undo delete of “%1”"
+msgstr "Löschen von „%1“ rückgängig machen"
+
+msgid "Undo edit of “%1”"
+msgstr "Bearbeiten von „%1“ rückgängig machen"
+
+msgid "Undo marking “%1” incomplete"
+msgstr "„%1“ wieder als erledigt markieren"
+
+msgid "Undo move of “%1”"
+msgstr "Verschieben von „%1“ in ein anderes Projekt rückgängig machen"
+
+msgid "Undo reschedule of “%1”"
+msgstr "Verschieben von „%1“ rückgängig machen"
 
 msgid "Unfold"
 msgstr "Aufklappen"
@@ -1996,3 +2029,8 @@ msgid "+%1 more"
 msgid_plural "+%1 more"
 msgstr[0] "+%1 weitere"
 msgstr[1] "+%1 weitere"
+
+msgid "Undo moving %1 task"
+msgid_plural "Undo moving %1 tasks"
+msgstr[0] "Verschieben von %1 Aufgabe rückgängig machen"
+msgstr[1] "Verschieben von %1 Aufgaben rückgängig machen"

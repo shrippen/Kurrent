@@ -1625,6 +1625,9 @@ msgstr "Subtareas"
 msgid "Suggestions for"
 msgstr "Sugerencias para"
 
+msgid "Summary"
+msgstr "Título"
+
 msgid "Swimlane options"
 msgstr "Opciones de carriles"
 
@@ -1744,6 +1747,36 @@ msgstr "Reintentar"
 
 msgid "Tu"
 msgstr "ma"
+
+msgid "Undo"
+msgstr "Deshacer"
+
+msgid "Undo Kanban change of “%1”"
+msgstr "Deshacer cambio de Kanban de «%1»"
+
+msgid "Undo Kanban order"
+msgstr "Deshacer orden de Kanban"
+
+msgid "Undo Kanban order of “%1”"
+msgstr "Deshacer orden de Kanban de «%1»"
+
+msgid "Undo complete of “%1”"
+msgstr "Deshacer completar «%1»"
+
+msgid "Undo delete of “%1”"
+msgstr "Deshacer eliminar «%1»"
+
+msgid "Undo edit of “%1”"
+msgstr "Deshacer edición de «%1»"
+
+msgid "Undo marking “%1” incomplete"
+msgstr "Deshacer marcar «%1» como pendiente"
+
+msgid "Undo move of “%1”"
+msgstr "Deshacer mover «%1» a otro proyecto"
+
+msgid "Undo reschedule of “%1”"
+msgstr "Deshacer reprogramar «%1»"
 
 msgid "Unfold"
 msgstr "Desplegar"
@@ -1996,3 +2029,8 @@ msgid "+%1 more"
 msgid_plural "+%1 more"
 msgstr[0] "+%1 más"
 msgstr[1] "+%1 más"
+
+msgid "Undo moving %1 task"
+msgid_plural "Undo moving %1 tasks"
+msgstr[0] "Deshacer mover %1 tarea"
+msgstr[1] "Deshacer mover %1 tareas"
