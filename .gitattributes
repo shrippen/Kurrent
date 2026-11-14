@@ -4,3 +4,4 @@
 # Structure check: CI only, not part of any archive.
 /tools export-ignore
 /structure.baseline export-ignore
+/AUDIT.md export-ignore
