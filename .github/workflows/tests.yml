@@ -47,6 +47,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Structure limits
+        run: pipx run tools/structure-check.py
+
       - name: Check CHANGELOG.md headings
         run: scripts/release-notes.sh --check
 

@@ -1,3 +1,6 @@
 # Not part of release archives (git archive): demo data, start and screenshot scripts.
 # The plugin reads the demo data only when started by demo/start.sh (KURRENT_DEMO_WORLD).
 /demo export-ignore
+# Structure check: CI only, not part of any archive.
+/tools export-ignore
+/structure.baseline export-ignore
