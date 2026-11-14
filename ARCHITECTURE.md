@@ -52,9 +52,10 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
                                           Akonadi
 ```
 
-- QML reaches tasks and the shared settings only through the controller and the
-  models; the widget's own settings it reads from `Plasmoid.configuration`. It holds
-  layout, wiring and what is only about the look.
+- QML reaches tasks only through the controller and the models. It reads settings
+  from `Plasmoid.configuration`, which the controller keeps equal to `kurrentrc`, and
+  never touches `SharedSettings`. It holds layout, wiring and what is only about the
+  look.
 - A rule about tasks (what a filter matches, how a list is sorted, what a quick
   entry means) stands in the rules of `plugin/` and has a C++ test. Logic that is only
   about the user interface (sizes, input masks, names for display) stands in `ui/*.js`
@@ -83,7 +84,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 |---|---|
 | A new filter, sort order or count | `plugin/tasklogic.*`, a test in `tests/tasklogic_test.cpp`; the sidebar or toolbar that offers it |
 | A new field of a task | `plugin/tasklistmodel.*`, the function that sets a task's fields, `plugin/taskcalendar.*` if it concerns dates; editor, inspector and row in `ui/`; quick entry in `plugin/quickadd.cpp` if it can be typed |
-| A new view | A file in `ui/views/`, its loader in `ui/components/MainPaneHost.qml`, its id in `plugin/tasklogic.h` and `ui/Design.qml`, `ui/components/ViewModeToolbar.qml` and `ui/configViews.qml`; steps in `ui/SmokeTest.qml` and the screenshot plan |
+| A new view | A file in `ui/views/`, its loader in `ui/components/MainPaneHost.qml`, its id in `plugin/tasklogic.h` and `ui/Design.qml`, the list of views in `ui/FullView.qml` and `ui/configViews.qml`; steps in `ui/SmokeTest.qml` and the screenshot plan |
 | A new action on tasks | The class for its topic behind the controller, through the storage boundary; a test with the memory store |
 | A new setting | `contents/config/main.xml` (name and default), `plugin/sharedsettings.*` if the terminal program needs it, its page in `ui/config*.qml` |
 | Logic only the interface needs | A function in `ui/*.js` with a test in `tests/qml/` |
