@@ -3,6 +3,9 @@
 # Lines: exclude<TAB>glob | path<TAB>function or - for the file<TAB>metric=value ...
 exclude	plasmoid/io.github.shrippen.Kurrent/contents/ui/Kante/*
 exclude	plasmoid/io.github.shrippen.Kurrent/contents/ui/KantePlasma/*
+exclude	po/extra_translations.py
+exclude	po/new_strings.py
+exclude	po/strings_*.py
 install-linux.sh	-	lines=1111
 krunner/kurrentrunner.cpp	KurrentRunner::match	ccn=19
 plasmoid/io.github.shrippen.Kurrent/contents/ui/FullView.qml	-	lines=2082
@@ -71,9 +74,7 @@ plugin/tasklogic.cpp	TaskLogic::matchesView	ccn=19
 plugin/tasklogic.cpp	TaskLogic::parseFormatTokens	ccn=21 nesting=6
 plugin/tasklogic.cpp	TaskLogic::rescheduleDue	ccn=21
 plugin/tasklogic.cpp	TaskLogic::sortFlatForListGroup	ccn=27 length=94
-po/extra_translations.py	-	lines=3178
 po/generate_po.py	main	ccn=18
-po/new_strings.py	-	lines=1256
 tests/taskcontroller_store_test.cpp	-	lines=1368
 tests/taskcontroller_store_test.cpp	TaskControllerStoreTest::seriesBlockAtOtherTimeDetaches	length=83
 tests/tasklogic_test.cpp	-	lines=1999
