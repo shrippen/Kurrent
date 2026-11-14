@@ -40,12 +40,24 @@ EXCLUDE_KEY = "exclude"
 
 # Files whose length counts. Functions are measured where lizard knows the language.
 CODE_SUFFIXES = {
-    ".c", ".cc", ".cpp", ".dart", ".go", ".h", ".hpp", ".java", ".js", ".jsx", ".kt",
-    ".lua", ".php", ".py", ".qml", ".rs", ".sh", ".ts", ".tsx", ".twig",
+    ".c", ".cc", ".cjs", ".cpp", ".dart", ".gd", ".go", ".h", ".hpp", ".java", ".js", ".jsx",
+    ".kt", ".kts", ".lua", ".mjs", ".php", ".py", ".qml", ".rs", ".sh", ".ts", ".tsx", ".twig",
 }
+
+# A file without an ending counts when it starts like a script. Example: "#!/bin/sh".
+SHEBANG = b"#!"
 
 # QML carries its logic as JavaScript; lizard reads it under that name.
 READ_AS = {".qml": ".js"}
+
+# lizard closes a nested block only at `}` or `;`, never at Lua's `end` or GDScript's
+# dedent: the sixth function with one `if` reads as nesting 6, and the count runs on into
+# the next file. Both are therefore read without the nesting measure.
+NO_NESTING = {".lua", ".gd"}
+
+# A script without an ending is read as the language its first line names.
+# Example: "#!/usr/bin/env python3" -> ".py".
+INTERPRETERS = {"python": ".py"}
 
 FOREIGN_DIRS = {"vendor", "node_modules", "third_party", "3rdparty"}
 
@@ -77,10 +89,19 @@ def tracked_files(root):
     return [p for p in out.stdout.split("\0") if p]
 
 
-def is_measured(path, excludes):
-    parts = Path(path)
+def is_script(file):
+    if not file.is_file():
+        return False
 
-    if parts.suffix not in CODE_SUFFIXES:
+    with file.open("rb") as handle:
+        return handle.read(len(SHEBANG)) == SHEBANG
+
+
+def is_measured(root, path, excludes):
+    parts = Path(path)
+    is_code = parts.suffix in CODE_SUFFIXES or (not parts.suffix and is_script(root / path))
+
+    if not is_code:
         return False
 
     if FOREIGN_DIRS.intersection(parts.parts):
@@ -89,20 +110,35 @@ def is_measured(path, excludes):
     return not any(fnmatch.fnmatch(path, glob) for glob in excludes)
 
 
-def function_values(path, code, analyzer):
+def script_suffix(code):
+    first_line = code.split("\n", 1)[0]
+
+    for interpreter, suffix in INTERPRETERS.items():
+        if interpreter in first_line:
+            return suffix
+
+    return ""
+
+
+def function_values(path, code, analyzers):
     """Yields (function name, line, {metric: value}) for each function lizard finds."""
-    suffix = Path(path).suffix
-    name = path + READ_AS.get(suffix, "")
+    ending = Path(path).suffix
+    suffix = ending or script_suffix(code)
+    # lizard picks its reader by the name: QML and scripts without an ending get one added.
+    name = path + (READ_AS.get(suffix, "") if ending else suffix)
+    nested = suffix not in NO_NESTING
+    analyzer = analyzers[nested]
 
     if lizard.get_reader_for(name) is None:
         return
 
     for func in analyzer.analyze_source_code(name, code).function_list:
-        yield func.name, func.start_line, {
-            "ccn": func.cyclomatic_complexity,
-            "length": func.length,
-            "nesting": func.max_nested_structures,
-        }
+        values = {"ccn": func.cyclomatic_complexity, "length": func.length}
+
+        if nested:
+            values["nesting"] = func.max_nested_structures
+
+        yield func.name, func.start_line, values
 
 
 def measure(root, paths):
@@ -111,13 +147,17 @@ def measure(root, paths):
     Functions of one name in a file are numbered in file order, so each needs its own
     baseline entry. Example: "(anonymous)", "(anonymous)#2".
     """
-    analyzer = lizard.FileAnalyzer(lizard.get_extensions(["ns"]))
+    # One analyzer with the nesting measure ("ns"), one without it.
+    analyzers = {
+        True: lizard.FileAnalyzer(lizard.get_extensions(["ns"])),
+        False: lizard.FileAnalyzer(lizard.get_extensions([])),
+    }
     over = {}
 
     for path in paths:
         code = (root / path).read_text(encoding="utf-8", errors="replace")
         found = [(FILE_ENTRY, 1, {"lines": code.count("\n")})]
-        found.extend(function_values(path, code, analyzer))
+        found.extend(function_values(path, code, analyzers))
 
         seen = collections.Counter()
 
@@ -200,7 +240,7 @@ def run(mode):
     file = root / BASELINE_NAME
     excludes, allowed = read_baseline(file)
 
-    paths = [p for p in tracked_files(root) if is_measured(p, excludes) and (root / p).is_file()]
+    paths = [p for p in tracked_files(root) if is_measured(root, p, excludes) and (root / p).is_file()]
     over = measure(root, paths)
 
     if mode is Mode.UPDATE:
