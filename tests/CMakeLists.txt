@@ -33,6 +33,8 @@ add_executable(kurrent-sharedsettings-test
     ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.h
 )
 target_include_directories(kurrent-sharedsettings-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_compile_definitions(kurrent-sharedsettings-test PRIVATE
+    KURRENT_MAIN_XML="${CMAKE_SOURCE_DIR}/plasmoid/io.github.shrippen.Kurrent/contents/config/main.xml")
 target_link_libraries(kurrent-sharedsettings-test PRIVATE
     Qt6::Core
     Qt6::Qml

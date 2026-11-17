@@ -363,18 +363,18 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                panelBadge: "open",
-                panelBadgeStyle: "number",
-                panelBadgeOverdueColor: "highlight",
-                panelTooltip: "open",
-                notificationsEnabled: true,
-                quietHoursEnabled: false,
-                quietHoursStart: 22,
-                quietHoursEnd: 7,
-                suppressRemindersDuringEvents: false,
-                busyCalendarIds: ""
-            })
+            keys: [
+                "panelBadge",
+                "panelBadgeStyle",
+                "panelBadgeOverdueColor",
+                "panelTooltip",
+                "notificationsEnabled",
+                "quietHoursEnabled",
+                "quietHoursStart",
+                "quietHoursEnd",
+                "suppressRemindersDuringEvents",
+                "busyCalendarIds"
+            ]
         }
     }
 }

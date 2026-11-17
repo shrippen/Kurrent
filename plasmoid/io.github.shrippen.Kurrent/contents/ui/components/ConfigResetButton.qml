@@ -7,15 +7,17 @@ import org.kde.kirigami 2.20 as Kirigami
 // "Reset this page": always below the form at the left edge (x3).
 QQC2.Button {
     required property var page
-    required property var defaults
+    // Names of the settings on the page; their defaults come from main.xml
+    // through the cfg_<name>Default properties Plasma sets on the page.
+    required property var keys
 
     Layout.alignment: Qt.AlignLeft
     Layout.topMargin: Kirigami.Units.largeSpacing
     text: i18n("Reset this page")
     icon.name: "edit-reset"
     onClicked: {
-        for (var key in defaults) {
-            page["cfg_" + key] = defaults[key]
+        for (var i = 0; i < keys.length; ++i) {
+            page["cfg_" + keys[i]] = page["cfg_" + keys[i] + "Default"]
         }
         if (typeof page.syncControls === "function") {
             page.syncControls()
