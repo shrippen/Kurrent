@@ -740,7 +740,6 @@ enum class SyncResult { Error, Ok };
     /** Busy minutes on `day`: timed events and open task blocks, without `skipItemId`. */
     QList<AgendaLogic::Span> agendaBusy(const QDate &day, const QList<TaskEntry> &tasks, qint64 skipItemId) const;
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
-    static void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset);
     CachedTask *prepareEdit(qint64 itemId);
     void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {}, const Akonadi::Item &ackedItem = {});
     void onStoreFinished(const AbstractTaskStore::Result &result);
