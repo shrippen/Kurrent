@@ -90,7 +90,7 @@ PlasmoidItem {
 
     readonly property bool pluginReady: pluginLoader.status === Loader.Ready && !!pluginLoader.item
     readonly property bool pluginMissing: pluginLoader.status === Loader.Error
-    readonly property var backend: pluginReady ? pluginLoader.item.controller : null
+    readonly property var controller: pluginReady ? pluginLoader.item.controller : null
 
     function normalizeReleaseVersion(v) {
         if (!v) {
@@ -108,25 +108,25 @@ PlasmoidItem {
     }
 
     readonly property string widgetVersion: normalizeReleaseVersion(Plasmoid.metaData ? Plasmoid.metaData.version : "")
-    readonly property string backendVersion: pluginReady && backend ? normalizeReleaseVersion(backend.pluginVersion) : ""
+    readonly property string backendVersion: pluginReady && controller ? normalizeReleaseVersion(controller.pluginVersion) : ""
     readonly property bool backendVersionMismatch: pluginReady && !pluginMissing && widgetVersion !== ""
             && (backendVersion === "" || backendVersion !== widgetVersion)
 
     readonly property var activeFilters: {
-        if (!backend) {
+        if (!controller) {
             return []
         }
         // Depend on filter properties so the UI updates when they change.
-        var collectionId = backend.selectedCollectionId
-        var label = backend.selectedLabel
-        var priority = backend.selectedPriority
-        var progressBand = backend.selectedProgressBand
-        var status = backend.selectedStatus
-        var secrecy = backend.selectedSecrecy
-        var location = backend.selectedLocation
+        var collectionId = controller.selectedCollectionId
+        var label = controller.selectedLabel
+        var priority = controller.selectedPriority
+        var progressBand = controller.selectedProgressBand
+        var status = controller.selectedStatus
+        var secrecy = controller.selectedSecrecy
+        var location = controller.selectedLocation
         var parts = []
         if (collectionId >= 0) {
-            var projectName = backend.collectionNameForId(collectionId)
+            var projectName = controller.collectionNameForId(collectionId)
             if (projectName) {
                 parts.push({ kind: "project", text: projectName, key: String(collectionId) })
             }
@@ -165,28 +165,28 @@ PlasmoidItem {
     readonly property var priorityBandLabels: ({ 1: i18n("High"), 5: i18n("Medium"), 9: i18n("Low") })
 
     function activeViewIconSource() {
-        if (!backend) {
+        if (!controller) {
             return "kurrent"
         }
-        if (backend.currentView.indexOf("smart:") === 0) {
-            var smartId = backend.currentView.slice(6)
+        if (controller.currentView.indexOf("smart:") === 0) {
+            var smartId = controller.currentView.slice(6)
             var smart = smartViewById[smartId]
             return smart ? (smart.icon || "view-filter") : "view-filter"
         }
-        var icon = builtinViewIconById[backend.currentView]
+        var icon = builtinViewIconById[controller.currentView]
         return icon !== undefined ? icon : "mail-folder-inbox"
     }
 
     function activeViewTitle() {
-        if (!backend) {
+        if (!controller) {
             return i18n("Kurrent")
         }
-        if (backend.currentView.indexOf("smart:") === 0) {
-            var smartId = backend.currentView.slice(6)
+        if (controller.currentView.indexOf("smart:") === 0) {
+            var smartId = controller.currentView.slice(6)
             var smart = smartViewById[smartId]
             return smart ? (smart.name || smartId) : smartId
         }
-        var title = builtinViewTitleById[backend.currentView]
+        var title = builtinViewTitleById[controller.currentView]
         return title !== undefined ? title : i18n("Inbox")
     }
 
@@ -194,7 +194,7 @@ PlasmoidItem {
     toolTipMainText: i18n("Kurrent")
     toolTipSubText: root.panelTooltipText
 
-    readonly property var panelViewCounts: backend ? backend.viewTaskCounts : ({})
+    readonly property var panelViewCounts: controller ? controller.viewTaskCounts : ({})
 
     function viewCountLabel(viewId) {
         var label = viewCountLabelById[viewId]
@@ -202,7 +202,7 @@ PlasmoidItem {
     }
 
     readonly property string panelTooltipText: {
-        if (!backend) {
+        if (!controller) {
             return i18n("Loading…")
         }
         var mode = Plasmoid.configuration.panelTooltip || "open"
@@ -249,18 +249,18 @@ PlasmoidItem {
             }
             return lines.length > 0 ? lines.join("\n") : i18n("No open tasks")
         }
-        var openN = backend.pendingCount
+        var openN = controller.pendingCount
         return openN > 0
                 ? i18np("%1 open task", "%1 open tasks", openN)
                 : i18n("No open tasks")
     }
 
     // Count and alert colour follow the panelBadge settings (TaskController::badgeCount).
-    readonly property int panelBadgeCount: backend ? backend.badgeCount : 0
+    readonly property int panelBadgeCount: controller ? controller.badgeCount : 0
 
     readonly property bool panelBadgeUseDot: (Plasmoid.configuration.panelBadgeStyle || "number") === "dot"
 
-    readonly property bool panelBadgeNegative: backend ? backend.badgeAlert : false
+    readonly property bool panelBadgeNegative: controller ? controller.badgeAlert : false
 
     readonly property color panelBadgeColor: panelBadgeNegative
             ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.highlightColor
@@ -273,7 +273,7 @@ PlasmoidItem {
             : (panelBadgeNegative ? "white" : Kirigami.Theme.highlightedTextColor)
 
     readonly property var smartViewById: {
-        var views = backend ? backend.smartViews : []
+        var views = controller ? controller.smartViews : []
         var byId = {}
         for (var i = 0; i < views.length; ++i) {
             var sv = views[i]
@@ -378,7 +378,7 @@ PlasmoidItem {
     function initPluginSettings() {
         applyDesignFromConfig()
         applyColorsFromConfig()
-        if (backend && backend.smokeTest) {
+        if (controller && controller.smokeTest) {
             root.expanded = true
         }
         applyPopupBackground()
@@ -395,14 +395,14 @@ PlasmoidItem {
     }
 
     Connections {
-        target: backend
+        target: controller
         function onDbusShowRequested() {
             root.expanded = true
         }
         function onDbusAddTaskRequested(summary) {
             root.expanded = true
             if (summary && String(summary).trim().length) {
-                backend.createTask(summary, -1)
+                controller.createTask(summary, -1)
             } else {
                 Qt.callLater(root.focusNewTaskField)
             }
@@ -410,13 +410,13 @@ PlasmoidItem {
         function onDbusOpenViewRequested(view) {
             root.expanded = true
             if (view) {
-                backend.currentView = view
+                controller.currentView = view
             }
         }
         function onDbusSearchRequested(query) {
             root.expanded = true
-            if (backend) {
-                backend.searchQuery = query || ""
+            if (controller) {
+                controller.searchQuery = query || ""
             }
             Qt.callLater(root.focusSearchField)
         }
@@ -424,7 +424,7 @@ PlasmoidItem {
 
     // Settings changed (settings page, other widget): presentation follows the configuration.
     Connections {
-        target: backend
+        target: controller
         function onSettingsChanged() {
             root.applyDesignFromConfig()
             root.applyColorsFromConfig()
@@ -433,7 +433,7 @@ PlasmoidItem {
     }
 
     Timer {
-        running: !!(backend && backend.smokeTest)
+        running: !!(controller && controller.smokeTest)
         interval: 200
         repeat: false
         onTriggered: root.expanded = true
@@ -521,7 +521,7 @@ PlasmoidItem {
         clip: false
 
         readonly property Item uiItem: fullLoader.item
-        readonly property bool forceSyncUi: !!(root.backend && root.backend.smokeTest)
+        readonly property bool forceSyncUi: !!(root.controller && root.controller.smokeTest)
         readonly property bool showBootLoading: !root.pluginMissing
                 && (fullLoader.status === Loader.Null
                     || fullLoader.status === Loader.Loading

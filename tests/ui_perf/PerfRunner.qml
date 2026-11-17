@@ -8,7 +8,7 @@ Item {
     id: probe
 
     property var plasmoidRoot: null
-    property var backend: null
+    property var controller: null
     property var fullRoot: null
 
     width: 0
@@ -33,7 +33,7 @@ Item {
     }
 
     function busy() {
-        return !backend || backend.loading || backend.listReorganizing || backend.taskModel.chunksActive
+        return !controller || controller.loading || controller.listReorganizing || controller.taskModel.chunksActive
     }
 
     function begin(name, wait) {
@@ -45,7 +45,7 @@ Item {
     }
 
     function finish(now) {
-        log("end at=" + now + " " + phase + " rows=" + backend.taskModel.rowCount())
+        log("end at=" + now + " " + phase + " rows=" + controller.taskModel.rowCount())
         phase = "idle"
         pause.restart()
     }
@@ -77,8 +77,8 @@ Item {
         onTriggered: {
             const now = Date.now()
             if (probe.phase === "boot") {
-                if (probe.backend && !probe.backend.loading && probe.backend.taskModel.rowCount() > 0) {
-                    probe.log("data_ready at=" + now + " rows=" + probe.backend.taskModel.rowCount())
+                if (probe.controller && !probe.controller.loading && probe.controller.taskModel.rowCount() > 0) {
+                    probe.log("data_ready at=" + now + " rows=" + probe.controller.taskModel.rowCount())
                     probe.phase = "idle"
                     openLater.start()
                 }

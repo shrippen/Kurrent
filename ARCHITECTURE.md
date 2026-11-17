@@ -116,7 +116,5 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   finding 5).
 - Small date and selection helpers are copied into many views and settings pages
   (`AUDIT.md`, finding 6).
-- The controller is called `backend` in five files and `controller` in about thirty
-  (`AUDIT.md`, finding 7).
 - `plugin/tasklogic.cpp` holds all rules in one file of 3778 lines
   (`AUDIT.md`, finding 8).

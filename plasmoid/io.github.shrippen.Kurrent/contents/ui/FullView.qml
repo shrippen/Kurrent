@@ -15,7 +15,7 @@ Item {
     id: fullRoot
 
     required property Item plasmoidRoot
-    readonly property var backend: plasmoidRoot.backend
+    readonly property var controller: plasmoidRoot.controller
     readonly property alias taskListItem: mainPaneHost.taskList
     readonly property alias taskList: mainPaneHost.taskList
     readonly property alias calendarView: mainPaneHost.calendarView
@@ -41,7 +41,7 @@ Item {
 
     // Picking anything in the pushed-in sidebar closes it again.
     Connections {
-        target: fullRoot.compactLayout ? backend : null
+        target: fullRoot.compactLayout ? controller : null
         ignoreUnknownSignals: true
         function onCurrentViewChanged() { fullRoot.compactSidebarOpen = false }
         function onSelectedCollectionIdChanged() { fullRoot.compactSidebarOpen = false }
@@ -67,11 +67,11 @@ Item {
     }
 
     function pickView(viewId) {
-        if (!backend) {
+        if (!controller) {
             return
         }
         sidebar.currentSidebarFolder = sidebar.folderForView(viewId)
-        backend.currentView = viewId
+        controller.currentView = viewId
         sidebar.clearFilterSelections()
         compactSidebarOpen = false
     }
@@ -100,7 +100,7 @@ Item {
     }
 
     Connections {
-        target: backend
+        target: controller
         function onMergeConflictAvailable(fields, itemId) {
             mergeDialog.openDialog(fields)
         }
@@ -108,23 +108,23 @@ Item {
 
     MergeConflictDialog {
         id: mergeDialog
-        controller: backend
+        controller: fullRoot.controller
         overlayHost: fullRoot.overlayHost
         onAccepted: function(resolution) {
-            if (backend) {
-                backend.resolveMergeConflict(resolution)
+            if (controller) {
+                controller.resolveMergeConflict(resolution)
             }
         }
         onDismissed: {
-            if (backend) {
-                backend.dismissConflict()
+            if (controller) {
+                controller.dismissConflict()
             }
         }
         onEditRequested: {
             // Open FullEditor with the conflict task so user can edit manually.
-            if (backend && backend.conflictItemId >= 0) {
-                // Build a minimal task object from the backend for the editor
-                var taskObj = { itemId: backend.conflictItemId }
+            if (controller && controller.conflictItemId >= 0) {
+                // Build a minimal task object from the controller for the editor
+                var taskObj = { itemId: controller.conflictItemId }
                 fullRoot.openFullEditor(taskObj)
             } else {
                 // Fallback: just advance
@@ -171,13 +171,13 @@ Item {
     property int dragCursorSize: 24
     property int dragCursorShape: Qt.ClosedHandCursor
     // Kanban and Swimlanes drag the card itself (no proxy).
-    property bool useTaskDragProxy: backend && backend.mainPaneMode !== KurrentUi.Design.viewModeKanban
-            && backend.mainPaneMode !== KurrentUi.Design.viewModeSwimlane
+    property bool useTaskDragProxy: controller && controller.mainPaneMode !== KurrentUi.Design.viewModeKanban
+            && controller.mainPaneMode !== KurrentUi.Design.viewModeSwimlane
 
     Shortcut {
         sequence: StandardKey.Undo
-        enabled: backend.canUndo
-        onActivated: backend.undo()
+        enabled: controller.canUndo
+        onActivated: controller.undo()
     }
     Shortcut {
         sequences: [StandardKey.Find, "/"]
@@ -188,19 +188,19 @@ Item {
         onActivated: taskList.focusNewTask()
     }
     Shortcut {
-        sequence: "1"; onActivated: backend.currentView = "inbox"
+        sequence: "1"; onActivated: controller.currentView = "inbox"
     }
     Shortcut {
-        sequence: "2"; onActivated: backend.currentView = "today"
+        sequence: "2"; onActivated: controller.currentView = "today"
     }
     Shortcut {
-        sequence: "3"; onActivated: backend.currentView = "overdue"
+        sequence: "3"; onActivated: controller.currentView = "overdue"
     }
     Shortcut {
-        sequence: "4"; onActivated: backend.currentView = "tomorrow"
+        sequence: "4"; onActivated: controller.currentView = "tomorrow"
     }
     Shortcut {
-        sequence: "5"; onActivated: backend.currentView = "scheduled"
+        sequence: "5"; onActivated: controller.currentView = "scheduled"
     }
     Shortcut {
         sequence: "E"
@@ -210,12 +210,12 @@ Item {
     Shortcut {
         sequence: "X"
         enabled: taskList.selectedItemId >= 0
-        onActivated: backend.setTaskCompleted(taskList.selectedItemId, true)
+        onActivated: controller.setTaskCompleted(taskList.selectedItemId, true)
     }
     Shortcut {
         sequence: "T"
         enabled: taskList.selectedItemId >= 0
-        onActivated: backend.rescheduleTask(taskList.selectedItemId, "tomorrow")
+        onActivated: controller.rescheduleTask(taskList.selectedItemId, "tomorrow")
     }
     Shortcut {
         sequence: StandardKey.Delete
@@ -224,13 +224,13 @@ Item {
     }
 
     function computeDragProxyGap(cursorSize, shape) {
-        return backend.dragProxyGap(cursorSize, shape)
+        return controller.dragProxyGap(cursorSize, shape)
     }
 
     function dragLimitRight() {
         var margin = KurrentUi.Design.spaceSmall
         var sg = Plasmoid.screenGeometry
-        var cpp = backend.dragScreenLimits()
+        var cpp = controller.dragScreenLimits()
         var right = Screen.virtualX + Screen.width
         if (sg && sg.width > 0) {
             right = sg.x + sg.width
@@ -245,7 +245,7 @@ Item {
         var margin = KurrentUi.Design.spaceSmall
         var sg = Plasmoid.screenGeometry
         var ar = Plasmoid.availableScreenRect
-        var cpp = backend.dragScreenLimits()
+        var cpp = controller.dragScreenLimits()
         var screenBottom = Screen.virtualY + Screen.height
         if (sg && sg.height > 0) {
             screenBottom = sg.y + sg.height
@@ -283,7 +283,7 @@ Item {
     function beginTaskDrag(payload) {
         dropHint = ""
         dragCursorShape = Qt.ClosedHandCursor
-        dragCursorSize = backend.systemCursorSize()
+        dragCursorSize = controller.systemCursorSize()
         var gap = computeDragProxyGap(dragCursorSize, dragCursorShape)
         dragProxyOffsetX = gap.x
         dragProxyOffsetY = gap.y
@@ -300,7 +300,7 @@ Item {
         var limitRight = dragLimitRight()
         var limitBottom = dragLimitBottom()
 
-        var off = backend.clampDragProxyOffset(globalX, globalY, gap.x, gap.y, w, h, limitRight, limitBottom)
+        var off = controller.clampDragProxyOffset(globalX, globalY, gap.x, gap.y, w, h, limitRight, limitBottom)
         dragProxyOffsetX = off.x
         dragProxyOffsetY = off.y
         var local = mapFromGlobal(globalX, globalY)
@@ -337,25 +337,25 @@ Item {
 
         // 1. Pre-fill from active filters so the new task matches the current view.
         if (!collectionId || collectionId <= 0) {
-            var filterCol = backend.selectedCollectionId
+            var filterCol = controller.selectedCollectionId
             if (filterCol > 0) {
                 taskObj.collectionId = filterCol
             }
         }
-        if (backend.selectedLabel && backend.selectedLabel.length > 0) {
-            taskObj.categories = [backend.selectedLabel]
+        if (controller.selectedLabel && controller.selectedLabel.length > 0) {
+            taskObj.categories = [controller.selectedLabel]
         }
-        if (backend.selectedPriority > 0) {
-            taskObj.priority = backend.selectedPriority
+        if (controller.selectedPriority > 0) {
+            taskObj.priority = controller.selectedPriority
         }
-        if (backend.selectedStatus > 0) {
-            taskObj.status = backend.selectedStatus
+        if (controller.selectedStatus > 0) {
+            taskObj.status = controller.selectedStatus
         }
-        if (backend.selectedSecrecy > 0) {
-            taskObj.secrecy = backend.selectedSecrecy
+        if (controller.selectedSecrecy > 0) {
+            taskObj.secrecy = controller.selectedSecrecy
         }
-        if (backend.selectedLocation && backend.selectedLocation.length > 0) {
-            taskObj.location = backend.selectedLocation
+        if (controller.selectedLocation && controller.selectedLocation.length > 0) {
+            taskObj.location = controller.selectedLocation
         }
 
         // 2. QuickAdd values override filter values (user explicitly typed them).
@@ -431,7 +431,7 @@ Item {
     }
 
     // Levels and allowed keys come from the controller (TaskLogic sort rules).
-    readonly property var sortKeys: backend ? backend.sortKeys : ["priority", "due", "title"]
+    readonly property var sortKeys: controller ? controller.sortKeys : ["priority", "due", "title"]
 
     readonly property var viewModeOptions: [
         { id: KurrentUi.Design.viewModeList, label: i18n("List"), icon: "view-list-details" },
@@ -448,10 +448,10 @@ Item {
     }
 
     readonly property int mainPaneIndex: {
-        if (!backend) {
+        if (!controller) {
             return 0
         }
-        switch (backend.mainPaneMode) {
+        switch (controller.mainPaneMode) {
         case KurrentUi.Design.viewModeKanban: return 1
         case KurrentUi.Design.viewModeSwimlane: return 2
         case KurrentUi.Design.viewModePlan: return 3
@@ -484,7 +484,7 @@ Item {
 
     function setListGroupMode(mode) {
         mainPaneHost.requestSortFeedback()
-        backend.selectListGroup(mode || "")
+        controller.selectListGroup(mode || "")
     }
 
     readonly property int mainPaneHeaderToolSize: KurrentUi.Design.mainPaneHeaderToolSize
@@ -496,17 +496,17 @@ Item {
         var btn = KurrentUi.Design.mainPaneHeaderToolSize
         var s = KurrentUi.Design.spaceSmall
         var w = viewModeToolbarExpandedWidth
-        if (backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban) w += btn + s
-        if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
-                || backend.mainPaneMode === KurrentUi.Design.viewModePlan)) w += btn + s // Matrix options
-        if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeList
-                || backend.mainPaneMode === KurrentUi.Design.viewModeKanban)) w += btn + s // Sort
-        if (backend && backend.listGroupMode !== undefined
-                && backend.mainPaneMode === KurrentUi.Design.viewModeList) w += btn + s
-        if (backend && backend.canUndo) w += btn + s
-        if (backend && backend.devBuild) w += devBuildLabelWidth + s
-        if (!backend || !backend.akonadiAvailable) w += offlineLabelWidth + s
-        if (backend && backend.akonadiAvailable && backend.syncingCount > 0)
+        if (controller && controller.mainPaneMode === KurrentUi.Design.viewModeKanban) w += btn + s
+        if (controller && (controller.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+                || controller.mainPaneMode === KurrentUi.Design.viewModePlan)) w += btn + s // Matrix options
+        if (controller && (controller.mainPaneMode === KurrentUi.Design.viewModeList
+                || controller.mainPaneMode === KurrentUi.Design.viewModeKanban)) w += btn + s // Sort
+        if (controller && controller.listGroupMode !== undefined
+                && controller.mainPaneMode === KurrentUi.Design.viewModeList) w += btn + s
+        if (controller && controller.canUndo) w += btn + s
+        if (controller && controller.devBuild) w += devBuildLabelWidth + s
+        if (!controller || !controller.akonadiAvailable) w += offlineLabelWidth + s
+        if (controller && controller.akonadiAvailable && controller.syncingCount > 0)
                 w += syncingLabelWidth + s
         return w
     }
@@ -515,17 +515,17 @@ Item {
         var btn = KurrentUi.Design.mainPaneHeaderToolSize
         var s = KurrentUi.Design.spaceSmall
         var w = viewModeToolbarCompactWidth
-        if (backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban) w += btn + s
-        if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
-                || backend.mainPaneMode === KurrentUi.Design.viewModePlan)) w += btn + s // Matrix options
-        if (backend && (backend.mainPaneMode === KurrentUi.Design.viewModeList
-                || backend.mainPaneMode === KurrentUi.Design.viewModeKanban)) w += btn + s // Sort
-        if (backend && backend.listGroupMode !== undefined
-                && backend.mainPaneMode === KurrentUi.Design.viewModeList) w += btn + s
-        if (backend && backend.canUndo) w += btn + s
-        if (backend && backend.devBuild) w += devBuildLabelWidth + s
-        if (!backend || !backend.akonadiAvailable) w += offlineLabelWidth + s
-        if (backend && backend.akonadiAvailable && backend.syncingCount > 0)
+        if (controller && controller.mainPaneMode === KurrentUi.Design.viewModeKanban) w += btn + s
+        if (controller && (controller.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+                || controller.mainPaneMode === KurrentUi.Design.viewModePlan)) w += btn + s // Matrix options
+        if (controller && (controller.mainPaneMode === KurrentUi.Design.viewModeList
+                || controller.mainPaneMode === KurrentUi.Design.viewModeKanban)) w += btn + s // Sort
+        if (controller && controller.listGroupMode !== undefined
+                && controller.mainPaneMode === KurrentUi.Design.viewModeList) w += btn + s
+        if (controller && controller.canUndo) w += btn + s
+        if (controller && controller.devBuild) w += devBuildLabelWidth + s
+        if (!controller || !controller.akonadiAvailable) w += offlineLabelWidth + s
+        if (controller && controller.akonadiAvailable && controller.syncingCount > 0)
                 w += syncingLabelWidth + s
         return w
     }
@@ -535,7 +535,7 @@ Item {
         id: devBuildMetrics
         visible: false
         parent: fullRoot
-        text: i18n("Build") + " " + String(backend ? backend.buildNumber : 0)
+        text: i18n("Build") + " " + String(controller ? controller.buildNumber : 0)
         font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
         font.bold: true
     }
@@ -618,17 +618,17 @@ Item {
 
     // Clears one sidebar filter kind (the × on a header chip).
     function clearFilter(kind) {
-        if (!backend) {
+        if (!controller) {
             return
         }
         switch (kind) {
-        case "project": backend.selectedCollectionId = -1; break
-        case "label": backend.selectedLabel = ""; break
-        case "priority": backend.selectedPriority = -1; break
-        case "progress": backend.selectedProgressBand = ""; break
-        case "status": backend.selectedStatus = -1; break
-        case "secrecy": backend.selectedSecrecy = -1; break
-        case "location": backend.selectedLocation = ""; break
+        case "project": controller.selectedCollectionId = -1; break
+        case "label": controller.selectedLabel = ""; break
+        case "priority": controller.selectedPriority = -1; break
+        case "progress": controller.selectedProgressBand = ""; break
+        case "status": controller.selectedStatus = -1; break
+        case "secrecy": controller.selectedSecrecy = -1; break
+        case "location": controller.selectedLocation = ""; break
         }
     }
 
@@ -701,7 +701,7 @@ Item {
 
     // Menu options of one level in A–Z label order, limited to what the controller allows.
     function optionsForSortLevel(level) {
-        var allowed = backend ? backend.sortLevelOptions[level] : []
+        var allowed = controller ? controller.sortLevelOptions[level] : []
         var out = []
         var master = sortOptionsAlphabetical
         for (var m = 0; m < master.length; ++m) {
@@ -714,7 +714,7 @@ Item {
 
     function setSortLevel(level, id) {
         mainPaneHost.requestSortFeedback()
-        backend.selectSortLevel(level, id)
+        controller.selectSortLevel(level, id)
     }
 
     // Wide/narrow thresholds + sort lookups (once at startup — not on each open).
@@ -822,10 +822,10 @@ Item {
     }
 
     function setKanbanColumnSource(source) {
-        if (!backend) {
+        if (!controller) {
             return
         }
-        backend.selectKanbanSource(source)
+        controller.selectKanbanSource(source)
     }
 
     function openKanbanColumnsMenu() {
@@ -849,10 +849,10 @@ Item {
     }
 
     // ---- Swimlanes / Project plan options (mirrors the KCM "Views" page) --------------------
-    readonly property bool matrixMode: backend
-            && (backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
-                || backend.mainPaneMode === KurrentUi.Design.viewModePlan)
-    readonly property bool swimlaneMode: backend && backend.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+    readonly property bool matrixMode: controller
+            && (controller.mainPaneMode === KurrentUi.Design.viewModeSwimlane
+                || controller.mainPaneMode === KurrentUi.Design.viewModePlan)
+    readonly property bool swimlaneMode: controller && controller.mainPaneMode === KurrentUi.Design.viewModeSwimlane
 
     readonly property var swimlaneAxisOptions: [
         { id: "project", label: i18n("Project") },
@@ -866,10 +866,10 @@ Item {
         { id: "month", label: i18n("Month") }
     ]
 
-    readonly property string matrixBucket: !backend ? "week"
-            : (swimlaneMode ? backend.swimlaneTimeBucket : backend.planTimeBucket)
-    readonly property int matrixHorizon: !backend ? 0
-            : (swimlaneMode ? backend.swimlaneHorizon : backend.planHorizon)
+    readonly property string matrixBucket: !controller ? "week"
+            : (swimlaneMode ? controller.swimlaneTimeBucket : controller.planTimeBucket)
+    readonly property int matrixHorizon: !controller ? 0
+            : (swimlaneMode ? controller.swimlaneHorizon : controller.planHorizon)
 
     // Periods ahead; 0 = automatic (Swimlanes) / everything (Project plan).
     readonly property var matrixHorizonOptions: {
@@ -890,15 +890,15 @@ Item {
     }
 
     function setMatrixLaneAxis(axis) {
-        backend.storeSetting("swimlaneLaneAxis", axis)
+        controller.storeSetting("swimlaneLaneAxis", axis)
     }
 
     function setMatrixBucket(bucket) {
-        backend.selectMatrixBucket(bucket)
+        controller.selectMatrixBucket(bucket)
     }
 
     function setMatrixHorizon(n) {
-        backend.selectMatrixHorizon(n)
+        controller.selectMatrixHorizon(n)
     }
 
     function openMatrixMenu() {
@@ -1004,7 +1004,7 @@ Item {
             SidebarView {
                 id: sidebar
                 Layout.fillHeight: true
-                controller: backend
+                controller: fullRoot.controller
                 dragHost: fullRoot
                 interactionsSuspended: taskFullEditor.visible
                 hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
@@ -1052,11 +1052,11 @@ Item {
                 Layout.fillWidth: true
                 Layout.topMargin: KurrentUi.Design.spaceTiny
                 Layout.leftMargin: KurrentUi.Design.spaceSmall
-                visible: !!backend
+                visible: !!controller
                 spacing: KurrentUi.Design.spaceTiny
 
-                readonly property bool online: !!backend && backend.akonadiAvailable
-                readonly property int syncing: backend ? backend.syncingCount : 0
+                readonly property bool online: !!controller && controller.akonadiAvailable
+                readonly property int syncing: controller ? controller.syncingCount : 0
 
                 Kirigami.Icon {
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small
@@ -1080,8 +1080,8 @@ Item {
                     icon.name: "view-refresh"
                     display: QQC2.AbstractButton.IconOnly
                     text: i18n("Sync now")
-                    enabled: !!backend && !backend.loading
-                    onClicked: backend.syncNow()
+                    enabled: !!controller && !controller.loading
+                    onClicked: controller.syncNow()
                     QQC2.ToolTip.text: text
                     QQC2.ToolTip.visible: hovered
                 }
@@ -1122,7 +1122,7 @@ Item {
                         return
                     }
                     KurrentUi.Design.sidebarWidthUnits = units
-                    backend.storeSetting("sidebarWidthUnits", units)
+                    controller.storeSetting("sidebarWidthUnits", units)
                 }
             }
         }
@@ -1143,7 +1143,7 @@ Item {
             ViewTabBar {
                 Layout.fillWidth: true
                 visible: fullRoot.compactLayout
-                controller: backend
+                controller: fullRoot.controller
                 views: sidebar.visiblePrimaryViewItems
                 sidebarOpen: fullRoot.compactSidebarOpen
                 onToggleSidebar: fullRoot.compactSidebarOpen = !fullRoot.compactSidebarOpen
@@ -1210,14 +1210,14 @@ Item {
                 // Only in the wide header; the narrow one has the counts on the tabs.
                 RowLayout {
                     Layout.alignment: Qt.AlignVCenter
-                    visible: !!backend && fullRoot.viewModeToolbarExpanded && !fullRoot.compactLayout && openCount >= 0
+                    visible: !!controller && fullRoot.viewModeToolbarExpanded && !fullRoot.compactLayout && openCount >= 0
                     spacing: KurrentUi.Design.spaceTiny
 
-                    readonly property int openCount: backend && backend.viewTaskCounts
-                            && backend.viewTaskCounts[backend.currentView] !== undefined
-                            ? backend.viewTaskCounts[backend.currentView] : -1
-                    readonly property int overdueCount: backend && backend.viewTaskCounts
-                            ? (backend.viewTaskCounts["overdue"] || 0) : 0
+                    readonly property int openCount: controller && controller.viewTaskCounts
+                            && controller.viewTaskCounts[controller.currentView] !== undefined
+                            ? controller.viewTaskCounts[controller.currentView] : -1
+                    readonly property int overdueCount: controller && controller.viewTaskCounts
+                            ? (controller.viewTaskCounts["overdue"] || 0) : 0
                     readonly property font figureFont: KanteStyle.active
                             ? KanteStyle.monoFont(Kirigami.Theme.smallFont.pointSize)
                             : Kirigami.Theme.smallFont
@@ -1229,8 +1229,8 @@ Item {
                     }
                     QQC2.Label {
                         // The overdue tile shows this already.
-                        visible: parent.overdueCount > 0 && backend.currentView !== "overdue"
-                                 && backend.currentView !== "completed" && !viewTiles.visible
+                        visible: parent.overdueCount > 0 && controller.currentView !== "overdue"
+                                 && controller.currentView !== "completed" && !viewTiles.visible
                         text: "· " + i18n("%1 overdue", parent.overdueCount)
                         font: parent.figureFont
                         color: Kirigami.Theme.negativeTextColor
@@ -1241,10 +1241,10 @@ Item {
                 KanteToolButton {
                     id: overdueChip
                     Layout.alignment: Qt.AlignVCenter
-                    readonly property int overdueCount: backend && backend.viewTaskCounts
-                            ? (backend.viewTaskCounts["overdue"] || 0) : 0
+                    readonly property int overdueCount: controller && controller.viewTaskCounts
+                            ? (controller.viewTaskCounts["overdue"] || 0) : 0
                     visible: fullRoot.compactLayout && KurrentUi.Design.showOverdueBanner && overdueCount > 0
-                             && backend.currentView !== "overdue" && backend.currentView !== "completed"
+                             && controller.currentView !== "overdue" && controller.currentView !== "completed"
                     icon.name: "data-warning"
                     icon.color: Kirigami.Theme.negativeTextColor
                     text: i18n("%1 overdue", overdueCount)
@@ -1256,7 +1256,7 @@ Item {
                         QQC2.MenuItem {
                             icon.name: "go-jump-today"
                             text: i18n("Move all to today")
-                            onTriggered: backend.rescheduleOverdueToToday()
+                            onTriggered: controller.rescheduleOverdueToToday()
                         }
                         QQC2.MenuItem {
                             icon.name: "view-filter"
@@ -1356,7 +1356,7 @@ Item {
                 // List drill-down from a matrix cell: chip with the cell, click = back to the matrix.
                 Rectangle {
                     id: drillChip
-                    visible: backend && backend.matrixDrillActive
+                    visible: controller && controller.matrixDrillActive
                     Layout.alignment: Qt.AlignVCenter
                     Layout.maximumWidth: Math.max(Kirigami.Units.gridUnit * 6, mainPane.width * 0.4)
                     implicitWidth: drillRow.implicitWidth + KurrentUi.Design.spaceSmall * 2
@@ -1373,13 +1373,13 @@ Item {
                         spacing: KurrentUi.Design.spaceTiny
 
                         Kirigami.Icon {
-                            source: backend && backend.matrixDrillSource === "plan" ? "view-pim-tasks" : "view-split-left-right"
+                            source: controller && controller.matrixDrillSource === "plan" ? "view-pim-tasks" : "view-split-left-right"
                             Layout.preferredWidth: fullRoot.filterChipIconSize
                             Layout.preferredHeight: fullRoot.filterChipIconSize
                         }
                         QQC2.Label {
                             Layout.fillWidth: true
-                            text: backend ? backend.matrixDrillLabel : ""
+                            text: controller ? controller.matrixDrillLabel : ""
                             elide: Text.ElideRight
                             maximumLineCount: 1
                         }
@@ -1389,7 +1389,7 @@ Item {
                             implicitWidth: fullRoot.filterChipIconSize + KurrentUi.Design.spaceSmall
                             implicitHeight: implicitWidth
                             padding: 0
-                            onClicked: backend.clearMatrixDrilldown()
+                            onClicked: controller.clearMatrixDrilldown()
                             QQC2.ToolTip.text: i18n("Clear filter")
                             QQC2.ToolTip.visible: hovered
                         }
@@ -1399,7 +1399,7 @@ Item {
                         cursorShape: Qt.PointingHandCursor
                     }
                     TapHandler {
-                        onTapped: backend.selectMainPaneMode(backend.matrixDrillSource === "plan"
+                        onTapped: controller.selectMainPaneMode(controller.matrixDrillSource === "plan"
                                 ? KurrentUi.Design.viewModePlan : KurrentUi.Design.viewModeSwimlane)
                     }
                     QQC2.ToolTip.text: i18n("Back to the matrix")
@@ -1416,22 +1416,22 @@ Item {
 
                 KanteToolButton {
                     id: undoButton
-                    visible: backend.canUndo
+                    visible: controller.canUndo
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: fullRoot.mainPaneHeaderToolSize
                     Layout.preferredHeight: fullRoot.mainPaneHeaderToolSize
                     Layout.minimumWidth: fullRoot.mainPaneHeaderToolSize
                     icon.name: "edit-undo"
                     display: QQC2.AbstractButton.IconOnly
-                    onClicked: backend.undo()
-                    QQC2.ToolTip.text: backend.undoLabel
+                    onClicked: controller.undo()
+                    QQC2.ToolTip.text: controller.undoLabel
                     QQC2.ToolTip.visible: hovered
                 }
 
                 KanteToolButton {
                     id: groupButton
-                    visible: backend && backend.listGroupMode !== undefined
-                            && backend.mainPaneMode === KurrentUi.Design.viewModeList
+                    visible: controller && controller.listGroupMode !== undefined
+                            && controller.mainPaneMode === KurrentUi.Design.viewModeList
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: fullRoot.mainPaneHeaderToolSize
                     Layout.preferredHeight: fullRoot.mainPaneHeaderToolSize
@@ -1439,15 +1439,15 @@ Item {
                     icon.name: "view-list-tree"
                     display: QQC2.AbstractButton.IconOnly
                     onClicked: fullRoot.openGroupMenu()
-                    QQC2.ToolTip.text: backend
-                            ? i18n("Group: %1", fullRoot.listGroupLabel(backend.listGroupMode || "none"))
+                    QQC2.ToolTip.text: controller
+                            ? i18n("Group: %1", fullRoot.listGroupLabel(controller.listGroupMode || "none"))
                             : ""
                     QQC2.ToolTip.visible: hovered
                 }
 
                 KanteToolButton {
                     id: kanbanColumnsButton
-                    visible: backend && backend.mainPaneMode === KurrentUi.Design.viewModeKanban
+                    visible: controller && controller.mainPaneMode === KurrentUi.Design.viewModeKanban
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: fullRoot.mainPaneHeaderToolSize
                     Layout.preferredHeight: fullRoot.mainPaneHeaderToolSize
@@ -1455,7 +1455,7 @@ Item {
                     icon.name: "view-file-columns"
                     display: QQC2.AbstractButton.IconOnly
                     onClicked: fullRoot.openKanbanColumnsMenu()
-                    QQC2.ToolTip.text: i18n("Kanban columns: %1", fullRoot.kanbanColumnSourceLabel(backend.kanbanColumnSource))
+                    QQC2.ToolTip.text: i18n("Kanban columns: %1", fullRoot.kanbanColumnSourceLabel(controller.kanbanColumnSource))
                     QQC2.ToolTip.visible: hovered
                 }
 
@@ -1475,8 +1475,8 @@ Item {
 
                 KanteToolButton {
                     id: sortButton
-                    visible: backend && (backend.mainPaneMode === KurrentUi.Design.viewModeList
-                            || backend.mainPaneMode === KurrentUi.Design.viewModeKanban)
+                    visible: controller && (controller.mainPaneMode === KurrentUi.Design.viewModeList
+                            || controller.mainPaneMode === KurrentUi.Design.viewModeKanban)
                     Layout.alignment: Qt.AlignVCenter
                     Layout.preferredWidth: fullRoot.mainPaneHeaderToolSize
                     Layout.preferredHeight: fullRoot.mainPaneHeaderToolSize
@@ -1511,10 +1511,10 @@ Item {
                             text: modelData.label
                             icon.name: modelData.icon
                             checkable: true
-                            checked: backend.mainPaneMode === modelData.id
+                            checked: controller.mainPaneMode === modelData.id
                             onTriggered: {
                                 mainPaneHost.beginViewTransition(modelData.id)
-                                backend.selectMainPaneMode(modelData.id)
+                                controller.selectMainPaneMode(modelData.id)
                             }
                         }
                     }
@@ -1533,7 +1533,7 @@ Item {
                             required property var modelData
                             text: modelData.label
                             checkable: true
-                            checked: backend.kanbanColumnSource === modelData.id
+                            checked: controller.kanbanColumnSource === modelData.id
                             onTriggered: fullRoot.setKanbanColumnSource(modelData.id)
                         }
                     }
@@ -1559,7 +1559,7 @@ Item {
                             text: modelData.label
                             checkable: true
                             autoExclusive: true
-                            checked: backend.swimlaneLaneAxis === modelData.id
+                            checked: controller.swimlaneLaneAxis === modelData.id
                             onTriggered: fullRoot.setMatrixLaneAxis(modelData.id)
                         }
                     }
@@ -1604,16 +1604,16 @@ Item {
                         height: visible ? implicitHeight : 0
                         text: i18n("Show undated tasks")
                         checkable: true
-                        checked: backend.planShowUndated
-                        onTriggered: backend.storeSetting("planShowUndated", checked)
+                        checked: controller.planShowUndated
+                        onTriggered: controller.storeSetting("planShowUndated", checked)
                     }
                     QQC2.MenuItem {
                         visible: !fullRoot.swimlaneMode
                         height: visible ? implicitHeight : 0
                         text: i18n("Show completed tasks")
                         checkable: true
-                        checked: backend.planShowCompleted
-                        onTriggered: backend.storeSetting("planShowCompleted", checked)
+                        checked: controller.planShowCompleted
+                        onTriggered: controller.storeSetting("planShowCompleted", checked)
                     }
                 }
 
@@ -1630,15 +1630,15 @@ Item {
                             required property var modelData
                             text: modelData.label
                             checkable: true
-                            checked: (backend.listGroupMode || "none") === modelData.id
+                            checked: (controller.listGroupMode || "none") === modelData.id
                             onTriggered: fullRoot.setListGroupMode(modelData.id)
                         }
                     }
                 }
 
                 QQC2.Label {
-                    visible: backend.devBuild
-                    text: i18n("Build") + " " + String(backend.buildNumber)
+                    visible: controller.devBuild
+                    text: i18n("Build") + " " + String(controller.buildNumber)
                     opacity: 0.85
                     font.pixelSize: Kirigami.Theme.defaultFont.pixelSize
                     font.bold: true
@@ -1647,14 +1647,14 @@ Item {
                 }
 
                 QQC2.Label {
-                    visible: !backend.akonadiAvailable
+                    visible: !controller.akonadiAvailable
                     text: i18n("Akonadi offline")
                     color: Kirigami.Theme.negativeTextColor
                     Layout.alignment: Qt.AlignVCenter
                 }
 
                 QQC2.Label {
-                    visible: backend.akonadiAvailable && backend.syncingCount > 0
+                    visible: controller.akonadiAvailable && controller.syncingCount > 0
                     text: i18n("Syncing…")
                     opacity: 0.85
                     Layout.alignment: Qt.AlignVCenter
@@ -1674,39 +1674,39 @@ Item {
                 id: viewTiles
                 Layout.fillWidth: true
                 // The Agenda has its own date bar and shows overdue tasks itself: no tiles there.
-                visible: KurrentUi.Design.showViewTiles && !fullRoot.compactLayout && !!backend
-                         && backend.mainPaneMode !== KurrentUi.Design.viewModeCalendar
-                controller: backend
+                visible: KurrentUi.Design.showViewTiles && !fullRoot.compactLayout && !!controller
+                         && controller.mainPaneMode !== KurrentUi.Design.viewModeCalendar
+                controller: fullRoot.controller
                 // Per view: the heatmap shows its own figures here instead of the view tiles.
-                facts: !backend ? null
-                     : backend.mainPaneMode === KurrentUi.Design.viewModeHeatmap ? mainPaneHost.heatmapTileFacts
+                facts: !controller ? null
+                     : controller.mainPaneMode === KurrentUi.Design.viewModeHeatmap ? mainPaneHost.heatmapTileFacts
                      : null
                 onViewPicked: function(viewId) { fullRoot.pickView(viewId) }
             }
 
             OverdueBanner {
                 Layout.fillWidth: true
-                controller: backend
+                controller: fullRoot.controller
                 suppressed: viewTiles.visible || fullRoot.compactLayout
-                            || (!!backend && backend.mainPaneMode === KurrentUi.Design.viewModeCalendar)
+                            || (!!controller && controller.mainPaneMode === KurrentUi.Design.viewModeCalendar)
                 onShowOverdue: fullRoot.pickView("overdue")
             }
 
             Kirigami.InlineMessage {
                 id: conflictMessage
                 Layout.fillWidth: true
-                visible: backend.conflictItemId >= 0
+                visible: controller.conflictItemId >= 0
                 type: Kirigami.MessageType.Warning
                 text: i18n("This task was changed on the server. Reload to discard your edit.")
                 KanteMessageSkin { message: conflictMessage }
                 actions: [
                     Kirigami.Action {
                         text: i18n("Reload")
-                        onTriggered: backend.reloadTask(backend.conflictItemId)
+                        onTriggered: controller.reloadTask(controller.conflictItemId)
                     },
                     Kirigami.Action {
                         text: i18n("Dismiss")
-                        onTriggered: backend.dismissConflict()
+                        onTriggered: controller.dismissConflict()
                     }
                 ]
             }
@@ -1714,7 +1714,7 @@ Item {
             BulkActionBar {
                 Layout.fillWidth: true
                 visible: Plasmoid.configuration.multiSelectEnabled === true
-                controller: backend
+                controller: fullRoot.controller
             }
 
             // Task pane, with the inspector beside it while a task is inspected (wide layout).
@@ -1731,7 +1731,7 @@ Item {
                 Layout.fillHeight: true
                 Layout.preferredHeight: 0
                 Layout.minimumHeight: 0
-                controller: backend
+                controller: fullRoot.controller
                 dragHost: fullRoot
                 interactionsSuspended: taskFullEditor.visible
                 hiddenProjects: Plasmoid.configuration.hiddenProjects || ""
@@ -1745,7 +1745,7 @@ Item {
                 Layout.preferredWidth: fullRoot.inspectorWidth
                 Layout.maximumWidth: fullRoot.inspectorWidth
                 visible: fullRoot.inspectorActive && fullRoot.inspectedItemId >= 0
-                controller: backend
+                controller: fullRoot.controller
                 itemId: fullRoot.inspectedItemId
                 onRequestFullEditor: function(taskObj) { fullRoot.openFullEditor(taskObj) }
                 onCloseRequested: fullRoot.inspectedItemId = -1
@@ -2042,7 +2042,7 @@ Item {
         id: taskFullEditor
         parent: fullRoot.overlayHost
         z: 2000
-        controller: backend
+        controller: fullRoot.controller
         coverSidebar: fullRoot.editorCoversSidebar
         sidebarReserve: sidebar.sidebarWidth + shellRow.spacing + 1
         hostPadLeft: (fullRoot.overlayHost && fullRoot.overlayHost !== fullRoot)
@@ -2064,7 +2064,7 @@ Item {
     // BEGIN internal screenshots (removed by scripts/package-plasmoid.sh)
     ScreenshotRunner {
         plasmoidRoot: fullRoot.plasmoidRoot
-        backend: fullRoot.backend
+        controller: fullRoot.controller
         fullRoot: fullRoot
         taskFullEditor: taskFullEditor
     }
@@ -2073,7 +2073,7 @@ Item {
     SmokeTest {
         id: smokeTest
         plasmoidRoot: fullRoot.plasmoidRoot
-        backend: fullRoot.backend
+        controller: fullRoot.controller
         fullRoot: fullRoot
         taskList: taskList
         taskFullEditor: taskFullEditor
