@@ -26,6 +26,8 @@ add_library(kurrentcore STATIC
     tasklistmodel.h
     collectionlistmodel.cpp
     collectionlistmodel.h
+    sharedtasks.cpp
+    sharedtasks.h
     sharedsettings.cpp
     sharedsettings.h
     kurrentdbus.cpp
