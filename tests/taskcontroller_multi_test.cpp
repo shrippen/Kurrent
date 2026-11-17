@@ -26,7 +26,7 @@ public:
 
 }
 
-// Widgets A and B and a config page C in one process, sharing the statics of TaskController.
+// Widgets A and B and a config page C in one process, sharing SharedTasks.
 class TaskControllerMultiTest : public QObject
 {
     Q_OBJECT
@@ -224,6 +224,7 @@ void TaskControllerMultiTest::busyIntervalsReachOthers()
     m_a->onBusyEventsFetched(&job, QDateTime(), QDateTime());
 
     QCOMPARE(SharedTasks::instance().busyIntervals().size(), 2);
+    QVERIFY(!m_c->agendaEventsForDay(interval.start.date()).isEmpty());
 }
 
 void TaskControllerMultiTest::destroyedWriterLeavesOthersWorking()

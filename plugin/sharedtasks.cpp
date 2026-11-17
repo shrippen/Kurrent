@@ -73,7 +73,6 @@ const QVector<TaskCalendar::BusyInterval> &SharedTasks::busyIntervals() const
 void SharedTasks::setBusyIntervals(const QVector<TaskCalendar::BusyInterval> &intervals)
 {
     m_busyIntervals = intervals;
-    Q_EMIT busyChanged();
 }
 
 void SharedTasks::markBusyChanged()
