@@ -241,17 +241,17 @@ ConfigPageBase {
 
         ConfigResetButton {
                 page: root
-                defaults: ({
-                    sidebarWidthUnits: 10,
-                    sidebarRowSize: "auto",
-                    showEmptyProjects: false,
-                    showSidebarCounts: true,
-                    countsExcludeCollapsed: false,
-                    sidebarSectionOrder: "views,projects,labels,priorities,progress,status,secrecy,location",
-                    hiddenSidebarSections: "progress||status||secrecy||location",
-                    sidebarViewOrder: "",
-                    hiddenViews: ""
-                })
+                keys: [
+                    "sidebarWidthUnits",
+                    "sidebarRowSize",
+                    "showEmptyProjects",
+                    "showSidebarCounts",
+                    "countsExcludeCollapsed",
+                    "sidebarSectionOrder",
+                    "hiddenSidebarSections",
+                    "sidebarViewOrder",
+                    "hiddenViews"
+                ]
         }
     }
 }

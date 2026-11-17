@@ -350,18 +350,18 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                uiStyle: "plasma",
-                accentProjectColors: true,
-                accentPriorityColors: true,
-                showOverdueBanner: true,
-                showViewTiles: true,
-                showInspector: true,
-                blurBackground: true,
-                density: "auto",
-                overlayDimStep: 1,
-                reducedMotion: false
-            })
+            keys: [
+                "uiStyle",
+                "accentProjectColors",
+                "accentPriorityColors",
+                "showOverdueBanner",
+                "showViewTiles",
+                "showInspector",
+                "blurBackground",
+                "density",
+                "overlayDimStep",
+                "reducedMotion"
+            ]
         }
     }
 }

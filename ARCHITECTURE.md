@@ -97,9 +97,8 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 ## Known deviations
 
 - `ui/taskmeta.js` computes the progress bands a second time, without a test
-  (`AUDIT.md`, finding 1).
-- Tasks from the editor are created by the controller straight in Akonadi, past the
-  storage boundary, with a copied block that sets the fields (`AUDIT.md`, finding 2).
+  (`AUDIT.md`, finding 1). The drag limits of popups (`ui/FullView.qml`) are
+  interface logic in a view, without a test (not in `AUDIT.md`).
 - The sidebar consists of seven nearly equal sections of about 230 lines each
   (`AUDIT.md`, finding 3).
 - The controller does nearly everything in one class of 7031 lines, including
@@ -109,11 +108,10 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   in `AUDIT.md`).
 - `tui/tuiapp.cpp` has a filter and a sort order of its own for open tasks (not in
   `AUDIT.md`).
-- The defaults of the settings stand in three places, with no test comparing them
-  (`AUDIT.md`, finding 5).
+- The order of the sidebar's sections and views is still written out as a default in
+  `ui/configSidebar.qml` and `ui/views/SidebarView.qml`, besides `main.xml` (`AUDIT.md`,
+  finding 5).
 - Small date and selection helpers are copied into many views and settings pages
   (`AUDIT.md`, finding 6).
-- The controller is called `backend` in five files and `controller` in about thirty
-  (`AUDIT.md`, finding 7).
-- `plugin/tasklogic.cpp` holds all rules in one file of 3778 lines
+- `plugin/tasklogic.cpp` holds all rules in one file of 3330 lines
   (`AUDIT.md`, finding 8).

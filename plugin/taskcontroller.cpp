@@ -16,7 +16,6 @@
 #include <Akonadi/Collection>
 #include <Akonadi/CollectionFetchJob>
 #include <Akonadi/CollectionFetchScope>
-#include <Akonadi/ItemCreateJob>
 #include <Akonadi/ItemFetchJob>
 #include <Akonadi/ItemFetchScope>
 #include <Akonadi/ServerManager>
@@ -219,20 +218,6 @@ void configureItemFetchJob(Akonadi::ItemFetchJob *job)
     // Never fetch ancestors: that issues FetchCollections per item.
     scope.setAncestorRetrieval(Akonadi::ItemFetchScope::None);
     job->setFetchScope(scope);
-}
-
-QDateTime dateTimeFromVariant(const QVariant &value)
-{
-    if (!value.isValid() || value.isNull()) {
-        return {};
-    }
-    if (value.userType() == QMetaType::QDateTime) {
-        return value.toDateTime();
-    }
-    if (value.userType() == QMetaType::QDate) {
-        return QDateTime(value.toDate(), QTime(0, 0));
-    }
-    return value.toDateTime();
 }
 
 QString kanbanManualOrderColumnKey(const QString &source, const QString &columnKey)
@@ -4536,11 +4521,6 @@ QString TaskController::recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr 
     return TaskCalendar::recurrencePresetFromTodo(todo);
 }
 
-void TaskController::applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset)
-{
-    TaskCalendar::applyRecurrencePreset(todo, preset, QDate::currentDate());
-}
-
 TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLevel, bool hasChildren) const
 {
     const KCalendarCore::Todo::Ptr &todo = cached.todo;
@@ -4631,92 +4611,7 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
         pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
 
-    if (fields.contains(QStringLiteral("summary"))) {
-        todo->setSummary(fields.value(QStringLiteral("summary")).toString().trimmed());
-    }
-    if (fields.contains(QStringLiteral("description"))) {
-        todo->setDescription(fields.value(QStringLiteral("description")).toString());
-    }
-    if (fields.contains(QStringLiteral("priority"))) {
-        todo->setPriority(fields.value(QStringLiteral("priority")).toInt());
-    }
-    if (fields.contains(QStringLiteral("categories"))) {
-        todo->setCategories(fields.value(QStringLiteral("categories")).toStringList());
-    }
-    if (fields.contains(QStringLiteral("location"))) {
-        todo->setLocation(fields.value(QStringLiteral("location")).toString());
-    }
-    if (fields.contains(QStringLiteral("allDay"))) {
-        todo->setAllDay(fields.value(QStringLiteral("allDay")).toBool());
-    }
-    if (fields.contains(QStringLiteral("status"))) {
-        todo->setStatus(static_cast<KCalendarCore::Incidence::Status>(fields.value(QStringLiteral("status")).toInt()));
-    }
-    if (fields.contains(QStringLiteral("secrecy"))) {
-        todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(fields.value(QStringLiteral("secrecy")).toInt()));
-    }
-
-    // A series edited here changes the series itself (#29): the shown occurrence's dates
-    // become DTSTART and DUE, and a moved occurrence goes back to the rule. Both are written
-    // together (one alone would stretch every occurrence); dates the editor sends back
-    // unchanged, to the minute, write nothing, so saving a title keeps a move.
-    const bool series = todo->recurs();
-    const QDateTime shownDue = todo->hasDueDate() ? todo->dtDue() : QDateTime();
-    const QDateTime shownStart = todo->hasStartDate() ? todo->dtStart() : QDateTime();
-    const bool clearDue = fields.value(QStringLiteral("clearDue")).toBool();
-    const bool clearStart = fields.value(QStringLiteral("clearStart")).toBool();
-    const QDateTime wantDue = fields.contains(QStringLiteral("dueDate"))
-            ? dateTimeFromVariant(fields.value(QStringLiteral("dueDate"))) : QDateTime();
-    const QDateTime wantStart = fields.contains(QStringLiteral("startDate"))
-            ? dateTimeFromVariant(fields.value(QStringLiteral("startDate"))) : QDateTime();
-    if (series) {
-        const auto sameMinute = [](const QDateTime &a, const QDateTime &b) {
-            return a.isValid() && b.isValid() && qAbs(a.secsTo(b)) < 60;
-        };
-        const bool dueChanged = wantDue.isValid() && !sameMinute(wantDue, shownDue);
-        const bool startChanged = wantStart.isValid() && !sameMinute(wantStart, shownStart);
-        const bool endsSeries = fields.contains(QStringLiteral("recurrencePreset"))
-                && fields.value(QStringLiteral("recurrencePreset")).toString() == QLatin1String("none");
-        if (dueChanged || startChanged || clearDue || clearStart || endsSeries) {
-            const QDateTime newStart = clearStart ? QDateTime() : (startChanged ? wantStart : shownStart);
-            const QDateTime newDue = clearDue ? QDateTime() : (dueChanged ? wantDue : shownDue);
-            TaskCalendar::forgetOccurrenceMove(todo);
-            todo->setDtStart(newStart);
-            todo->setDtDue(newDue, true);
-        }
-    } else {
-        if (clearDue) {
-            todo->setDtDue(QDateTime());
-        } else if (wantDue.isValid()) {
-            todo->setDtDue(wantDue);
-        }
-        if (clearStart) {
-            todo->setDtStart(QDateTime());
-        } else if (wantStart.isValid()) {
-            todo->setDtStart(wantStart);
-        }
-    }
-
-    if (fields.contains(QStringLiteral("completed"))) {
-        const bool completed = fields.value(QStringLiteral("completed")).toBool();
-        TaskCalendar::completeTodo(todo, completed ? TaskCalendar::CompleteAction::Mark : TaskCalendar::CompleteAction::Unmark, QDateTime::currentDateTime());
-        if (!fields.contains(QStringLiteral("percentComplete")) && !todo->recurs()) {
-            todo->setPercentComplete(completed ? 100 : 0);
-        }
-    }
-    if (fields.contains(QStringLiteral("percentComplete"))) {
-        todo->setPercentComplete(fields.value(QStringLiteral("percentComplete")).toInt());
-    }
-
-    if (fields.contains(QStringLiteral("recurrencePreset"))) {
-        applyRecurrencePreset(todo, fields.value(QStringLiteral("recurrencePreset")).toString());
-    }
-    if (fields.contains(QStringLiteral("section"))) {
-        TaskCalendar::setSection(todo, fields.value(QStringLiteral("section")).toString());
-    }
-    if (fields.contains(QStringLiteral("reminderMinutes"))) {
-        TaskCalendar::setReminderMinutes(todo, fields.value(QStringLiteral("reminderMinutes")).toInt());
-    }
+    TaskCalendar::applyEditorFields(todo, fields);
 
     qint64 moveToCollectionId = -1;
     if (fields.contains(QStringLiteral("collectionId"))) {
@@ -4766,84 +4661,27 @@ void TaskController::createTaskFull(const QVariantMap &fields)
 
     KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
 
-    // Apply all fields the same way updateTaskFull does.
-    if (fields.contains(QStringLiteral("summary"))) {
-        todo->setSummary(fields.value(QStringLiteral("summary")).toString().trimmed());
-    }
-    if (fields.contains(QStringLiteral("description"))) {
-        todo->setDescription(fields.value(QStringLiteral("description")).toString());
-    }
-    if (fields.contains(QStringLiteral("priority"))) {
-        todo->setPriority(fields.value(QStringLiteral("priority")).toInt());
-    }
-    if (fields.contains(QStringLiteral("categories"))) {
-        todo->setCategories(fields.value(QStringLiteral("categories")).toStringList());
-    }
-    if (fields.contains(QStringLiteral("location"))) {
-        todo->setLocation(fields.value(QStringLiteral("location")).toString());
-    }
-    if (fields.contains(QStringLiteral("allDay"))) {
-        todo->setAllDay(fields.value(QStringLiteral("allDay")).toBool());
-    }
-    if (fields.contains(QStringLiteral("status"))) {
-        todo->setStatus(static_cast<KCalendarCore::Incidence::Status>(fields.value(QStringLiteral("status")).toInt()));
-    }
-    if (fields.contains(QStringLiteral("secrecy"))) {
-        todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(fields.value(QStringLiteral("secrecy")).toInt()));
-    }
+    TaskCalendar::applyEditorFields(todo, fields);
 
-    const bool clearDue = fields.value(QStringLiteral("clearDue")).toBool();
-    if (clearDue) {
-        todo->setDtDue(QDateTime());
-    } else if (fields.contains(QStringLiteral("dueDate"))) {
-        const QDateTime due = dateTimeFromVariant(fields.value(QStringLiteral("dueDate")));
-        if (due.isValid()) {
-            todo->setDtDue(due);
-        }
-    }
+    Akonadi::Item jobItem;
+    jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+    jobItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
 
-    const bool clearStart = fields.value(QStringLiteral("clearStart")).toBool();
-    if (clearStart) {
-        todo->setDtStart(QDateTime());
-    } else if (fields.contains(QStringLiteral("startDate"))) {
-        const QDateTime startDate = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
-        if (startDate.isValid()) {
-            todo->setDtStart(startDate);
-        }
-    }
+    // Same optimistic path as the quick entry: a temporary row until the store answers.
+    const qint64 tempId = s_nextTempId--;
+    Akonadi::Item cacheItem = jobItem;
+    cacheItem.setId(tempId);
+    cacheItem.setParentCollection(collection);
 
-    if (fields.contains(QStringLiteral("completed"))) {
-        const bool completed = fields.value(QStringLiteral("completed")).toBool();
-        TaskCalendar::completeTodo(todo, completed ? TaskCalendar::CompleteAction::Mark : TaskCalendar::CompleteAction::Unmark, QDateTime::currentDateTime());
-        if (!fields.contains(QStringLiteral("percentComplete")) && !todo->recurs()) {
-            todo->setPercentComplete(completed ? 100 : 0);
-        }
-    }
-    if (fields.contains(QStringLiteral("percentComplete"))) {
-        todo->setPercentComplete(fields.value(QStringLiteral("percentComplete")).toInt());
-    }
+    CachedTask cached;
+    cached.item = cacheItem;
+    cached.todo = todo;
+    cached.syncing = true;
+    cached.inflight = 1;
+    s_tasks.insert(tempId, cached);
+    scheduleRebuildAll();
 
-    if (fields.contains(QStringLiteral("recurrencePreset"))) {
-        applyRecurrencePreset(todo, fields.value(QStringLiteral("recurrencePreset")).toString());
-    }
-    if (fields.contains(QStringLiteral("section"))) {
-        TaskCalendar::setSection(todo, fields.value(QStringLiteral("section")).toString());
-    }
-    if (fields.contains(QStringLiteral("reminderMinutes"))) {
-        TaskCalendar::setReminderMinutes(todo, fields.value(QStringLiteral("reminderMinutes")).toInt());
-    }
-
-    Akonadi::Item item(todo->mimeType());
-    item.setPayload<KCalendarCore::Todo::Ptr>(todo);
-    item.setParentCollection(collection);
-
-    auto *job = new Akonadi::ItemCreateJob(item, collection, this);
-    connect(job, &KJob::result, this, [this, job]() {
-        if (job->error() != KJob::NoError) {
-            setErrorMessage(i18n("Failed to create task: %1", job->errorText()));
-            Q_EMIT error(m_errorMessage);
-        }
-    });
+    submitCreate(jobItem, collection, tempId);
 }
 
 void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)

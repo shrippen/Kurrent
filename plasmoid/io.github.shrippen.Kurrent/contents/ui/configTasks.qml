@@ -192,28 +192,28 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                clickAction: "inline",
-                showDateChip: true,
-                showLabelChips: true,
-                showPriorityChip: true,
-                showRecurringIcon: true,
-                showProgressChip: true,
-                showStatusChip: true,
-                showSecrecyChip: true,
-                showLocationChip: true,
-                relativeDates: true,
-                showTimeOnRow: true,
-                descriptionPreviewLines: 0,
-                showJoinButton: true,
-                multiSelectEnabled: false,
-                completeChildren: false,
-                searchTitleOnly: false,
-                searchCaseSensitive: false,
-                sortScope: "global",
-                sortMode: "",
-                sortModeByView: "{}"
-            })
+            keys: [
+                "clickAction",
+                "showDateChip",
+                "showLabelChips",
+                "showPriorityChip",
+                "showRecurringIcon",
+                "showProgressChip",
+                "showStatusChip",
+                "showSecrecyChip",
+                "showLocationChip",
+                "relativeDates",
+                "showTimeOnRow",
+                "descriptionPreviewLines",
+                "showJoinButton",
+                "multiSelectEnabled",
+                "completeChildren",
+                "searchTitleOnly",
+                "searchCaseSensitive",
+                "sortScope",
+                "sortMode",
+                "sortModeByView"
+            ]
         }
     }
 }

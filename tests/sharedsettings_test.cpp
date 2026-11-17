@@ -9,6 +9,7 @@
 #include <QQmlPropertyMap>
 #include <QStandardPaths>
 #include <QTemporaryDir>
+#include <QXmlStreamReader>
 #include <QtTest>
 
 class SharedSettingsTest : public QObject
@@ -29,6 +30,7 @@ private Q_SLOTS:
     void persistsViewModeAndSmartViews();
     void seedsMissingKeysOnly();
     void storesTypedKnownKeys();
+    void defaultsMatchMainXml();
 
 private:
     QTemporaryDir m_dir;
@@ -343,6 +345,44 @@ void SharedSettingsTest::storesTypedKnownKeys()
     QCOMPARE(changed.count(), 1);
     QCOMPARE(store.values().value(QStringLiteral("planHorizon")).userType(), QMetaType::Int);
     QCOMPARE(SharedSettings(fileName).values().value(QStringLiteral("planHorizon")).toInt(), 4);
+}
+
+// main.xml is the source of every default; SharedSettings only mirrors it for the terminal program.
+void SharedSettingsTest::defaultsMatchMainXml()
+{
+    QFile file(QStringLiteral(KURRENT_MAIN_XML));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+
+    QMap<QString, QString> xmlDefaults;
+    QXmlStreamReader xml(&file);
+    QString name;
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (xml.isStartElement() && xml.name() == QLatin1String("entry")) {
+            name = xml.attributes().value(QLatin1String("name")).toString();
+        } else if (xml.isStartElement() && xml.name() == QLatin1String("default")) {
+            xmlDefaults.insert(name, xml.readElementText());
+        }
+    }
+    QVERIFY(!xml.hasError());
+    QVERIFY(!xmlDefaults.isEmpty());
+
+    const QVariantMap known = SharedSettings(m_dir.filePath(QStringLiteral("kurrent-shared-xml"))).defaults();
+    QVERIFY(!known.isEmpty());
+    for (auto it = known.cbegin(); it != known.cend(); ++it) {
+        // Calibration cache the controller writes; not a setting, so main.xml has no entry.
+        if (it.key() == QLatin1String("rebuildPerfProfile")) {
+            continue;
+        }
+        QVERIFY2(xmlDefaults.contains(it.key()), qPrintable(it.key() + QStringLiteral(" is not in main.xml")));
+        const QString expected = xmlDefaults.value(it.key());
+        const QVariant value = it.value();
+        // A Bool is written "true"/"false" in main.xml, every other type as its text.
+        const QString actual = value.typeId() == QMetaType::Bool ? (value.toBool() ? QStringLiteral("true") : QStringLiteral("false"))
+                                                                 : value.toString();
+        QVERIFY2(actual == expected,
+                 qPrintable(QStringLiteral("%1: SharedSettings '%2', main.xml '%3'").arg(it.key(), actual, expected)));
+    }
 }
 
 QTEST_MAIN(SharedSettingsTest)

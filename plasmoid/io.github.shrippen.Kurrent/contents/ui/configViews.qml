@@ -482,22 +482,22 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                morningHour: 6,
-                afternoonHour: 12,
-                eveningHour: 18,
-                kanbanColumnSource: "status",
-                kanbanWriteMode: "fields",
-                kanbanHideCanceled: false,
-                swimlaneLaneAxis: "project",
-                swimlaneTimeBucket: "week",
-                swimlaneHorizon: 0,
-                planTimeBucket: "week",
-                planHorizon: 8,
-                planShowUndated: true,
-                planShowCompleted: false,
-                agendaWorkMinutes: 480
-            })
+            keys: [
+                "morningHour",
+                "afternoonHour",
+                "eveningHour",
+                "kanbanColumnSource",
+                "kanbanWriteMode",
+                "kanbanHideCanceled",
+                "swimlaneLaneAxis",
+                "swimlaneTimeBucket",
+                "swimlaneHorizon",
+                "planTimeBucket",
+                "planHorizon",
+                "planShowUndated",
+                "planShowCompleted",
+                "agendaWorkMinutes"
+            ]
         }
     }
 
