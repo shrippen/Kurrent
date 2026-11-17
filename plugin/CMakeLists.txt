@@ -17,6 +17,8 @@ add_library(kurrentcore STATIC
     tasklogic.h
     agendalogic.cpp
     agendalogic.h
+    focusorder.cpp
+    focusorder.h
     quickadd.cpp
     taskcalendar.cpp
     taskcalendar.h
