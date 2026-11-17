@@ -1,15 +1,14 @@
 import QtQuick
 import QtQuick.Controls
 import QtTest
-import "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/components"
 
 // A date field builds its date popup (a month grid of day delegates) when the picker opens,
 // not with the field: the editor and the inline editor hold six of them, all built at start.
+// Created at run time: without kirigami-addons (the CI image) the test skips instead of failing
+// to compile.
 Item {
     id: scene
     width: 400; height: 400
-
-    DateTimeInput { id: input; mode: "date"; popupParent: scene }
 
     TestCase {
         name: "DateTimeInput"
@@ -25,7 +24,7 @@ Item {
             }
             return n
         }
-        function pickerButton() {
+        function pickerButton(input) {
             for (let i = 0; i < input.children.length; i++) {
                 const c = input.children[i]
                 if (c.icon && c.icon.name === "view-calendar") {
@@ -36,10 +35,17 @@ Item {
         }
 
         function test_popupBuiltOnOpen() {
+            const component = Qt.createComponent(
+                "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/components/DateTimeInput.qml")
+            if (component.status === Component.Error && component.errorString().indexOf("kirigamiaddons") >= 0) {
+                skip("org.kde.kirigamiaddons.dateandtime is not installed")
+            }
+            compare(component.status, Component.Ready, component.errorString())
+            const input = createTemporaryObject(component, scene, { mode: "date", popupParent: scene })
             compare(popups(input) + popups(scene), 0, "no popup before the picker opens")
             const overlay = input.Overlay.overlay
             const before = overlay.children.length
-            const button = pickerButton()
+            const button = pickerButton(input)
             verify(button, "the picker button")
             button.clicked()
             tryVerify(() => overlay.children.length > before, 2000, "the popup opens")
