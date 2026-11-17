@@ -570,9 +570,6 @@ void AkonadiLoader::fetchTodos(const Akonadi::Collection &collection)
 // `error` empty: the fetch succeeded (`items` may be empty).
 void AkonadiLoader::onItemsFetched(const Akonadi::Item::List &items, const QString &error, qint64 collectionId)
 {
-    --m_pendingFetchJobs;
-    Q_EMIT fetchStatsChanged();
-
     m_stats.items += items.size();
     logDebug(QStringLiteral("onItemsFetched collection=%1 items=%2 error=%3")
                  .arg(collectionId)
@@ -591,6 +588,9 @@ void AkonadiLoader::onItemsFetched(const Akonadi::Item::List &items, const QStri
         setErrorMessage(error);
     }
 
+    // Counted down after the items are in: the last job's items stay quiet too.
+    --m_pendingFetchJobs;
+    Q_EMIT fetchStatsChanged();
     if (m_pendingFetchJobs > 0) {
         return;
     }

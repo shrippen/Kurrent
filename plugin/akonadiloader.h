@@ -69,18 +69,13 @@ public:
 
     /// Task lists to load (empty: all), from the shared setting.
     void setEnabledCollectionIds(const QList<qint64> &ids);
-    bool isCollectionEnabled(qint64 collectionId) const;
 
     /// Event calendars whose events count as busy (comma-separated ids), from the shared setting.
     void setBusyCalendarIds(const QString &csv);
 
-    /// Fetches the busy events again if one changed or the day did.
-    void refreshBusyIfDue();
-
     /// An item from a fetch or a monitor. Takes it into SharedTasks unless the cached
     /// version must win: a write of ours is under way, or the incoming one is older.
     void applyItem(const Akonadi::Item &item, qint64 fallbackCollectionId = -1);
-    void removeItem(Akonadi::Item::Id itemId);
 
     /// Back to the state of a fresh process without touching Akonadi (tests).
     void resetForTest(bool available);
@@ -97,6 +92,11 @@ Q_SIGNALS:
 
 private:
     explicit AkonadiLoader(QObject *parent);
+
+    bool isCollectionEnabled(qint64 collectionId) const;
+    void removeItem(Akonadi::Item::Id itemId);
+    /// Fetches the busy events again if one changed or the day did.
+    void refreshBusyIfDue();
 
     bool initialize();
     bool attachMonitor();

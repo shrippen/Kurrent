@@ -183,7 +183,6 @@ target_link_libraries(kurrent-taskcontroller-store-test PRIVATE
     Qt6::Test
     KF6::CalendarCore
     KF6::I18n
-    KF6::ConfigCore
     KPim6::AkonadiCore
 )
 # Expected TaskController::devBuild() for this configuration (#33).

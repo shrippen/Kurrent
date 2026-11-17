@@ -46,6 +46,7 @@ private Q_SLOTS:
     void emptyEnabledIsAll();
     void notifiesOncePerItem();
     void silentDuringWave();
+    void notifiesOnceAtWaveEnd();
     void resetForTestClears();
 
 private:
@@ -291,6 +292,21 @@ void AkonadiLoaderTest::silentDuringWave()
 
     QVERIFY(exists(kTaskId));
     QCOMPARE(changed.count(), 0);
+}
+
+void AkonadiLoaderTest::notifiesOnceAtWaveEnd()
+{
+    QSignalSpy changed(&shared(), &SharedTasks::tasksChanged);
+
+    // Two lists in the wave: items of both arrive, one rebuild when the last one ends.
+    loader().m_pendingFetchJobs = 2;
+    loader().onItemsFetched({makeItem(kTaskId, kInbox, 1, QStringLiteral("alpha"))}, QString(), kInbox);
+    QCOMPARE(changed.count(), 0);
+    loader().onItemsFetched({makeItem(kTaskId + 1, kWork, 1, QStringLiteral("beta"))}, QString(), kWork);
+
+    QVERIFY(exists(kTaskId));
+    QVERIFY(exists(kTaskId + 1));
+    QCOMPARE(changed.count(), 1);
 }
 
 void AkonadiLoaderTest::resetForTestClears()
