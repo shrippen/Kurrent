@@ -27,6 +27,17 @@ target_include_directories(kurrent-agendalogic-test PRIVATE ${CMAKE_SOURCE_DIR}/
 target_link_libraries(kurrent-agendalogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
 add_test(NAME kurrent-agendalogic COMMAND kurrent-agendalogic-test)
 
+add_executable(kurrent-focusorder-test
+    focusorder_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/focusorder.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/focusorder.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+)
+target_include_directories(kurrent-focusorder-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-focusorder-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
+add_test(NAME kurrent-focusorder COMMAND kurrent-focusorder-test)
+
 add_executable(kurrent-sharedsettings-test
     sharedsettings_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
@@ -267,6 +278,7 @@ set(_kurrent_test_targets
     kurrent-akonadiitems-test
     kurrent-tasklogic-test
     kurrent-agendalogic-test
+    kurrent-focusorder-test
     kurrent-sharedsettings-test
     kurrent-models-test
     kurrent-calendar-test

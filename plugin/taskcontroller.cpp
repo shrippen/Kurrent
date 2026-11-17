@@ -1527,7 +1527,7 @@ QVariantList TaskController::kanbanTaskIndicesForColumn(const QString &columnKey
 
 QVariantMap TaskController::taskEntryToVariantMap(const TaskEntry &task) const
 {
-    QVariantMap map;
+    QVariantMap map{{QStringLiteral("progressBand"), TaskLogic::progressBandKey(task.percentComplete)}};
     map.insert(QStringLiteral("itemId"), task.itemId);
     map.insert(QStringLiteral("uid"), task.uid);
     map.insert(QStringLiteral("parentUid"), task.parentUid);

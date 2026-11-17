@@ -56,7 +56,7 @@ plugin/taskcontroller.cpp	TaskController::swimlaneMatrixForVisibleTasks	ccn=21 n
 plugin/taskcontroller.cpp	TaskController::upsertTask	ccn=30 length=81
 plugin/taskcontroller.h	-	lines=947
 plugin/tasklistmodel.cpp	TaskListModel::chunkStep	ccn=17
-plugin/tasklistmodel.cpp	TaskListModel::data	ccn=43 length=83
+plugin/tasklistmodel.cpp	TaskListModel::data	ccn=42 length=81
 plugin/tasklistmodel.cpp	TaskListModel::setTasks	ccn=20 length=102
 plugin/tasklistmodel.cpp	TaskListModel::taskDataDiffers	ccn=33
 plugin/tasklogic.cpp	-	lines=3330

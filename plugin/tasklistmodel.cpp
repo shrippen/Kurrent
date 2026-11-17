@@ -9,6 +9,19 @@ namespace {
 constexpr int kSyncRowThreshold = 48;
 constexpr int kChunkRowsPerCall = 64;
 constexpr int kChunkBudgetMs = 6;
+
+// Roles computed from the task by the rules library, not stored in it.
+QVariant derivedData(const TaskEntry &task, int role)
+{
+    switch (role) {
+    case TaskListModel::OverdueDaysRole:
+        return TaskLogic::overdueDays(task, QDate::currentDate());
+    case TaskListModel::ProgressBandRole:
+        return TaskLogic::progressBandKey(task.percentComplete);
+    default:
+        return {};
+    }
+}
 }
 
 TaskListModel::TaskListModel(QObject *parent)
@@ -117,10 +130,8 @@ QVariant TaskListModel::data(const QModelIndex &index, int role) const
         return task.syncing;
     case PendingDeleteRole:
         return task.pendingDelete;
-    case OverdueDaysRole:
-        return TaskLogic::overdueDays(task, QDate::currentDate());
     default:
-        return {};
+        return derivedData(task, role);
     }
 }
 
@@ -162,6 +173,7 @@ QHash<int, QByteArray> TaskListModel::roleNames() const
         {SyncingRole, "syncing"},
         {PendingDeleteRole, "pendingDelete"},
         {OverdueDaysRole, "overdueDays"},
+        {ProgressBandRole, "progressBand"},
     };
 }
 
@@ -465,6 +477,7 @@ QVector<int> TaskListModel::dataDiffRoles(const TaskEntry &a, const TaskEntry &b
     add(a.recurring != b.recurring, RecurringRole);
     add(a.allDay != b.allDay, AllDayRole);
     add(a.percentComplete != b.percentComplete, PercentCompleteRole);
+    add(a.percentComplete != b.percentComplete, ProgressBandRole);
     add(a.location != b.location, LocationRole);
     add(a.status != b.status, StatusRole);
     add(a.secrecy != b.secrecy, SecrecyRole);

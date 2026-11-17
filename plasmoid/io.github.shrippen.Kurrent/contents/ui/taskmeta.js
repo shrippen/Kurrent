@@ -2,23 +2,6 @@
  * Shared labels/icons for progress, status, secrecy (sidebar + row chips).
  */
 
-function progressBandForPercent(pct) {
-    var p = Number(pct)
-    if (!(p >= 0)) {
-        return ""
-    }
-    if (p <= 25) {
-        return "0-25"
-    }
-    if (p <= 50) {
-        return "26-50"
-    }
-    if (p <= 75) {
-        return "51-75"
-    }
-    return "76-100"
-}
-
 function progressIconForBand(band) {
     switch (band) {
     case "0-25": return "battery-000"
@@ -27,10 +10,6 @@ function progressIconForBand(band) {
     case "76-100": return "battery-100"
     default: return "battery-000"
     }
-}
-
-function progressIconForPercent(pct) {
-    return progressIconForBand(progressBandForPercent(pct))
 }
 
 function progressLabelForPercent(pct) {

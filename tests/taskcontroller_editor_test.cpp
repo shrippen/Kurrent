@@ -129,6 +129,7 @@ void TaskControllerEditorTest::editorCreateGoesThroughStore()
     QCOMPARE(snap.value(QStringLiteral("description")).toString(), QStringLiteral("notes"));
     QCOMPARE(snap.value(QStringLiteral("startDate")).toDateTime().toLocalTime(), QDateTime(today, QTime(8, 0)));
     QCOMPARE(snap.value(QStringLiteral("percentComplete")).toInt(), 40);
+    QCOMPARE(snap.value(QStringLiteral("progressBand")).toString(), QStringLiteral("26-50"));
     QCOMPARE(snap.value(QStringLiteral("recurrencePreset")).toString(), QStringLiteral("weekly"));
     QCOMPARE(snap.value(QStringLiteral("section")).toString(), QStringLiteral("Phase 1"));
     QCOMPARE(snap.value(QStringLiteral("reminderMinutes")).toInt(), 15);
