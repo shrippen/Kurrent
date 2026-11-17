@@ -7,6 +7,7 @@ import "../components"
 import ".."
 import "../Kante"
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 // The Agenda's day view: 14 days from `listStart`, each an hour grid with its appointments,
 // task blocks and free gaps; days without anything fold into one line. On the left a month
@@ -37,11 +38,6 @@ RowLayout {
     readonly property bool wide: width >= Kirigami.Units.gridUnit * 34
     spacing: Design.spaceMedium
 
-    function addDays(d, n) {
-        var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-        r.setDate(r.getDate() + n)
-        return r
-    }
     function minuteNow() {
         var now = new Date()
         return now.getHours() * 60 + now.getMinutes()
@@ -56,12 +52,8 @@ RowLayout {
             view.todayKey = DateTime.isoDateKey(new Date())
         }
     }
-    function today() {
-        var now = new Date()
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    }
     function relDay(d) {
-        var diff = Math.round((d - today()) / 86400000)
+        var diff = Math.round((d - DayMath.today()) / 86400000)
         if (diff === 0) {
             return i18n("Today")
         }
@@ -72,9 +64,6 @@ RowLayout {
             return i18n("Yesterday")
         }
         return Qt.locale().toString(d, DateTime.shortDayMonthFormat())
-    }
-    function hm(minute) {
-        return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
     }
     function timeOf(when) {
         return Qt.locale().toString(when, Qt.locale().timeFormat(Locale.ShortFormat))
@@ -125,9 +114,9 @@ RowLayout {
         var first = monthCal.shownMonth
         var last = new Date(first.getFullYear(), first.getMonth() + 1, 0)
         var byDay = controller.agendaTasksByDay(first, last)
-        var todayKey = DateTime.isoDateKey(today())
+        var todayKey = DateTime.isoDateKey(DayMath.today())
         var out = {}
-        for (var d = new Date(first); d <= last; d = addDays(d, 1)) {
+        for (var d = new Date(first); d <= last; d = DayMath.addDays(d, 1)) {
             var key = DateTime.isoDateKey(d)
             var open = (byDay[key] || []).filter(function(t) { return !t.completed }).length
             var events = controller.agendaEventsForDay(d).length
@@ -153,7 +142,7 @@ RowLayout {
             } else if (r.kind === "highPriority") {
                 out.push({ tone: "high", text: i18n("High priority") })
             } else if (r.kind === "fits") {
-                out.push({ tone: "fit", text: i18n("Fits %1–%2", hm(r.start), hm(r.end)) })
+                out.push({ tone: "fit", text: i18n("Fits %1–%2", DayMath.clockOfMinute(r.start), DayMath.clockOfMinute(r.end)) })
             }
         }
         return out
@@ -173,7 +162,7 @@ RowLayout {
             selectedDate: view.targetDay
             markers: view.markers
             rangeStart: view.listStart
-            rangeEnd: view.addDays(view.listStart, view.dayCount - 1)
+            rangeEnd: DayMath.addDays(view.listStart, view.dayCount - 1)
             onDateSelected: function(date) { view.jump(date) }
         }
         // Legend for the dots.
@@ -550,7 +539,7 @@ RowLayout {
             text: view.pendingDetach
                   ? i18n("“%1” becomes a task of its own at %2–%3. The series keeps its time and goes on with its next occurrence. Undo brings both back.",
                          view.pendingDetach.summary || i18n("(Untitled)"),
-                         view.hm(view.pendingDetach.start), view.hm(view.pendingDetach.end))
+                         DayMath.clockOfMinute(view.pendingDetach.start), DayMath.clockOfMinute(view.pendingDetach.end))
                   : ""
         }
     }

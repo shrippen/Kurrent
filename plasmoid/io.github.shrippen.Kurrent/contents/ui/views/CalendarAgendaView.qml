@@ -7,6 +7,7 @@ import io.github.shrippen.Kurrent 1.0
 import "../components"
 import ".."
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 import "../focus.js" as Focus
 import "../Kante"
 
@@ -43,7 +44,7 @@ ColumnLayout {
             if (d && !isNaN(d.getTime()))
                 return d
         }
-        return today()
+        return DayMath.today()
     }
 
     onSelectedDayChanged: {
@@ -51,7 +52,7 @@ ColumnLayout {
             controller.agendaSelectedDate = selectedDay
         }
         // The day view keeps its days while the target moves inside them.
-        if (selectedDay < listStart || selectedDay > addDays(listStart, dayCount - 1)) {
+        if (selectedDay < listStart || selectedDay > DayMath.addDays(listStart, dayCount - 1)) {
             listStart = selectedDay
         }
     }
@@ -110,21 +111,12 @@ ColumnLayout {
     }
 
     // ── Helpers ────────────────────────────────────────────────────
-    function today() {
-        var now = new Date()
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    }
-    function addDays(d, n) {
-        var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-        r.setDate(r.getDate() + n)
-        return r
-    }
     function mondayOf(d) {
         var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
         r.setDate(r.getDate() - ((r.getDay() + 6) % 7))
         return r
     }
-    readonly property bool onToday: DateTime.isoDateKey(selectedDay) === DateTime.isoDateKey(today())
+    readonly property bool onToday: DateTime.isoDateKey(selectedDay) === DateTime.isoDateKey(DayMath.today())
 
     /** Switch the view, optionally to another day (drill-down); zooms in or out. */
     function go(nextMode, day) {
@@ -142,7 +134,7 @@ ColumnLayout {
         if (!controller) {
             return
         }
-        jumpTo(n === 0 ? today() : controller.agendaStep(selectedDay, n))
+        jumpTo(n === 0 ? DayMath.today() : controller.agendaStep(selectedDay, n))
     }
 
     readonly property string title: {
@@ -150,7 +142,7 @@ ColumnLayout {
         var week = controller ? controller.isoWeek(d) : 0
         if (mode === "week") {
             var mon = mondayOf(d)
-            var end = addDays(mon, weekend ? 6 : 4)
+            var end = DayMath.addDays(mon, weekend ? 6 : 4)
             return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, DateTime.dayMonthFormat()), Qt.locale().toString(end, DateTime.dayMonthYearFormat()))
         }
         if (mode === "month") {
@@ -164,7 +156,7 @@ ColumnLayout {
         var week = controller ? controller.isoWeek(d) : 0
         if (mode === "week") {
             var mon = mondayOf(d)
-            var end = addDays(mon, weekend ? 6 : 4)
+            var end = DayMath.addDays(mon, weekend ? 6 : 4)
             return i18n("Week %1 · %2 – %3", week, Qt.locale().toString(mon, DateTime.numericDayMonthFormat()), Qt.locale().toString(end, DateTime.numericDayMonthFormat()))
         }
         if (mode === "month") {

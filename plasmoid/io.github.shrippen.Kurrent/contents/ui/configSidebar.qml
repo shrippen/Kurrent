@@ -42,15 +42,6 @@ ConfigPageBase {
         }
     }
 
-    function selectCombo(combo, value) {
-        for (var i = 0; i < combo.model.length; ++i) {
-            if (combo.model[i].value === value) {
-                combo.currentIndex = i
-                return
-            }
-        }
-    }
-
     function syncControls() {
         selectCombo(sidebarRowSizeCombo, cfg_sidebarRowSize || "auto")
         widthBox.value = cfg_sidebarWidthUnits

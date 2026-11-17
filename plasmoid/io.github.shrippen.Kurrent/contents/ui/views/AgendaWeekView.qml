@@ -7,6 +7,7 @@ import "../components"
 import ".."
 import "../Kante"
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 // The Agenda's week board: one column per day with its appointments and open tasks as dense
 // cards, a load bar (appointments plus task lengths against the workday) and done tasks folded.
@@ -41,10 +42,6 @@ ColumnLayout {
     // Day with the inline quick-add field open, ISO date or "".
     property string addingOn: ""
 
-    function today() {
-        var now = new Date()
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    }
     function monday(d) {
         var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
         r.setDate(r.getDate() - ((r.getDay() + 6) % 7))
@@ -120,7 +117,7 @@ ColumnLayout {
                     onClicked: {
                         // One undo step for all of them.
                         view.controller.agendaShiftAllToDay(view.overdue.map(function(t) { return t.itemId }),
-                                                            view.today())
+                                                            DayMath.today())
                     }
                 }
             }
@@ -197,8 +194,8 @@ ColumnLayout {
                     required property var modelData
                     readonly property date date: modelData.date
                     readonly property string key: DateTime.isoDateKey(date)
-                    readonly property bool isToday: key === DateTime.isoDateKey(view.today())
-                    readonly property bool past: key < DateTime.isoDateKey(view.today())
+                    readonly property bool isToday: key === DateTime.isoDateKey(DayMath.today())
+                    readonly property bool past: key < DateTime.isoDateKey(DayMath.today())
                     readonly property bool weekendDay: date.getDay() === 0 || date.getDay() === 6
                     readonly property int openCount: modelData.open.length
                     readonly property bool full: modelData.load > view.workMinutes
