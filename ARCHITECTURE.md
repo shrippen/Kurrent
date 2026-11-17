@@ -27,7 +27,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `ui/views/` | One file per view (list, board, swimlanes, plan, heatmap, agenda day, week, month), the sidebar, the editor, the inspector, the management of projects and labels. |
 | `ui/components/` | Parts several views share: rows, cards, pickers, bars, the parts of the settings pages. |
 | `ui/Design.qml` | The sizes and tokens of the interface at run time. |
-| `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, colours and priority names, agenda helpers, focus, taps. |
+| `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, colours and priority names, the editor's recurrence choice, the sidebar's height distribution, agenda helpers, focus, taps. |
 | `ui/config*.qml`, `contents/config/` | The settings pages and the description of the widget's settings with their defaults (`main.xml`). |
 | `ui/Kante/`, `ui/KantePlasma/` | Synced copies of the design system. Never edited here. |
 | `ui/SmokeTest.qml`, `ScreenshotRunner.qml` | The walk through every view for the smoke test and the screenshots. |
@@ -96,10 +96,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 ## Known deviations
 
-- The rules library holds C++ copies of interface logic that only tests call; the
-  running versions in QML are untested or compute differently
-  (`AUDIT.md`, finding 1). `ui/taskmeta.js` computes the progress bands a second time,
-  without a test (not in `AUDIT.md`).
+- `ui/taskmeta.js` computes the progress bands a second time, without a test
+  (`AUDIT.md`, finding 1). The drag limits of popups (`ui/FullView.qml`) are
+  interface logic in a view, without a test (not in `AUDIT.md`).
 - The sidebar consists of seven nearly equal sections of about 230 lines each
   (`AUDIT.md`, finding 3).
 - The controller does nearly everything in one class of 7031 lines, including
@@ -114,5 +113,5 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   finding 5).
 - Small date and selection helpers are copied into many views and settings pages
   (`AUDIT.md`, finding 6).
-- `plugin/tasklogic.cpp` holds all rules in one file of 3778 lines
+- `plugin/tasklogic.cpp` holds all rules in one file of 3330 lines
   (`AUDIT.md`, finding 8).
