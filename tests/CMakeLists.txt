@@ -247,6 +247,7 @@ set(_kurrent_test_targets
     kurrent-calendar-test
     kurrent-taskstore-test
     kurrent-taskcontroller-store-test
+    kurrent-taskcontroller-editor-test
     kurrent-core-i18n-test
     kurrent-tui-screens-test
 )
