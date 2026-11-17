@@ -22,11 +22,9 @@ namespace TaskLogic
 enum class SearchScope { All, TitleOnly };
 enum class SearchCase { Insensitive, Sensitive };
 enum class QuietHoursMode { Disabled, Enabled };
-enum class ListHeader { No, Yes };
 enum class DaySpan { Timed, AllDay };
 enum class DefaultCollection { Missing, Exists };
 enum class CursorKind { Other, Arrow };
-enum class EnvCursor { Invalid, Valid };
 enum class LoadState { Idle, Loading };
 enum class BackendState { Offline, Online };
 enum class ErrorPresence { None, Present };
@@ -226,9 +224,6 @@ QStringList progressBandKeys();
 QString listGroupKey(const TaskEntry &task, const QString &mode, const FilterState &filters, const QDate &today);
 
 QString listGroupLabel(const QString &key, const QString &mode);
-
-/** Locale-aware A–Z label used to order list groups (project uses collectionName). */
-QString listGroupAlphaLabel(const TaskEntry &task, const QString &mode);
 
 /** Sidebar-visible keys for variable list-group dimensions (project/label/location). */
 struct ListGroupOrderContext {
@@ -460,8 +455,6 @@ bool tokenSetContains(const QString &raw, const QString &token, const QString &s
 
 QStringList defaultSidebarSections();
 
-QStringList defaultViewIds();
-
 QStringList mergeOrderedKeys(const QStringList &raw, const QStringList &defaults);
 
 QStringList visibleOrderedKeys(const QStringList &ordered, const QStringList &hidden);
@@ -486,63 +479,10 @@ int visibleProjectCount(const QList<ProjectCandidate> &projects, const QSet<qint
 
 int visibleLabelCount(const QStringList &labels, const QSet<QString> &hiddenLabels);
 
-int naturalListHeight(int rowCount, ListHeader hasHeader, int headerHeight, int rowHeight, int gap = 1);
-
-QList<int> redistributeSections(int available, const QList<int> &mins);
-
-QString viewIconSource(const QString &viewId);
-
-int indexForValue(const QList<int> &values, int value);
-
-int indexForString(const QStringList &values, const QString &value);
-
 int normalizeStatus(int status);
 
 /** Kanban/list status column key (0/4/6/3/5); maps legacy slug keys (needs-action, …). */
 QString normalizeStatusColumnKey(const QString &key);
-
-int recurrenceIndexFor(const QString &preset);
-
-QString recurrenceValueFor(int index);
-
-QString priorityLabel(int priority);
-
-int priorityToIndex(int priority);
-
-int indexToPriority(int index);
-
-int resolveCursorSize(int envValue, EnvCursor envCursor, int configValue);
-
-qreal pickLimitRight(qreal screenRight, qreal cppRight, qreal margin);
-
-qreal pickLimitBottom(const QList<qreal> &candidates, qreal margin);
-
-QString pad2(int n);
-
-QString digitsOnly(const QString &str);
-
-struct FormatToken {
-    QString kind;
-    QString text;
-    int maxLen = 0;
-};
-
-QList<FormatToken> parseFormatTokens(const QString &fmt);
-
-int maxDigitsFor(const QList<FormatToken> &tokens);
-
-QString formatDigitsWithTokens(const QString &digits, const QList<FormatToken> &tokens);
-
-struct TextSegment {
-    QString kind;
-    int start = 0;
-    int end = 0;
-    int maxLen = 0;
-};
-
-QList<TextSegment> computeSegments(const QString &text, const QList<FormatToken> &tokens);
-
-TextSegment segmentAtPosition(const QString &text, const QList<FormatToken> &tokens, int pos);
 
 QDate parseIsoDate(const QString &str);
 
