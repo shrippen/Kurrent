@@ -4,7 +4,7 @@ Item {
     id: root
 
     property var plasmoidRoot: null
-    property var backend: null
+    property var controller: null
     property var fullRoot: null
     property var taskList: null
     property var taskFullEditor: null
@@ -24,12 +24,12 @@ Item {
         id: runner
         interval: 280
         repeat: true
-        running: !!(backend && backend.smokeTest)
+        running: !!(controller && controller.smokeTest)
         onTriggered: root.nextStep()
     }
 
     function nextStep() {
-        if (!backend || !fullRoot) {
+        if (!controller || !fullRoot) {
             return
         }
 
@@ -37,69 +37,69 @@ Item {
         step += 1
 
         if (i === 0) {
-            backend.smokeTrace("KURRENT_SMOKE_START")
+            controller.smokeTrace("KURRENT_SMOKE_START")
             if (plasmoidRoot) {
                 plasmoidRoot.expanded = true
             }
-            backend.refresh()
+            controller.refresh()
             return
         }
 
         if (i >= 1 && i <= views.length) {
-            backend.currentView = views[i - 1]
+            controller.currentView = views[i - 1]
             return
         }
 
         var base = views.length + 1
         switch (i - base) {
         case 0:
-            backend.searchQuery = "qa-smoke"
+            controller.searchQuery = "qa-smoke"
             return
         case 1:
-            backend.searchQuery = ""
+            controller.searchQuery = ""
             return
         case 2:
-            backend.showCompleted = true
+            controller.showCompleted = true
             return
         case 3:
-            backend.showCompleted = false
+            controller.showCompleted = false
             return
         case 4:
-            backend.sortMode = "due"
+            controller.sortMode = "due"
             return
         case 5:
-            backend.sortMode = "priority,title"
+            controller.sortMode = "priority,title"
             return
         case 6:
-            backend.sortMode = "default"
+            controller.sortMode = "default"
             return
         case 7:
-            backend.selectedPriority = 1
+            controller.selectedPriority = 1
             return
         case 8:
-            backend.selectedPriority = 5
+            controller.selectedPriority = 5
             return
         case 9:
-            backend.selectedPriority = 0
+            controller.selectedPriority = 0
             return
         case 10:
-            backend.selectedPriority = -1
+            controller.selectedPriority = -1
             return
         case 11:
-            if (backend.availableLabels && backend.availableLabels.length > 0) {
-                backend.selectedLabel = backend.availableLabels[0]
+            if (controller.availableLabels && controller.availableLabels.length > 0) {
+                controller.selectedLabel = controller.availableLabels[0]
             }
             return
         case 12:
-            backend.selectedLabel = ""
+            controller.selectedLabel = ""
             return
         case 13:
-            if (backend.collectionModel && backend.collectionModel.count > 0) {
-                backend.selectedCollectionId = backend.collectionModel.collectionIdAt(0)
+            if (controller.collectionModel && controller.collectionModel.count > 0) {
+                controller.selectedCollectionId = controller.collectionModel.collectionIdAt(0)
             }
             return
         case 14:
-            backend.selectedCollectionId = -1
+            controller.selectedCollectionId = -1
             return
         case 15:
             fullRoot.openSortMenu()
@@ -110,10 +110,10 @@ Item {
             }
             return
         case 17:
-            backend.systemCursorSize()
-            backend.dragScreenLimits()
-            backend.dragProxyGap(24, 0)
-            backend.clampDragProxyOffset(100, 100, 14, 14, 180, 48, 1920, 1080)
+            controller.systemCursorSize()
+            controller.dragScreenLimits()
+            controller.dragProxyGap(24, 0)
+            controller.clampDragProxyOffset(100, 100, 14, 14, 180, 48, 1920, 1080)
             return
         case 18:
             fullRoot.beginTaskDrag({
@@ -167,70 +167,70 @@ Item {
             }
             return
         case 23:
-            if (backend && plasmoidRoot) {
-                backend.selectMainPaneMode("kanban")
+            if (controller && plasmoidRoot) {
+                controller.selectMainPaneMode("kanban")
             }
             return
         case 24:
-            if (backend && plasmoidRoot) {
-                backend.selectMainPaneMode("list")
+            if (controller && plasmoidRoot) {
+                controller.selectMainPaneMode("list")
             }
             return
         case 25:
-            backend.listGroupMode = "priority"
+            controller.listGroupMode = "priority"
             return
         case 26:
-            backend.listGroupMode = "none"
+            controller.listGroupMode = "none"
             return
         case 27:
-            backend.currentView = "scheduled"
+            controller.currentView = "scheduled"
             return
         case 28:
             // Matrix views: every axis / bucket combination must build and render.
-            backend.currentView = "inbox"
-            backend.selectMainPaneMode("swimlane")
+            controller.currentView = "inbox"
+            controller.selectMainPaneMode("swimlane")
             return
         case 29:
-            backend.swimlaneLaneAxis = "priority"
+            controller.swimlaneLaneAxis = "priority"
             return
         case 30:
-            backend.swimlaneLaneAxis = "label"
+            controller.swimlaneLaneAxis = "label"
             return
         case 31:
-            backend.swimlaneLaneAxis = "parent"
+            controller.swimlaneLaneAxis = "parent"
             return
         case 32:
-            backend.swimlaneLaneAxis = "project"
-            backend.swimlaneTimeBucket = "day"
+            controller.swimlaneLaneAxis = "project"
+            controller.swimlaneTimeBucket = "day"
             return
         case 33:
-            backend.swimlaneTimeBucket = "month"
+            controller.swimlaneTimeBucket = "month"
             return
         case 34:
-            backend.swimlaneTimeBucket = "week"
-            backend.setMatrixDrilldown("swimlane", "", "unscheduled", "smoke")
-            backend.selectMainPaneMode("list")
+            controller.swimlaneTimeBucket = "week"
+            controller.setMatrixDrilldown("swimlane", "", "unscheduled", "smoke")
+            controller.selectMainPaneMode("list")
             return
         case 35:
-            backend.clearMatrixDrilldown()
-            backend.selectMainPaneMode("plan")
+            controller.clearMatrixDrilldown()
+            controller.selectMainPaneMode("plan")
             return
         case 36:
-            backend.planTimeBucket = "day"
+            controller.planTimeBucket = "day"
             return
         case 37:
-            backend.planTimeBucket = "month"
-            backend.planShowCompleted = true
+            controller.planTimeBucket = "month"
+            controller.planShowCompleted = true
             return
         case 38:
-            backend.planTimeBucket = "week"
-            backend.planShowCompleted = false
-            backend.selectMainPaneMode("heatmap")
+            controller.planTimeBucket = "week"
+            controller.planShowCompleted = false
+            controller.selectMainPaneMode("heatmap")
             return
         case 39:
-            backend.selectMainPaneMode("list")
-            backend.currentView = "inbox"
-            backend.smokeTrace("KURRENT_SMOKE_DONE")
+            controller.selectMainPaneMode("list")
+            controller.currentView = "inbox"
+            controller.smokeTrace("KURRENT_SMOKE_DONE")
             runner.stop()
             return
         default:
