@@ -93,7 +93,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed git nodejs base-devel cmake extra-cmake-modules tzdata \
             gettext qt6-base qt6-declarative qt6-svg kcalendarcore ki18n kconfig knotifications \
-            kglobalaccel krunner akonadi kirigami libplasma
+            kglobalaccel krunner akonadi kirigami kirigami-addons libplasma
       # gettext übersetzt unter C/POSIX nicht; der Übersetzungstest (kurrent-core-i18n) braucht
       # eine echte Locale. Das Image bringt nur die englischen Quellen mit.
       - name: Locale
