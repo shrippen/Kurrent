@@ -411,6 +411,16 @@ Item {
         }
     }
 
+    // A failed write shows over every view.
+    ErrorToast {
+        z: 10
+        controller: host.controller
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: Design.panelGap
+        width: Math.min(implicitWidth, parent.width - 2 * Design.panelGap)
+    }
+
     Component.onCompleted: {
         if (controller) {
             markModeVisited(controller.mainPaneMode)
