@@ -101,21 +101,21 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   (`AUDIT.md`, finding 1). `ui/taskmeta.js` computes the progress bands a second time,
   without a test (not in `AUDIT.md`).
 - Tasks from the editor are created by the controller straight in Akonadi, past the
-  storage boundary, with a copied block that sets the fields (`AUDIT.md`, finding 2).
+  storage boundary, with a copied block that sets the fields (`AUDIT.md`, finding 6).
 - The sidebar consists of seven nearly equal sections of about 230 lines each
-  (`AUDIT.md`, finding 3).
+  (`AUDIT.md`, finding 8).
 - The controller does nearly everything in one class of 7105 lines, including
   reading and watching Akonadi, smoke test, screenshot mode and demo mode
-  (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for
+  (`AUDIT.md`, finding 9). Views branch on the smoke test too and carry helpers for
   the screenshot runner (`MainPaneHost`, `SwimlaneView`, `main.qml`, three views; not
   in `AUDIT.md`).
 - `tui/tuiapp.cpp` has a filter and a sort order of its own for open tasks (not in
   `AUDIT.md`).
 - The defaults of the settings stand in three places, with no test comparing them
-  (`AUDIT.md`, finding 5).
+  (`AUDIT.md`, finding 3).
 - Small date and selection helpers are copied into many views and settings pages
-  (`AUDIT.md`, finding 6).
+  (`AUDIT.md`, finding 4).
 - The controller is called `backend` in five files and `controller` in about thirty
-  (`AUDIT.md`, finding 7).
+  (`AUDIT.md`, finding 5).
 - `plugin/tasklogic.cpp` holds all rules in one file of 3783 lines
-  (`AUDIT.md`, finding 8).
+  (`AUDIT.md`, finding 10).
