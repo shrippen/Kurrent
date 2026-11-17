@@ -56,6 +56,12 @@ import "."
  * (a text wider than that widens its column; without a width set from outside, the legend's
  * width counts).
  *
+ * A grid that switches between data sets (Mitori's technique map: one group, one grade at a
+ * time) keeps its cells in place with reserves (1.81): `reserveRowLabels` and
+ * `reserveColumnLabels` are labels that may come, the label room takes the longest of them and
+ * of its own; `reserveColumns` keeps the implicit width for that many columns. The cells start
+ * where they started, left aligned in the room.
+ *
  *            ┌ upright column labels, starting on one line above the cells
  *   Ikkyo    [3] [ ] [1] ◂━━ scroll bar ━━▸
  *   Irimi-…  [ ]     [4]       (blank: no data with showEmpty false)
@@ -119,6 +125,12 @@ FocusScope {
     property bool columnLabelsVertical: false
     /** Longest an upright column label may be (0: as long as the longest); longer ones elide. */
     property real columnLabelMaxLength: 0
+    /** Row labels the grid keeps room for besides its own (1.81); within `rowLabelWidth`. */
+    property var reserveRowLabels: []
+    /** Column labels the grid keeps room for besides its own (1.81); within `columnLabelMaxLength`. */
+    property var reserveColumnLabels: []
+    /** Columns the implicit width keeps room for, at least (1.81). */
+    property int reserveColumns: 0
     /** The focused (or last focused) cell. */
     property int currentRow: 0
     property int currentColumn: 0
@@ -201,8 +213,8 @@ FocusScope {
         if (columnLabelsVertical) {
             w = Math.max(w, labelMetrics.height + KanteStyle.unit(4))
         } else {
-            for (let c = 0; c < columnLabels.length; c++) {
-                w = Math.max(w, labelMetrics.advanceWidth(String(columnLabels[c])) + KanteStyle.unit(4))
+            for (const label of columnLabels.concat(reserveColumnLabels)) {
+                w = Math.max(w, labelMetrics.advanceWidth(String(label)) + KanteStyle.unit(4))
             }
         }
         return Math.ceil(w)
@@ -213,8 +225,8 @@ FocusScope {
         let w = rowTitle !== "" ? rowTitleProbe.implicitWidth : 0
         // Measured anew when the row label font changes.
         void rowLabelMetrics.font
-        for (let r = 0; r < rowLabels.length; r++) {
-            w = Math.max(w, rowLabelMetrics.advanceWidth(String(rowLabels[r])))
+        for (const label of rowLabels.concat(reserveRowLabels)) {
+            w = Math.max(w, rowLabelMetrics.advanceWidth(String(label)))
         }
         return Math.ceil(w)
     }
@@ -223,8 +235,8 @@ FocusScope {
     /** Length of an upright column label: the longest, at most `columnLabelMaxLength`. */
     readonly property real columnLabelLength: {
         let w = 0
-        for (let c = 0; c < columnLabels.length; c++) {
-            w = Math.max(w, labelMetrics.advanceWidth(String(columnLabels[c])))
+        for (const label of columnLabels.concat(reserveColumnLabels)) {
+            w = Math.max(w, labelMetrics.advanceWidth(String(label)))
         }
         w = Math.ceil(w) + 1
         return columnLabelMaxLength > 0 ? Math.min(w, columnLabelMaxLength) : w
@@ -242,7 +254,10 @@ FocusScope {
     /** Width of all cells (with the ring's room on both sides). */
     readonly property real cellsWidth: columnCount * cellWidth + Math.max(0, columnCount - 1) * spacing + 2 * ringRoom
     /** The same at the natural cell width; the grid's implicit width (the fill follows the width). */
-    readonly property real naturalCellsWidth: columnCount * naturalCellWidth + Math.max(0, columnCount - 1) * spacing + 2 * ringRoom
+    readonly property real naturalCellsWidth: {
+        const n = Math.max(columnCount, reserveColumns)
+        return n * naturalCellWidth + Math.max(0, n - 1) * spacing + 2 * ringRoom
+    }
     /** True while the cells scroll under the row labels. */
     readonly property bool scrolling: view.contentWidth > view.width + 0.5
     /** The legend's entries as KanteLegend takes them ({color, text}). */

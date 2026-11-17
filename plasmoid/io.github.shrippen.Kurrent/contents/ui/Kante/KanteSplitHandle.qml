@@ -14,6 +14,13 @@ import "."
  *   inverted      the pane grows against the drag (a column on the right: dragging left widens it)
  *   step          keyboard step: arrows step, Page Up / Down four steps, Home / End the limits
  *   moved(value)  every change by drag, key or double click, already within the limits
+ *   collapsible   (Kante 1.81, for Klappe: a column that folds away) a double click asks to fold
+ *                 the pane, or to open it again, instead of going back to `defaultValue`;
+ *                 so do Enter, Space and the screen reader's press action;
+ *                 default false: a double click resets as before
+ *   collapsed     whether the pane is folded; the app owns it, like `value`
+ *   collapseToggled(collapsed)   the double click's request: the state it asks for. The app
+ *                 sets its size (and `collapsed`); the handle changes nothing itself
  * Kante and Kante Light: three short lines in the muted text colour on a 1 px rule; on
  * hover, while dragged and with keyboard focus they turn the focus colour. System: the same
  * in the platform's colours. Screen readers get a slider named `accessibleName` with the
@@ -28,9 +35,12 @@ Item {
     property real to: 100000
     property real defaultValue: NaN
     property bool inverted: false
+    property bool collapsible: false
+    property bool collapsed: false
     property real step: KanteStyle.unit(16)
     property string accessibleName: ""
     signal moved(real value)
+    signal collapseToggled(bool collapsed)
 
     readonly property bool vertical: orientation === Qt.Vertical
     readonly property bool lit: drag.active || hover.hovered || activeFocus
@@ -52,6 +62,11 @@ Item {
     Accessible.focusable: true
     Accessible.onIncreaseAction: setValue(value + step)
     Accessible.onDecreaseAction: setValue(value - step)
+    Accessible.onPressAction: {
+        if (collapsible) {
+            collapseToggled(!collapsed)
+        }
+    }
 
     Keys.onPressed: (event) => {
         // Up and Left move the bar towards the start; the pane before it shrinks unless inverted.
@@ -77,6 +92,15 @@ Item {
             return
         case Qt.Key_End:
             handle.setValue(handle.inverted ? handle.from : handle.to)
+            event.accepted = true
+            return
+        case Qt.Key_Return:
+        case Qt.Key_Enter:
+        case Qt.Key_Space:
+            if (!handle.collapsible) {
+                return
+            }
+            handle.collapseToggled(!handle.collapsed)
             event.accepted = true
             return
         case Qt.Key_Delete:
@@ -169,7 +193,7 @@ Item {
         }
     }
 
-    // A double click goes back to defaultValue. Counted here: the tap count of TapHandler
+    // A double click goes back to defaultValue, or folds or opens the pane when `collapsible`. Counted here: the tap count of TapHandler
     // stays 1 when the press of the second click comes as a double-click event.
     TapHandler {
         property real lastTap: 0
@@ -177,7 +201,14 @@ Item {
             const now = Date.now()
             const second = now - lastTap <= Qt.styleHints.mouseDoubleClickInterval
             lastTap = second ? 0 : now
-            if (second && !isNaN(handle.defaultValue)) {
+            if (!second) {
+                return
+            }
+            if (handle.collapsible) {
+                handle.collapseToggled(!handle.collapsed)
+                return
+            }
+            if (!isNaN(handle.defaultValue)) {
                 handle.setValue(handle.defaultValue)
             }
         }

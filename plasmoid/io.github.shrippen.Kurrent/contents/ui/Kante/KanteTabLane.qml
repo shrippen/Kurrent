@@ -88,48 +88,52 @@ Item {
     /** Cents beside the sign of an offpitch note (Kante 1.27), in Full marks. */
     property bool showCents: true
     /** Counts state changes made with setNoteState / resetStates (and new note lists). */
-    readonly property int stateRevision: revision
-    property int revision: 0
-    // States set with setNoteState, by note index (plain object: no bindings depend on it).
-    property var changedStates: ({})
-    // Cents given to setNoteState, by note index.
-    property var changedCents: ({})
-    // Notes per state, kept up to date by setNoteState (the summary stays O(1)).
-    property var stateCounts: ({})
-    // Technique results set with setTechniqueResult, by note index (1.31).
-    property var changedTechniques: ({})
-    // Notes per technique result, kept up to date by setTechniqueResult.
-    property var techniqueCounts: ({})
+    readonly property int stateRevision: noteState.revision
+
+    // The states of the notes, apart from `notes` (see KanteNoteState); an item shows what the
+    // object reports, so one change moves one note.
+    KanteNoteState {
+        id: noteState
+        onStateSet: function (index, state, cents) {
+            const it = noteRepeater.itemAt(index)
+            if (!it) {
+                return
+            }
+            it.override = state
+            if (!isNaN(cents)) {
+                it.overrideCents = cents
+            }
+        }
+        onTechniqueSet: function (index, result) {
+            const it = noteRepeater.itemAt(index)
+            if (it) {
+                it.techniqueOverride = result
+            }
+        }
+        onReset: {
+            for (let i = 0; i < noteRepeater.count; i++) {
+                const it = noteRepeater.itemAt(i)
+                if (it) {
+                    it.override = ""
+                    it.overrideCents = NaN
+                    it.techniqueOverride = "-"
+                }
+            }
+        }
+    }
+    onNotesChanged: noteState.notes = notes
 
     /**
      * Sets how the technique of one note was played (Kante 1.31): "", "played", "other" or
      * "unheard". Like setNoteState, only that note's sign changes.
      */
     function setTechniqueResult(index, result) {
-        if (!notes || index < 0 || index >= notes.length) {
-            return
-        }
-        var old = techniqueResultOf(index)
-        if (old !== "") {
-            techniqueCounts[old] = (techniqueCounts[old] || 1) - 1
-        }
-        var r = String(result || "")
-        if (r !== "") {
-            techniqueCounts[r] = (techniqueCounts[r] || 0) + 1
-        }
-        changedTechniques[index] = r
-        var it = noteRepeater.itemAt(index)
-        if (it) {
-            it.techniqueOverride = r
-        }
-        revision++
+        noteState.setTechniqueResult(index, result)
     }
     /** The technique result of note i: as set with setTechniqueResult, else from `notes`. */
     function techniqueResultOf(i) {
-        var r = changedTechniques[i]
-        return r !== undefined ? r : (notes && notes[i] && notes[i].techniqueResult ? String(notes[i].techniqueResult) : "")
+        return noteState.techniqueResultOf(i)
     }
-
     /**
      * Sets the state of one note without reassigning `notes`: only that note's visuals
      * change (and the screen-reader summary). Cost: well under 1 ms per call with 3000 notes.
@@ -137,66 +141,20 @@ Item {
      * `cents` in `notes` holds.
      */
     function setNoteState(index, state, cents) {
-        if (!notes || index < 0 || index >= notes.length) {
-            return
-        }
-        var old = stateOf(index)
-        stateCounts[old] = (stateCounts[old] || 1) - 1
-        stateCounts[String(state)] = (stateCounts[String(state)] || 0) + 1
-        changedStates[index] = String(state)
-        if (cents !== undefined) {
-            changedCents[index] = Number(cents)
-        }
-        var it = noteRepeater.itemAt(index)
-        if (it) {
-            it.override = String(state)
-            if (cents !== undefined) {
-                it.overrideCents = Number(cents)
-            }
-        }
-        revision++
+        noteState.setNoteState(index, state, cents)
     }
     /** Back to the states in `notes` (e.g. a new run of the same song). */
     function resetStates() {
-        changedStates = {}
-        changedCents = {}
-        changedTechniques = {}
-        var c = {}, tc = {}
-        for (var k = 0; notes && k < notes.length; k++) {
-            var st = notes[k].state ? String(notes[k].state) : "pending"
-            c[st] = (c[st] || 0) + 1
-            var tr = notes[k].techniqueResult ? String(notes[k].techniqueResult) : ""
-            if (tr !== "") {
-                tc[tr] = (tc[tr] || 0) + 1
-            }
-        }
-        stateCounts = c
-        techniqueCounts = tc
-        for (var i = 0; i < noteRepeater.count; i++) {
-            var it = noteRepeater.itemAt(i)
-            if (it) {
-                it.override = ""
-                it.overrideCents = NaN
-                it.techniqueOverride = "-"
-            }
-        }
-        revision++
+        noteState.resetStates()
     }
     /** The state of note i: as set with setNoteState, else from `notes`. */
     function stateOf(i) {
-        var s = changedStates[i]
-        return s !== undefined ? s : (notes[i] && notes[i].state ? String(notes[i].state) : "pending")
+        return noteState.stateOf(i)
     }
     /** The cents of note i (offpitch): as set with setNoteState, else from `notes`; NaN for none. */
     function centsOf(i) {
-        var c = changedCents[i]
-        if (c !== undefined) {
-            return c
-        }
-        var n = notes && notes[i]
-        return n && n.cents !== undefined && n.cents !== null ? Number(n.cents) : NaN
+        return noteState.centsOf(i)
     }
-    onNotesChanged: resetStates()
 
     /** Index of the next note to play (first with time ≥ position), -1 after the last. */
     readonly property int nextIndex: firstAtOrAfter(position)
@@ -250,7 +208,7 @@ Item {
     }
     /** Next note and the count per state, for screen readers. */
     function summary(next, list, revision) {
-        var counts = stateCounts
+        var counts = noteState.stateCounts
         var parts = []
         if (next >= 0) {
             var n = list[next]
@@ -261,7 +219,7 @@ Item {
                 parts.push(KanteStyle.noteStateName(st) + " " + counts[st])
             }
         })
-        var t = KanteStyle.techniqueCountsText(techniqueCounts)
+        var t = KanteStyle.techniqueCountsText(noteState.techniqueCounts)
         if (t !== "") {
             parts.push(t)
         }
@@ -464,6 +422,24 @@ Item {
                 delegate: Item {
                     id: note
                     required property int index
+                    // Set once the note is built: a state changed after that moves its mark (see fresh),
+                    // a mark built with the note (a lane rebuilt, resized) stays still.
+                    property bool live: false
+                    Component.onCompleted: live = true
+                    // The note's content is made asynchronously, later than the note: a state
+                    // changed just now still moves the mark then, an old one does not.
+                    property bool fresh: false
+                    onStChanged: {
+                        if (live) {
+                            fresh = true
+                            freshTimer.restart()
+                        }
+                    }
+                    Timer {
+                        id: freshTimer
+                        interval: KanteStyle.durationSlow
+                        onTriggered: note.fresh = false
+                    }
                     readonly property var n: lane.notes[index] || ({})
                     readonly property real t: Number(n.time) || 0
                     readonly property real d: Math.max(0, Number(n.duration) || 0)
@@ -567,6 +543,11 @@ Item {
                                     y: note.full ? headBox.y - height * 0.4 : headBox.y - height * 0.7
                                     width: Math.round(lane.head * (note.full ? 0.55 : 0.4))
                                     height: width
+                                    onLoaded: {
+                                        if (note.fresh) {
+                                            item.play()
+                                        }
+                                    }
                                     sourceComponent: KanteNoteMark {
                                         noteState: note.st
                                         cents: note.cents

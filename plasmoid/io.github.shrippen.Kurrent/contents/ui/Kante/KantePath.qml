@@ -16,6 +16,9 @@ import "."
  * KanteSteps stays for wizards (one line, no branches).
  *
  *   model  [{title: "An der Konbini", meta: "N5-03 · 2 von 4", state: "current"}, …]
+ *
+ * An entry may carry `text` (1.78): a sentence under title and meta, in the body font, wrapped,
+ * never elided; the node grows with it. A screen reader hears it after the meta line.
  */
 Column {
     id: path
@@ -56,7 +59,7 @@ Column {
 
             Accessible.role: Accessible.ListItem
             Accessible.name: (modelData.title || "") + ", " + stateWord
-            Accessible.description: modelData.meta || ""
+            Accessible.description: [modelData.meta || "", modelData.text || ""].filter(s => s.length > 0).join(". ")
             Accessible.onPressAction: if (!node.locked) path.activated(node.index)
             Keys.onReturnPressed: if (!node.locked) path.activated(node.index)
             Keys.onSpacePressed: if (!node.locked) path.activated(node.index)
@@ -90,7 +93,7 @@ Column {
                     fillColor: line ? "transparent" : node.tone
                     PathSvg {
                         path: {
-                            var s = sign.width
+                            const s = sign.width
                             if (node.st === "done") return "M " + 0.1 * s + " " + 0.55 * s + " L " + 0.4 * s + " " + 0.85 * s + " L " + 0.95 * s + " " + 0.15 * s
                             if (node.st === "review") return "M " + s / 2 + " 0 L " + s + " " + s / 2 + " L " + s / 2 + " " + s + " L 0 " + s / 2 + " Z"
                             if (node.st === "open") return "M 1 1 L " + (s - 1) + " 1 L " + (s - 1) + " " + (s - 1) + " L 1 " + (s - 1) + " Z"
@@ -119,6 +122,14 @@ Column {
                     color: KanteStyle.mutedTextColor
                     font: KanteStyle.labelFont()
                     elide: Text.ElideRight
+                }
+                Text {
+                    width: parent.width
+                    text: node.modelData.text || ""
+                    visible: text.length > 0
+                    color: KanteStyle.textColor
+                    font: KanteStyle.defaultFont
+                    wrapMode: Text.Wrap
                 }
             }
             KantePolygon {

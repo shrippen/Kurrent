@@ -22,7 +22,7 @@ Item {
     property string title: ""
     property string hint: ""
     property bool modified: false
-    property string resetText: "Zurücksetzen"
+    property string resetText: qsTr("Reset")
     property bool narrow: width > 0 && width < KanteStyle.unit(360)
     property real titleWidth: 0
     property string section: ""
@@ -33,6 +33,22 @@ Item {
     readonly property real implicitTitleWidth: Math.min(KanteStyle.unit(280),
         Math.max(titleText.implicitWidth + KanteStyle.unit(14), hintMetrics.advanceWidth))
     readonly property real sectionHeight: section !== "" ? sectionHead.implicitHeight + KanteStyle.unit(14) : 0
+
+    /** A KanteSettingGroup counts the rows (and any item with this property true) it holds. */
+    readonly property bool isSetting: true
+
+    // Tells the group around it that a row came, went or was hidden.
+    function tellGroup() {
+        for (let p = row.parent; p; p = p.parent) {
+            if (p.settingGroup === true) {
+                p.recount()
+                return
+            }
+        }
+    }
+    onVisibleChanged: tellGroup()
+    Component.onCompleted: tellGroup()
+    Component.onDestruction: tellGroup()
 
     implicitWidth: KanteStyle.unit(420)
     implicitHeight: sectionHeight + grid.implicitHeight + KanteStyle.unit(20)
@@ -85,19 +101,33 @@ Item {
             Layout.preferredWidth: !row.narrow && row.titleWidth > 0 ? row.titleWidth : -1
             Layout.alignment: Qt.AlignTop
             spacing: 2
-            Row {
+            // A long title wraps inside the column instead of pushing the control out of the row.
+            RowLayout {
+                id: titleLine
+                Layout.fillWidth: true
                 spacing: KanteStyle.unit(8)
                 Text {
                     id: titleText
+                    objectName: "settingTitle"
+                    // As wide as its text, narrower where the column is (it wraps there): the mark
+                    // follows the text. Not bound to the column's width, which the layout itself
+                    // sets: that loop left the title at width 0 (Kante 1.80). Rounded up: the
+                    // layout floors a fractional implicitWidth to whole device pixels, which cut
+                    // a short title (round 22, a real font under X11, not the test font) a
+                    // fraction of a pixel short of its own natural width and wrapped it.
+                    Layout.fillWidth: true
+                    Layout.maximumWidth: Math.ceil(implicitWidth)
                     text: row.title
                     color: KanteStyle.strongTextColor
                     font: KanteStyle.defaultFont
+                    wrapMode: Text.WordWrap
                 }
                 Rectangle {
+                    objectName: "settingMark"
                     visible: row.modified
-                    width: KanteStyle.unit(6)
-                    height: width
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.preferredWidth: KanteStyle.unit(6)
+                    Layout.preferredHeight: KanteStyle.unit(6)
+                    Layout.alignment: Qt.AlignVCenter
                     color: KanteStyle.focusColor
                 }
             }

@@ -4,11 +4,17 @@ import "."
 /**
  * Mechanical counter: every digit is a reel that rolls to its value, one after
  * the other. Leading zeros stay (`digits`). Set `value`; without motion the
- * reels just show it.
+ * reels just show it. `pace` Show: a figure shown once, staggered 900 ms roll.
+ * `pace` Live: a figure that changes often (a download's percent); all reels
+ * at once in `KanteStyle.duration`, so the roll ends before the next change.
+ * Show restarts on every change, so the later reels would never arrive.
  */
 Item {
     id: odo
 
+    enum Pace { Show, Live }
+
+    property int pace: KanteOdometer.Pace.Show
     property int value: 0
     property int digits: 3
     property font font: KanteStyle.headingFont(KanteStyle.unit(30) * 0.75)
@@ -36,8 +42,11 @@ Item {
                     y: -reel.digit * metric.height
                     Behavior on y {
                         SequentialAnimation {
-                            PauseAnimation { duration: KanteStyle.animate ? reel.index * 120 : 0 }
-                            NumberAnimation { duration: KanteStyle.animate ? 900 : 0; easing.type: Easing.OutCubic }
+                            PauseAnimation { duration: odo.pace === KanteOdometer.Pace.Live || !KanteStyle.animate ? 0 : reel.index * 120 }
+                            NumberAnimation {
+                                duration: odo.pace === KanteOdometer.Pace.Live ? KanteStyle.duration : (KanteStyle.animate ? 900 : 0)
+                                easing.type: Easing.OutCubic
+                            }
                         }
                     }
                     Repeater {

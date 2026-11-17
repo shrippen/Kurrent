@@ -100,48 +100,61 @@ QQC2.Button {
         y: control.down && control.drawn ? (control.raised ? 4 : 1) : 0
     }
 
-    // Hard shadow (raised): a second cut shape 4 px down and right.
-    KantePolygon {
+    // Hard shadow (raised): a second cut shape 4 px down and right. Shadow, focus ring and
+    // icon are built only when shown: hidden in every button, they cost a tenth of its
+    // creation, about 8 ms on a page of 40 buttons (Kontra N6).
+    Loader {
         z: -2
         x: 4
         y: 4
         width: control.width
         height: control.height
-        visible: control.drawn && control.raised && !control.down
-        fillColor: KanteStyle.tint(KanteStyle.strongTextColor, 0.2)
-        cutTopRight: control.cut + control.grow
+        active: control.drawn && control.raised
+        visible: !control.down
+        sourceComponent: KantePolygon {
+            fillColor: KanteStyle.tint(KanteStyle.strongTextColor, 0.2)
+            cutTopRight: control.cut + control.grow
+        }
     }
 
-    KantePolygon {
+    // The shape, and Quiet's ground on hover: built only where drawn (1.81.1). In System both stood
+    // hidden in every button, a third of its creation.
+    Loader {
         z: -1
         anchors.fill: parent
-        visible: control.drawn && control.emphasis !== KanteButton.Emphasis.Quiet
-        opacity: control.enabled ? 1 : 0.45
-        fillColor: control.kanteFill
-        strokeColor: control.filled ? "transparent" : control.kanteFrame
-        strokeWidth: control.filled ? 0 : 1
-        cutTopRight: control.cut + control.grow
-        cutBottomLeft: control.filled ? control.cut + control.grow : 0
+        active: control.drawn && control.emphasis !== KanteButton.Emphasis.Quiet
+        sourceComponent: KantePolygon {
+            opacity: control.enabled ? 1 : 0.45
+            fillColor: control.kanteFill
+            strokeColor: control.filled ? "transparent" : control.kanteFrame
+            strokeWidth: control.filled ? 0 : 1
+            cutTopRight: control.cut + control.grow
+            cutBottomLeft: control.filled ? control.cut + control.grow : 0
+        }
     }
 
     // Quiet: no frame, only a ground on hover.
-    Rectangle {
+    Loader {
         z: -1
         anchors.fill: parent
-        visible: KanteStyle.themed && control.emphasis === KanteButton.Emphasis.Quiet
-        color: (control.hovered || control.down) ? KanteStyle.sunkenColor : "transparent"
+        active: KanteStyle.themed && control.emphasis === KanteButton.Emphasis.Quiet
+        sourceComponent: Rectangle {
+            color: control.hovered || control.down ? KanteStyle.sunkenColor : "transparent"
+        }
     }
 
     // Focus ring inside the shape.
-    KantePolygon {
+    Loader {
         z: -1
         anchors.fill: parent
-        visible: control.drawn && control.visualFocus
-        strokeColor: control.filled ? control.kanteInk : KanteStyle.focusColor
-        strokeWidth: 2
-        inset: 3
-        cutTopRight: Math.max(0, control.cut + control.grow - 3)
-        cutBottomLeft: control.filled ? Math.max(0, control.cut + control.grow - 3) : 0
+        active: control.drawn && control.visualFocus
+        sourceComponent: KantePolygon {
+            strokeColor: control.filled ? control.kanteInk : KanteStyle.focusColor
+            strokeWidth: 2
+            inset: 3
+            cutTopRight: Math.max(0, control.cut + control.grow - 3)
+            cutBottomLeft: control.filled ? Math.max(0, control.cut + control.grow - 3) : 0
+        }
     }
 
     RowLayout {
@@ -161,30 +174,42 @@ QQC2.Button {
         spacing: Math.max(control.spacing, Kirigami.Units.smallSpacing)
         opacity: control.enabled ? 1 : 0.5
 
-        KanteLoader {
-            visible: control.busy
+        // Built while busy only: every button carried it hidden.
+        Loader {
+            active: control.busy
+            visible: active
             Layout.alignment: Qt.AlignVCenter
-            color: control.kanteInk
-            size: KanteStyle.unit(5)
+            sourceComponent: KanteLoader {
+                color: control.kanteInk
+                size: KanteStyle.unit(5)
+            }
         }
 
-        KanteIcon {
-            visible: !control.busy && control.display !== T.AbstractButton.TextOnly && String(iconSource).length > 0
+        Loader {
+            readonly property var iconSource: control.icon.name !== "" ? control.icon.name : control.icon.source
+            active: control.drawn && !control.busy && control.display !== T.AbstractButton.TextOnly
+                && String(iconSource).length > 0
+            visible: active
             Layout.preferredWidth: Kirigami.Units.iconSizes.small
             Layout.preferredHeight: Kirigami.Units.iconSizes.small
             Layout.alignment: Qt.AlignVCenter
-            iconSource: control.icon.name !== "" ? control.icon.name : control.icon.source
-            color: control.kanteInk
+            sourceComponent: KanteIcon {
+                iconSource: parent.iconSource
+                color: control.kanteInk
+            }
         }
 
-        QQC2.Label {
-            visible: control.display !== T.AbstractButton.IconOnly && control.text.length > 0
+        Loader {
+            active: control.drawn && control.display !== T.AbstractButton.IconOnly && control.text.length > 0
+            visible: active
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
-            text: control.text
-            font: control.font
-            color: control.kanteInk
-            elide: Text.ElideRight
+            sourceComponent: QQC2.Label {
+                text: control.text
+                font: control.font
+                color: control.kanteInk
+                elide: Text.ElideRight
+            }
         }
     }
 

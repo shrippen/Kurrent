@@ -21,6 +21,8 @@ Item {
     property bool vertical: false
     /** Labels under (vertical: beside) the bar. */
     property bool showScale: false
+    /** Unit after each scale label, e.g. "dB" gives "-60 dB"; "" shows the numbers alone. */
+    property string scaleUnit: ""
     /** Peak hold in ms; 0 switches the mark off. */
     property int holdMs: 1500
     /** Bar thickness. */
@@ -33,6 +35,9 @@ Item {
     property real held: 0
     /** Where the scale labels start (-1: dropped, too crowded); floor, warnAt, dangerAt, 0. */
     readonly property var scaleStarts: scaleRow.starts
+
+    // The label tail; the widest label is measured with it, so crowded marks still drop.
+    readonly property string unitSuffix: scaleUnit === "" ? "" : " " + scaleUnit
 
     onValueChanged: {
         if (holdMs <= 0)
@@ -94,7 +99,7 @@ Item {
     TextMetrics {
         id: scaleMetrics
         font: KanteStyle.labelFont()
-        text: "-60"
+        text: "-60" + meter.unitSuffix
     }
     Item {
         id: scaleRow
@@ -133,7 +138,7 @@ Item {
             delegate: Text {
                 required property real modelData
                 required property int index
-                text: modelData === 0 ? "0" : String(modelData)
+                text: (modelData === 0 ? "0" : String(modelData)) + meter.unitSuffix
                 font: KanteStyle.labelFont()
                 color: KanteStyle.mutedTextColor
                 visible: scaleRow.starts[index] >= 0

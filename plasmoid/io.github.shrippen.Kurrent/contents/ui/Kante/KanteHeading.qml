@@ -11,7 +11,8 @@ import "."
  *   Kante Light  the same section labels in theme colors, and the Rajdhani
  *           title for `pageTitle`; other headings stay the platform's.
  * `wrapMode` (1.68): a title breaks its lines in Kante too (one line and elided without it);
- * section labels stay one line beside their rule.
+ * section labels stay one line beside their rule. A title follows `horizontalAlignment` (1.81);
+ * a section label stays left, its rule after it.
  */
 Kirigami.Heading {
     id: control
@@ -36,9 +37,12 @@ Kirigami.Heading {
         anchors.verticalCenter: parent.verticalCenter
         // centered on the text, not on the padded box
         anchors.verticalCenterOffset: (control.topPadding - control.bottomPadding) / 2
-        width: wraps ? control.width : Math.min(implicitWidth, control.width)
+        // A title spans the heading, so horizontalAlignment places it; a section label is as wide
+        // as its text, the rule follows it.
+        width: control.sectionLabel ? Math.min(implicitWidth, control.width) : control.width
         wrapMode: wraps ? control.wrapMode : Text.NoWrap
         maximumLineCount: wraps ? control.maximumLineCount : 1
+        horizontalAlignment: control.horizontalAlignment
         text: control.text
         font: control.sectionLabel ? KanteStyle.labelFont()
                                    : KanteStyle.titleFont(KanteStyle.defaultFont.pointSize * (control.level <= 2 ? 1.6 : 1.3))

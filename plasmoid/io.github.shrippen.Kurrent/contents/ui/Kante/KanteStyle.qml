@@ -139,6 +139,21 @@ QtObject {
             : Qt.font({ family: japaneseFamily, pixelSize: b.pixelSize, bold: b.bold })
     }
 
+    /** How much larger text the learner studies is than the controls around it. */
+    readonly property real studyScale: 1.35
+    /** `japaneseFont(base)` at `studyScale` times the size: a sentence to read or a correction. */
+    function studyFont(base) {
+        const b = base || defaultFont
+        const f = japaneseFont(b)
+        // From the base, not from japaneseFont: Qt.font rounds a point size down, and a font
+        // given in pixels reports its point size too (16 px = 12 pt).
+        if (b.pointSize > 0)
+            f.pointSize = b.pointSize * studyScale
+        else
+            f.pixelSize = Math.round(b.pixelSize * studyScale)
+        return f
+    }
+
     // ── Surfaces (System values match a plain Kirigami look) ─────────────
     readonly property color strongTextColor: themed ? palette.strongText : Kirigami.Theme.textColor
     readonly property color mutedTextColor: themed ? palette.mutedText : tint(Kirigami.Theme.textColor, 0.75)
@@ -166,6 +181,21 @@ QtObject {
         case "purple": return palette.labelPurple
         }
         return "transparent"
+    }
+    /**
+     * Colour of a name in data (a shape or a track label): a role ("muted", "accent",
+     * "focus", "warning", "ground") or a label colour ("blue"); any other name gives the text colour.
+     */
+    function namedColor(name) {
+        switch (name) {
+        case "muted": return mutedTextColor
+        case "accent": return accentColor
+        case "focus": return focusColor
+        case "warning": return warningColor
+        case "ground": return backgroundColor
+        }
+        const c = labelColor(name)
+        return c.a > 0 ? c : textColor
     }
     // Warnings below "neutral" (e.g. stale dates, dead links); the platform has no own role, so neutral.
     readonly property color warningColor: themed ? palette.warning : Kirigami.Theme.neutralTextColor
@@ -382,6 +412,12 @@ QtObject {
     readonly property color frameColor: themed ? palette.frame : tint(Kirigami.Theme.textColor, 0.12)
     readonly property color ruleColor: themed ? palette.rule : tint(Kirigami.Theme.textColor, 0.12)
     readonly property color dialogColor: themed ? palette.dialog : Kirigami.Theme.backgroundColor
+    /** Tint of a glass layer over blurred content (`KanteGlassPanel`); System: the platform ground, same alpha. */
+    readonly property color glassColor: themed ? palette.glass : Qt.alpha(Kirigami.Theme.backgroundColor, palette.glass.a)
+    /** Tint where nothing is blurred (no GPU): dense enough that text stays readable. */
+    readonly property color glassDenseColor: themed ? palette.glassDense : Qt.alpha(Kirigami.Theme.backgroundColor, palette.glassDense.a)
+    /** Blur radius behind a glass layer, in px. */
+    readonly property int glassBlur: unit(KantePalette.glassBlur)
     /**
      * Ground of picture areas (monitors, video previews, image stages): dark in every kind and
      * scheme, Leinen and a light platform theme included, because colour is judged there and a
@@ -394,6 +430,16 @@ QtObject {
     /** Top-right corner cut of cards (px), scaled with the grid unit; 0 in System. */
     readonly property int chamfer: active ? Math.round(KantePalette.chamfer * Kirigami.Units.gridUnit / 18) : 0
     readonly property int chamferSmall: active ? Math.round(KantePalette.chamferSmall * Kirigami.Units.gridUnit / 18) : 0
+
+    readonly property int tenthsPerSecond: 10
+    readonly property real _tenthEpsilon: 1e-6
+    /**
+     * Seconds as whole tenths, cut off like a timecode (59.99 -> 599). The epsilon keeps
+     * 0.7 + 0.1 s at 8 tenths (0.7999999999999999 in floating point); negative counts as 0.
+     */
+    function wholeTenths(s) {
+        return Math.floor(Math.max(0, s) * tenthsPerSecond + _tenthEpsilon)
+    }
 
     /** A size in px of the web tokens (--h-*, --cut-*), scaled with the grid unit. */
     function unit(px) {
@@ -483,6 +529,19 @@ QtObject {
     readonly property int durationSlow: animate ? 450 : 0
     /** Overshoot of the snap easing (Easing.OutBack), a small mechanical settle. */
     readonly property real snapOvershoot: 1.5
+
+    /**
+     * Axis step of the charts: 1, 2, 2.5, 5 or 10 times a power of ten, at least `raw`
+     * (0.7 -> 1, 2.2 -> 2.5, 31 -> 50). 1 when `raw` is not above 0.
+     */
+    function niceStep(raw) {
+        if (!(raw > 0)) {
+            return 1
+        }
+        const p10 = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10))
+        const f = raw / p10
+        return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p10
+    }
 
     function relLum(c) {
         function f(v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4) }

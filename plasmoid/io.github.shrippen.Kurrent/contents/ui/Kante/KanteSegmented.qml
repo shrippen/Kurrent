@@ -10,7 +10,8 @@ import "."
  * icon names and `tooltips` an optional list of hints (needed for icon-only segments).
  * `disabledIndexes` (Kante 1.28) lists segments that cannot be chosen, e.g. [2]: muted and
  * struck through (not colour alone), no click, arrow keys skip them, screen readers hear
- * them as unavailable. Their tooltip still shows, so it can say why.
+ * them as unavailable. Their tooltip still shows, so it can say why. With `enabled: false` the
+ * whole control is dimmed like the other controls and takes no click or key.
  */
 FocusScope {
     id: seg
@@ -53,8 +54,10 @@ FocusScope {
         }
     }
 
+    // Dimmed when disabled, on the parts (like the other controls): `opacity` stays the app's.
     Rectangle {
         anchors.fill: parent
+        opacity: seg.enabled ? 1 : 0.5
         color: KanteStyle.sunkenColor
         border.width: 1
         border.color: seg.activeFocus ? KanteStyle.focusColor : KanteStyle.frameColor
@@ -64,6 +67,7 @@ FocusScope {
         id: row
         anchors.fill: parent
         anchors.margins: 1
+        opacity: seg.enabled ? 1 : 0.5
 
         Repeater {
             model: seg.model
@@ -123,6 +127,10 @@ FocusScope {
                     Accessible.role: Accessible.RadioButton
                     Accessible.name: String(item.modelData).length > 0 ? item.modelData : item.tip
                     Accessible.checked: item.current
+                    // Screen readers pick a segment through these, not through a tap; Qt sends
+                    // them to a disabled control too (review #174).
+                    Accessible.onPressAction: if (seg.enabled) { seg.select(item.index) }
+                    Accessible.onToggleAction: if (seg.enabled) { seg.select(item.index) }
                 }
             }
         }

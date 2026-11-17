@@ -16,7 +16,8 @@ import "."
  * Keyboard: Tab into the row, Left / Right move the focus, Space or Enter picks the focused
  * level. Screen readers hear radio buttons "3 sure", the chosen one checked.
  * Fills the width it is given; implicitly as wide as its widest word needs. Narrower, the words
- * elide inside their buttons.
+ * set tight (no letter spacing, `tight`), so "prüfungsreif" stays whole on a small phone; only
+ * narrower still they elide inside their buttons.
  */
 FocusScope {
     id: picker
@@ -32,6 +33,15 @@ FocusScope {
     readonly property real cellWidth: Math.max(KanteStyle.unit(56), widestWord + KanteStyle.unit(12))
     // The widest word in pixels (measured below).
     property real widestWord: 0
+    // The room a word has in its button, and whether the words set tight to fit it (Kante's
+    // labels only: the platform's small font has no letter spacing to give up).
+    readonly property real wordRoom: (width - (count - 1) * row.spacing) / count - KanteStyle.unit(6)
+    readonly property bool tight: KanteStyle.active && widestWord > wordRoom
+    // The label font without its letter spacing: the same size, never below Kante's 7 pt.
+    readonly property font tightFont: {
+        const f = KanteStyle.labelFont()
+        return Qt.font({ family: f.family, pointSize: f.pointSize, capitalization: f.capitalization, letterSpacing: 0 })
+    }
 
     implicitWidth: count * cellWidth + (count - 1) * row.spacing
     implicitHeight: KanteStyle.unit(52)
@@ -107,7 +117,8 @@ FocusScope {
                         font: KanteStyle.headingFont(15)
                         color: cell.ink
                     }
-                    // Narrower than the word: the word elides (labels stay at Kante's 7 pt or more).
+                    // Narrower than the word: tight first, then the word elides (labels stay at
+                    // Kante's 7 pt or more).
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         visible: text.length > 0
@@ -115,7 +126,7 @@ FocusScope {
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
                         text: picker.nameOf(cell.level)
-                        font: KanteStyle.labelFont()
+                        font: picker.tight ? picker.tightFont : KanteStyle.labelFont()
                         color: cell.chosen ? cell.ink : KanteStyle.mutedTextColor
                     }
                 }

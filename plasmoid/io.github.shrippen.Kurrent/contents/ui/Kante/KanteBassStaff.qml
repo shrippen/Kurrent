@@ -98,44 +98,27 @@ Item {
      */
     property int marks: KanteBassStaff.Marks.Full
     /** Counts state changes made with setNoteState / resetStates (and new note lists). */
-    readonly property int stateRevision: revision
-    property int revision: 0
-    // States set with setNoteState, by note index (plain object, read through stateRevision).
-    property var changedStates: ({})
-    // Cents given to setNoteState, by note index.
-    property var changedCents: ({})
+    readonly property int stateRevision: noteState.revision
     /** Cents beside the sign of an offpitch note (Kante 1.27), in Full marks. */
     property bool showCents: true
-    // Technique results set with setTechniqueResult, by note index (1.31).
-    property var changedTechniques: ({})
+
+    // The states of the notes, apart from `notes` (see KanteNoteState).
+    KanteNoteState {
+        id: noteState
+        hidden: staff.marks === KanteBassStaff.Marks.Off
+    }
 
     /** Sets how the technique of one note was played (Kante 1.31): "", "played", "other", "unheard". */
     function setTechniqueResult(index, result) {
-        if (!notes || index < 0 || index >= notes.length) {
-            return
-        }
-        changedTechniques[index] = String(result || "")
-        revision++
+        noteState.setTechniqueResult(index, result)
     }
     /** The technique result of note i: as set with setTechniqueResult, else from `notes`. */
     function techniqueResultOf(i) {
-        var r = changedTechniques[i]
-        return r !== undefined ? r : (notes && notes[i] && notes[i].techniqueResult ? String(notes[i].techniqueResult) : "")
-    }
-    /** The result as shown: "" when marks are Off. Depends on stateRevision. */
-    function shownTechniqueResult(i, revision) {
-        return marks === KanteBassStaff.Marks.Off ? "" : techniqueResultOf(i)
+        return noteState.techniqueResultOf(i)
     }
     /** "Technik gespielt 3, Andere Technik 1" over all notes (screen readers). Depends on stateRevision. */
     function techniqueSummary(revision) {
-        var counts = {}
-        for (var i = 0; notes && i < notes.length; i++) {
-            var r = shownTechniqueResult(i, revision)
-            if (r !== "") {
-                counts[r] = (counts[r] || 0) + 1
-            }
-        }
-        return KanteStyle.techniqueCountsText(counts)
+        return noteState.techniqueSummary(revision)
     }
 
     /**
@@ -144,72 +127,112 @@ Item {
      * note's `cents` in `notes` holds.
      */
     function setNoteState(index, state, cents) {
-        if (!notes || index < 0 || index >= notes.length) {
-            return
-        }
-        changedStates[index] = String(state)
-        if (cents !== undefined) {
-            changedCents[index] = Number(cents)
-        }
-        revision++
+        noteState.setNoteState(index, state, cents)
     }
     /** Back to the states in `notes`. */
     function resetStates() {
-        changedStates = {}
-        changedCents = {}
-        changedTechniques = {}
-        revision++
+        noteState.resetStates()
     }
     /** The cents of note i (offpitch): as set with setNoteState, else from `notes`; NaN for none. */
     function centsOf(i) {
-        var c = changedCents[i]
-        if (c !== undefined) {
-            return c
-        }
-        var n = notes && notes[i]
-        return n && n.cents !== undefined && n.cents !== null ? Number(n.cents) : NaN
-    }
-    /** ", +32 ct" for an offpitch note with cents (screen readers), else "". Depends on stateRevision. */
-    function centsSuffix(i, revision) {
-        var t = shownState(i, revision) === "offpitch" ? KanteStyle.centsText(centsOf(i)) : ""
-        return t !== "" ? ", " + t : ""
+        return noteState.centsOf(i)
     }
     /** The state of note i: as set with setNoteState, else from `notes`. */
     function stateOf(i) {
-        var s = changedStates[i]
-        return s !== undefined ? s : (notes && notes[i] && notes[i].state ? String(notes[i].state) : "pending")
+        return noteState.stateOf(i)
     }
     /** The state as shown: "pending" when marks are Off. Depends on stateRevision. */
     function shownState(i, revision) {
-        return marks === KanteBassStaff.Marks.Off || i === undefined ? "pending" : stateOf(i)
+        return noteState.shownState(i, revision)
     }
-    onNotesChanged: resetStates()
+    onNotesChanged: {
+        noteState.notes = notes
+        calm = true
+        calmTimer.restart()
+    }
+    // New notes get their states again from the app (Kontra transposes during a run): those
+    // marks stay still for a moment instead of all moving at once (review #155).
+    property bool calm: false
+    Timer { id: calmTimer; interval: 500; onTriggered: staff.calm = false }
 
-    readonly property real sp: Math.max(4, staffSpace)
-    readonly property int currentIndex: lastAtOrBefore(position)
+    readonly property real sp: Math.max(4, layoutSpacing)
+    readonly property int currentIndex: frame.lastAtOrBefore(notes, position)
     readonly property var barList: normalizeBars(bars, notes, rests, keyFifths)
     /** Every chord symbol, from `chords` and the bars: [{time, text}] sorted by time. */
     readonly property var chordList: collectChords(chords, barList)
     readonly property bool hasChords: chordList.length > 0
-    readonly property int currentBar: barAt(position)
+    readonly property int currentBar: frame.barAt(barList, position)
     // Wide enough for the widest key a line can start with (with the naturals of a change).
     readonly property real headerWidth: sp * (4.2 + maxHeaderKey(barList) * 1.1 + 3.0)
     readonly property int perSystem: barsPerSystem > 0 ? barsPerSystem
-        : Math.max(1, Math.floor((width - headerWidth) / Math.max(1, minBarWidth)))
+        : Math.max(1, Math.floor((layoutSize.width - headerWidth) / Math.max(1, layoutMinBarWidth)))
     readonly property int firstBar: Math.max(0, Math.floor(currentBar / perSystem) * perSystem)
-    readonly property real barWidth: (width - headerWidth) / perSystem
+    readonly property real barWidth: (layoutSize.width - headerWidth) / perSystem
     /** Any bar with a section: then a row for the rehearsal marks on top (1.50). */
     readonly property bool hasSections: barList.some(function (b) { return b.section !== "" })
     readonly property real sectionRow: hasSections ? markProbe.implicitHeight + sp * 0.5 : 0
     readonly property real staffTop: sectionRow + sp * (hasChords ? 7.5 : 5.5)
     readonly property real systemHeight: staffTop + sp * 4 + sp * 5
-    readonly property var layout: computeLayout(firstBar, perSystem, Math.max(1, systems), width, sp, notes, rests, barList, chordList)
+    readonly property var layout: computeLayout(firstBar, perSystem, Math.max(1, systems), layoutSize.width, sp, notes, rests, barList, chordList)
     /** Loop parts of the page, one per line: [{x, w, sys, left, right}] (1.35). */
-    readonly property var loopParts: loopLayout(firstBar, perSystem, Math.max(1, systems), width, barList,
+    readonly property var loopParts: loopLayout(firstBar, perSystem, Math.max(1, systems), layoutSize.width, barList,
                                                 loopStart, loopEnd)
 
     implicitWidth: KanteStyle.unit(720)
     implicitHeight: Math.ceil(systemHeight * Math.max(1, systems))
+
+    /**
+     * Wait after the last change of size, spacing or bar width before laying out again
+     * (1.81), in ms: while a window is dragged the drawn lines stay, then they move to their
+     * new place once. 0 (default): at once.
+     */
+    property int settleMs: 0
+    /** The size the layout uses: the item's, taken over at once or `settleMs` after it changed. */
+    readonly property size layoutSize: frame.layoutSize
+    /** The spacing the layout uses: `staffSpace`, taken over with the size (a new spacing that
+     *  comes with a resize, e.g. a presentation going full screen, lays out once). */
+    readonly property real layoutSpacing: frame.layoutSpacing
+    /** The bar width the layout uses: `minBarWidth`, taken over with the size too (it may
+     *  follow the spacing, e.g. `staffSpace * 18`). */
+    readonly property real layoutMinBarWidth: frame.layoutMinBarWidth
+    /** Shown long enough that its room has settled: before, a change of the room (a page still
+     *  laying out) lands at once instead of growing in (Kontra 12.11.). */
+    readonly property bool grown: frame.grown
+
+    // Line layouts by line index (1.81), kept by the frame: a line keeps its layout while it
+    // stays in view, so a page turn lays out only the line that comes in.
+    readonly property var lineCache: frame.lineCache
+    readonly property int lineRevision: frame.lineRevision
+    readonly property var emptyLayout: ({ rects: [], polys: [], ties: [], glyphs: [], marks: [], techniques: [],
+                                          sections: [], boxes: ({}) })
+    readonly property var lineInputs: [layoutSize, perSystem, sp, systemHeight, headerWidth, barWidth, staffTop,
+                                       notes, rests, barList, chordList]
+
+    KanteStaffFrame {
+        id: frame
+        width: staff.width
+        height: staff.height
+        spacing: staff.staffSpace
+        minBarWidth: staff.minBarWidth
+        settleMs: staff.settleMs
+        perSystem: staff.perSystem
+        firstBar: staff.firstBar
+        headerWidth: staff.headerWidth
+        barWidth: staff.barWidth
+        systems: Math.max(1, staff.systems)
+        barCount: staff.barList.length
+        inputs: staff.lineInputs
+        layoutLine: staff.layoutLine
+    }
+    function layoutLine(first, per) {
+        return computeLayout(first, per, 1, layoutSize.width, sp, notes, rests, barList, chordList)
+    }
+    // The first lines at once: a staff shows its notes from the first frame.
+    Component.onCompleted: {
+        frame.takeSize()
+        frame.syncLines()
+        lineView.forceLayout()
+    }
 
     Accessible.role: Accessible.Chart
     Accessible.name: accessibleName
@@ -227,7 +250,7 @@ Item {
         const n = currentIndex >= 0 ? notes[currentIndex] : undefined
         if (n) {
             d += ", " + pitchName(Number(n.midi), barList.length ? barList[currentBar].key : keyFifths)
-                + " (" + KanteStyle.noteStateName(shownState(currentIndex, stateRevision)) + centsSuffix(currentIndex, stateRevision) + ")"
+                + " (" + KanteStyle.noteStateName(shownState(currentIndex, stateRevision)) + noteState.centsSuffix(currentIndex, stateRevision) + ")"
         }
         const t = techniqueSummary(stateRevision)
         if (t !== "") {
@@ -299,20 +322,6 @@ Item {
     }
 
     // ── Time ─────────────────────────────────────────────────────────
-    function lastAtOrBefore(t) {
-        var a = 0, b = notes ? notes.length : 0
-        while (a < b) {
-            var m = (a + b) >> 1
-            if (Number(notes[m].time) <= t + 1e-6) a = m + 1
-            else b = m
-        }
-        return a - 1
-    }
-    /** Label of a bar (1.28): its `number` as sent (written bar number), else index + 1. */
-    function barLabel(o, i) {
-        var n = typeof o === "object" && o !== null ? o.number : undefined
-        return n === undefined || n === null || String(n) === "" ? String(i + 1) : String(n)
-    }
     function normalizeBars(list, ns, rs, fifths) {
         var out = [], num = 4, den = 4
         var key = clampKey(fifths)
@@ -333,7 +342,7 @@ Item {
             out.push({ time: Number(o.time) || 0, num: num, den: den, changed: changed,
                        key: key, fromKey: fromKey, keyChanged: i > 0 && key !== fromKey,
                        chord: o.chord !== undefined && o.chord !== null ? String(o.chord) : "",
-                       number: barLabel(o, i), section: KanteStyle.rehearsalText(o.section), part: "" })
+                       number: frame.barLabel(o, i), section: KanteStyle.rehearsalText(o.section), part: "" })
         }
         // Seconds per quarter, from the notes (median of time step / beats): sizes a bar
         // when none or only the start of the last one is given.
@@ -374,15 +383,6 @@ Item {
             out[p].part = out[p].section !== "" ? out[p].section : (p > 0 ? out[p - 1].part : "")
         }
         return out
-    }
-    function barAt(t) {
-        var a = 0, b = barList.length
-        while (a < b) {
-            var m = (a + b) >> 1
-            if (barList[m].time <= t + 1e-6) a = m + 1
-            else b = m
-        }
-        return Math.max(0, a - 1)
     }
     function clampKey(k) {
         return Math.max(-7, Math.min(7, Math.round(Number(k) || 0)))
@@ -442,49 +442,12 @@ Item {
         }
         return c
     }
-    function sysOf(b) {
-        return Math.floor((b - firstBar) / perSystem)
-    }
-    /** x of a loop edge at time t in bar b: on the bar line at a bar start or end, else xOf. */
-    function loopX(t, b) {
-        var bar = barList[b]
-        var left = headerWidth + ((b - firstBar) % perSystem) * barWidth
-        if (Math.abs(t - bar.time) < 1e-3) {
-            return left
-        }
-        if (Math.abs(t - bar.end) < 1e-3) {
-            return left + barWidth
-        }
-        return xOf(t, b)
-    }
     /**
      * The loop cut into lines (1.35): per line the part of [from, to] it shows. left / right:
      * the loop starts / ends on this line (bracket edge), else it runs on (open edge).
      */
     function loopLayout(first, per, nsys, w, bl, from, to) {
-        var out = []
-        if (w <= 0 || bl.length === 0 || from < 0 || to <= from) {
-            return out
-        }
-        var last = Math.min(bl.length - 1, first + per * nsys - 1)
-        for (var s = 0; s < nsys; s++) {
-            let b0 = first + s * per
-            let b1 = Math.min(last, b0 + per - 1)
-            if (b1 < b0) {
-                break
-            }
-            let t0 = Math.max(from, bl[b0].time)
-            let t1 = Math.min(to, bl[b1].end)
-            if (t1 <= t0 + 1e-6) {
-                continue
-            }
-            // The bar of each edge, kept on this line; the end belongs to the bar before it.
-            let x0 = loopX(t0, Math.max(b0, Math.min(b1, barAt(t0))))
-            let x1 = loopX(t1, Math.max(b0, Math.min(b1, barAt(t1 - 1e-3))))
-            out.push({ x: x0, w: Math.max(1, x1 - x0), sys: s, left: from >= bl[b0].time - 1e-6,
-                       right: to <= bl[b1].end + 1e-6 })
-        }
-        return out
+        return frame.cutLoop(first, per, nsys, w, bl, from, to, xOf)
     }
     function padLeft(b) {
         var bar = barList[b]
@@ -506,6 +469,9 @@ Item {
 
     // ── Layout ───────────────────────────────────────────────────────
     function computeLayout(first, per, nsys, w, sp, ns, rs, bl, cl) {
+        // The line of bar b counted from `first`: a line laid out alone is line 0 (review
+        // #155: lines below the top one drew their notes one or two lines lower).
+        var lineOf = function (b) { return Math.floor((b - first) / per) }
         var L = { glyphs: [], rects: [], polys: [], ties: [], marks: [], techniques: [], sections: [], boxes: {} }
         if (w <= 0 || bl.length === 0) {
             return L
@@ -514,20 +480,24 @@ Item {
                   heads: ["", "", "", "", "", ""],
                   rests: ["", "", "", "", "", ""],
                   flagsUp: ["", "", "", "", "", ""], flagsDown: ["", "", "", "", "", ""] }
-        function signGlyph(sign) { return sign > 0 ? G.sharp : sign < 0 ? G.flat : G.natural }
         var lineT = Math.max(1, Math.round(sp * 0.13)), stemW = Math.max(1, Math.round(sp * 0.12))
         var ledgerT = Math.max(1, Math.round(sp * 0.16))
         var last = Math.min(bl.length - 1, first + per * nsys - 1)
-        function digits(n, x, y) {
-            var s = String(n)
-            for (var i = 0; i < s.length; i++) {
-                L.glyphs.push({ x: x + (i - s.length / 2) * sp * 1.8 , y: y, g: String.fromCharCode(0xE080 + Number(s[i])), ink: "" })
-            }
-        }
-        function timeSig(bar, x, sys) {
-            digits(bar.num, x, yOf(6, sys))
-            digits(bar.den, x, yOf(2, sys))
-        }
+        var c = { first: first, per: per, nsys: nsys, w: w, sp: sp, ns: ns, rs: rs, bl: bl, cl: cl, L: L, G: G, last: last,
+                  lineT: lineT, stemW: stemW, ledgerT: ledgerT, lineOf: lineOf,
+                  from: bl[first].time, to: bl[last].end }
+        layoutFrame(c)
+        layoutSections(c)
+        layoutChords(c)
+        layoutRests(c)
+        const items = layoutNotes(c)
+        layoutBeams(c, items)
+        layoutTies(c, items)
+        return L
+    }
+    /** Staff lines, clef, key signatures, time signatures and bar lines of each line. */
+    function layoutFrame(c) {
+        const first = c.first, per = c.per, nsys = c.nsys, sp = c.sp, bl = c.bl, L = c.L, G = c.G, last = c.last, lineT = c.lineT
         // Staff, clef, key, bars.
         for (var s = 0; s < nsys; s++) {
             var used = Math.min(per, Math.max(0, last - (first + s * per) + 1))
@@ -543,35 +513,56 @@ Item {
             var lineBar = bl[firstOfLine]
             var ks = keySigns(lineBar.keyChanged ? lineBar.fromKey : lineBar.key, lineBar.key)
             for (var k = 0; k < ks.length; k++) {
-                L.glyphs.push({ x: sp * (4.2 + k * 1.1), y: yOf(ks[k].pos, s), g: signGlyph(ks[k].sign), ink: "" })
+                L.glyphs.push({ x: sp * (4.2 + k * 1.1), y: yOf(ks[k].pos, s), g: signGlyph(c, ks[k].sign), ink: "" })
             }
-            if (s === 0 || bl[firstOfLine].changed) {
-                timeSig(bl[firstOfLine], sp * (4.2 + ks.length * 1.1 + 1.3), s)
+            // The time signature at the start of the piece and where it changes, as printed.
+            if (firstOfLine === 0 || bl[firstOfLine].changed) {
+                drawTimeSig(c, bl[firstOfLine], sp * (4.2 + ks.length * 1.1 + 1.3), s)
             }
-            for (var c = 0; c < used; c++) {
-                var bi = firstOfLine + c
-                var bx = headerWidth + c * barWidth
-                var endX = bx + barWidth
-                var finalBar = bi === bl.length - 1
-                L.rects.push({ x: endX - (finalBar ? sp * 0.9 : Math.max(1, Math.round(sp * 0.16))), y: yOf(8, s),
-                               w: Math.max(1, Math.round(sp * 0.16)), h: sp * 4, ink: "" })
-                if (finalBar) {
-                    L.rects.push({ x: endX - sp * 0.5, y: yOf(8, s), w: sp * 0.5, h: sp * 4, ink: "" })
-                } else if (bl[bi + 1].keyChanged) {
-                    // A thin double bar line before a new key.
-                    L.rects.push({ x: endX - Math.max(1, Math.round(sp * 0.16)) - sp * 0.45, y: yOf(8, s),
-                                   w: Math.max(1, Math.round(sp * 0.16)), h: sp * 4, ink: "" })
-                }
-                L.glyphs.push({ x: bx + sp * 0.2, y: yOf(8, s) - sp * 1.0, g: "", text: bl[bi].number, ink: "muted" })
-                var midKey = c > 0 && bl[bi].keyChanged ? keySigns(bl[bi].fromKey, bl[bi].key) : []
-                for (var mk = 0; mk < midKey.length; mk++) {
-                    L.glyphs.push({ x: bx + sp * (1.2 + mk * 1.1), y: yOf(midKey[mk].pos, s), g: signGlyph(midKey[mk].sign), ink: "" })
-                }
-                if (c > 0 && bl[bi].changed) {
-                    timeSig(bl[bi], bx + sp * (midKey.length > 0 ? 1.2 + midKey.length * 1.1 + 1.2 : 1.6), s)
-                }
+            for (var ci = 0; ci < used; ci++) {
+                layoutBar(c, s, firstOfLine, ci)
             }
         }
+    }
+    /** One bar: closing bar line, number, and a key or time signature that changes in it. */
+    function layoutBar(c, s, firstOfLine, ci) {
+        const sp = c.sp, bl = c.bl, L = c.L
+        var bi = firstOfLine + ci
+        var bx = headerWidth + ci * barWidth
+        var endX = bx + barWidth
+        var finalBar = bi === bl.length - 1
+        L.rects.push({ x: endX - (finalBar ? sp * 0.9 : Math.max(1, Math.round(sp * 0.16))), y: yOf(8, s),
+                       w: Math.max(1, Math.round(sp * 0.16)), h: sp * 4, ink: "" })
+        if (finalBar) {
+            L.rects.push({ x: endX - sp * 0.5, y: yOf(8, s), w: sp * 0.5, h: sp * 4, ink: "" })
+        } else if (bl[bi + 1].keyChanged) {
+            // A thin double bar line before a new key.
+            L.rects.push({ x: endX - Math.max(1, Math.round(sp * 0.16)) - sp * 0.45, y: yOf(8, s),
+                           w: Math.max(1, Math.round(sp * 0.16)), h: sp * 4, ink: "" })
+        }
+        L.glyphs.push({ x: bx + sp * 0.2, y: yOf(8, s) - sp * 1.0, g: "", text: bl[bi].number, ink: "muted" })
+        var midKey = ci > 0 && bl[bi].keyChanged ? keySigns(bl[bi].fromKey, bl[bi].key) : []
+        for (var mk = 0; mk < midKey.length; mk++) {
+            L.glyphs.push({ x: bx + sp * (1.2 + mk * 1.1), y: yOf(midKey[mk].pos, s), g: signGlyph(c, midKey[mk].sign), ink: "" })
+        }
+        if (ci > 0 && bl[bi].changed) {
+            drawTimeSig(c, bl[bi], bx + sp * (midKey.length > 0 ? 1.2 + midKey.length * 1.1 + 1.2 : 1.6), s)
+        }
+    }
+    function signGlyph(c, sign) { return sign > 0 ? c.G.sharp : sign < 0 ? c.G.flat : c.G.natural }
+    function drawDigits(c, n, x, y) {
+        const s = String(n)
+        for (var i = 0; i < s.length; i++) {
+            c.L.glyphs.push({ x: x + (i - s.length / 2) * c.sp * 1.8 , y: y, g: String.fromCharCode(0xE080 + Number(s[i])), ink: "" })
+        }
+    }
+    function drawTimeSig(c, bar, x, sys) {
+        drawDigits(c, bar.num, x, yOf(6, sys))
+        drawDigits(c, bar.den, x, yOf(2, sys))
+    }
+    /** Rehearsal marks. */
+    function layoutSections(c) {
+        const first = c.first, per = c.per, nsys = c.nsys, sp = c.sp, bl = c.bl, L = c.L, last = c.last
         // Rehearsal marks (1.50): over the first bar of a part, as wide as the room up to the
         // next mark on the line (or the line's end).
         for (let ms = 0; ms < nsys; ms++) {
@@ -587,24 +578,31 @@ Item {
             }
         }
         L.sections.reverse()
-        var from = bl[first].time, to = bl[last].end
+    }
+    /** Chord symbols. */
+    function layoutChords(c) {
+        const sp = c.sp, cl = c.cl, L = c.L, from = c.from, to = c.to, lineOf = c.lineOf
         // Chord symbols: above the staff, left-aligned over the note at their time; one
         // that would run into the previous one on its line moves right.
         var chordRight = {}
         for (var ci = 0; cl && ci < cl.length; ci++) {
             var ct = cl[ci].time
             if (ct < from - 1e-6 || ct >= to - 1e-6) continue
-            var cb = barAt(ct), csys = sysOf(cb)
+            var cb = frame.barAt(barList, ct), csys = lineOf(cb)
             var label = chordLabel(cl[ci].text)
             var cx = Math.max(xOf(ct, cb) - sp * 0.6, (chordRight[csys] || 0) + sp * 0.8)
             L.glyphs.push({ x: cx, y: csys * systemHeight + sectionRow + sp * 3.2, g: "", text: label, ink: "chord", chord: true })
             chordRight[csys] = cx + label.length * sp * 0.95
         }
+    }
+    /** Rests. */
+    function layoutRests(c) {
+        const first = c.first, per = c.per, sp = c.sp, rs = c.rs, bl = c.bl, L = c.L, G = c.G, from = c.from, to = c.to, lineOf = c.lineOf
         // Rests.
         for (var r = 0; rs && r < rs.length; r++) {
             var rt = Number(rs[r].time)
             if (rt < from - 1e-6 || rt >= to - 1e-6) continue
-            var rb = barAt(rt), rsys = sysOf(rb)
+            var rb = frame.barAt(barList, rt), rsys = lineOf(rb)
             var rv = valueOf(rs[r].beats)
             var fullBar = Math.abs(Number(rs[r].beats) - bl[rb].num * 4 / bl[rb].den) < 1e-3
             var rx = fullBar ? headerWidth + ((rb - first) % per + 0.5) * barWidth - sp * 0.6 : xOf(rt, rb) - sp * 0.5
@@ -614,6 +612,10 @@ Item {
                 L.glyphs.push({ x: rx + sp * (1.5 + rd * 0.5), y: yOf(5, rsys), g: G.dot, ink: "" })
             }
         }
+    }
+    /** Heads, accidentals, dots and ledger lines of the notes on show; the items stems and beams follow. */
+    function layoutNotes(c) {
+        const sp = c.sp, ns = c.ns, bl = c.bl, L = c.L, G = c.G, from = c.from, to = c.to, lineOf = c.lineOf
         // Notes: heads, accidentals, dots, ledger lines; stems and beams after grouping.
         var items = []
         var acc = {}, accBar = -1
@@ -621,7 +623,7 @@ Item {
             var n = ns[i]
             var t = Number(n.time)
             if (t < from - 1e-6 || t >= to - 1e-6) continue
-            var b = barAt(t), sys = sysOf(b)
+            var b = frame.barAt(barList, t), sys = lineOf(b)
             if (b !== accBar) {
                 acc = {}
                 accBar = b
@@ -634,25 +636,12 @@ Item {
             var x = xOf(t, b) - headW / 2
             var y = yOf(sp_.pos, sys)
             var st = n.state || "pending"
-            var prevTied = i > 0 && ns[i - 1].tied && Number(ns[i - 1].midi) === midi
-            var key = sp_.pos
-            var current = acc[key] !== undefined ? acc[key] : keyAlter(sp_.letter, f)
-            if (sp_.alter !== current && !(prevTied && barAt(Number(ns[i - 1].time)) !== b)) {
-                var ag = sp_.alter > 0 ? G.sharp : sp_.alter < 0 ? G.flat : G.natural
-                var aw = sp_.alter > 0 ? 1.0 : sp_.alter < 0 ? 0.9 : 0.7
-                L.glyphs.push({ x: x - sp * (aw + 0.25), y: y, g: ag, ink: "note", index: i })
-            }
-            acc[key] = sp_.alter
+            layoutAccidental(c, acc, i, sp_, b, x, y)
             L.glyphs.push({ x: x, y: y, g: G.heads[v.type], ink: "note", index: i })
             for (var d = 0; d < v.dots; d++) {
                 L.glyphs.push({ x: x + headW + sp * (0.35 + d * 0.5), y: yOf(sp_.pos % 2 === 0 ? sp_.pos + 1 : sp_.pos, sys), g: G.dot, ink: "note", index: i })
             }
-            for (var p = -2; p >= sp_.pos; p -= 2) {
-                L.rects.push({ x: x - sp * 0.4, y: yOf(p, sys) - ledgerT / 2, w: headW + sp * 0.8, h: ledgerT, ink: "" })
-            }
-            for (var q = 10; q <= sp_.pos; q += 2) {
-                L.rects.push({ x: x - sp * 0.4, y: yOf(q, sys) - ledgerT / 2, w: headW + sp * 0.8, h: ledgerT, ink: "" })
-            }
+            layoutLedgers(c, sp_.pos, x, headW, sys)
             L.marks.push({ x: x + headW / 2, y: sys * systemHeight + sectionRow + sp * 1.0, index: i })
             // The technique sign under the state sign, above the chord symbols (1.31).
             if (n.technique) {
@@ -664,6 +653,35 @@ Item {
             items.push({ i: i, x: x, y: y, pos: sp_.pos, w: headW, v: v, sys: sys, bar: b, st: st, tied: !!n.tied,
                          group: Math.floor((t - bl[b].time) / spq / unit + 1e-3), t: t })
         }
+        return items
+    }
+    /** The accidental in front of a note, if the key and the bar so far do not already say it. */
+    function layoutAccidental(c, acc, i, sp_, b, x, y) {
+        const sp = c.sp, ns = c.ns, bl = c.bl, L = c.L, G = c.G
+        const f = bl[b].key
+        var prevTied = i > 0 && ns[i - 1].tied && Number(ns[i - 1].midi) === Number(ns[i].midi)
+        var key = sp_.pos
+        var current = acc[key] !== undefined ? acc[key] : keyAlter(sp_.letter, f)
+        if (sp_.alter !== current && !(prevTied && frame.barAt(barList, Number(ns[i - 1].time)) !== b)) {
+            var ag = sp_.alter > 0 ? G.sharp : sp_.alter < 0 ? G.flat : G.natural
+            var aw = sp_.alter > 0 ? 1.0 : sp_.alter < 0 ? 0.9 : 0.7
+            L.glyphs.push({ x: x - sp * (aw + 0.25), y: y, g: ag, ink: "note", index: i })
+        }
+        acc[key] = sp_.alter
+    }
+    /** Ledger lines above and below the staff for a head at `pos`. */
+    function layoutLedgers(c, pos, x, headW, sys) {
+        const sp = c.sp, L = c.L, ledgerT = c.ledgerT
+        for (var p = -2; p >= pos; p -= 2) {
+            L.rects.push({ x: x - sp * 0.4, y: yOf(p, sys) - ledgerT / 2, w: headW + sp * 0.8, h: ledgerT, ink: "" })
+        }
+        for (var q = 10; q <= pos; q += 2) {
+            L.rects.push({ x: x - sp * 0.4, y: yOf(q, sys) - ledgerT / 2, w: headW + sp * 0.8, h: ledgerT, ink: "" })
+        }
+    }
+    /** Stems, beams, flags and triplet signs. */
+    function layoutBeams(c, items) {
+        const rs = c.rs
         // A rest between two notes ends a beam.
         function restBetween(t0, t1) {
             for (var k = 0; rs && k < rs.length; k++) {
@@ -682,74 +700,97 @@ Item {
                     h++
                 }
             }
-            var grp = items.slice(g, h + 1)
-            var avg = 0
-            for (var a = 0; a < grp.length; a++) avg += grp[a].pos
-            avg /= grp.length
-            var up = avg < 4
-            var sx = function (it) { return up ? it.x + it.w - stemW : it.x }
-            var natural = function (it) {
-                // 3.5 spaces, and at least to the middle line for notes on ledger lines.
-                var mid = yOf(4, it.sys)
-                return up ? Math.min(it.y - sp * 3.5, mid) : Math.max(it.y + sp * 3.5, mid)
-            }
-            var beamAt = null
-            if (grp.length > 1) {
-                var x0 = sx(grp[0]), x1 = sx(grp[grp.length - 1])
-                var b0 = natural(grp[0]), b1 = natural(grp[grp.length - 1])
-                var dy = Math.max(-sp, Math.min(sp, b1 - b0))
-                var slope = x1 > x0 ? dy / (x1 - x0) : 0
-                var shift = 0
-                for (var m = 0; m < grp.length; m++) {
-                    var by = b0 + slope * (sx(grp[m]) - x0)
-                    var need = up ? by - (grp[m].y - sp * 2.5) : (grp[m].y + sp * 2.5) - by
-                    shift = Math.max(shift, need)
-                }
-                b0 += up ? -shift : shift
-                beamAt = function (x) { return b0 + slope * (x - x0) }
-                var thick = sp * 0.5, gap = sp * 0.25
-                for (var lv = 1; lv <= 3; lv++) {
-                    var off = (lv - 1) * (thick + gap) * (up ? 1 : -1)
-                    for (var u = 0; u < grp.length; u++) {
-                        if (grp[u].v.type < 2 + lv) continue
-                        var e = u
-                        while (e + 1 < grp.length && grp[e + 1].v.type >= 2 + lv) e++
-                        var xa = sx(grp[u]), xb = sx(grp[e]) + stemW
-                        if (e === u) {
-                            var stub = sp * 1.1
-                            if (u === grp.length - 1) { xa = sx(grp[u]) - stub; xb = sx(grp[u]) + stemW }
-                            else { xa = sx(grp[u]); xb = xa + stub }
-                        }
-                        var ya = beamAt(xa) + off, yb = beamAt(xb) + off
-                        var t2 = up ? thick : -thick
-                        L.polys.push({ pts: [xa, ya, xb, yb, xb, yb + t2, xa, ya + t2], ink: "" })
-                        u = e
-                    }
-                }
-                var allTriplets = grp.every(function (it) { return it.v.triplet })
-                if (allTriplets) {
-                    var cx = (x0 + x1) / 2
-                    var cy = beamAt(cx) + (up ? -sp * 1.2 : sp * 2.0)
-                    L.glyphs.push({ x: cx - sp * 0.5, y: cy, g: "", ink: "" })
-                }
-            }
-            for (var z = 0; z < grp.length; z++) {
-                var it = grp[z]
-                if (it.v.type === 0) continue
-                var end = beamAt ? beamAt(sx(it)) : natural(it)
-                var attach = up ? it.y - sp * 0.168 : it.y + sp * 0.168
-                L.rects.push({ x: sx(it), y: Math.min(end, attach), w: stemW, h: Math.abs(attach - end), ink: "" })
-                if (!beamAt && it.v.type >= 3) {
-                    L.glyphs.push({ x: sx(it), y: end, g: (up ? G.flagsUp : G.flagsDown)[it.v.type], ink: "" })
-                }
-                if (!beamAt && it.v.triplet) {
-                    L.glyphs.push({ x: it.x, y: up ? end - sp * 0.8 : end + sp * 1.8, g: "", ink: "" })
-                }
-                it.up = up
-            }
+            layoutGroup(c, items.slice(g, h + 1))
             g = h + 1
         }
-        // Ties: to the next note, on the side away from the stem; to the line end across lines.
+    }
+    /** Stem, flags and, for a group of more than one, the beams of grouped notes. */
+    function layoutGroup(c, grp) {
+        const sp = c.sp, L = c.L, G = c.G, stemW = c.stemW
+        var avg = 0
+        for (var a = 0; a < grp.length; a++) avg += grp[a].pos
+        avg /= grp.length
+        var up = avg < 4
+        var sx = function (it) { return up ? it.x + it.w - stemW : it.x }
+        var natural = function (it) {
+            // 3.5 spaces, and at least to the middle line for notes on ledger lines.
+            var mid = yOf(4, it.sys)
+            return up ? Math.min(it.y - sp * 3.5, mid) : Math.max(it.y + sp * 3.5, mid)
+        }
+        var beamAt = null
+        if (grp.length > 1) {
+            beamAt = layoutBeamLines(c, grp, up, sx, natural)
+        }
+        for (var z = 0; z < grp.length; z++) {
+            var it = grp[z]
+            if (it.v.type === 0) continue
+            var end = beamAt ? beamAt(sx(it)) : natural(it)
+            var attach = up ? it.y - sp * 0.168 : it.y + sp * 0.168
+            L.rects.push({ x: sx(it), y: Math.min(end, attach), w: stemW, h: Math.abs(attach - end), ink: "" })
+            if (!beamAt && it.v.type >= 3) {
+                L.glyphs.push({ x: sx(it), y: end, g: (up ? G.flagsUp : G.flagsDown)[it.v.type], ink: "" })
+            }
+            if (!beamAt && it.v.triplet) {
+                L.glyphs.push({ x: it.x, y: up ? end - sp * 0.8 : end + sp * 1.8, g: "", ink: "" })
+            }
+            it.up = up
+        }
+    }
+    /** The beam bars of a group, one to three levels over the notes that have them. */
+    function layoutBeamBars(c, grp, up, sx, beamAt) {
+        for (var lv = 1; lv <= 3; lv++) {
+            for (var u = 0; u < grp.length; u++) {
+                if (grp[u].v.type < 2 + lv) continue
+                var e = u
+                while (e + 1 < grp.length && grp[e + 1].v.type >= 2 + lv) e++
+                layoutBeamBar(c, grp, u, e, lv, up, sx, beamAt)
+                u = e
+            }
+        }
+    }
+    /** One bar of a beam at level lv from note u to e; a lone note gets a stub. */
+    function layoutBeamBar(c, grp, u, e, lv, up, sx, beamAt) {
+        const sp = c.sp, L = c.L, stemW = c.stemW
+        const thick = sp * 0.5, gap = sp * 0.25
+        const off = (lv - 1) * (thick + gap) * (up ? 1 : -1)
+        var xa = sx(grp[u]), xb = sx(grp[e]) + stemW
+        if (e === u) {
+            var stub = sp * 1.1
+            if (u === grp.length - 1) { xa = sx(grp[u]) - stub; xb = sx(grp[u]) + stemW }
+            else { xa = sx(grp[u]); xb = xa + stub }
+        }
+        var ya = beamAt(xa) + off, yb = beamAt(xb) + off
+        var t2 = up ? thick : -thick
+        L.polys.push({ pts: [xa, ya, xb, yb, xb, yb + t2, xa, ya + t2], ink: "" })
+    }
+    /** Beams and triplet sign of a group of notes; returns the beam line as function of x. */
+    function layoutBeamLines(c, grp, up, sx, natural) {
+        const sp = c.sp, L = c.L, stemW = c.stemW
+        var beamAt
+        var x0 = sx(grp[0]), x1 = sx(grp[grp.length - 1])
+        var b0 = natural(grp[0]), b1 = natural(grp[grp.length - 1])
+        var dy = Math.max(-sp, Math.min(sp, b1 - b0))
+        var slope = x1 > x0 ? dy / (x1 - x0) : 0
+        var shift = 0
+        for (var m = 0; m < grp.length; m++) {
+            var by = b0 + slope * (sx(grp[m]) - x0)
+            var need = up ? by - (grp[m].y - sp * 2.5) : (grp[m].y + sp * 2.5) - by
+            shift = Math.max(shift, need)
+        }
+        b0 += up ? -shift : shift
+        beamAt = function (x) { return b0 + slope * (x - x0) }
+        layoutBeamBars(c, grp, up, sx, beamAt)
+        var allTriplets = grp.every(function (it) { return it.v.triplet })
+        if (allTriplets) {
+            var cx = (x0 + x1) / 2
+            var cy = beamAt(cx) + (up ? -sp * 1.2 : sp * 2.0)
+            L.glyphs.push({ x: cx - sp * 0.5, y: cy, g: "", ink: "" })
+        }
+        return beamAt
+    }
+    /** Ties: to the next note, on the side away from the stem; to the line end across lines. */
+    function layoutTies(c, items) {
+        const first = c.first, per = c.per, sp = c.sp, bl = c.bl, L = c.L
         for (var y2 = 0; y2 < items.length; y2++) {
             var a1 = items[y2]
             if (!a1.tied) continue
@@ -765,7 +806,6 @@ Item {
                 + " C " + (tx0 + dx) + " " + (ty + hgt) + " " + (tx1 - dx) + " " + (ty + hgt) + " " + tx1 + " " + ty
                 + " C " + (tx1 - dx) + " " + (ty + hgt - th) + " " + (tx0 + dx) + " " + (ty + hgt - th) + " " + tx0 + " " + ty + " Z" })
         }
-        return L
     }
 
     /** Colour of a layout part; "note" parts follow the live state of note `index`. */
@@ -783,161 +823,234 @@ Item {
 
     // Rehearsal marks (1.50); the probe measures the row.
     KanteRehearsalMark { id: markProbe; visible: false; text: "A"; pixelSize: staff.sp * 1.4; Accessible.ignored: true }
-    Repeater {
-        model: staff.layout.sections
-        delegate: KanteRehearsalMark {
-            required property var modelData
-            x: modelData.x
-            y: modelData.y + Math.round((staff.sectionRow - height) / 2)
-            text: modelData.text
-            pixelSize: staff.sp * 1.4
-            maximumWidth: modelData.maxW
-            Accessible.ignored: true
-        }
-    }
 
-    // Loop range (1.35): a tint with bracket edges ([ and ]) as on KanteTabLane, not colour
-    // alone; as high as the cursor, behind the staff.
-    Repeater {
-        model: staff.loopParts
+    // The lines shown, one delegate each, kept while they stay in view (1.81, as
+    // KanteTabStaff): a page turn builds only the line that comes in, the others move up and
+    // the top one fades (A2); lines that come or go fade in or out (A1).
+    ListView {
+        id: lineView
+        objectName: "staffLines"
+        anchors.fill: parent
+        interactive: false
+        currentIndex: -1
+        model: frame.lineModel
+        add: Transition {
+            enabled: KanteStyle.animate && staff.grown
+            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: KanteStyle.duration }
+        }
+        remove: Transition {
+            enabled: KanteStyle.animate && staff.grown
+            NumberAnimation { property: "opacity"; to: 0; duration: KanteStyle.durationFast }
+        }
+        displaced: Transition {
+            enabled: KanteStyle.animate && staff.grown
+            NumberAnimation { property: "y"; duration: KanteStyle.duration; easing.type: Easing.OutCubic }
+        }
         delegate: Item {
-            id: loopPart
-            required property var modelData
-            x: modelData.x
-            y: modelData.sys * staff.systemHeight + staff.staffTop - staff.sp * 1.5
-            width: modelData.w
-            height: staff.sp * 7
-            Rectangle { anchors.fill: parent; color: KanteStyle.tintHighlightColor }
+            id: line
+            required property int lineIndex
+            readonly property var lay: staff.lineRevision >= 0 && staff.lineCache[lineIndex] ? staff.lineCache[lineIndex] : staff.emptyLayout
+            readonly property var loops: staff.loopLayout(lineIndex * staff.perSystem, staff.perSystem, 1, staff.layoutSize.width,
+                                                          staff.barList, staff.loopStart, staff.loopEnd)
+            width: lineView.width
+            height: staff.systemHeight
+
+            // A new staff space grows or shrinks the line from its old size instead of
+            // jumping (A1); its slot moves along.
+            property real shownSp: 0
+            property real zoom: 1
+            Component.onCompleted: shownSp = staff.sp
+            onLayChanged: {
+                if (KanteStyle.animate && staff.grown && shownSp > 0 && Math.abs(shownSp - staff.sp) > 0.01) {
+                    zoomAnim.from = shownSp / staff.sp
+                    zoomAnim.restart()
+                }
+                shownSp = staff.sp
+            }
+            NumberAnimation { id: zoomAnim; target: line; property: "zoom"; to: 1; duration: KanteStyle.duration; easing.type: Easing.OutCubic }
+            Behavior on height {
+                enabled: KanteStyle.animate && staff.grown && line.shownSp > 0
+                NumberAnimation { duration: KanteStyle.duration; easing.type: Easing.OutCubic }
+            }
+            // Up or down only: the width stays, a sideways slide read as a jerk (Kontra 12.11.).
+            transform: Scale { yScale: line.zoom }
+
+            // Rehearsal marks (1.50); the probe measures the row.
             Repeater {
-                model: [loopPart.modelData.left, loopPart.modelData.right]
-                delegate: Item {
-                    required property int index
+                model: line.lay.sections
+                delegate: KanteRehearsalMark {
                     required property var modelData
-                    visible: modelData === true
-                    x: index === 0 ? 0 : loopPart.width - width
-                    width: KanteStyle.unit(8)
-                    height: loopPart.height
-                    Rectangle { x: parent.index === 0 ? 0 : parent.width - width; width: 2; height: parent.height; color: KanteStyle.focusColor }
-                    Rectangle { width: parent.width; height: 2; color: KanteStyle.focusColor }
-                    Rectangle { y: parent.height - 2; width: parent.width; height: 2; color: KanteStyle.focusColor }
+                    x: modelData.x
+                    y: modelData.y + Math.round((staff.sectionRow - height) / 2)
+                    text: modelData.text
+                    pixelSize: staff.sp * 1.4
+                    maximumWidth: modelData.maxW
+                    Accessible.ignored: true
                 }
             }
-        }
-    }
 
-    // Selection band behind the current note.
-    Rectangle {
-        readonly property var box: staff.currentIndex >= 0 ? staff.layout.boxes[staff.currentIndex] : undefined
-        visible: box !== undefined
-        x: visible ? box.x - staff.sp * 0.6 : 0
-        y: visible ? box.sys * staff.systemHeight + staff.staffTop - staff.sp * 1.5 : 0
-        width: visible ? box.w + staff.sp * 1.2 : 0
-        height: staff.sp * 7
-        color: KanteStyle.selectionColor
-        Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 2; color: KanteStyle.focusColor }
-    }
-
-    Repeater {
-        model: staff.layout.rects
-        delegate: Rectangle {
-            required property var modelData
-            x: modelData.x
-            y: modelData.y
-            width: modelData.w
-            height: modelData.h
-            color: staff.inkColor(modelData.ink)
-            opacity: modelData.ink === "line" ? 0.8 : 1
-        }
-    }
-    Repeater {
-        model: staff.layout.polys
-        delegate: Shape {
-            required property var modelData
-            antialiasing: true
-            ShapePath {
-                strokeColor: "transparent"
-                fillColor: staff.inkColor(modelData.ink)
-                PathPolyline {
-                    path: {
-                        var p = modelData.pts
-                        return [Qt.point(p[0], p[1]), Qt.point(p[2], p[3]), Qt.point(p[4], p[5]), Qt.point(p[6], p[7]), Qt.point(p[0], p[1])]
+            // Loop range (1.35): a tint with bracket edges ([ and ]) as on KanteTabLane, not colour
+            // alone; as high as the cursor, behind the staff.
+            Repeater {
+                model: line.loops
+                delegate: Item {
+                    id: loopPart
+                    required property var modelData
+                    x: modelData.x
+                    y: modelData.sys * staff.systemHeight + staff.staffTop - staff.sp * 1.5
+                    width: modelData.w
+                    height: staff.sp * 7
+                    Rectangle { anchors.fill: parent; color: KanteStyle.tintHighlightColor }
+                    Repeater {
+                        model: [loopPart.modelData.left, loopPart.modelData.right]
+                        delegate: Item {
+                            required property int index
+                            required property var modelData
+                            visible: modelData === true
+                            x: index === 0 ? 0 : loopPart.width - width
+                            width: KanteStyle.unit(8)
+                            height: loopPart.height
+                            Rectangle { x: parent.index === 0 ? 0 : parent.width - width; width: 2; height: parent.height; color: KanteStyle.focusColor }
+                            Rectangle { width: parent.width; height: 2; color: KanteStyle.focusColor }
+                            Rectangle { y: parent.height - 2; width: parent.width; height: 2; color: KanteStyle.focusColor }
+                        }
                     }
                 }
             }
-        }
-    }
-    Repeater {
-        model: staff.layout.ties
-        delegate: Shape {
-            required property var modelData
-            antialiasing: true
-            ShapePath {
-                strokeColor: "transparent"
-                fillColor: staff.inkColor(modelData.ink, modelData.index, staff.stateRevision)
-                PathSvg { path: modelData.path }
+
+            // Selection band behind the current note.
+            Rectangle {
+                readonly property var box: staff.currentIndex >= 0 ? line.lay.boxes[staff.currentIndex] : undefined
+                visible: box !== undefined
+                x: visible ? box.x - staff.sp * 0.6 : 0
+                y: visible ? box.sys * staff.systemHeight + staff.staffTop - staff.sp * 1.5 : 0
+                width: visible ? box.w + staff.sp * 1.2 : 0
+                height: staff.sp * 7
+                color: KanteStyle.selectionColor
+                Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 2; color: KanteStyle.focusColor }
+            }
+
+            Repeater {
+                model: line.lay.rects
+                delegate: Rectangle {
+                    required property var modelData
+                    x: modelData.x
+                    y: modelData.y
+                    width: modelData.w
+                    height: modelData.h
+                    color: staff.inkColor(modelData.ink)
+                    opacity: modelData.ink === "line" ? 0.8 : 1
+                }
+            }
+            Repeater {
+                model: line.lay.polys
+                delegate: Shape {
+                    required property var modelData
+                    antialiasing: true
+                    ShapePath {
+                        strokeColor: "transparent"
+                        fillColor: staff.inkColor(modelData.ink)
+                        PathPolyline {
+                            path: {
+                                var p = modelData.pts
+                                return [Qt.point(p[0], p[1]), Qt.point(p[2], p[3]), Qt.point(p[4], p[5]), Qt.point(p[6], p[7]), Qt.point(p[0], p[1])]
+                            }
+                        }
+                    }
+                }
+            }
+            Repeater {
+                model: line.lay.ties
+                delegate: Shape {
+                    required property var modelData
+                    antialiasing: true
+                    ShapePath {
+                        strokeColor: "transparent"
+                        fillColor: staff.inkColor(modelData.ink, modelData.index, staff.stateRevision)
+                        PathSvg { path: modelData.path }
+                    }
+                }
+            }
+            Repeater {
+                model: line.lay.glyphs
+                delegate: Text {
+                    required property var modelData
+                    readonly property bool glyph: modelData.g !== ""
+                    readonly property bool current: modelData.index !== undefined && modelData.index === staff.currentIndex
+                    x: modelData.x
+                    y: modelData.y - (glyph ? baselineOffset : 0)
+                    text: glyph ? modelData.g : modelData.text
+                    color: {
+                        var c = staff.inkColor(modelData.ink, modelData.index, staff.stateRevision)
+                        return current && modelData.ink === "note" && staff.shownState(modelData.index, staff.stateRevision) === "pending" ? KanteStyle.strongTextColor : c
+                    }
+                    readonly property bool chord: modelData.chord === true
+                    font.family: glyph ? music.font.family : chord ? KanteStyle.defaultFont.family : KanteStyle.monoFont(10, false).family
+                    font.pixelSize: glyph ? Math.round(staff.sp * 4) : chord ? Math.max(10, Math.round(staff.sp * 1.6)) : Math.max(8, Math.round(staff.sp * 0.95))
+                    font.weight: chord ? Font.DemiBold : Font.Normal
+                    Accessible.ignored: true
+                }
+            }
+            // A mark is built once its note has a state to show (1.81); built by a state change on a
+            // live line it moves (A4), built with the line it stays still.
+            Repeater {
+                model: line.lay.marks
+                delegate: Item {
+                    id: markSlot
+                    required property var modelData
+                    readonly property bool full: staff.marks === KanteBassStaff.Marks.Full
+                    readonly property string st: staff.shownState(modelData.index, staff.stateRevision)
+                    property bool live: false
+                    Component.onCompleted: live = true
+                    width: Math.round(staff.sp * (full ? 1.3 : 0.95))
+                    height: width
+                    x: modelData.x - width / 2
+                    y: modelData.y - height / 2
+                    Loader {
+                        anchors.fill: parent
+                        active: markSlot.st !== "pending"
+                        onLoaded: {
+                            if (markSlot.live && !staff.calm) {
+                                item.play()
+                            }
+                        }
+                        sourceComponent: KanteNoteMark {
+                            visible: drawn
+                            noteState: markSlot.st
+                            cents: staff.stateRevision >= 0 ? staff.centsOf(markSlot.modelData.index) : NaN
+                            showCents: staff.showCents && markSlot.full
+                            color: markSlot.full ? KanteStyle.noteStateColor(noteState) : KanteStyle.mutedTextColor
+                        }
+                    }
+                }
+            }
+
+            Repeater {
+                model: line.lay.techniques
+                delegate: KanteTechniqueMark {
+                    required property var modelData
+                    technique: modelData.technique
+                    result: noteState.shownTechniqueResult(modelData.index, staff.stateRevision)
+                    color: staff.marks === KanteBassStaff.Marks.Quiet ? KanteStyle.mutedTextColor : resultColor
+                    height: Math.round(staff.sp * 1.2)
+                    width: implicitWidth
+                    x: modelData.x - width / 2
+                    y: modelData.y - height / 2
+                }
+            }
+
+            Rectangle {
+                readonly property int bar: staff.currentBar
+                readonly property int sys: Math.floor(bar / staff.perSystem) === line.lineIndex ? 0 : -1
+                visible: staff.cursor && sys === 0 && staff.barList.length > 0
+                x: visible ? Math.round(staff.xOf(staff.position, bar)) : 0
+                y: sys * staff.systemHeight + staff.staffTop - staff.sp * 1.5
+                width: Math.max(2, KanteStyle.unit(2))
+                height: staff.sp * 7
+                color: KanteStyle.accentColor
+                opacity: 0.8
             }
         }
     }
-    Repeater {
-        model: staff.layout.glyphs
-        delegate: Text {
-            required property var modelData
-            readonly property bool glyph: modelData.g !== ""
-            readonly property bool current: modelData.index !== undefined && modelData.index === staff.currentIndex
-            x: modelData.x
-            y: modelData.y - (glyph ? baselineOffset : 0)
-            text: glyph ? modelData.g : modelData.text
-            color: {
-                var c = staff.inkColor(modelData.ink, modelData.index, staff.stateRevision)
-                return current && modelData.ink === "note" && staff.shownState(modelData.index, staff.stateRevision) === "pending" ? KanteStyle.strongTextColor : c
-            }
-            readonly property bool chord: modelData.chord === true
-            font.family: glyph ? music.font.family : chord ? KanteStyle.defaultFont.family : KanteStyle.monoFont(10, false).family
-            font.pixelSize: glyph ? Math.round(staff.sp * 4) : chord ? Math.max(10, Math.round(staff.sp * 1.6)) : Math.max(8, Math.round(staff.sp * 0.95))
-            font.weight: chord ? Font.DemiBold : Font.Normal
-            Accessible.ignored: true
-        }
-    }
-    Repeater {
-        model: staff.layout.marks
-        delegate: KanteNoteMark {
-            required property var modelData
-            readonly property bool full: staff.marks === KanteBassStaff.Marks.Full
-            visible: drawn
-            width: Math.round(staff.sp * (full ? 1.3 : 0.95))
-            height: width
-            x: modelData.x - width / 2
-            y: modelData.y - height / 2
-            noteState: staff.shownState(modelData.index, staff.stateRevision)
-            cents: staff.stateRevision >= 0 ? staff.centsOf(modelData.index) : NaN
-            showCents: staff.showCents && full
-            color: full ? KanteStyle.noteStateColor(noteState) : KanteStyle.mutedTextColor
-        }
-    }
 
-    Repeater {
-        model: staff.layout.techniques
-        delegate: KanteTechniqueMark {
-            required property var modelData
-            technique: modelData.technique
-            result: staff.shownTechniqueResult(modelData.index, staff.stateRevision)
-            color: staff.marks === KanteBassStaff.Marks.Quiet ? KanteStyle.mutedTextColor : resultColor
-            height: Math.round(staff.sp * 1.2)
-            width: implicitWidth
-            x: modelData.x - width / 2
-            y: modelData.y - height / 2
-        }
-    }
-
-    Rectangle {
-        readonly property int bar: staff.currentBar
-        readonly property int sys: staff.sysOf(bar)
-        visible: staff.cursor && sys >= 0 && sys < staff.systems && staff.barList.length > 0
-        x: visible ? Math.round(staff.xOf(staff.position, bar)) : 0
-        y: sys * staff.systemHeight + staff.staffTop - staff.sp * 1.5
-        width: Math.max(2, KanteStyle.unit(2))
-        height: staff.sp * 7
-        color: KanteStyle.accentColor
-        opacity: 0.8
-    }
 }
