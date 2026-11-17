@@ -37,12 +37,15 @@ RowLayout {
     ]
     readonly property var entries: facts && facts.length > 0 ? facts : viewEntries
 
+    // By count, not by the array: new counts change the figures in place. An array model tore
+    // down and rebuilt all tiles on every count change (each search, each sync).
     Repeater {
-        model: tiles.entries
+        model: tiles.entries.length
 
         delegate: QQC2.AbstractButton {
             id: tile
-            required property var modelData
+            required property int index
+            readonly property var modelData: tiles.entries[index]
             readonly property bool clickable: !!modelData.viewId
             readonly property bool current: clickable && !tiles.facts && tiles.controller
                     && tiles.controller.currentView === modelData.viewId
