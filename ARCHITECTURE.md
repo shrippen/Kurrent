@@ -17,7 +17,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | Path | Its one task |
 |---|---|
 | `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task. One store talks to Akonadi, one keeps tasks in memory for tests. |
-| `plugin/tasklogic.*`, `agendalogic.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; parsing the quick entry; recurrence and dates of a task. |
+| `plugin/tasklogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
 | `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
@@ -25,7 +25,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |
 | `ui/main.qml`, `FullView.qml`, `Plugin*.qml` | The widget: panel item and popup; loading the plug-in and the hint when it is missing. |
 | `ui/views/` | One file per view (list, board, swimlanes, plan, heatmap, agenda day, week, month), the sidebar, the editor, the inspector, the management of projects and labels. |
-| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages. |
+| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages, `SidebarSection` (one filter section of the sidebar: header, "All", rows; used seven times). |
 | `ui/Design.qml` | The sizes and tokens of the interface at run time. |
 | `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, clock and day helpers (`daymath.js`), the combo box selection of the settings pages, colours and priority names, the editor's recurrence choice, the sidebar's height distribution, agenda helpers, focus, taps. |
 | `ui/config*.qml`, `contents/config/` | The settings pages and the description of the widget's settings with their defaults (`main.xml`). |
@@ -96,18 +96,13 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 ## Known deviations
 
-- `ui/taskmeta.js` computes the progress bands a second time, without a test
-  (`AUDIT.md`, finding 1). The drag limits of popups (`ui/FullView.qml`) are
-  interface logic in a view, without a test (not in `AUDIT.md`).
-- The sidebar consists of seven nearly equal sections of about 230 lines each
-  (`AUDIT.md`, finding 3).
+- The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
+  without a test (not in `AUDIT.md`).
 - The controller does nearly everything in one class of 7031 lines, including
   reading and watching Akonadi, smoke test, screenshot mode and demo mode
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for
   the screenshot runner (`MainPaneHost`, `SwimlaneView`, `main.qml`, three views; not
   in `AUDIT.md`).
-- `tui/tuiapp.cpp` has a filter and a sort order of its own for open tasks (not in
-  `AUDIT.md`).
 - The order of the sidebar's sections and views is still written out as a default in
   `ui/configSidebar.qml` and `ui/views/SidebarView.qml`, besides `main.xml` (`AUDIT.md`,
   finding 5).

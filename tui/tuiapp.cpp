@@ -1,5 +1,6 @@
 #include "tuiapp.h"
 
+#include "focusorder.h"
 #include "taskcontroller.h"
 #include "tasklogic.h"
 #include "terminal.h"
@@ -9,8 +10,6 @@
 #include <QLocale>
 #include <QRegularExpression>
 #include <QVariantMap>
-
-#include <algorithm>
 
 namespace
 {
@@ -224,42 +223,17 @@ void TuiApp::draw()
 
 QList<TaskEntry> TuiApp::openTasks() const
 {
-    QList<TaskEntry> out;
+    QList<TaskEntry> all;
     const TaskListModel *list = m_controller->taskModel();
     for (int row = 0; row < list->count(); ++row) {
-        const TaskEntry task = list->taskAt(row);
-        if (task.completed || task.pendingDelete) {
-            continue;
-        }
-        if (!m_search.isEmpty()
-            && !TaskLogic::matchesSearch(task, m_search, TaskLogic::SearchScope::All, TaskLogic::SearchCase::Insensitive)) {
-            continue;
-        }
-        out.append(task);
+        all.append(list->taskAt(row));
     }
-    return out;
+    return TaskLogic::openTasks(all, m_search);
 }
 
-// Now and Soon by due date, overdue first; Someday by priority, then title.
 QList<TaskEntry> TuiApp::focusOrder() const
 {
-    const QDate today = QDate::currentDate();
-    QList<TaskEntry> tasks = openTasks();
-    std::stable_sort(tasks.begin(), tasks.end(), [&today](const TaskEntry &a, const TaskEntry &b) {
-        const auto ha = TaskLogic::horizonOf(a, today);
-        const auto hb = TaskLogic::horizonOf(b, today);
-        if (ha != hb) {
-            return int(ha) < int(hb);
-        }
-        if (a.dueDate.isValid() && b.dueDate.isValid() && a.dueDate != b.dueDate) {
-            return a.dueDate < b.dueDate;
-        }
-        if (TaskLogic::priorityBand(a.priority) != TaskLogic::priorityBand(b.priority)) {
-            return a.priority != 0 && (b.priority == 0 || a.priority < b.priority);
-        }
-        return a.summary.localeAwareCompare(b.summary) < 0;
-    });
-    return tasks;
+    return TaskLogic::focusOrder(openTasks(), QDate::currentDate());
 }
 
 Screens::Row TuiApp::rowOf(const TaskEntry &task) const

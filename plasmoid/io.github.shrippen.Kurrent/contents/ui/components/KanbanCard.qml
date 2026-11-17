@@ -216,7 +216,7 @@ Kirigami.AbstractCard {
 
             Kirigami.Icon {
                 visible: Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0
-                source: TaskMeta.progressIconForPercent(task.percentComplete)
+                source: TaskMeta.progressIconForBand(task.progressBand)
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
                 QQC2.ToolTip.text: i18n("Progress %1%", task.percentComplete)
