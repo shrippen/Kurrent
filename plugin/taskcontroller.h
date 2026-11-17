@@ -632,6 +632,7 @@ signals:
     /** kurrentrc changed (any key); the bound configuration is already up to date. */
     void settingsChanged();
 
+    friend class TaskControllerMultiTest; // tests/taskcontroller_multi_test.cpp reads the busy intervals
     friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
@@ -915,7 +916,6 @@ enum class SyncResult { Error, Ok };
     CollectionListModel m_eventCalendarModel;
     QVector<TaskCalendar::BusyInterval> m_busyIntervals;
     QHash<qint64, QString> m_collectionNames;
-    QHash<Akonadi::Item::Id, CachedTask> m_tasks;
     AbstractTaskStore *m_store = nullptr;
     QTimer m_rebuildTimer;
     QTimer m_collectionsTimer;
