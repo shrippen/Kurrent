@@ -659,6 +659,9 @@ msgstr "No se pudo crear la tarea: %1"
 msgid "Failed to fetch collections."
 msgstr "No se pudieron cargar las listas de tareas."
 
+msgid "Failed to fetch tasks."
+msgstr "No se pudieron cargar las tareas."
+
 msgid "Fetch, monitor and collection details"
 msgstr "Detalles de obtención, monitor y colecciones"
 

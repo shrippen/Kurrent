@@ -659,6 +659,9 @@ msgstr "タスクを作成できませんでした: %1"
 msgid "Failed to fetch collections."
 msgstr "タスクリストを読み込めませんでした。"
 
+msgid "Failed to fetch tasks."
+msgstr "タスクを読み込めませんでした。"
+
 msgid "Fetch, monitor and collection details"
 msgstr "取得・監視・コレクションの詳細"
 
