@@ -457,13 +457,11 @@ void TaskController::setAkonadiAvailableForTest(bool available)
 
 void TaskController::installTestCollections(const QList<Akonadi::Collection> &collections)
 {
-    s_collections = collections;
-    s_collectionNames.clear();
+    QHash<qint64, QString> names;
     for (const Akonadi::Collection &collection : collections) {
-        s_collectionNames.insert(collection.id(), collection.displayName());
+        names.insert(collection.id(), collection.displayName());
     }
-    m_collectionModel.setCollections(collections);
-    m_collectionNames = s_collectionNames;
+    applyCollections(collections, {}, names);
 }
 
 qint64 TaskController::installTestTask(qint64 id, const QString &summary, qint64 collectionId)
@@ -5626,21 +5624,7 @@ void TaskController::loadCollections()
                      .arg(collections.size())
                      .arg(eventCollections.size()));
 
-        s_collections = collections;
-        s_eventCollections = eventCollections;
-        s_collectionNames = m_collectionNames;
-        m_collectionModel.setCollections(collections);
-        m_eventCalendarModel.setCollections(eventCollections);
-        for (TaskController *other : s_instances) {
-            if (other != this) {
-                other->m_collectionNames = s_collectionNames;
-                other->m_collectionModel.setCollections(s_collections);
-                other->m_eventCalendarModel.setCollections(s_eventCollections);
-            }
-        }
-        for (TaskController *inst : s_instances) {
-            Q_EMIT inst->eventBusySettingsChanged();
-        }
+        applyCollections(collections, eventCollections, m_collectionNames);
 
         if (collections.isEmpty()) {
             setErrorMessage(i18n("No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."));
@@ -5657,6 +5641,29 @@ void TaskController::loadCollections()
         s_busyEvents = TaskLogic::BusyEvents::Changed; // fetched after the tasks, not beside them
         loadTasks();
     });
+}
+
+// Stores the fetched collections for all widgets and hands them to every instance.
+void TaskController::applyCollections(const QList<Akonadi::Collection> &collections,
+                                      const QList<Akonadi::Collection> &eventCollections,
+                                      const QHash<qint64, QString> &names)
+{
+    s_collections = collections;
+    s_eventCollections = eventCollections;
+    s_collectionNames = names;
+    m_collectionNames = names;
+    m_collectionModel.setCollections(collections);
+    m_eventCalendarModel.setCollections(eventCollections);
+    for (TaskController *other : s_instances) {
+        if (other != this) {
+            other->m_collectionNames = s_collectionNames;
+            other->m_collectionModel.setCollections(s_collections);
+            other->m_eventCalendarModel.setCollections(s_eventCollections);
+        }
+    }
+    for (TaskController *inst : s_instances) {
+        Q_EMIT inst->eventBusySettingsChanged();
+    }
 }
 
 void TaskController::loadTasks()
@@ -6810,8 +6817,14 @@ void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart,
     }
 
     m_pendingBusyFetchJobs = 0;
-    m_busyIntervals = m_busyFetchIntervals;
+    applyBusyIntervals(m_busyFetchIntervals);
     m_busyFetchIntervals.clear();
+}
+
+// Takes the fetched busy intervals for this widget and every other instance.
+void TaskController::applyBusyIntervals(const QVector<TaskCalendar::BusyInterval> &intervals)
+{
+    m_busyIntervals = intervals;
     for (TaskController *other : s_instances) {
         if (other != this) {
             other->m_busyIntervals = m_busyIntervals;

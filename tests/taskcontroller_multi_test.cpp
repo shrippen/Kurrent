@@ -36,6 +36,7 @@ private Q_SLOTS:
     void init();
     void cleanup();
 
+    void collectionsReachOthers();
     void laterControllerHydrates();
     void writesReachOtherModels();
     void busyIntervalsReachOthers();
@@ -134,6 +135,28 @@ void TaskControllerMultiTest::cleanup()
     delete m_c;
     m_a = m_b = m_c = nullptr;
     m_storeA = m_storeB = nullptr;
+}
+
+void TaskControllerMultiTest::collectionsReachOthers()
+{
+    // A fetch result: a task list, an event calendar, and a calendar that holds both.
+    Akonadi::Collection events(30);
+    events.setName(QStringLiteral("Events"));
+    events.setContentMimeTypes({QStringLiteral("application/x-vnd.akonadi.calendar.event")});
+    const QList<Akonadi::Collection> tasks = {makeCollection(kInbox, QStringLiteral("Inbox"))};
+    const QHash<qint64, QString> names = {{kInbox, QStringLiteral("Inbox")}, {30, QStringLiteral("Events")}};
+
+    QSignalSpy changed(m_c, &TaskController::eventBusySettingsChanged);
+    m_a->applyCollections(tasks, {events}, names);
+
+    for (TaskController *controller : {m_a, m_b, m_c}) {
+        QCOMPARE(controller->collectionModel()->rowCount(), 1);
+        QCOMPARE(controller->collectionModel()->nameAt(0), QStringLiteral("Inbox"));
+        QCOMPARE(controller->eventCalendarModel()->rowCount(), 1);
+        QCOMPARE(controller->eventCalendarModel()->nameAt(0), QStringLiteral("Events"));
+        QCOMPARE(controller->m_collectionNames, names);
+    }
+    QCOMPARE(changed.size(), 1);
 }
 
 void TaskControllerMultiTest::laterControllerHydrates()
