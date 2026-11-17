@@ -69,4 +69,11 @@ TestCase {
             verify(sum(alloc) <= available, "sum at " + available)
         }
     }
+
+    function test_squeezedColumnLosesNoPixels() {
+        // Floors 31 + 51 + 51 = 133; natural total 318.
+        for (var available = 133; available < 318; ++available) {
+            compare(sum(dist(available, [true, true, true])), available, "sum at " + available)
+        }
+    }
 }

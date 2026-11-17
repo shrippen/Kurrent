@@ -629,20 +629,6 @@ Item {
         smartViewSidebarItems = out
     }
 
-    function maintenanceFolderCountLabel() {
-        if (!controller || !showSidebarCounts) {
-            return ""
-        }
-        var sum = 0
-        for (var i = 0; i < maintenanceViewIds.length; ++i) {
-            var n = controller.viewTaskCounts[maintenanceViewIds[i]]
-            if (n !== undefined) {
-                sum += n
-            }
-        }
-        return sum > 0 ? String(sum) : ""
-    }
-
     readonly property var visiblePrimaryViewItems: orderedViewItems(primaryViewDefaults)
 
     readonly property var visibleMaintenanceViewItems: orderedViewItems(maintenanceViewDefaults)
