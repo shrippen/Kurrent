@@ -11,7 +11,7 @@ private Q_SLOTS:
     void init();
     void instanceIsOne();
     void collectionsStoreAndEmitOnce();
-    void busyStoresAndEmits();
+    void busyStores();
     void tempIdsCountDown();
     void busyRefreshRules();
     void notifyEmitsTasksChanged();
@@ -45,16 +45,14 @@ void SharedTasksTest::collectionsStoreAndEmitOnce()
     QCOMPARE(shared.collectionNames().value(8), QStringLiteral("Events"));
 }
 
-void SharedTasksTest::busyStoresAndEmits()
+void SharedTasksTest::busyStores()
 {
     SharedTasks &shared = SharedTasks::instance();
-    QSignalSpy spy(&shared, &SharedTasks::busyChanged);
 
     TaskCalendar::BusyInterval interval;
     interval.summary = QStringLiteral("Meeting");
     shared.setBusyIntervals({interval});
 
-    QCOMPARE(spy.count(), 1);
     QCOMPARE(shared.busyIntervals().size(), 1);
     QCOMPARE(shared.busyIntervals().first().summary, QStringLiteral("Meeting"));
 }

@@ -22,8 +22,8 @@
  * instead of copying the data into each other.
  *
  *   controller A ──┐                  ┌─ collectionsChanged ─> collection models
- *   controller B ──┼──> SharedTasks ──┼─ tasksChanged ───────> rebuild the lists
- *   settings page ─┘                  └─ busyChanged ────────> reminders, agenda
+ *   controller B ──┼──> SharedTasks ──┤
+ *   settings page ─┘                  └─ tasksChanged ───────> rebuild the lists
  *
  * It holds data only: no Akonadi jobs, no monitors (AkonadiLoader loads into it), so it
  * runs in tests without Akonadi.
@@ -71,7 +71,6 @@ public:
     QStringList &extraLocations();
 
     const QVector<TaskCalendar::BusyInterval> &busyIntervals() const;
-    /// Emits busyChanged.
     void setBusyIntervals(const QVector<TaskCalendar::BusyInterval> &intervals);
 
     /// Busy events must be fetched again: one changed, or the task lists did.
@@ -92,7 +91,6 @@ public:
 Q_SIGNALS:
     void collectionsChanged();
     void tasksChanged();
-    void busyChanged();
 
 private:
     explicit SharedTasks(QObject *parent);
