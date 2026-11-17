@@ -24,7 +24,7 @@ plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	formatDigitsWithToke
 plasmoid/io.github.shrippen.Kurrent/contents/ui/sidebarheight.js	distribute	ccn=28 length=100 nesting=5
 plasmoid/io.github.shrippen.Kurrent/contents/ui/taskmeta.js	listSectionIcon	ccn=17
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/AgendaDayView.qml	reasonsOf	nesting=6
-plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=1145
+plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=1131
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/TaskListView.qml	-	lines=858
 plugin/agendalogic.cpp	AgendaLogic::rankSuggestions	ccn=22
 plugin/quickadd.cpp	-	lines=969
