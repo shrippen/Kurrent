@@ -247,6 +247,7 @@ set(_kurrent_test_targets
     kurrent-calendar-test
     kurrent-taskstore-test
     kurrent-taskcontroller-store-test
+    kurrent-taskcontroller-editor-test
     kurrent-core-i18n-test
     kurrent-tui-screens-test
 )
@@ -265,6 +266,10 @@ if(TARGET Qt6::QuickTest AND TARGET Qt6::Qml AND TARGET Qt6::Quick)
     )
     list(APPEND _kurrent_test_targets kurrent-qml-test)
 endif()
+
+add_test(NAME kurrent-check-targets
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/check_targets_test.sh"
+)
 
 add_test(NAME kurrent-id-move
     COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/id_move_test.sh"
