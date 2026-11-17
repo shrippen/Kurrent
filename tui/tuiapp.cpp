@@ -53,6 +53,12 @@ TuiApp::TuiApp(TaskController *controller, Terminal *terminal, QObject *parent)
     connect(m_controller->taskModel(), &QAbstractItemModel::dataChanged, this, &TuiApp::draw);
     connect(m_controller->taskModel(), &QAbstractItemModel::modelReset, this, &TuiApp::draw);
 
+    // A failed write reaches the controller's error signal only; show it until the next key.
+    connect(m_controller, &TaskController::error, this, [this](const QString &message) {
+        m_error = message;
+        draw();
+    });
+
     // Due labels ("today") and the clock move on without model changes.
     m_tick.setInterval(kTickMs);
     connect(&m_tick, &QTimer::timeout, this, &TuiApp::draw);
@@ -62,6 +68,8 @@ TuiApp::TuiApp(TaskController *controller, Terminal *terminal, QObject *parent)
 
 void TuiApp::onKey(const QString &key)
 {
+    m_error.clear();
+
     if (m_input != Input::None) {
         onInputKey(key);
         draw();
@@ -201,7 +209,7 @@ void TuiApp::draw()
     model.selected = qMin(m_selected, int(model.now.size() + model.soon.size() + model.someday.size()) - 1);
     model.title = QLocale().toString(today, QLocale::LongFormat);
     model.status = status();
-    model.message = m_controller->errorMessage();
+    model.message = m_error.isEmpty() ? m_controller->errorMessage() : m_error;
     if (m_input == Input::Add) {
         model.prompt = i18n("New task:");
     } else if (m_input == Input::Search) {
