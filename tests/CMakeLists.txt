@@ -81,6 +81,19 @@ target_include_directories(kurrent-tui-screens-test PRIVATE ${CMAKE_SOURCE_DIR}/
 target_link_libraries(kurrent-tui-screens-test PRIVATE Qt6::Core Qt6::Test)
 add_test(NAME kurrent-tui-screens COMMAND kurrent-tui-screens-test)
 
+add_executable(kurrent-akonadiitems-test
+    akonadiitems_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
+)
+target_include_directories(kurrent-akonadiitems-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-akonadiitems-test PRIVATE
+    Qt6::Core
+    Qt6::Test
+    KF6::CalendarCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-akonadiitems COMMAND kurrent-akonadiitems-test)
+
 add_executable(kurrent-taskstore-test
     taskstore_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
@@ -115,6 +128,7 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/kurrentdbus.cpp
     ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonaditaskstore.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
     ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
     ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
@@ -183,6 +197,7 @@ if(KURRENT_BUILD_BENCH)
         ${CMAKE_SOURCE_DIR}/plugin/kurrentdbus.cpp
         ${CMAKE_SOURCE_DIR}/plugin/memorytaskstore.cpp
         ${CMAKE_SOURCE_DIR}/plugin/akonaditaskstore.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
         ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
         ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
@@ -194,6 +209,7 @@ if(KURRENT_BUILD_BENCH)
 endif()
 
 set(_kurrent_test_targets
+    kurrent-akonadiitems-test
     kurrent-tasklogic-test
     kurrent-agendalogic-test
     kurrent-sharedsettings-test
@@ -208,8 +224,9 @@ set(_kurrent_test_targets
 find_package(Qt6 COMPONENTS QuickTest Qml Quick)
 if(TARGET Qt6::QuickTest AND TARGET Qt6::Qml AND TARGET Qt6::Quick)
     add_executable(kurrent-qml-test qmltest.cpp)
-    target_link_libraries(kurrent-qml-test PRIVATE Qt6::QuickTest Qt6::Qml Qt6::Quick)
+    target_link_libraries(kurrent-qml-test PRIVATE Qt6::QuickTest Qt6::Qml Qt6::Quick KF6::I18n)
     target_compile_definitions(kurrent-qml-test PRIVATE
+        TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
         QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml"
     )
     add_test(NAME kurrent-qml COMMAND kurrent-qml-test)

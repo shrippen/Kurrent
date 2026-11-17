@@ -688,6 +688,8 @@ enum class SyncResult { Error, Ok };
     void checkReminders();
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
     void refreshBusyEvents();
+    void refreshBusyIfDue();
+    void watchBusyEvents();
     void scheduleRefreshBusyEvents();
     bool isInBusyEvent(const QDateTime &when) const;
     QList<Akonadi::Collection> busyEventCollections() const;
@@ -761,7 +763,8 @@ enum class SyncResult { Error, Ok };
     void updateCounts(const TaskLogic::SidebarCounts &counts);
     void publishSharedCache();
     void scheduleRebuildAll();
-    void onItemsFetched(KJob *job, qint64 collectionId);
+    void fetchTodos(const Akonadi::Collection &collection);
+    void onItemsFetched(const Akonadi::Item::List &items, const QString &error, qint64 collectionId);
     void logDebug(const QString &message);
     void updateDebugInfo(int builtTasks, int filteredTasks, int filteredOutCompleted, int filteredOutView, int filteredOutSearch);
 
@@ -887,6 +890,8 @@ enum class SyncResult { Error, Ok };
     QVariantMap m_sidebarLocationCounts;
 
     Akonadi::Monitor *m_monitor = nullptr;
+    Akonadi::Monitor *m_eventMonitor = nullptr;
+    QTimer m_busyChangeTimer;
     // Merge conflict state
     qint64 m_pendingMergeItemId = -1;
     QVariantList m_pendingMergeFields;
@@ -928,6 +933,9 @@ enum class SyncResult { Error, Ok };
     static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
     static QList<Akonadi::Collection> s_collections;
     static QList<Akonadi::Collection> s_eventCollections;
+    // Busy events: changed since the last fetch, and the day of that fetch (shared by all widgets).
+    static TaskLogic::BusyEvents s_busyEvents;
+    static QDate s_busyFetchedOn;
     static QHash<qint64, QString> s_collectionNames;
     static QStringList s_extraLabels;
     static QStringList s_extraLocations;

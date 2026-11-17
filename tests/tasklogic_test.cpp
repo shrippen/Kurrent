@@ -113,6 +113,7 @@ private Q_SLOTS:
     void kanbanCanceledColumnHidden();
     void heatmapSummaryFigures();
     void heatmapSummaryAcrossClockChange();
+    void busyRefreshOnlyWhenDue();
 };
 
 void TaskLogicTest::priorityBand_data()
@@ -1993,6 +1994,18 @@ void TaskLogicTest::heatmapSummaryAcrossClockChange()
     // Midnight after the change: 25 whole days, not 26.
     const QDateTime after(QDate(2026, 10, 26), QTime(0, 0), berlin);
     QCOMPARE(TaskLogic::summarizeHeatmap({october}, start, end, after).perDay, 11.0 / 25);
+}
+
+// The busy events (all events of the busy calendars) were fetched again every 5 minutes, ~1 s of
+// main-thread time each with 7500 events. Now only when an event changed or the day did.
+void TaskLogicTest::busyRefreshOnlyWhenDue()
+{
+    const QDate today(2026, 11, 17);
+    using TaskLogic::BusyEvents;
+    QVERIFY(!TaskLogic::busyRefreshDue(BusyEvents::Current, today, today));
+    QVERIFY(TaskLogic::busyRefreshDue(BusyEvents::Changed, today, today));
+    QVERIFY(TaskLogic::busyRefreshDue(BusyEvents::Current, today.addDays(-1), today));
+    QVERIFY(TaskLogic::busyRefreshDue(BusyEvents::Current, QDate(), today));
 }
 
 QTEST_GUILESS_MAIN(TaskLogicTest)
