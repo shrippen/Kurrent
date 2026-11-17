@@ -8,6 +8,7 @@ import ".."
 import "../Kante"
 import "../agenda.js" as Agenda
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 // One day as an hour grid (07–22): appointments stay fixed, task blocks can be selected,
 // resized at their edges (15-minute steps, up to the neighbours) and dragged; free gaps
@@ -104,9 +105,6 @@ Item {
     function minuteAt(y) {
         return Math.round((gridStart + y / px) / step) * step
     }
-    function hm(minute) {
-        return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
-    }
     function duration(minutes) {
         var h = Math.floor(minutes / 60)
         var m = minutes % 60
@@ -143,7 +141,7 @@ Item {
                 y: -height / 2
                 width: grid.gutter - Design.spaceSmall
                 horizontalAlignment: Text.AlignRight
-                text: grid.hm(grid.gridStart + parent.index * 30)
+                text: DayMath.clockOfMinute(grid.gridStart + parent.index * 30)
                 color: KanteStyle.mutedTextColor
                 font: Kirigami.Theme.smallFont
             }
@@ -168,7 +166,7 @@ Item {
                 anchors.top: parent.top
                 anchors.margins: Design.spaceTiny
                 visible: parent.height > height
-                text: i18n("free %1–%2 · %3", grid.hm(modelData.start), grid.hm(modelData.end),
+                text: i18n("free %1–%2 · %3", DayMath.clockOfMinute(modelData.start), DayMath.clockOfMinute(modelData.end),
                             grid.duration(modelData.end - modelData.start))
                 color: KanteStyle.positiveTextColor
                 font: Kirigami.Theme.smallFont
@@ -199,8 +197,8 @@ Item {
             }
             // A series' occurrence at another time becomes a task of its own: say so while dragging.
             grid.dragHost.setDropHint(place && place.detach
-                ? i18n("Detach at %1: this occurrence becomes a task of its own", grid.hm(place.start))
-                : i18n("Plan at %1 or the next free time", grid.hm(minute)))
+                ? i18n("Detach at %1: this occurrence becomes a task of its own", DayMath.clockOfMinute(place.start))
+                : i18n("Plan at %1 or the next free time", DayMath.clockOfMinute(minute)))
         }
 
         onEntered: function(drag) {
@@ -306,7 +304,7 @@ Item {
                 anchors.topMargin: (block.low ? 0 : Design.spaceTiny)
                                    + (ghost.cramped && block.modelData.start === ghost.nextStart ? ghost.overhang : 0)
                 verticalAlignment: block.low ? Text.AlignVCenter : Text.AlignTop
-                text: grid.hm(block.liveStart) + "–" + grid.hm(block.liveEnd)
+                text: DayMath.clockOfMinute(block.liveStart) + "–" + DayMath.clockOfMinute(block.liveEnd)
                       + (block.liveEnd - block.liveStart !== block.modelData.end - block.modelData.start
                          ? " · " + grid.duration(block.liveEnd - block.liveStart) : "")
                       + (block.wouldDetach ? " · " + i18n("detaches") : "")
@@ -318,7 +316,7 @@ Item {
             }
 
             QQC2.ToolTip.text: isTask ? "" : i18n("%1–%2 %3 · %4 (fixed)",
-                                                   grid.hm(modelData.start), grid.hm(modelData.end),
+                                                   DayMath.clockOfMinute(modelData.start), DayMath.clockOfMinute(modelData.end),
                                                    modelData.summary, modelData.calendarName)
             QQC2.ToolTip.visible: !isTask && blockHover.hovered
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -480,11 +478,11 @@ Item {
 
             Row {
                 QQC2.Label {
-                    text: grid.ghostStart >= 0 ? grid.hm(grid.ghostStart) + "–" : ""
+                    text: grid.ghostStart >= 0 ? DayMath.clockOfMinute(grid.ghostStart) + "–" : ""
                     color: KanteStyle.textColor
                 }
                 QQC2.Label {
-                    text: grid.ghostStart >= 0 ? grid.hm(grid.ghostEnd) : ""
+                    text: grid.ghostStart >= 0 ? DayMath.clockOfMinute(grid.ghostEnd) : ""
                     color: ghost.cramped ? KanteStyle.negativeTextColor : KanteStyle.textColor
                     font.bold: ghost.cramped
                 }
