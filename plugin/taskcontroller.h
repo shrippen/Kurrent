@@ -9,7 +9,6 @@
 #include "taskstore.h"
 
 #include <Akonadi/Item>
-#include <Akonadi/Monitor>
 
 #include <KCalendarCore/Todo>
 
@@ -28,7 +27,6 @@
 
 namespace Akonadi
 {
-class CollectionFetchJob;
 class ItemFetchJob;
 }
 
@@ -633,7 +631,6 @@ signals:
     /** kurrentrc changed (any key); the bound configuration is already up to date. */
     void settingsChanged();
 
-    friend class TaskControllerMultiTest; // tests/taskcontroller_multi_test.cpp feeds a busy fetch result (onBusyEventsFetched, its job counter and buffer)
     friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
@@ -657,8 +654,6 @@ enum class SyncResult { Error, Ok };
     const TaskLogic::SmartViewDef *smartViewFor(const QString &viewId) const;
     TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
     QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
-    void setLoading(bool loading);
-    void setErrorMessage(const QString &message);
     void updateEmptyKind();
     TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const SharedTasks::Entry &cache) const;
     void pushUndo(TaskLogic::UndoRecord record);
@@ -676,23 +671,12 @@ enum class SyncResult { Error, Ok };
     void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
     void checkReminders();
     void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
-    void refreshBusyEvents();
-    void refreshBusyIfDue();
-    void watchBusyEvents();
-    void scheduleRefreshBusyEvents();
     bool isInBusyEvent(const QDateTime &when) const;
-    QList<Akonadi::Collection> busyEventCollections() const;
-    void onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd);
     void registerSessionInterface();
     void registerGlobalShortcuts();
-    void ensureServerWatch();
-    bool initializeAkonadi();
-    bool attachAkonadiMonitor();
-    void scheduleAkonadiRetry();
-    void loadCollections();
-    void scheduleLoadCollections();
-    void loadTasks();
     void connectShared();
+    void connectLoader();
+    void mirrorLoader();
     void scheduleRebuild();
     void rebuildTaskList();
     void onRebuildFinished();
@@ -717,10 +701,6 @@ enum class SyncResult { Error, Ok };
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
     bool taskMatchesSearch(const TaskEntry &task) const;
-    bool isCollectionEnabled(qint64 collectionId) const;
-    QList<Akonadi::Collection> enabledCollections() const;
-    void upsertTask(const Akonadi::Item &item, qint64 fallbackCollectionId = -1);
-    void removeTask(Akonadi::Item::Id itemId);
     Akonadi::Item itemById(qint64 itemId) const;
     KCalendarCore::Todo::Ptr todoFromItem(const Akonadi::Item &item) const;
     QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
@@ -750,8 +730,6 @@ enum class SyncResult { Error, Ok };
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
     void updateAvailableLocations(const QList<TaskEntry> &tasks);
     void updateCounts(const TaskLogic::SidebarCounts &counts);
-    void fetchTodos(const Akonadi::Collection &collection);
-    void onItemsFetched(const Akonadi::Item::List &items, const QString &error, qint64 collectionId);
     void logDebug(const QString &message);
     void updateDebugInfo(int builtTasks, int filteredTasks, int filteredOutCompleted, int filteredOutView, int filteredOutSearch);
 
@@ -876,39 +854,16 @@ enum class SyncResult { Error, Ok };
     QVariantMap m_sidebarSecrecyCounts;
     QVariantMap m_sidebarLocationCounts;
 
-    Akonadi::Monitor *m_monitor = nullptr;
-    Akonadi::Monitor *m_eventMonitor = nullptr;
-    QTimer m_busyChangeTimer;
     // Merge conflict state
     qint64 m_pendingMergeItemId = -1;
     QVariantList m_pendingMergeFields;
     KCalendarCore::Todo::Ptr m_pendingMergeFreshTodo;
-    bool m_serverWatchConnected = false;
-    Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
-    bool m_collectionsReloadPending = false;
-    int m_pendingFetchJobs = 0;
-    // IDs / collections seen during the in-flight loadTasks wave (cache-preserving fetch).
-    QSet<Akonadi::Item::Id> m_fetchSeenIds;
-    QSet<qint64> m_fetchOkCollections;
-
-    int m_lastFetchItemCount = 0;
-    int m_lastFetchAccepted = 0;
-    int m_lastFetchRejectedNotTodo = 0;
-    int m_lastFetchRejectedNoPayload = 0;
-    int m_lastFetchRejectedDisabled = 0;
-    int m_lastFetchRejectedNoCollection = 0;
-
     TaskListModel m_taskModel;
     CollectionListModel m_collectionModel;
     CollectionListModel m_eventCalendarModel;
     AbstractTaskStore *m_store = nullptr;
     QTimer m_rebuildTimer;
-    QTimer m_collectionsTimer;
-    QTimer m_akonadiRetryTimer;
     QTimer m_reminderTimer;
-    QTimer m_busyEventTimer;
-    int m_pendingBusyFetchJobs = 0;
-    QVector<TaskCalendar::BusyInterval> m_busyFetchIntervals;
     QDate m_agendaSelectedDate = QDate::currentDate();
     QString m_agendaMode = AgendaLogic::Mode::Day;
     bool m_agendaWeekend = true;

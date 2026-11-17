@@ -1,5 +1,5 @@
+#include "akonadiloader.h"
 #include "sharedtasks.h"
-#include "taskcontroller.h"
 
 #include <Akonadi/Collection>
 #include <Akonadi/Item>
@@ -7,6 +7,7 @@
 #include <KCalendarCore/Event>
 #include <KCalendarCore/Todo>
 
+#include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTest>
 
@@ -41,13 +42,20 @@ private Q_SLOTS:
     void replacesTempRow();
     void keepsWriteUnderWay_data();
     void keepsWriteUnderWay();
+    void removeItemDropsTask();
+    void emptyEnabledIsAll();
+    void notifiesOncePerItem();
+    void silentDuringWave();
+    void resetForTestClears();
 
 private:
     Akonadi::Item makeItem(qint64 id, qint64 collectionId, int revision, const QString &summary) const;
     void apply(const Akonadi::Item &item);
     QString summaryOf(qint64 id) const;
+    bool exists(qint64 id) const { return shared().tasks().contains(id); }
 
-    TaskController *m_controller = nullptr;
+    AkonadiLoader &loader() const { return AkonadiLoader::instance(); }
+    SharedTasks &shared() const { return SharedTasks::instance(); }
 };
 
 Akonadi::Item AkonadiLoaderTest::makeItem(qint64 id, qint64 collectionId, int revision, const QString &summary) const
@@ -66,12 +74,13 @@ Akonadi::Item AkonadiLoaderTest::makeItem(qint64 id, qint64 collectionId, int re
 
 void AkonadiLoaderTest::apply(const Akonadi::Item &item)
 {
-    m_controller->testApplyExternalItem(item);
+    loader().applyItem(item);
 }
 
 QString AkonadiLoaderTest::summaryOf(qint64 id) const
 {
-    return m_controller->testTaskSummary(id);
+    const auto it = shared().tasks().constFind(id);
+    return it == shared().tasks().cend() ? QString() : it->todo->summary();
 }
 
 void AkonadiLoaderTest::initTestCase()
@@ -82,8 +91,8 @@ void AkonadiLoaderTest::initTestCase()
 
 void AkonadiLoaderTest::init()
 {
-    m_controller = new TaskController;
-    m_controller->resetSharedStateForTest();
+    shared().reset();
+    loader().resetForTest(false);
 
     QList<Akonadi::Collection> lists;
     for (qint64 id : {kInbox, kWork}) {
@@ -92,23 +101,26 @@ void AkonadiLoaderTest::init()
         collection.setContentMimeTypes({QString::fromLatin1(KCalendarCore::Todo::todoMimeType())});
         lists.append(collection);
     }
-    m_controller->installTestCollections(lists);
+    QHash<qint64, QString> names;
+    for (const Akonadi::Collection &collection : lists) {
+        names.insert(collection.id(), collection.displayName());
+    }
+    shared().setCollections(lists, {}, names);
 }
 
 void AkonadiLoaderTest::cleanup()
 {
-    m_controller->resetSharedStateForTest();
-    delete m_controller;
-    m_controller = nullptr;
+    shared().reset();
+    loader().resetForTest(false);
 }
 
 void AkonadiLoaderTest::takesNewItem()
 {
     apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("alpha")));
 
-    QVERIFY(m_controller->testTaskExists(kTaskId));
+    QVERIFY(exists(kTaskId));
     QCOMPARE(summaryOf(kTaskId), QStringLiteral("alpha"));
-    QCOMPARE(m_controller->testTaskCollectionId(kTaskId), kInbox);
+    QCOMPARE(shared().tasks().value(kTaskId).item.parentCollection().id(), kInbox);
 }
 
 void AkonadiLoaderTest::rejectsOlderRevision()
@@ -117,7 +129,7 @@ void AkonadiLoaderTest::rejectsOlderRevision()
     apply(makeItem(kTaskId, kInbox, 4, QStringLiteral("old")));
 
     QCOMPARE(summaryOf(kTaskId), QStringLiteral("new"));
-    QCOMPARE(m_controller->testTaskRevision(kTaskId), 5);
+    QCOMPARE(shared().tasks().value(kTaskId).item.revision(), 5);
 }
 
 void AkonadiLoaderTest::takesNewerRevision()
@@ -126,7 +138,7 @@ void AkonadiLoaderTest::takesNewerRevision()
     apply(makeItem(kTaskId, kInbox, 6, QStringLiteral("new")));
 
     QCOMPARE(summaryOf(kTaskId), QStringLiteral("new"));
-    QCOMPARE(m_controller->testTaskRevision(kTaskId), 6);
+    QCOMPARE(shared().tasks().value(kTaskId).item.revision(), 6);
 }
 
 void AkonadiLoaderTest::rejectsSameRevisionOtherSummary()
@@ -143,7 +155,7 @@ void AkonadiLoaderTest::revisionZeroKeepsRevision()
     apply(makeItem(kTaskId, kInbox, 0, QStringLiteral("unversioned")));
 
     QCOMPARE(summaryOf(kTaskId), QStringLiteral("ours"));
-    QCOMPARE(m_controller->testTaskRevision(kTaskId), 5);
+    QCOMPARE(shared().tasks().value(kTaskId).item.revision(), 5);
 }
 
 void AkonadiLoaderTest::rejectsNonTodo()
@@ -152,14 +164,14 @@ void AkonadiLoaderTest::rejectsNonTodo()
     event.setMimeType(QString::fromLatin1(KCalendarCore::Event::eventMimeType()));
     apply(event);
 
-    QVERIFY(!m_controller->testTaskExists(kTaskId));
+    QVERIFY(!exists(kTaskId));
 }
 
 void AkonadiLoaderTest::rejectsUnknownList()
 {
     apply(makeItem(kTaskId, kUnknownList, 1, QStringLiteral("lost")));
 
-    QVERIFY(!m_controller->testTaskExists(kTaskId));
+    QVERIFY(!exists(kTaskId));
 }
 
 void AkonadiLoaderTest::emptyEnabledMeansAll()
@@ -167,21 +179,21 @@ void AkonadiLoaderTest::emptyEnabledMeansAll()
     apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("a")));
     apply(makeItem(kTaskId + 1, kWork, 1, QStringLiteral("b")));
 
-    QVERIFY(m_controller->testTaskExists(kTaskId));
-    QVERIFY(m_controller->testTaskExists(kTaskId + 1));
+    QVERIFY(exists(kTaskId));
+    QVERIFY(exists(kTaskId + 1));
 }
 
 void AkonadiLoaderTest::disabledListRemovesTask()
 {
     apply(makeItem(kTaskId, kWork, 1, QStringLiteral("work task")));
-    QVERIFY(m_controller->testTaskExists(kTaskId));
+    QVERIFY(exists(kTaskId));
 
-    m_controller->setEnabledCollectionIds({QVariant::fromValue(kInbox)});
+    loader().setEnabledCollectionIds({kInbox});
     apply(makeItem(kTaskId, kWork, 2, QStringLiteral("work task")));
     apply(makeItem(kTaskId + 1, kWork, 1, QStringLiteral("other")));
 
-    QVERIFY(!m_controller->testTaskExists(kTaskId));
-    QVERIFY(!m_controller->testTaskExists(kTaskId + 1));
+    QVERIFY(!exists(kTaskId));
+    QVERIFY(!exists(kTaskId + 1));
 }
 
 void AkonadiLoaderTest::replacesTempRow()
@@ -190,13 +202,15 @@ void AkonadiLoaderTest::replacesTempRow()
     KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
     todo->setUid(QStringLiteral("uid-%1").arg(kTaskId));
     todo->setSummary(QStringLiteral("typed"));
-    m_controller->installTestTodo(-2, todo, kInbox);
-    QVERIFY(m_controller->testTaskExists(-2));
+    SharedTasks::Entry temp;
+    temp.todo = todo;
+    shared().tasks().insert(-2, temp);
+    QVERIFY(exists(-2));
 
     apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("typed")));
 
-    QVERIFY(!m_controller->testTaskExists(-2));
-    QVERIFY(m_controller->testTaskExists(kTaskId));
+    QVERIFY(!exists(-2));
+    QVERIFY(exists(kTaskId));
 }
 
 void AkonadiLoaderTest::keepsWriteUnderWay_data()
@@ -222,7 +236,78 @@ void AkonadiLoaderTest::keepsWriteUnderWay()
     apply(makeItem(kTaskId, kInbox, 9, QStringLiteral("theirs")));
 
     QCOMPARE(summaryOf(kTaskId), QStringLiteral("ours"));
-    QCOMPARE(m_controller->testTaskRevision(kTaskId), 1);
+    QCOMPARE(shared().tasks().value(kTaskId).item.revision(), 1);
+}
+
+void AkonadiLoaderTest::removeItemDropsTask()
+{
+    apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("alpha")));
+    QSignalSpy changed(&shared(), &SharedTasks::tasksChanged);
+
+    loader().removeItem(kTaskId);
+    QVERIFY(!exists(kTaskId));
+    QCOMPARE(changed.count(), 1);
+
+    loader().removeItem(kTaskId);
+    QCOMPARE(changed.count(), 1);
+}
+
+void AkonadiLoaderTest::emptyEnabledIsAll()
+{
+    QVERIFY(loader().isCollectionEnabled(kInbox));
+    QVERIFY(loader().isCollectionEnabled(kWork));
+    QVERIFY(!loader().isCollectionEnabled(kUnknownList));
+
+    loader().setEnabledCollectionIds({kWork});
+    QVERIFY(!loader().isCollectionEnabled(kInbox));
+    QVERIFY(loader().isCollectionEnabled(kWork));
+
+    loader().setEnabledCollectionIds({});
+    QVERIFY(loader().isCollectionEnabled(kInbox));
+}
+
+void AkonadiLoaderTest::notifiesOncePerItem()
+{
+    QSignalSpy changed(&shared(), &SharedTasks::tasksChanged);
+
+    apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("alpha")));
+    QCOMPARE(changed.count(), 1);
+
+    // Rejected: nothing changed, nobody rebuilds.
+    apply(makeItem(kTaskId, kInbox, 0, QStringLiteral("unversioned")));
+    QCOMPARE(changed.count(), 1);
+}
+
+void AkonadiLoaderTest::silentDuringWave()
+{
+    QSignalSpy changed(&shared(), &SharedTasks::tasksChanged);
+
+    // Jobs of a fetch wave are pending: the end of the wave rebuilds, not each item.
+    loader().m_pendingFetchJobs = 1;
+    apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("alpha")));
+    apply(makeItem(kTaskId + 1, kInbox, 1, QStringLiteral("beta")));
+    loader().removeItem(kTaskId + 1);
+    loader().m_pendingFetchJobs = 0;
+
+    QVERIFY(exists(kTaskId));
+    QCOMPARE(changed.count(), 0);
+}
+
+void AkonadiLoaderTest::resetForTestClears()
+{
+    loader().setEnabledCollectionIds({kWork});
+    apply(makeItem(kTaskId, kInbox, 1, QStringLiteral("alpha")));
+    QCOMPARE(loader().fetchStats().rejectedDisabled, 1);
+
+    QSignalSpy available(&loader(), &AkonadiLoader::availableChanged);
+    loader().resetForTest(true);
+
+    QVERIFY(loader().available());
+    QCOMPARE(available.count(), 1);
+    QVERIFY(!loader().loading());
+    QVERIFY(loader().errorMessage().isEmpty());
+    QCOMPARE(loader().fetchStats().rejectedDisabled, 0);
+    QVERIFY(loader().isCollectionEnabled(kInbox));
 }
 
 QTEST_MAIN(AkonadiLoaderTest)

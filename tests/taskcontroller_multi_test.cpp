@@ -1,3 +1,4 @@
+#include "akonadiloader.h"
 #include "memorytaskstore.h"
 #include "sharedsettings.h"
 #include "taskcontroller.h"
@@ -219,9 +220,10 @@ void TaskControllerMultiTest::busyIntervalsReachOthers()
     interval.end = interval.start.addSecs(3600);
     interval.collectionId = kInbox;
     IdleJob job;
-    m_a->m_pendingBusyFetchJobs = 1;
-    m_a->m_busyFetchIntervals = {interval, interval};
-    m_a->onBusyEventsFetched(&job, QDateTime(), QDateTime());
+    AkonadiLoader &loader = AkonadiLoader::instance();
+    loader.m_pendingBusyFetchJobs = 1;
+    loader.m_busyFetchIntervals = {interval, interval};
+    loader.onBusyEventsFetched(&job, QDateTime(), QDateTime());
 
     QCOMPARE(SharedTasks::instance().busyIntervals().size(), 2);
 }

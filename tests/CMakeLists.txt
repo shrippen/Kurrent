@@ -147,6 +147,8 @@ find_package(KF6 REQUIRED COMPONENTS I18n)
 set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
     ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
@@ -230,20 +232,24 @@ set_tests_properties(kurrent-taskcontroller-editor PROPERTIES ENVIRONMENT "QT_QP
 # Which version of a task wins when one arrives from Akonadi (applyItem), without Akonadi.
 add_executable(kurrent-akonadiloader-test
     akonadiloader_test.cpp
-    ${KURRENT_CONTROLLER_TEST_SOURCES}
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
 )
 target_compile_definitions(kurrent-akonadiloader-test PRIVATE
-    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
-    KURRENT_WITH_DEMO
-    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}")
 target_include_directories(kurrent-akonadiloader-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
 target_link_libraries(kurrent-akonadiloader-test PRIVATE
     Qt6::Core
-    Qt6::Gui
     Qt6::Qml
-    Qt6::DBus
-    Qt6::Concurrent
     Qt6::Test
+    KF6::ConfigCore
     KF6::CalendarCore
     KF6::I18n
     KF6::ConfigCore
@@ -296,6 +302,8 @@ if(KURRENT_BUILD_BENCH)
         perf_bench.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
         ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
         ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp

@@ -28,6 +28,10 @@ add_library(kurrentcore STATIC
     collectionlistmodel.h
     sharedtasks.cpp
     sharedtasks.h
+    akonadiloader.cpp
+    akonadibusy.cpp
+    akonadiloader.h
+    akonadiutil.h
     sharedsettings.cpp
     sharedsettings.h
     kurrentdbus.cpp
