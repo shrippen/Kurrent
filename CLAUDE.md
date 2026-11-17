@@ -1,1 +1,2 @@
 @agent.md
+@ARCHITECTURE.md
