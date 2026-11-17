@@ -17,7 +17,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | Path | Its one task |
 |---|---|
 | `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task. One store talks to Akonadi, one keeps tasks in memory for tests. |
-| `plugin/tasklogic.*`, `agendalogic.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; parsing the quick entry; recurrence and dates of a task. |
+| `plugin/tasklogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
 | `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
@@ -105,8 +105,6 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for
   the screenshot runner (`MainPaneHost`, `SwimlaneView`, `main.qml`, three views; not
   in `AUDIT.md`).
-- `tui/tuiapp.cpp` has a filter and a sort order of its own for open tasks (not in
-  `AUDIT.md`).
 - The order of the sidebar's sections and views is still written out as a default in
   `ui/configSidebar.qml` and `ui/views/SidebarView.qml`, besides `main.xml` (`AUDIT.md`,
   finding 5).
