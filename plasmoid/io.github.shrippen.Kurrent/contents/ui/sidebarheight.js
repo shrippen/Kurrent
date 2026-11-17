@@ -18,6 +18,56 @@ function floorHeight(hasHeader, headerHeight, rowHeight) {
     return Math.max(1, header + rowHeight + 1)
 }
 
+// What the other sections can give to section `g` to cover `need` pixels, as [index, pixels]
+// pairs. Stops at `need`; the caller checks that it was reached.
+function donations(alloc, naturals, visibleFlags, hasHeader, headerHeight, rowHeight, viewsPinned, g, need) {
+    var oneRow = rowHeight + 1
+    var takes = []
+    for (var donor = 0; donor < naturals.length && need > 0; ++donor) {
+        if (!visibleFlags[donor] || donor === g || (donor === 0 && viewsPinned)) {
+            continue
+        }
+        var donorOverflow = naturals[donor] - alloc[donor]
+        var floorH = floorHeight(hasHeader[donor], headerHeight, rowHeight)
+        var spare = Math.max(0, alloc[donor] - floorH)
+        // Prefer donors that must scroll anyway (more than one row short).
+        if (donorOverflow <= oneRow && spare <= 0) {
+            continue
+        }
+        var take = Math.min(need, spare)
+        if (take <= 0) {
+            continue
+        }
+        takes.push([donor, take])
+        need -= take
+    }
+    return takes
+}
+
+// Near-fit: if a section is short by at most one row, give it full natural
+// height by stealing from sections that still overflow by more than one row.
+// It steals only if that reaches the natural height, else the pixels would be lost.
+function nearFit(alloc, naturals, visibleFlags, hasHeader, headerHeight, rowHeight, viewsPinned) {
+    var oneRow = rowHeight + 1
+    for (var g = 0; g < naturals.length; ++g) {
+        if (!visibleFlags[g]) {
+            continue
+        }
+        var shortfall = naturals[g] - alloc[g]
+        if (shortfall <= 0 || shortfall > oneRow) {
+            continue
+        }
+        var takes = donations(alloc, naturals, visibleFlags, hasHeader, headerHeight, rowHeight,
+                              viewsPinned, g, shortfall)
+        var got = takes.reduce(function (sum, t) { return sum + t[1] }, 0)
+        if (got < shortfall) {
+            continue
+        }
+        takes.forEach(function (t) { alloc[t[0]] -= t[1] })
+        alloc[g] = naturals[g]
+    }
+}
+
 // The height of each section in a column of `available` pixels. `naturals`, `visibleFlags`
 // and `hasHeader` hold one entry per section. Hidden sections get 0. Returns null when no
 // section is visible.
@@ -117,40 +167,7 @@ function distribute(available, naturals, visibleFlags, hasHeader, headerHeight, 
         }
     }
 
-    // Near-fit: if a section is short by at most one row, give it full natural
-    // height by stealing from sections that still overflow by more than one row.
-    var oneRow = rowHeight + 1
-    for (var g = 0; g < sectionCount; ++g) {
-        if (!visibleFlags[g]) {
-            continue
-        }
-        var shortfall = naturals[g] - alloc[g]
-        if (shortfall <= 0 || shortfall > oneRow) {
-            continue
-        }
-        var need = shortfall
-        for (var donor = 0; donor < sectionCount && need > 0; ++donor) {
-            if (!visibleFlags[donor] || donor === g || (donor === 0 && viewsPinned)) {
-                continue
-            }
-            var donorOverflow = naturals[donor] - alloc[donor]
-            var floorH = floorHeight(hasHeader[donor], headerHeight, rowHeight)
-            var spare = Math.max(0, alloc[donor] - floorH)
-            // Prefer donors that must scroll anyway (more than one row short).
-            if (donorOverflow <= oneRow && spare <= 0) {
-                continue
-            }
-            var take = Math.min(need, spare)
-            if (take <= 0) {
-                continue
-            }
-            alloc[donor] -= take
-            need -= take
-        }
-        if (need === 0) {
-            alloc[g] = naturals[g]
-        }
-    }
+    nearFit(alloc, naturals, visibleFlags, hasHeader, headerHeight, rowHeight, viewsPinned)
 
     return alloc
 }

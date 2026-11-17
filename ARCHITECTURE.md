@@ -26,7 +26,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |
 | `ui/main.qml`, `FullView.qml`, `Plugin*.qml` | The widget: panel item and popup; loading the plug-in and the hint when it is missing. |
 | `ui/views/` | One file per view (list, board, swimlanes, plan, heatmap, agenda day, week, month), the sidebar, the editor, the inspector, the management of projects and labels. |
-| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages. |
+| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages, `SidebarSection` (one filter section of the sidebar: header, "All", rows; used seven times). |
 | `ui/Design.qml` | The sizes and tokens of the interface at run time. |
 | `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, clock and day helpers (`daymath.js`), the combo box selection of the settings pages, colours and priority names, the editor's recurrence choice, the sidebar's height distribution, agenda helpers, focus, taps. |
 | `ui/config*.qml`, `contents/config/` | The settings pages and the description of the widget's settings with their defaults (`main.xml`). |
@@ -99,8 +99,6 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The sidebar consists of seven nearly equal sections of about 230 lines each
-  (`AUDIT.md`, finding 3).
 - The controller does nearly everything in one class of 6874 lines, including
   reading and watching Akonadi (the shared data is in `plugin/sharedtasks.*`; loading
   is still here), smoke test, screenshot mode and demo mode
