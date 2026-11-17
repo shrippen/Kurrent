@@ -21,7 +21,7 @@ plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	-	lines=831
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	_dropField	ccn=28 nesting=5
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	_parseFormatTokens	ccn=31 nesting=7
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	formatDigitsWithTokens	ccn=19
-plasmoid/io.github.shrippen.Kurrent/contents/ui/sidebarheight.js	distribute	ccn=42 length=133 nesting=5
+plasmoid/io.github.shrippen.Kurrent/contents/ui/sidebarheight.js	distribute	ccn=28 length=100 nesting=5
 plasmoid/io.github.shrippen.Kurrent/contents/ui/taskmeta.js	listSectionIcon	ccn=17
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/AgendaDayView.qml	reasonsOf	nesting=6
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=2718
