@@ -776,34 +776,10 @@ Item {
 
     Component {
         id: rescheduleMenuComponent
-
-        QQC2.Menu {
-            id: rescheduleMenu
-            KantePopupSkin { popup: rescheduleMenu }
-            onClosed: destroy()
-            popupType: QQC2.Popup.Item
+        RescheduleMenu {
+            controller: root.controller
+            itemId: root.task.itemId
             enabled: !root.awaitingAkonadi
-            QQC2.MenuItem {
-                text: i18n("In 15 minutes")
-                onTriggered: controller.rescheduleTask(task.itemId, "15m")
-            }
-            QQC2.MenuItem {
-                text: i18n("In 1 hour")
-                onTriggered: controller.rescheduleTask(task.itemId, "1h")
-            }
-            QQC2.MenuItem {
-                text: i18n("In 4 hours")
-                onTriggered: controller.rescheduleTask(task.itemId, "4h")
-            }
-            QQC2.MenuSeparator {}
-            QQC2.MenuItem {
-                text: i18n("Tomorrow")
-                onTriggered: controller.rescheduleTask(task.itemId, "tomorrow")
-            }
-            QQC2.MenuItem {
-                text: i18n("Next week")
-                onTriggered: controller.rescheduleTask(task.itemId, "next-week")
-            }
         }
     }
 

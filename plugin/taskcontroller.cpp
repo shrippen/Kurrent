@@ -5838,9 +5838,7 @@ void TaskController::loadCollections()
             return;
         }
 
-        // The busy events follow the tasks (refreshBusyIfDue once they are in), not beside them.
-        s_busyEvents = TaskLogic::BusyEvents::Changed;
-
+        s_busyEvents = TaskLogic::BusyEvents::Changed; // fetched after the tasks, not beside them
         loadTasks();
     });
 }

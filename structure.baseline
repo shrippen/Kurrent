@@ -14,7 +14,7 @@ plasmoid/io.github.shrippen.Kurrent/contents/ui/ScreenshotRunner.qml	buildQueue	
 plasmoid/io.github.shrippen.Kurrent/contents/ui/ScreenshotRunner.qml	step	ccn=39 length=130
 plasmoid/io.github.shrippen.Kurrent/contents/ui/SmokeTest.qml	nextStep	ccn=62 length=209
 plasmoid/io.github.shrippen.Kurrent/contents/ui/components/ParentPicker.qml	rebuild	ccn=16
-plasmoid/io.github.shrippen.Kurrent/contents/ui/components/TaskDelegate.qml	-	lines=825
+plasmoid/io.github.shrippen.Kurrent/contents/ui/components/TaskDelegate.qml	-	lines=811
 plasmoid/io.github.shrippen.Kurrent/contents/ui/configViews.qml	-	lines=857
 plasmoid/io.github.shrippen.Kurrent/contents/ui/configViews.qml	duplicateBuiltinView	nesting=5
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	-	lines=831
@@ -35,7 +35,7 @@ plugin/quickadd.cpp	TaskLogic::suggestQuickAdd	ccn=19 length=106
 plugin/sharedsettings.cpp	SharedSettings::specs	length=100
 plugin/taskcalendar.cpp	TaskCalendar::appendBusyIntervals	ccn=19
 plugin/taskcalendar.cpp	TaskCalendar::completeTodo	ccn=28 length=83
-plugin/taskcontroller.cpp	-	lines=7031
+plugin/taskcontroller.cpp	-	lines=7105
 plugin/taskcontroller.cpp	TaskController::agendaDays	ccn=20 length=127
 plugin/taskcontroller.cpp	TaskController::agendaTasksForRange	ccn=18
 plugin/taskcontroller.cpp	TaskController::applyUndoRecord	ccn=20 length=90
@@ -45,23 +45,23 @@ plugin/taskcontroller.cpp	TaskController::createTaskFull	ccn=29 length=102
 plugin/taskcontroller.cpp	TaskController::finishSync	ccn=19 length=103
 plugin/taskcontroller.cpp	TaskController::kanbanColumnKeysForVisibleTasks	ccn=19
 plugin/taskcontroller.cpp	TaskController::listGroupLabelForKey	ccn=29
-plugin/taskcontroller.cpp	TaskController::loadCollections	ccn=17 length=106
+plugin/taskcontroller.cpp	TaskController::loadCollections	ccn=17 length=105
 plugin/taskcontroller.cpp	TaskController::loadSettings	length=83
 plugin/taskcontroller.cpp	TaskController::moveTaskToKanbanColumn	ccn=47 length=159 nesting=6
 plugin/taskcontroller.cpp	TaskController::moveTaskToMatrixCell	ccn=29 length=93 nesting=5
-plugin/taskcontroller.cpp	TaskController::onItemsFetched	ccn=17
+plugin/taskcontroller.cpp	TaskController::onItemsFetched	ccn=16
 plugin/taskcontroller.cpp	TaskController::reorderKanbanCard	ccn=17
 plugin/taskcontroller.cpp	TaskController::resolveMergeConflict	ccn=21 length=85 nesting=12
 plugin/taskcontroller.cpp	TaskController::selectKanbanSource	nesting=5
 plugin/taskcontroller.cpp	TaskController::swimlaneMatrixForVisibleTasks	ccn=21 nesting=6
 plugin/taskcontroller.cpp	TaskController::updateTaskFull	ccn=49 length=127
 plugin/taskcontroller.cpp	TaskController::upsertTask	ccn=30 length=81
-plugin/taskcontroller.h	-	lines=940
+plugin/taskcontroller.h	-	lines=948
 plugin/tasklistmodel.cpp	TaskListModel::chunkStep	ccn=17
 plugin/tasklistmodel.cpp	TaskListModel::data	ccn=43 length=83
 plugin/tasklistmodel.cpp	TaskListModel::setTasks	ccn=20 length=102
 plugin/tasklistmodel.cpp	TaskListModel::taskDataDiffers	ccn=33
-plugin/tasklogic.cpp	-	lines=3778
+plugin/tasklogic.cpp	-	lines=3783
 plugin/tasklogic.cpp	TaskLogic::buildMatrix	ccn=36 length=175 nesting=5
 plugin/tasklogic.cpp	TaskLogic::compareTasks	ccn=73 length=160 nesting=17
 plugin/tasklogic.cpp	TaskLogic::computeCounts	ccn=85 length=210 nesting=5
@@ -77,7 +77,7 @@ plugin/tasklogic.cpp	TaskLogic::sortFlatForListGroup	ccn=27 length=94
 po/generate_po.py	main	ccn=18
 tests/taskcontroller_store_test.cpp	-	lines=1368
 tests/taskcontroller_store_test.cpp	TaskControllerStoreTest::seriesBlockAtOtherTimeDetaches	length=83
-tests/tasklogic_test.cpp	-	lines=1999
+tests/tasklogic_test.cpp	-	lines=2012
 tests/tasklogic_test.cpp	TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon	length=84
 tui/terminal.cpp	Terminal::readInput	ccn=23 nesting=9
 tui/tuiapp.cpp	TuiApp::onFocusKey	ccn=20 nesting=11
