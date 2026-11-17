@@ -7,6 +7,7 @@ import "../components"
 import ".."
 import "../Kante"
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 // The Agenda's month: six weeks from the Monday before the 1st, each day with up to three
 // entries and "+n more", tinted by how full it is. A click selects the day for the detail
@@ -30,15 +31,8 @@ RowLayout {
     readonly property int columns: weekend ? 7 : 5
     readonly property bool showDetail: width >= Kirigami.Units.gridUnit * 40
 
-    function today() {
-        var now = new Date()
-        return new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    }
-    function hm(minute) {
-        return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
-    }
     function relDay(d) {
-        var diff = Math.round((d - today()) / 86400000)
+        var diff = Math.round((d - DayMath.today()) / 86400000)
         if (diff === 0) {
             return i18n("Today")
         }
@@ -128,9 +122,9 @@ RowLayout {
                     id: cell
                     required property var modelData
                     readonly property string key: DateTime.isoDateKey(modelData.date)
-                    readonly property bool isToday: key === DateTime.isoDateKey(view.today())
+                    readonly property bool isToday: key === DateTime.isoDateKey(DayMath.today())
                     readonly property bool isSelected: !!view.selected && key === DateTime.isoDateKey(view.selected.date)
-                    readonly property bool past: key < DateTime.isoDateKey(view.today())
+                    readonly property bool past: key < DateTime.isoDateKey(DayMath.today())
                     readonly property var entries: view.entriesOf(modelData)
                     // Rows that fit; when not all entries do, one of them is "+n more".
                     readonly property int fits: Math.floor((height - dayRow.height - Design.spaceTiny * 2) / entryHeight)
@@ -376,7 +370,7 @@ RowLayout {
                         dragHost: view.dragHost
                         interactionsSuspended: view.interactionsSuspended
                         task: modelData
-                        meta: modelData.start !== undefined ? view.hm(modelData.start) + "–" + view.hm(modelData.end) : ""
+                        meta: modelData.start !== undefined ? DayMath.clockOfMinute(modelData.start) + "–" + DayMath.clockOfMinute(modelData.end) : ""
                     }
                 }
                 QQC2.Label {

@@ -48,5 +48,6 @@ private:
     Input m_input = Input::None;
     QString m_inputText;
     QString m_search;
+    QString m_error;
     int m_selected = 0;
 };

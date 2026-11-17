@@ -7,6 +7,7 @@ import "../components"
 import ".."
 import "../Kante"
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 ColumnLayout {
     id: root
@@ -70,12 +71,6 @@ ColumnLayout {
     readonly property int cellPitch: cellSize + 2
 
     // ── Helpers ────────────────────────────────────────────────────
-    function addDays(d, n) {
-        var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
-        r.setDate(r.getDate() + n)
-        return r
-    }
-
     function mondayOf(d) {
         var r = new Date(d.getFullYear(), d.getMonth(), d.getDate())
         r.setDate(r.getDate() - ((r.getDay() + 6) % 7))
@@ -86,7 +81,7 @@ ColumnLayout {
         var first = mondayOf(new Date(y, 0, 1))
         var last = new Date(y, 11, 31)
         var weeks = []
-        for (var w = first; w <= last; w = addDays(w, 7))
+        for (var w = first; w <= last; w = DayMath.addDays(w, 7))
             weeks.push(new Date(w.getFullYear(), w.getMonth(), w.getDate()))
         return weeks
     }
@@ -97,7 +92,7 @@ ColumnLayout {
         var cells = []
         for (var wd = 0; wd < 7; ++wd) {
             for (var wi = 0; wi < weeks.length; ++wi) {
-                var d = addDays(weeks[wi], wd)
+                var d = DayMath.addDays(weeks[wi], wd)
                 cells.push((d >= yearStart && d <= yearEnd) ? d : null)
             }
         }
