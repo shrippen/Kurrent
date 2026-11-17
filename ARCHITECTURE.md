@@ -96,9 +96,8 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 ## Known deviations
 
-- `ui/taskmeta.js` computes the progress bands a second time, without a test
-  (`AUDIT.md`, finding 1). The drag limits of popups (`ui/FullView.qml`) are
-  interface logic in a view, without a test (not in `AUDIT.md`).
+- The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
+  without a test (not in `AUDIT.md`).
 - The sidebar consists of seven nearly equal sections of about 230 lines each
   (`AUDIT.md`, finding 3).
 - The controller does nearly everything in one class of 7031 lines, including

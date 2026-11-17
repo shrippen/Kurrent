@@ -86,6 +86,7 @@ public:
         SyncingRole,
         PendingDeleteRole,
         OverdueDaysRole,
+        ProgressBandRole,
     };
     Q_ENUM(Roles)
 

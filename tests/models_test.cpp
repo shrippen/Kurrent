@@ -118,6 +118,9 @@ void ModelsTest::taskListExposesAllRoles()
     // Done tasks are never overdue (TaskLogic::overdueDays).
     QCOMPARE(model.data(idx, TaskListModel::OverdueDaysRole).toInt(), 0);
     QCOMPARE(model.roleNames().value(TaskListModel::OverdueDaysRole), QByteArray("overdueDays"));
+    // One band rule for filter and row icon (TaskLogic::progressBandKey).
+    QCOMPARE(model.data(idx, TaskListModel::ProgressBandRole).toString(), QStringLiteral("76-100"));
+    QCOMPARE(model.roleNames().value(TaskListModel::ProgressBandRole), QByteArray("progressBand"));
 
     QVERIFY(model.roleNames().contains(TaskListModel::SummaryRole));
     QCOMPARE(model.roleNames().value(TaskListModel::SummaryRole), QByteArray("summary"));
