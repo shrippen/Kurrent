@@ -227,6 +227,31 @@ target_link_libraries(kurrent-taskcontroller-editor-test PRIVATE
 add_test(NAME kurrent-taskcontroller-editor COMMAND kurrent-taskcontroller-editor-test)
 set_tests_properties(kurrent-taskcontroller-editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+# Which version of a task wins when one arrives from Akonadi (applyItem), without Akonadi.
+add_executable(kurrent-akonadiloader-test
+    akonadiloader_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-akonadiloader-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-akonadiloader-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-akonadiloader-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-akonadiloader COMMAND kurrent-akonadiloader-test)
+set_tests_properties(kurrent-akonadiloader PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 # Several controllers in one process (widgets, config pages) and what they share.
 add_executable(kurrent-taskcontroller-multi-test
     taskcontroller_multi_test.cpp
@@ -305,6 +330,7 @@ set(_kurrent_test_targets
     kurrent-taskcontroller-store-test
     kurrent-taskcontroller-editor-test
     kurrent-taskcontroller-multi-test
+    kurrent-akonadiloader-test
     kurrent-core-i18n-test
     kurrent-tui-screens-test
 )
