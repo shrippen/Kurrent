@@ -37,7 +37,7 @@ Item {
     required property var allValue
     // Count per key.
     required property var counts
-    // { source, color, opacity } of the icon of an item.
+    // { source, color, opacity } of the icon of an item; no colour leaves the icon untinted.
     required property var iconOf
     // For an item: the hint while a task is dragged over it, and the drop itself (true if done).
     required property var hintFor
@@ -270,8 +270,8 @@ Item {
 
                 Kirigami.Icon {
                     source: rowDelegate.iconSpec.source
-                    color: rowDelegate.iconSpec.color
-                    opacity: rowDelegate.iconSpec.opacity
+                    color: rowDelegate.iconSpec.color ?? "transparent"
+                    opacity: rowDelegate.iconSpec.opacity ?? 1
                     width: section.sidebar.rowIconSize
                     height: section.sidebar.rowIconSize
                 }
@@ -288,8 +288,8 @@ Item {
                     Layout.preferredWidth: section.sidebar.rowIconSize
                     Layout.preferredHeight: section.sidebar.rowIconSize
                     source: rowDelegate.iconSpec.source
-                    color: rowDelegate.iconSpec.color
-                    opacity: rowDelegate.iconSpec.opacity
+                    color: rowDelegate.iconSpec.color ?? "transparent"
+                    opacity: rowDelegate.iconSpec.opacity ?? 1
                     width: section.sidebar.rowIconSize
                     height: section.sidebar.rowIconSize
                 }
