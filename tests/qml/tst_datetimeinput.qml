@@ -4,8 +4,8 @@ import QtTest
 
 // A date field builds its date popup (a month grid of day delegates) when the picker opens,
 // not with the field: the editor and the inline editor hold six of them, all built at start.
-// Created at run time: without kirigami-addons (the CI image) the test skips instead of failing
-// to compile.
+// Created at run time: without kirigami-addons the test skips instead of failing to compile,
+// unless KURRENT_REQUIRE_KIRIGAMI_ADDONS=1 (CI) makes it fail.
 Item {
     id: scene
     width: 400; height: 400
@@ -37,7 +37,8 @@ Item {
         function test_popupBuiltOnOpen() {
             const component = Qt.createComponent(
                 "../../plasmoid/io.github.shrippen.Kurrent/contents/ui/components/DateTimeInput.qml")
-            if (component.status === Component.Error && component.errorString().indexOf("kirigamiaddons") >= 0) {
+            if (!kurrentRequireAddons && component.status === Component.Error
+                    && component.errorString().indexOf("kirigamiaddons") >= 0) {
                 skip("org.kde.kirigamiaddons.dateandtime is not installed")
             }
             compare(component.status, Component.Ready, component.errorString())

@@ -15,6 +15,9 @@ public Q_SLOTS:
     {
         KLocalizedString::setApplicationDomain(TRANSLATION_DOMAIN);
         engine->rootContext()->setContextObject(new KLocalizedContext(engine));
+        // CI sets it: a test that needs kirigami-addons fails instead of skipping without it.
+        engine->rootContext()->setContextProperty(QStringLiteral("kurrentRequireAddons"),
+                                                  qgetenv("KURRENT_REQUIRE_KIRIGAMI_ADDONS") == "1");
     }
 };
 
