@@ -76,15 +76,6 @@ ConfigPageBase {
         return !!s[String(collectionId)]
     }
 
-    function selectCombo(combo, value) {
-        for (var i = 0; i < combo.model.length; ++i) {
-            if (combo.model[i].value === value) {
-                combo.currentIndex = i
-                return
-            }
-        }
-    }
-
     function syncControls() {
         selectCombo(badgeCombo, cfg_panelBadge || "open")
         selectCombo(badgeStyleCombo, cfg_panelBadgeStyle || "number")

@@ -25,9 +25,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |
 | `ui/main.qml`, `FullView.qml`, `Plugin*.qml` | The widget: panel item and popup; loading the plug-in and the hint when it is missing. |
 | `ui/views/` | One file per view (list, board, swimlanes, plan, heatmap, agenda day, week, month), the sidebar, the editor, the inspector, the management of projects and labels. |
-| `ui/components/` | Parts several views share: rows, cards, pickers, bars, the parts of the settings pages. |
+| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages. |
 | `ui/Design.qml` | The sizes and tokens of the interface at run time. |
-| `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, colours and priority names, the editor's recurrence choice, the sidebar's height distribution, agenda helpers, focus, taps. |
+| `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, clock and day helpers (`daymath.js`), the combo box selection of the settings pages, colours and priority names, the editor's recurrence choice, the sidebar's height distribution, agenda helpers, focus, taps. |
 | `ui/config*.qml`, `contents/config/` | The settings pages and the description of the widget's settings with their defaults (`main.xml`). |
 | `ui/Kante/`, `ui/KantePlasma/` | Synced copies of the design system. Never edited here. |
 | `ui/SmokeTest.qml`, `ScreenshotRunner.qml` | The walk through every view for the smoke test and the screenshots. |
@@ -108,7 +108,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 - The order of the sidebar's sections and views is still written out as a default in
   `ui/configSidebar.qml` and `ui/views/SidebarView.qml`, besides `main.xml` (`AUDIT.md`,
   finding 5).
-- Small date and selection helpers are copied into many views and settings pages
-  (`AUDIT.md`, finding 6).
+- Date helpers stand in two files: day arithmetic in `ui/daymath.js`, because
+  `ui/datetime.js` is over the file limit (not in `AUDIT.md`).
 - `plugin/tasklogic.cpp` holds all rules in one file of 3330 lines
   (`AUDIT.md`, finding 8).

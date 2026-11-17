@@ -9,15 +9,6 @@ ConfigPageBase {
     id: root
 
 
-    function selectCombo(combo, value) {
-        for (var i = 0; i < combo.model.length; ++i) {
-            if (combo.model[i].value === value) {
-                combo.currentIndex = i
-                return
-            }
-        }
-    }
-
     function syncControls() {
         selectCombo(defaultViewCombo, cfg_defaultView || "inbox")
         selectCombo(defaultDueCombo, cfg_defaultDueMode || "none")

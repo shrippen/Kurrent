@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 import ".."
 import "../Kante"
-import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 // An appointment on the Agenda's week and month boards: no box, a stripe in the calendar's
 // colour, a fixed time column (start, the end below it) and the title in full text colour.
@@ -26,9 +26,6 @@ Item {
 
     implicitHeight: compact ? line.implicitHeight : Math.max(times.implicitHeight, titleLabel.implicitHeight) + Design.spaceTiny * 2
 
-    function hm(minute) {
-        return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
-    }
 
     HoverHandler { id: hover; enabled: !row.interactionsSuspended }
     QQC2.ToolTip.text: event.summary + (event.calendarName ? " · " + event.calendarName : "")
@@ -66,12 +63,12 @@ Item {
             Layout.preferredWidth: Math.ceil(clock.advanceWidth)
             spacing: 0
             QQC2.Label {
-                text: row.event.allDay ? "" : row.hm(row.event.start)
+                text: row.event.allDay ? "" : DayMath.clockOfMinute(row.event.start)
                 font: row.timeFont
                 color: KanteStyle.textColor
             }
             QQC2.Label {
-                text: row.event.allDay ? "" : row.hm(row.event.end)
+                text: row.event.allDay ? "" : DayMath.clockOfMinute(row.event.end)
                 font: row.timeFont
                 color: KanteStyle.mutedTextColor
             }
@@ -108,7 +105,7 @@ Item {
         spacing: Design.spaceTiny
         QQC2.Label {
             visible: !row.event.allDay
-            text: row.event.allDay ? "" : row.hm(row.event.start)
+            text: row.event.allDay ? "" : DayMath.clockOfMinute(row.event.start)
             font: row.timeFont
             color: KanteStyle.textColor
         }
