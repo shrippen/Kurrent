@@ -210,6 +210,31 @@ target_link_libraries(kurrent-taskcontroller-editor-test PRIVATE
 add_test(NAME kurrent-taskcontroller-editor COMMAND kurrent-taskcontroller-editor-test)
 set_tests_properties(kurrent-taskcontroller-editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+# Several controllers in one process (widgets, config pages) and what they share.
+add_executable(kurrent-taskcontroller-multi-test
+    taskcontroller_multi_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-taskcontroller-multi-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-multi-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-multi-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-multi COMMAND kurrent-taskcontroller-multi-test)
+set_tests_properties(kurrent-taskcontroller-multi PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 # kurrentcore as built: catches a library that loses TRANSLATION_DOMAIN.
 add_executable(kurrent-core-i18n-test core_i18n_test.cpp)
 target_compile_definitions(kurrent-core-i18n-test PRIVATE
@@ -260,6 +285,7 @@ set(_kurrent_test_targets
     kurrent-taskstore-test
     kurrent-taskcontroller-store-test
     kurrent-taskcontroller-editor-test
+    kurrent-taskcontroller-multi-test
     kurrent-core-i18n-test
     kurrent-tui-screens-test
 )

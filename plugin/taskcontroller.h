@@ -632,6 +632,7 @@ signals:
     /** kurrentrc changed (any key); the bound configuration is already up to date. */
     void settingsChanged();
 
+    friend class TaskControllerMultiTest; // tests/taskcontroller_multi_test.cpp reads the busy intervals
     friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
@@ -694,6 +695,7 @@ enum class SyncResult { Error, Ok };
     bool isInBusyEvent(const QDateTime &when) const;
     QList<Akonadi::Collection> busyEventCollections() const;
     void onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd);
+    void applyBusyIntervals(const QVector<TaskCalendar::BusyInterval> &intervals);
     void registerSessionInterface();
     void registerGlobalShortcuts();
     void ensureServerWatch();
@@ -702,6 +704,7 @@ enum class SyncResult { Error, Ok };
     void scheduleAkonadiRetry();
     void loadCollections();
     void scheduleLoadCollections();
+    void applyCollections(const QList<Akonadi::Collection> &collections, const QList<Akonadi::Collection> &eventCollections, const QHash<qint64, QString> &names);
     void loadTasks();
     void scheduleRebuild();
     void rebuildTaskList();
@@ -915,7 +918,6 @@ enum class SyncResult { Error, Ok };
     CollectionListModel m_eventCalendarModel;
     QVector<TaskCalendar::BusyInterval> m_busyIntervals;
     QHash<qint64, QString> m_collectionNames;
-    QHash<Akonadi::Item::Id, CachedTask> m_tasks;
     AbstractTaskStore *m_store = nullptr;
     QTimer m_rebuildTimer;
     QTimer m_collectionsTimer;
