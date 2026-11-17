@@ -19,6 +19,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task. One store talks to Akonadi, one keeps tasks in memory for tests. |
 | `plugin/tasklogic.*`, `agendalogic.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; parsing the quick entry; recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
+| `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
 | `plugin/taskcontroller.*` | What QML and the terminal program call. In the target a thin front: it holds the state of the session and hands each call to the class for its topic (settings bridge, undo, merge conflicts, board and matrix moves, agenda). |
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |

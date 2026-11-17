@@ -14,6 +14,8 @@ import "."
  * press, and a scroll then would move it away from the pointer and lose the click. Rows and tiles
  * focus themselves from a tap and have no focusReason, so a pointer press in the flickable counts
  * too, until its release has been handled.
+ * `topInset`: height of something that covers the view's top (a sticky header over the
+ * content); the focused item is kept below it, not under it.
  */
 QtObject {
     id: follow
@@ -22,6 +24,7 @@ QtObject {
     /** Room kept between the focused item and the view's edge. */
     property real margin: KanteStyle.unit(16)
     property bool enabled: true
+    property real topInset: 0
 
     readonly property Item focusItem: flickable && flickable.Window.window
                                       ? flickable.Window.activeFocusItem : null
@@ -72,16 +75,16 @@ QtObject {
 
     /** contentY that shows `top`..`bottom` (content coordinates) with the least move. */
     function targetY(top, bottom) {
-        const view = flickable.height
+        const view = flickable.height - topInset
         const y = flickable.contentY
         let next = y
-        if (bottom - top + 2 * margin > view || top - margin < y) {
-            next = top - margin
-        } else if (bottom + margin > y + view) {
-            next = bottom + margin - view
+        if (bottom - top + 2 * margin > view || top - margin - topInset < y) {
+            next = top - margin - topInset
+        } else if (bottom + margin > y + flickable.height) {
+            next = bottom + margin - flickable.height
         }
         const low = flickable.originY - flickable.topMargin
-        const high = Math.max(low, flickable.originY + flickable.contentHeight + flickable.bottomMargin - view)
+        const high = Math.max(low, flickable.originY + flickable.contentHeight + flickable.bottomMargin - flickable.height)
         return Math.max(low, Math.min(high, next))
     }
 

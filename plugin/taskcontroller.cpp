@@ -1,5 +1,7 @@
 #include "taskcontroller.h"
+
 #include "agendalogic.h"
+#include "akonadiitems.h"
 #include "akonaditaskstore.h"
 #include "kurrentlogging.h"
 #ifdef KURRENT_WITH_DEMO
@@ -181,11 +183,7 @@ QString storeKindName(AbstractTaskStore::Kind kind)
     return QStringLiteral("Unknown");
 }
 constexpr int kBusyEventRefreshMs = 5 * 60 * 1000;
-
-bool isTodoItem(const Akonadi::Item &item)
-{
-    return item.hasPayload<KCalendarCore::Todo::Ptr>() || item.mimeType() == QLatin1String(KCalendarCore::Todo::todoMimeType());
-}
+constexpr int kBusyChangeDelayMs = 2000;
 
 KCalendarCore::Todo::Ptr todoFromPayload(const Akonadi::Item &item)
 {
@@ -201,6 +199,15 @@ KCalendarCore::Todo::Ptr cloneTodo(const KCalendarCore::Todo::Ptr &todo)
         return {};
     }
     return KCalendarCore::Todo::Ptr(static_cast<KCalendarCore::Todo *>(todo->clone()));
+}
+
+// A failed job's message, never empty; empty when the job succeeded.
+QString fetchError(const KJob *job)
+{
+    if (!job->error()) {
+        return {};
+    }
+    return job->errorString().isEmpty() ? i18n("Failed to fetch tasks.") : job->errorString();
 }
 
 void configureItemFetchJob(Akonadi::ItemFetchJob *job)
@@ -261,6 +268,8 @@ QVariantList kanbanManualOrderForColumn(const QVariantMap &comboMap, const QStri
 QHash<Akonadi::Item::Id, TaskController::CachedTask> TaskController::s_tasks;
 QList<Akonadi::Collection> TaskController::s_collections;
 QList<Akonadi::Collection> TaskController::s_eventCollections;
+TaskLogic::BusyEvents TaskController::s_busyEvents = TaskLogic::BusyEvents::Changed;
+QDate TaskController::s_busyFetchedOn;
 QHash<qint64, QString> TaskController::s_collectionNames;
 QStringList TaskController::s_extraLabels;
 QStringList TaskController::s_extraLocations;
@@ -302,7 +311,11 @@ TaskController::TaskController(QObject *parent)
 
     m_busyEventTimer.setInterval(kBusyEventRefreshMs);
     m_busyEventTimer.setSingleShot(false);
-    connect(&m_busyEventTimer, &QTimer::timeout, this, &TaskController::refreshBusyEvents);
+    connect(&m_busyEventTimer, &QTimer::timeout, this, &TaskController::refreshBusyIfDue);
+    // Several changes in a row (a sync) fetch once.
+    m_busyChangeTimer.setInterval(kBusyChangeDelayMs);
+    m_busyChangeTimer.setSingleShot(true);
+    connect(&m_busyChangeTimer, &QTimer::timeout, this, &TaskController::refreshBusyIfDue);
 
     // Akonadi jobs go through the store; MemoryTaskStore swaps in for unit tests.
     m_store = new AkonadiTaskStore(this);
@@ -424,6 +437,8 @@ void TaskController::loadDemoData()
 
 void TaskController::resetSharedStateForTest()
 {
+    s_busyEvents = TaskLogic::BusyEvents::Changed;
+    s_busyFetchedOn = QDate();
     s_tasks.clear();
     s_collections.clear();
     s_eventCollections.clear();
@@ -5653,6 +5668,8 @@ bool TaskController::attachAkonadiMonitor()
     m_busyEventTimer.start();
     scheduleRefreshBusyEvents();
 
+    watchBusyEvents();
+
     m_monitor = new Akonadi::Monitor(this);
     m_monitor->setMimeTypeMonitored(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
     // Monitor otherwise FetchCollections on every collection notification
@@ -5821,8 +5838,7 @@ void TaskController::loadCollections()
             return;
         }
 
-        scheduleRefreshBusyEvents();
-
+        s_busyEvents = TaskLogic::BusyEvents::Changed; // fetched after the tasks, not beside them
         loadTasks();
     });
 }
@@ -5863,6 +5879,7 @@ void TaskController::loadTasks()
         setLoading(false);
         logDebug(QStringLiteral("loadTasks: no enabled collections"));
         scheduleRebuild();
+        refreshBusyIfDue();
         return;
     }
 
@@ -5871,39 +5888,61 @@ void TaskController::loadTasks()
     updateSyncingCount();
 
     for (const Akonadi::Collection &collection : collections) {
-        const qint64 collectionId = collection.id();
-        auto *job = new Akonadi::ItemFetchJob(collection, this);
-        configureItemFetchJob(job);
-        connect(job, &Akonadi::ItemFetchJob::result, this, [this, collectionId](KJob *kjob) {
-            onItemsFetched(kjob, collectionId);
-        });
+        fetchTodos(collection);
     }
 }
 
-void TaskController::onItemsFetched(KJob *job, qint64 collectionId)
+// Two fetches per list: headers (id, MIME type), then the payload of the tasks only. A list
+// that is a whole calendar holds mostly events: 529 tasks among 7506 items took ~1 s of
+// main-thread parsing in one fetch, ~0.2 s in two.
+void TaskController::fetchTodos(const Akonadi::Collection &collection)
+{
+    const qint64 collectionId = collection.id();
+    auto *headers = new Akonadi::ItemFetchJob(collection, this);
+    headers->fetchScope().setAncestorRetrieval(Akonadi::ItemFetchScope::None);
+    connect(headers, &Akonadi::ItemFetchJob::result, this, [this, headers, collectionId](KJob *) {
+        const QString error = fetchError(headers);
+        if (!error.isEmpty()) {
+            onItemsFetched({}, error, collectionId);
+            return;
+        }
+
+        const Akonadi::Item::List todos = AkonadiItems::todos(headers->items());
+        if (todos.isEmpty()) {
+            onItemsFetched({}, QString(), collectionId);
+            return;
+        }
+
+        auto *job = new Akonadi::ItemFetchJob(todos, this);
+        configureItemFetchJob(job);
+        connect(job, &Akonadi::ItemFetchJob::result, this, [this, job, collectionId](KJob *) {
+            onItemsFetched(job->items(), fetchError(job), collectionId);
+        });
+    });
+}
+
+// `error` empty: the fetch succeeded (`items` may be empty).
+void TaskController::onItemsFetched(const Akonadi::Item::List &items, const QString &error, qint64 collectionId)
 {
     --m_pendingFetchJobs;
     updateSyncingCount();
 
-    if (auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(job)) {
-        const int itemCount = fetchJob->items().size();
-        m_lastFetchItemCount += itemCount;
-        logDebug(QStringLiteral("onItemsFetched collection=%1 items=%2 error=%3")
-                     .arg(collectionId)
-                     .arg(itemCount)
-                     .arg(job->error() ? job->errorString() : QStringLiteral("none")));
+    m_lastFetchItemCount += items.size();
+    logDebug(QStringLiteral("onItemsFetched collection=%1 items=%2 error=%3")
+                 .arg(collectionId)
+                 .arg(items.size())
+                 .arg(error.isEmpty() ? QStringLiteral("none") : error));
 
-        if (!job->error()) {
-            m_fetchOkCollections.insert(collectionId);
-            for (const Akonadi::Item &item : fetchJob->items()) {
-                if (item.id() > 0) {
-                    m_fetchSeenIds.insert(item.id());
-                }
-                upsertTask(item, collectionId);
+    if (error.isEmpty()) {
+        m_fetchOkCollections.insert(collectionId);
+        for (const Akonadi::Item &item : items) {
+            if (item.id() > 0) {
+                m_fetchSeenIds.insert(item.id());
             }
-        } else if (m_errorMessage.isEmpty()) {
-            setErrorMessage(job->errorString());
+            upsertTask(item, collectionId);
         }
+    } else if (m_errorMessage.isEmpty()) {
+        setErrorMessage(error);
     }
 
     if (m_pendingFetchJobs <= 0) {
@@ -5941,12 +5980,13 @@ void TaskController::onItemsFetched(KJob *job, qint64 collectionId)
                      .arg(m_lastFetchRejectedDisabled)
                      .arg(m_lastFetchRejectedNoCollection));
         scheduleRebuild();
+        refreshBusyIfDue();
     }
 }
 
 void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollectionId)
 {
-    if (!isTodoItem(item)) {
+    if (!AkonadiItems::isTodo(item)) {
         ++m_lastFetchRejectedNotTodo;
         return;
     }
@@ -6855,6 +6895,34 @@ void TaskController::scheduleRefreshBusyEvents()
     QTimer::singleShot(0, this, &TaskController::refreshBusyEvents);
 }
 
+// Timer tick, event change, tasks loaded: fetch only when an event changed or the day did.
+// Before, every tick fetched all events of the busy calendars (7500 events: ~1 s each 5 min).
+void TaskController::refreshBusyIfDue()
+{
+    if (!TaskLogic::busyRefreshDue(s_busyEvents, s_busyFetchedOn, QDate::currentDate())) {
+        return;
+    }
+    refreshBusyEvents();
+}
+
+// Headers only (no payload): a change just marks the busy events for the next fetch.
+void TaskController::watchBusyEvents()
+{
+    m_eventMonitor = new Akonadi::Monitor(this);
+    m_eventMonitor->setMimeTypeMonitored(QString::fromLatin1(KCalendarCore::Event::eventMimeType()));
+    m_eventMonitor->fetchCollection(false);
+    m_eventMonitor->fetchCollectionStatistics(false);
+
+    auto changed = [this] {
+        s_busyEvents = TaskLogic::BusyEvents::Changed;
+        m_busyChangeTimer.start();
+    };
+    connect(m_eventMonitor, &Akonadi::Monitor::itemAdded, this, changed);
+    connect(m_eventMonitor, &Akonadi::Monitor::itemChanged, this, changed);
+    connect(m_eventMonitor, &Akonadi::Monitor::itemRemoved, this, changed);
+    connect(m_eventMonitor, &Akonadi::Monitor::itemMoved, this, changed);
+}
+
 void TaskController::refreshBusyEvents()
 {
     // Busy events feed both reminder suppression and the Agenda view,
@@ -6879,6 +6947,9 @@ void TaskController::refreshBusyEvents()
     const QDateTime rangeStart = now.addDays(-35);
     const QDateTime rangeEnd = now.addDays(70);
 
+    // Changes from now on make the next tick fetch again.
+    s_busyEvents = TaskLogic::BusyEvents::Current;
+    s_busyFetchedOn = now.date();
     m_busyFetchIntervals.clear();
     m_pendingBusyFetchJobs = collections.size();
 
@@ -6895,6 +6966,9 @@ void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart,
 {
     --m_pendingBusyFetchJobs;
 
+    if (job->error()) {
+        s_busyEvents = TaskLogic::BusyEvents::Changed;
+    }
     if (auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(job)) {
         if (!job->error()) {
             for (const Akonadi::Item &item : fetchJob->items()) {

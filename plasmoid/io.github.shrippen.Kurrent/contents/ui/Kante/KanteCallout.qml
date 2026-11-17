@@ -97,16 +97,17 @@ Item {
             color: closeHover.hovered ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
             font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 1.2, true)
             HoverHandler { id: closeHover }
-            TapHandler {
-                onTapped: {
-                    callout.dismissed()
-                    if (callout.autoHide) {
-                        callout.visible = false
-                    }
+            function dismiss() {
+                callout.dismissed()
+                if (callout.autoHide) {
+                    callout.visible = false
                 }
             }
+            TapHandler { onTapped: parent.dismiss() }
             Accessible.role: Accessible.Button
             Accessible.name: "×"
+            // Screen readers close it through this, not through a tap.
+            Accessible.onPressAction: dismiss()
         }
     }
 }

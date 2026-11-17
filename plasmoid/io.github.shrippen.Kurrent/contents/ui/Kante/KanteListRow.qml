@@ -30,6 +30,11 @@ FocusScope {
         Error
     }
 
+    enum Overflow {
+        Elide,     // one line each, cut with "…"
+        Wrap       // as many lines as the texts need
+    }
+
     enum Density {
         Compact,
         Normal,
@@ -51,6 +56,12 @@ FocusScope {
     property bool focusOnClick: true
     property string disabledReason: ""
     property int density: KanteListRow.Density.Normal
+    /** Opt-in (1.78): the meta figure and `trailing` go under the texts when these would get less than this width. 0 = never. */
+    property real minTextWidth: 0
+    /** Text and subtitle longer than their room (1.81): Elide (default) or Wrap; the row grows. */
+    property int overflow: KanteListRow.Overflow.Elide
+    /** The meta figure and `trailing` sit under the texts, because the row is too narrow. */
+    readonly property bool stacked: minTextWidth > 0 && tail.visible && width < inlineNeed()
     readonly property bool pressed: tap.active
     default property alias marker: markerSlot.data
     /** Items at the right end, after the meta figure (e.g. a chevron or an icon). */
@@ -63,8 +74,32 @@ FocusScope {
                                           : (density === KanteListRow.Density.Comfortable ? KanteStyle.heightLarge : KanteStyle.heightMedium)
 
     implicitWidth: KanteStyle.unit(320)
-    implicitHeight: Math.max(densityHeight, texts.implicitHeight + KanteStyle.unit(density === KanteListRow.Density.Dense ? 4 : 12))
+    implicitHeight: Math.max(densityHeight, texts.implicitHeight + (stacked ? body.spacing + tail.implicitHeight : 0)
+                             + KanteStyle.unit(density === KanteListRow.Density.Dense ? 4 : 12))
     activeFocusOnTab: true
+
+    QtObject {
+        id: metrics
+        readonly property real margin: KanteStyle.unit(12)
+        readonly property real gap: KanteStyle.unit(10)
+        readonly property real stackGap: KanteStyle.unit(4)
+        readonly property bool wraps: row.stacked || row.overflow === KanteListRow.Overflow.Wrap
+    }
+
+    // Width the row needs to keep everything on one line: the fixed items, the tail and the
+    // least width of the texts, with the margins and the gaps between them.
+    // [leading] [marker] [texts >= minTextWidth] [badge] [meta, trailing]
+    function inlineNeed() {
+        const items = [leadingFigure, markerSlot, badgeBox, tail]
+        let need = row.minTextWidth + 2 * metrics.margin
+        for (let i = 0; i < items.length; i++) {
+            if (!items[i].visible) {
+                continue
+            }
+            need += (items[i] === leadingFigure ? leadingFigure.Layout.preferredWidth : items[i].implicitWidth) + metrics.gap
+        }
+        return need
+    }
 
     // Whether a popup stacked above the row (a sheet, a dialog, a drawer) lies at scene point
     // `at` (1.61.1). The passive tap below also sees presses that a TapHandler in the popup took.
@@ -173,77 +208,103 @@ FocusScope {
         border.color: KanteStyle.focusColor
     }
 
-    RowLayout {
+    ColumnLayout {
+        id: body
         anchors.fill: parent
-        anchors.leftMargin: KanteStyle.unit(12)
-        anchors.rightMargin: KanteStyle.unit(12)
-        spacing: KanteStyle.unit(10)
+        anchors.leftMargin: metrics.margin
+        anchors.rightMargin: metrics.margin
+        spacing: metrics.stackGap
         opacity: row.enabled ? 1 : 0.5
 
-        Text {
-            visible: row.leadingText !== ""
-            Layout.preferredWidth: row.leadingWidth > 0 ? row.leadingWidth : implicitWidth
-            Layout.alignment: Qt.AlignVCenter
-            text: row.leadingText
-            color: row.selected ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
-            font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 0.9, false)
-        }
-        Item {
-            id: markerSlot
-            visible: childrenRect.width > 0
-            implicitWidth: childrenRect.width
-            implicitHeight: childrenRect.height
-            Layout.alignment: Qt.AlignVCenter
-        }
-        ColumnLayout {
-            id: texts
+        RowLayout {
+            id: line
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 0
+            Layout.fillHeight: true
+            spacing: metrics.gap
+
             Text {
+                id: leadingFigure
+                visible: row.leadingText !== ""
+                Layout.preferredWidth: row.leadingWidth > 0 ? row.leadingWidth : implicitWidth
+                Layout.alignment: Qt.AlignVCenter
+                text: row.leadingText
+                color: row.selected ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
+                font: KanteStyle.monoFont(KanteStyle.defaultFont.pointSize * 0.9, false)
+            }
+            Item {
+                id: markerSlot
+                visible: childrenRect.width > 0
+                implicitWidth: childrenRect.width
+                implicitHeight: childrenRect.height
+                Layout.alignment: Qt.AlignVCenter
+            }
+            ColumnLayout {
+                id: texts
                 Layout.fillWidth: true
-                text: row.text
-                color: KanteStyle.textColor
-                font: KanteStyle.defaultFont
-                elide: Text.ElideRight
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 0
+                Text {
+                    objectName: "listRowText"
+                    Layout.fillWidth: true
+                    text: row.text
+                    color: KanteStyle.textColor
+                    font: KanteStyle.defaultFont
+                    wrapMode: metrics.wraps ? Text.Wrap : Text.NoWrap
+                    elide: metrics.wraps ? Text.ElideNone : Text.ElideRight
+                }
+                Text {
+                    objectName: "listRowSubtitle"
+                    visible: row.secondLine !== ""
+                    Layout.fillWidth: true
+                    text: row.secondLine
+                    color: !row.enabled && row.disabledReason !== "" ? KanteStyle.neutralTextColor : KanteStyle.mutedTextColor
+                    font: KanteStyle.smallFont
+                    wrapMode: metrics.wraps ? Text.Wrap : Text.NoWrap
+                    elide: metrics.wraps ? Text.ElideNone : Text.ElideRight
+                }
             }
+            // Count badge: quiet, cyan on the selected row.
+            Rectangle {
+                id: badgeBox
+                visible: row.count !== ""
+                Layout.alignment: Qt.AlignVCenter
+                implicitWidth: Math.max(KanteStyle.unit(20), badge.implicitWidth + KanteStyle.unit(10))
+                implicitHeight: KanteStyle.unit(18)
+                readonly property bool error: row.countKind === KanteListRow.CountKind.Error
+                color: error ? KanteStyle.negativeTextColor : (row.selected ? KanteStyle.focusColor : KanteStyle.tint2Color)
+                Text {
+                    id: badge
+                    anchors.centerIn: parent
+                    text: row.count
+                    color: parent.error || row.selected ? KanteStyle.onStateColor : KanteStyle.textColor
+                    font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
+                }
+            }
+        }
+
+        // Meta figure and trailing items: at the right end of the line, or, when the row is
+        // `stacked`, under the texts. Moved by its parent, so the items keep their focus.
+        RowLayout {
+            id: tail
+            parent: row.stacked ? body : line
+            visible: row.meta !== "" || trailingSlot.childrenRect.width > 0
+            spacing: metrics.gap
+            Layout.alignment: row.stacked ? Qt.AlignLeft : Qt.AlignVCenter
+            Layout.leftMargin: row.stacked ? texts.x : 0
+
             Text {
-                visible: row.secondLine !== ""
-                Layout.fillWidth: true
-                text: row.secondLine
-                color: !row.enabled && row.disabledReason !== "" ? KanteStyle.neutralTextColor : KanteStyle.mutedTextColor
-                font: KanteStyle.smallFont
-                elide: Text.ElideRight
+                visible: row.meta !== ""
+                text: row.meta
+                color: KanteStyle.mutedTextColor
+                font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
             }
-        }
-        // Count badge: quiet, cyan on the selected row.
-        Rectangle {
-            visible: row.count !== ""
-            Layout.alignment: Qt.AlignVCenter
-            implicitWidth: Math.max(KanteStyle.unit(20), badge.implicitWidth + KanteStyle.unit(10))
-            implicitHeight: KanteStyle.unit(18)
-            readonly property bool error: row.countKind === KanteListRow.CountKind.Error
-            color: error ? KanteStyle.negativeTextColor : (row.selected ? KanteStyle.focusColor : KanteStyle.tint2Color)
-            Text {
-                id: badge
-                anchors.centerIn: parent
-                text: row.count
-                color: parent.error || row.selected ? KanteStyle.onStateColor : KanteStyle.textColor
-                font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, true)
+            Item {
+                id: trailingSlot
+                visible: childrenRect.width > 0
+                implicitWidth: childrenRect.width
+                implicitHeight: childrenRect.height
+                Layout.alignment: Qt.AlignVCenter
             }
-        }
-        Text {
-            visible: row.meta !== ""
-            text: row.meta
-            color: KanteStyle.mutedTextColor
-            font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, false)
-        }
-        Item {
-            id: trailingSlot
-            visible: childrenRect.width > 0
-            implicitWidth: childrenRect.width
-            implicitHeight: childrenRect.height
-            Layout.alignment: Qt.AlignVCenter
         }
     }
 

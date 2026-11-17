@@ -2050,6 +2050,11 @@ bool isEnabledCsv(const QString &csv, qint64 id)
     return current.contains(QString::number(id));
 }
 
+bool busyRefreshDue(BusyEvents state, const QDate &fetchedOn, const QDate &today)
+{
+    return state == BusyEvents::Changed || fetchedOn != today;
+}
+
 int visibleProjectCount(const QList<ProjectCandidate> &projects, const QSet<qint64> &hiddenIds)
 {
     int count = 0;

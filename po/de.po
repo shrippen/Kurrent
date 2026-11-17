@@ -659,6 +659,9 @@ msgstr "Aufgabe konnte nicht angelegt werden: %1"
 msgid "Failed to fetch collections."
 msgstr "Aufgabenlisten konnten nicht geladen werden."
 
+msgid "Failed to fetch tasks."
+msgstr "Aufgaben konnten nicht geladen werden."
+
 msgid "Fetch, monitor and collection details"
 msgstr "Abruf-, Monitor- und Sammlungsdetails"
 

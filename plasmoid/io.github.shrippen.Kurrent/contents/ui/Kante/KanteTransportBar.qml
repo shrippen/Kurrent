@@ -20,9 +20,17 @@ import "."
  *   frameStep   true adds single-frame buttons back and on (keys , and .);
  *               frameStepRequested(-1 | 1) asks for one frame
  *
+ * For markers (1.81, from Klappe: cue points on a timeline):
+ *   markersVisible   true adds two buttons, to the previous and the next marker, beside play
+ *                    (default false; keys [ and ]); markerStepRequested(-1 | 1) asks for the
+ *                    jump, the app knows where the markers are
+ *   timeFormat       "m:ss" (default) or "mm:ss,d" (tenths of a second, for a cut): the format
+ *                    of the position when `positionText` is not set
+ *
  * Keyboard: Tab moves between the controls, Space or Enter presses the focused one.
  * Anywhere in the bar: K play/pause, L loop, M metronome, C count-in, Home rewind,
- * + / − speed by 5 % (or to the next of `speedSteps`), , and . a single frame (with `frameStep`).
+ * + / − speed by 5 % (or to the next of `speedSteps`), , and . a single frame (with `frameStep`),
+ * [ and ] the previous and next marker (with `markersVisible`).
  * Right to left the bar keeps its order (1.59): it runs along time, like the timeline. Every control has an accessible name; toggles are check boxes for
  * screen readers and show their state by the lamp before the word alone (1.38). The controls wrap onto a second line when
  * the bar is narrow (large fonts, 200 %).
@@ -39,6 +47,10 @@ FocusScope {
     property bool countInVisible: true
     property var speedSteps: []
     property bool frameStep: false
+    property bool markersVisible: false
+    property string timeFormat: "m:ss"
+    property string markerBackText: "Voriger Marker"
+    property string markerOnText: "Nächster Marker"
     property string frameBackText: "Bild zurück"
     property string frameOnText: "Bild vor"
     property real minSpeed: 0.25
@@ -64,12 +76,22 @@ FocusScope {
     signal countInToggled()
     signal rewind()
     signal frameStepRequested(int direction)
+    signal markerStepRequested(int direction)
 
     readonly property int speedPercent: Math.round(speed * 100)
 
     function time(s) {
-        var t = Math.max(0, Math.floor(s))
-        return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0")
+        if (timeFormat !== "mm:ss,d") {
+            const whole = Math.floor(Math.max(0, s))
+            return Math.floor(whole / 60) + ":" + String(whole % 60).padStart(2, "0")
+        }
+        // Minutes, seconds and tenths all come from one count of whole tenths, cut off:
+        // 59.99 s is 00:59,9, never 01:00,0 early; 0.9999999999999999 s is 00:01,0.
+        // The epsilon keeps 0.7 + 0.1 s at 8 tenths (0.7999999999999999 in floating point).
+        const tenths = KanteStyle.wholeTenths(s)
+        const whole = Math.floor(tenths / KanteStyle.tenthsPerSecond)
+        const seconds = String(whole % 60).padStart(2, "0")
+        return String(Math.floor(whole / 60)).padStart(2, "0") + ":" + seconds + "," + tenths % KanteStyle.tenthsPerSecond
     }
     /** The words of a fixed tempo: "25 %" for 0.25. */
     function speedLabel(step) {
@@ -105,6 +127,8 @@ FocusScope {
         case Qt.Key_C: if (!countInVisible) return; countInToggled(); break
         case Qt.Key_Comma: if (!frameStep) return; frameStepRequested(-1); break
         case Qt.Key_Period: if (!frameStep) return; frameStepRequested(1); break
+        case Qt.Key_BracketLeft: if (!markersVisible) return; markerStepRequested(-1); break
+        case Qt.Key_BracketRight: if (!markersVisible) return; markerStepRequested(1); break
         case Qt.Key_Home: rewind(); break
         case Qt.Key_Plus:
         case Qt.Key_Equal: stepSpeed(1); break
@@ -199,6 +223,41 @@ FocusScope {
         }
     }
 
+    // A marker button, drawn: a bar and two triangles, |◀◀ as drawn (back), mirrored ▶▶| (on).
+    component MarkerButton: KanteToolButton {
+        id: markerButton
+        property int direction: 1
+        property string label: ""
+        readonly property real glyphSize: KanteStyle.unit(14)
+        visible: bar.markersVisible
+        height: KanteStyle.heightMedium
+        implicitWidth: KanteStyle.heightMedium
+        text: ""
+        display: QQC2.AbstractButton.TextOnly
+        focusPolicy: Qt.StrongFocus
+        Accessible.name: label
+        QQC2.ToolTip.text: label
+        QQC2.ToolTip.visible: hovered
+        onClicked: bar.markerStepRequested(direction)
+        Shape {
+            anchors.centerIn: parent
+            width: markerButton.glyphSize
+            height: width
+            antialiasing: true
+            transform: Scale { origin.x: markerButton.glyphSize / 2; xScale: -markerButton.direction }
+            ShapePath {
+                strokeWidth: -1
+                fillColor: KanteStyle.themed ? markerButton.kanteInk : KanteStyle.textColor
+                PathSvg {
+                    readonly property real s: markerButton.glyphSize
+                    path: "M 0 0 H " + s * 0.14 + " V " + s + " H 0 Z"
+                          + " M " + s * 0.5 + " 0 V " + s + " L " + s * 0.2 + " " + s / 2 + " Z"
+                          + " M " + s * 0.84 + " 0 V " + s + " L " + s * 0.54 + " " + s / 2 + " Z"
+                }
+            }
+        }
+    }
+
     Flow {
         id: flow
         // Transport controls follow time, not the reading direction (rewind left, frame on right).
@@ -235,6 +294,10 @@ FocusScope {
                 }
             }
         }
+        MarkerButton {
+            direction: -1
+            label: bar.markerBackText
+        }
         FrameButton {
             direction: -1
             label: bar.frameBackText
@@ -253,6 +316,10 @@ FocusScope {
         FrameButton {
             direction: 1
             label: bar.frameOnText
+        }
+        MarkerButton {
+            direction: 1
+            label: bar.markerOnText
         }
         Toggle {
             id: loopButton
@@ -285,6 +352,7 @@ FocusScope {
             }
             QQC2.SpinBox {
                 id: speedBox
+                objectName: "speedBox"
                 visible: bar.speedSteps.length === 0
                 anchors.verticalCenter: parent.verticalCenter
                 from: Math.round(bar.minSpeed * 100)
@@ -303,6 +371,14 @@ FocusScope {
                 }
                 Accessible.name: bar.speedText
                 KanteFieldSkin { control: parent }
+                // One Tab stop: the box. Its content item (a text input, in Kontra's style on Linux
+                // a text field) was a second stop with nothing to type (QA 28.10., P7).
+                Binding {
+                    target: speedBox.contentItem
+                    property: "activeFocusOnTab"
+                    value: false
+                    when: speedBox.contentItem !== null
+                }
             }
         }
         Toggle {

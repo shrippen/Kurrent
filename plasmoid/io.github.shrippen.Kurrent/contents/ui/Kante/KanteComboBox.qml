@@ -26,6 +26,24 @@ QQC2.ComboBox {
     /** Kante: mark the value as invalid (red bottom edge). */
     property bool invalid: false
 
+    // Qt asks the Shortcuts before Keys.onPressed: claim what the box itself does with a key,
+    // plain letters and digits (pick by first letter) and its navigation ("l" would pick the
+    // tool, not the list entry). Return and Enter only while the popup is open (they choose).
+    // Delete, Backspace, Page Up and Down do nothing in the box and stay with the window, as
+    // do Ctrl, Alt, Meta and Escape. Delete's text is "\x7f".
+    Keys.onShortcutOverride: function (event) {
+        const own = [Qt.Key_Up, Qt.Key_Down, Qt.Key_Home, Qt.Key_End, Qt.Key_Space]
+        const choose = [Qt.Key_Return, Qt.Key_Enter]
+        const plain = (event.modifiers & ~(Qt.ShiftModifier | Qt.KeypadModifier)) === 0
+        if (!plain) {
+            return
+        }
+        const code = event.text.length > 0 ? event.text.charCodeAt(0) : 0
+        const printable = code > 0x20 && code !== 0x7f
+        event.accepted = printable || own.indexOf(event.key) >= 0
+                         || (popup.opened && choose.indexOf(event.key) >= 0)
+    }
+
     KanteFieldSkin {
         control: combo
         invalid: combo.invalid

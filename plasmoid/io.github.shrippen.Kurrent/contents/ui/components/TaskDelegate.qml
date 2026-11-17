@@ -416,7 +416,7 @@ Item {
 
                 TapHandler {
                     acceptedButtons: Qt.RightButton
-                    onTapped: rescheduleMenu.popup()
+                    onTapped: root.openRescheduleMenu()
                 }
 
                 QQC2.Label {
@@ -769,31 +769,17 @@ Item {
         }
     }
 
-    QQC2.Menu {
-        id: rescheduleMenu
-        KantePopupSkin { popup: rescheduleMenu }
-        popupType: QQC2.Popup.Item
-        enabled: !root.awaitingAkonadi
-        QQC2.MenuItem {
-            text: i18n("In 15 minutes")
-            onTriggered: controller.rescheduleTask(task.itemId, "15m")
-        }
-        QQC2.MenuItem {
-            text: i18n("In 1 hour")
-            onTriggered: controller.rescheduleTask(task.itemId, "1h")
-        }
-        QQC2.MenuItem {
-            text: i18n("In 4 hours")
-            onTriggered: controller.rescheduleTask(task.itemId, "4h")
-        }
-        QQC2.MenuSeparator {}
-        QQC2.MenuItem {
-            text: i18n("Tomorrow")
-            onTriggered: controller.rescheduleTask(task.itemId, "tomorrow")
-        }
-        QQC2.MenuItem {
-            text: i18n("Next week")
-            onTriggered: controller.rescheduleTask(task.itemId, "next-week")
+    // Built when asked for: about 30 rows are on screen, and each carried this menu unopened.
+    function openRescheduleMenu() {
+        rescheduleMenuComponent.createObject(root).popup()
+    }
+
+    Component {
+        id: rescheduleMenuComponent
+        RescheduleMenu {
+            controller: root.controller
+            itemId: root.task.itemId
+            enabled: !root.awaitingAkonadi
         }
     }
 

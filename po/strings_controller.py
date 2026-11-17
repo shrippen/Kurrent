@@ -15,6 +15,7 @@ CONTROLLER = {
         "Due %1": "Fällig %1",
         "Failed to create task: %1": "Aufgabe konnte nicht angelegt werden: %1",
         "Failed to fetch collections.": "Aufgabenlisten konnten nicht geladen werden.",
+        "Failed to fetch tasks.": "Aufgaben konnten nicht geladen werden.",
         "No location": "Ohne Ort",
         "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar.":
             "Keine Aufgabenlisten in Akonadi. CalDAV in KOrganizer oder Kalendar einrichten.",
@@ -39,6 +40,7 @@ CONTROLLER = {
         "Due %1": "Vence %1",
         "Failed to create task: %1": "No se pudo crear la tarea: %1",
         "Failed to fetch collections.": "No se pudieron cargar las listas de tareas.",
+        "Failed to fetch tasks.": "No se pudieron cargar las tareas.",
         "No location": "Sin ubicación",
         "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar.":
             "No hay listas de tareas en Akonadi. Configura CalDAV en KOrganizer o Kalendar.",
@@ -63,6 +65,7 @@ CONTROLLER = {
         "Due %1": "Échéance %1",
         "Failed to create task: %1": "Impossible de créer la tâche : %1",
         "Failed to fetch collections.": "Impossible de charger les listes de tâches.",
+        "Failed to fetch tasks.": "Impossible de charger les tâches.",
         "No location": "Sans lieu",
         "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar.":
             "Aucune liste de tâches dans Akonadi. Configurez CalDAV dans KOrganizer ou Kalendar.",
@@ -87,6 +90,7 @@ CONTROLLER = {
         "Due %1": "期限 %1",
         "Failed to create task: %1": "タスクを作成できませんでした: %1",
         "Failed to fetch collections.": "タスクリストを読み込めませんでした。",
+        "Failed to fetch tasks.": "タスクを読み込めませんでした。",
         "No location": "場所なし",
         "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar.":
             "Akonadi にタスクリストがありません。KOrganizer または Kalendar で CalDAV を設定してください。",
@@ -111,6 +115,7 @@ CONTROLLER = {
         "Due %1": "到期 %1",
         "Failed to create task: %1": "无法创建任务：%1",
         "Failed to fetch collections.": "无法加载任务列表。",
+        "Failed to fetch tasks.": "无法加载任务。",
         "No location": "无地点",
         "No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar.":
             "Akonadi 中没有任务列表。请在 KOrganizer 或 Kalendar 中配置 CalDAV。",

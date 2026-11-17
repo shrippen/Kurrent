@@ -126,12 +126,12 @@ Item {
             }
             return Math.ceil(raw / 24) * 24
         }
-        var p = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10))
-        var f = raw / p
         if (wholeSteps) {
+            var p = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10))
+            var f = raw / p
             return Math.max(1, (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p)
         }
-        return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p
+        return KanteStyle.niceStep(raw)
     }
 
     /** A value as the axis shows it: 7.5 -> "7:30" in Hours, "7.5" + unit otherwise. */

@@ -148,22 +148,28 @@ RowLayout {
         enabled: root.enabled
         icon.name: "view-calendar"
         onClicked: {
-            datePopup.value = DateTime.pickerDate(field.text)
-            datePopup.open()
+            const popup = datePopupComponent.createObject(root, { value: DateTime.pickerDate(field.text) })
+            popup.open()
         }
         QQC2.ToolTip.text: i18n("Pick date")
         QQC2.ToolTip.visible: hovered
     }
 
-    KDateTime.DatePopup {
-        id: datePopup
-        parent: root.popupParent ? root.popupParent : root
-        x: parent ? Math.round((parent.width - width) / 2) : 0
-        y: parent ? Math.round((parent.height - height) / 2) : 0
-        width: Math.min(Kirigami.Units.gridUnit * 20, (root.popupParent ? root.popupParent.width : 400) - 2 * Kirigami.Units.gridUnit)
-        height: Kirigami.Units.gridUnit * 20
-        modal: true
-        popupType: QQC2.Popup.Item
-        onAccepted: root.setDate(value)
+    // Built when the picker opens, gone when it closes: a month grid of day delegates, and the
+    // editors hold six date fields that all built theirs at start.
+    Component {
+        id: datePopupComponent
+
+        KDateTime.DatePopup {
+            parent: root.popupParent ? root.popupParent : root
+            x: parent ? Math.round((parent.width - width) / 2) : 0
+            y: parent ? Math.round((parent.height - height) / 2) : 0
+            width: Math.min(Kirigami.Units.gridUnit * 20, (root.popupParent ? root.popupParent.width : 400) - 2 * Kirigami.Units.gridUnit)
+            height: Kirigami.Units.gridUnit * 20
+            modal: true
+            popupType: QQC2.Popup.Item
+            onAccepted: root.setDate(value)
+            onClosed: destroy()
+        }
     }
 }

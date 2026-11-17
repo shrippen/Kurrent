@@ -12,6 +12,10 @@ import "."
  * top of a filled note. Used by KanteTabLane, KanteTabStaff and KanteBassStaff, and as
  * the key of a legend.
  *
+ * Motion (with KanteStyle.animate): a live mark whose state turns to "hit" pulses once; to
+ * "wrong" or "missed" it shakes sideways. A mark created in a state (a lane rebuilt its
+ * layout) stays still, and so does the layout: the motion is a transform of the sign.
+ *
  *   cents      offpitch only: the deviation in cents (NaN, the default: none). With
  *              `showCents` it shows beside the sign as "+32 ct" / "−18 ct"
  *              (KanteStyle.centsText) and is read out with the state's name
@@ -33,6 +37,73 @@ Item {
 
     implicitWidth: KanteStyle.unit(14)
     implicitHeight: implicitWidth
+
+    // Set when the mark is built: only a state change on a live mark moves it.
+    property bool live: false
+    Component.onCompleted: live = true
+
+    // Pulse 1.15 -> 1 over `duration` (200 ms): long enough to see, short enough to be done
+    // before the next note arrives. Shake: two swings of 2 units each way, in `duration`.
+    readonly property real pulseFrom: 1.15
+    readonly property real shakeReach: KanteStyle.unit(2)
+    property real pulse: 1
+    property real shake: 0
+    /** A pulse or shake is running. */
+    readonly property bool moving: pulseAnim.running || shakeAnim.running
+
+    transform: [
+        Scale {
+            origin.x: mark.width / 2
+            origin.y: mark.height / 2
+            xScale: mark.pulse
+            yScale: mark.pulse
+        },
+        Translate { x: mark.shake }
+    ]
+
+    /**
+     * Runs the motion of the current state: a pulse for "hit", a shake for "wrong" and
+     * "missed", nothing for the rest or without KanteStyle.animate. A live mark does it
+     * itself when its state changes; a lane that creates the mark in its state (a
+     * Loader) calls it for a note changed while playing.
+     */
+    function play() {
+        pulseAnim.stop()
+        shakeAnim.stop()
+        pulse = 1
+        shake = 0
+        if (!KanteStyle.animate) {
+            return
+        }
+        if (noteState === "hit") {
+            pulseAnim.start()
+        } else if (noteState === "wrong" || noteState === "missed") {
+            shakeAnim.start()
+        }
+    }
+    onNoteStateChanged: {
+        if (live) {
+            play()
+        }
+    }
+    NumberAnimation {
+        id: pulseAnim
+        target: mark
+        property: "pulse"
+        from: mark.pulseFrom
+        to: 1
+        duration: KanteStyle.duration
+        easing.type: Easing.OutCubic
+    }
+    SequentialAnimation {
+        id: shakeAnim
+        // 4 swings and the return, five equal steps.
+        NumberAnimation { target: mark; property: "shake"; to: -mark.shakeReach; duration: KanteStyle.duration / 5 }
+        NumberAnimation { target: mark; property: "shake"; to: mark.shakeReach; duration: KanteStyle.duration / 5 }
+        NumberAnimation { target: mark; property: "shake"; to: -mark.shakeReach; duration: KanteStyle.duration / 5 }
+        NumberAnimation { target: mark; property: "shake"; to: mark.shakeReach; duration: KanteStyle.duration / 5 }
+        NumberAnimation { target: mark; property: "shake"; to: 0; duration: KanteStyle.duration / 5 }
+    }
 
     Accessible.role: Accessible.Graphic
     Accessible.name: KanteStyle.noteStateName(noteState) + (centsLabel !== "" ? ", " + centsLabel : "")

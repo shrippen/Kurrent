@@ -11,6 +11,13 @@ import "."
  *   upcoming  thin bar, the number in a hollow square, muted label
  *   skipped   a passed step in `skipped` (1.49): muted 4 px bar, a dash in a hollow square,
  *             so a step the user left out never shows the done check (Kontra: latency)
+ *   error     a step in `errors`, in whatever position: negative bar, an exclamation mark on a
+ *             filled negative square, the label in the negative colour; the current step keeps
+ *             its outline, in the negative colour
+ *
+ * `clickable`: a step is a button (click, Return, Enter or Space fire `activated(index)`),
+ * reachable by Tab, with a frame under the pointer and focus brackets. Off by default: the steps
+ * only show where a process stands.
  *
  * Screen readers hear each step as "Schritt 2 von 4: Erkennen, aktuell"; the words come
  * from `stepText` and `stateNames`, an app sets its translations once.
@@ -29,9 +36,19 @@ Item {
     property int current: 0
     /** Words of a step for screen readers; %1 its number, %2 the count. */
     property string stepText: "Schritt %1 von %2"
-    property var stateNames: ({ done: "erledigt", current: "aktuell", upcoming: "offen", skipped: "übersprungen" })
+    property var stateNames: ({ done: "erledigt", current: "aktuell", upcoming: "offen", skipped: "übersprungen", error: "Fehler" })
     /** Indexes of passed steps the user skipped (1.49). */
     property var skipped: []
+    /** Indexes of steps that failed, whether passed, current or upcoming. */
+    property var errors: []
+    /** Steps fire `activated` and take focus. */
+    property bool clickable: false
+    /** Least width of a step with its label (1.81); a smaller value fits more steps before
+     *  the bar turns compact, e.g. 8 steps in 848 px. */
+    property real minStepWidth: KanteStyle.unit(110)
+
+    /** A step was chosen: click, Return, Enter or Space; only with `clickable`. */
+    signal activated(int index)
 
     property alias spacing: row.spacing
 
@@ -76,19 +93,36 @@ Item {
                 required property var modelData
                 readonly property bool passed: index < steps.current
                 readonly property bool skippedStep: passed && (steps.skipped || []).indexOf(index) >= 0
-                readonly property bool done: passed && !skippedStep
+                readonly property bool done: passed && !skippedStep && !failed
                 readonly property bool now: index === steps.current
-                readonly property string stateKey: skippedStep ? "skipped" : (done ? "done" : (now ? "current" : "upcoming"))
+                readonly property bool failed: (steps.errors || []).indexOf(index) >= 0
+                readonly property string stateKey: failed ? "error" : (skippedStep ? "skipped" : (done ? "done" : (now ? "current" : "upcoming")))
                 readonly property real signSize: Math.max(KanteStyle.unit(20), number.implicitHeight + KanteStyle.unit(4))
                 readonly property bool named: !steps.compact || now
                 /** Width with the label shown. */
-                readonly property real namedWidth: Math.max(KanteStyle.unit(110), label.implicitWidth + KanteStyle.unit(24))
+                readonly property real namedWidth: Math.max(steps.minStepWidth, label.implicitWidth + KanteStyle.unit(24))
                 width: named ? namedWidth : signSize + KanteStyle.unit(20)
                 height: Math.max(KanteStyle.unit(60), label.y + label.implicitHeight + KanteStyle.unit(8))
 
-                Accessible.role: Accessible.ListItem
+                /** The word for a state; a failed current step says both, "aktuell, Fehler". */
+                function stateWord(key) {
+                    return steps.stateNames && steps.stateNames[key] !== undefined ? steps.stateNames[key] : key
+                }
+
+                activeFocusOnTab: steps.clickable
+                function choose() {
+                    if (steps.clickable) {
+                        steps.activated(index)
+                    }
+                }
+                Keys.onReturnPressed: choose()
+                Keys.onEnterPressed: choose()
+                Keys.onSpacePressed: choose()
+
+                Accessible.role: steps.clickable ? Accessible.Button : Accessible.ListItem
+                Accessible.onPressAction: choose()
                 Accessible.name: steps.stepText.arg(index + 1).arg(steps.model ? steps.model.length : 0) + ": " + modelData
-                                 + ", " + (steps.stateNames && steps.stateNames[stateKey] !== undefined ? steps.stateNames[stateKey] : stateKey)
+                                 + ", " + (failed && now ? stateWord("current") + ", " : "") + stateWord(stateKey)
 
                 Rectangle { anchors.fill: parent; color: KanteStyle.cardColor }
                 // The current step: a 2 px outline around the whole step.
@@ -97,13 +131,13 @@ Item {
                     visible: step.now
                     color: "transparent"
                     border.width: 2
-                    border.color: KanteStyle.accentTextColor
+                    border.color: step.failed ? KanteStyle.negativeTextColor : KanteStyle.accentTextColor
                 }
                 // Bar: 4 px done or skipped, 6 px current, 2 px upcoming.
                 Rectangle {
                     width: parent.width
-                    height: KanteStyle.unit(step.now ? 6 : (step.passed ? 4 : 2))
-                    color: step.done ? KanteStyle.positiveTextColor
+                    height: KanteStyle.unit(step.now ? 6 : (step.passed || step.failed ? 4 : 2))
+                    color: step.failed ? KanteStyle.negativeTextColor : step.done ? KanteStyle.positiveTextColor
                          : (step.now ? KanteStyle.accentColor : (step.skippedStep ? KanteStyle.mutedTextColor : KanteStyle.frameColor))
                 }
                 // Sign: check on a filled square (done), number on a filled square (current),
@@ -114,8 +148,8 @@ Item {
                     y: KanteStyle.unit(12)
                     width: step.signSize
                     height: step.signSize
-                    color: step.done ? KanteStyle.positiveTextColor : (step.now ? KanteStyle.primaryColor : "transparent")
-                    border.width: step.done || step.now ? 0 : 1
+                    color: step.failed ? KanteStyle.negativeTextColor : step.done ? KanteStyle.positiveTextColor : (step.now ? KanteStyle.primaryColor : "transparent")
+                    border.width: step.done || step.now || step.failed ? 0 : 1
                     border.color: KanteStyle.mutedTextColor
                     KanteTick {
                         visible: step.done
@@ -129,9 +163,24 @@ Item {
                         id: number
                         visible: !step.done
                         anchors.centerIn: parent
-                        text: step.skippedStep ? "–" : (step.index + 1 < 10 ? "0" : "") + (step.index + 1)
-                        color: step.now ? KanteStyle.primaryTextColor : KanteStyle.mutedTextColor
-                        font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, step.now)
+                        text: step.failed ? "!" : step.skippedStep ? "–" : (step.index + 1 < 10 ? "0" : "") + (step.index + 1)
+                        color: step.failed ? KanteStyle.inkOn(KanteStyle.negativeTextColor) : step.now ? KanteStyle.primaryTextColor : KanteStyle.mutedTextColor
+                        font: KanteStyle.monoFont(KanteStyle.labelFont().pointSize, step.now || step.failed)
+                    }
+                }
+                // Clickable: a frame under the pointer, brackets for keyboard focus.
+                Item {
+                    anchors.fill: parent
+                    Rectangle {
+                        anchors.fill: parent
+                        visible: steps.clickable && hover.hovered && !step.now
+                        color: "transparent"
+                        border.width: 2
+                        border.color: KanteStyle.frameColor
+                    }
+                    KanteBrackets {
+                        anchors.fill: parent
+                        active: steps.clickable && step.activeFocus
                     }
                 }
                 Text {
@@ -140,8 +189,21 @@ Item {
                     x: KanteStyle.unit(10)
                     y: sign.y + sign.height + KanteStyle.unit(2)
                     text: step.modelData
-                    color: step.now ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
+                    color: step.failed ? KanteStyle.negativeTextColor : step.now ? KanteStyle.strongTextColor : KanteStyle.mutedTextColor
                     font: KanteStyle.headingFont(KanteStyle.defaultFont.pointSize)
+                }
+
+                HoverHandler {
+                    id: hover
+                    enabled: steps.clickable
+                    cursorShape: Qt.PointingHandCursor
+                }
+                TapHandler {
+                    enabled: steps.clickable
+                    onTapped: {
+                        step.forceActiveFocus()
+                        step.choose()
+                    }
                 }
             }
         }

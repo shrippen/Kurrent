@@ -31,6 +31,8 @@ add_library(kurrentcore STATIC
     kurrentlogging.h
     kurrentlogging.cpp
     taskstore.h
+    akonadiitems.cpp
+    akonadiitems.h
     akonaditaskstore.cpp
     akonaditaskstore.h
     memorytaskstore.cpp

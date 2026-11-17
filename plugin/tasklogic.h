@@ -476,6 +476,12 @@ QString toggleEnabledCsv(const QString &csv, qint64 id, const QList<qint64> &all
 
 bool isEnabledCsv(const QString &csv, qint64 id);
 
+/// Whether a busy event changed since the last fetch of the busy calendars.
+enum class BusyEvents { Current, Changed };
+
+/// The busy events are fetched again only when one changed or the day did (the window moves).
+bool busyRefreshDue(BusyEvents state, const QDate &fetchedOn, const QDate &today);
+
 int visibleProjectCount(const QList<ProjectCandidate> &projects, const QSet<qint64> &hiddenIds);
 
 int visibleLabelCount(const QStringList &labels, const QSet<QString> &hiddenLabels);

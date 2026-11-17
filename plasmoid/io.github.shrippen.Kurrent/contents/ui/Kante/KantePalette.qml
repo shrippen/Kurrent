@@ -37,6 +37,8 @@ QtObject {
         readonly property color frame: "#29ebdbb2"
         readonly property color rule: "#24ebdbb2"
         readonly property color dialog: "#f7282828"
+        readonly property color glass: "#ed282828"
+        readonly property color glassDense: "#f5282828"
         readonly property color focus: "#5ccfc4"
         readonly property color selection: "#1e2b2a"
         readonly property color accentHover: "#fdc94a"
@@ -80,6 +82,8 @@ QtObject {
         readonly property color frame: "#2e3c3836"
         readonly property color rule: "#243c3836"
         readonly property color dialog: "#faf7f2e4"
+        readonly property color glass: "#f0f7f2e4"
+        readonly property color glassDense: "#f7f7f2e4"
         readonly property color focus: "#0f6b66"
         readonly property color selection: "#d9ebe4"
         readonly property color accentHover: "#fcc845"
@@ -103,6 +107,8 @@ QtObject {
     readonly property int chamfer: 16
     readonly property int chamferSmall: 10
     readonly property int cutSmall: 6
+    // Blur radius (px at a grid unit of 18) behind a glass panel.
+    readonly property int glassBlur: 48
     // Control heights (small, medium, large).
     readonly property int heightSmall: 32
     readonly property int heightMedium: 40
