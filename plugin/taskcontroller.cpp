@@ -1914,8 +1914,7 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
         return;
     }
     if (timeChanged && (timeKey == QLatin1String("overdue") || timeKey == QLatin1String("later"))) {
-        setErrorMessage(i18n("Drop tasks onto a specific period, not onto Overdue or Later."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Drop tasks onto a specific period, not onto Overdue or Later."));
         return;
     }
 
@@ -3736,8 +3735,7 @@ void TaskController::createQuickTask(const QString &summary, qint64 collectionId
     }
 
     if (!CollectionListModel::isTaskWritable(collection)) {
-        setErrorMessage(i18n("No writable task list selected."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("No writable task list selected."));
         return;
     }
 
@@ -3903,8 +3901,7 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -3983,7 +3980,6 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
     if (it == s_tasks.end()) {
         if (ok == SyncResult::Error && !errorString.isEmpty()) {
             logAkonadi(QStringLiteral("finishSync: missing cache itemId=%1 error=%2").arg(itemId).arg(errorString));
-            setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
         return;
@@ -3997,7 +3993,6 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
                        .arg(ok == SyncResult::Ok)
                        .arg(errorString));
         if (ok == SyncResult::Error && !errorString.isEmpty()) {
-            setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
         updateSyncingCount();
@@ -4036,7 +4031,6 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
         it->persistQueuedMoveId = -1;
         it->submittedTodo.clear();
         if (!errorString.isEmpty()) {
-            setErrorMessage(errorString);
             Q_EMIT error(errorString);
         }
         if (isConflict) {
@@ -4095,7 +4089,6 @@ void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
         s_tasks.remove(result.clientId);
         if (!result.ok) {
             scheduleRebuildAll();
-            setErrorMessage(result.errorString);
             Q_EMIT error(result.errorString);
             return;
         }
@@ -4571,8 +4564,7 @@ void TaskController::updateTask(qint64 itemId,
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4599,8 +4591,7 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4622,8 +4613,7 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
                 moveToCollectionId = targetCollectionId;
                 cache->item.setParentCollection(destination);
             } else {
-                setErrorMessage(i18n("This project cannot accept tasks."));
-                Q_EMIT error(m_errorMessage);
+                Q_EMIT error(i18n("This project cannot accept tasks."));
             }
         }
     }
@@ -4654,8 +4644,7 @@ void TaskController::createTaskFull(const QVariantMap &fields)
         collection = firstWritableCollection();
     }
     if (!CollectionListModel::isTaskWritable(collection)) {
-        setErrorMessage(i18n("No writable task list selected."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("No writable task list selected."));
         return;
     }
 
@@ -4688,8 +4677,7 @@ void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)
 {
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4794,13 +4782,11 @@ bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid,
     }
 
     if (trimmedParent == todo->uid()) {
-        setErrorMessage(i18n("A task cannot be its own parent."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("A task cannot be its own parent."));
         return false;
     }
     if (wouldCreateParentCycle(cache->item.id(), trimmedParent)) {
-        setErrorMessage(i18n("Cannot create a circular task hierarchy."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Cannot create a circular task hierarchy."));
         return false;
     }
 
@@ -4812,13 +4798,11 @@ bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid,
         }
     }
     if (!parentCache) {
-        setErrorMessage(i18n("Parent task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Parent task not found."));
         return false;
     }
     if (collectionId > 0 && parentCache->item.parentCollection().id() != collectionId) {
-        setErrorMessage(i18n("Parent task must be in the same project."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Parent task must be in the same project."));
         return false;
     }
 
@@ -4838,8 +4822,7 @@ void TaskController::addTaskCategory(qint64 itemId, const QString &category)
 
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4864,8 +4847,7 @@ void TaskController::removeTaskCategory(qint64 itemId, const QString &category)
 
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4886,8 +4868,7 @@ void TaskController::setTaskPriority(qint64 itemId, int priority)
     const int normalized = TaskLogic::priorityBand(priority);
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4910,8 +4891,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
 
     CachedTask *cache = prepareEdit(itemId);
     if (!cache) {
-        setErrorMessage(i18n("Task not found."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("Task not found."));
         return;
     }
 
@@ -4923,8 +4903,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
 
     const Akonadi::Collection destination = collectionById(collectionId);
     if (!CollectionListModel::isTaskWritable(destination)) {
-        setErrorMessage(i18n("This project cannot accept tasks."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("This project cannot accept tasks."));
         return;
     }
 
@@ -5279,8 +5258,7 @@ void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
         collection = firstWritableCollection();
     }
     if (!CollectionListModel::isTaskWritable(collection)) {
-        setErrorMessage(i18n("No writable task list selected."));
-        Q_EMIT error(m_errorMessage);
+        Q_EMIT error(i18n("No writable task list selected."));
         return;
     }
 

@@ -147,7 +147,7 @@ void TaskControllerStoreTest::modifyFailRollsBack()
     waitStore(spy);
     QCOMPARE(m_controller->testTaskSummary(2), QStringLiteral("before"));
     QVERIFY(!m_controller->testTaskSyncing(2));
-    QVERIFY(err.size() >= 1);
+    QVERIFY(err.size() >= 1 && m_controller->errorMessage().isEmpty());
 }
 
 void TaskControllerStoreTest::deleteFailClearsPending()
