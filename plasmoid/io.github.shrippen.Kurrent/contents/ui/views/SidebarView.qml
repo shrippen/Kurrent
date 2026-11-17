@@ -5,7 +5,6 @@ import org.kde.kirigami 2.20 as Kirigami
 import org.kde.kirigami.delegates as KirigamiDelegates
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
-import org.kde.ksvg as KSvg
 import io.github.shrippen.Kurrent 1.0
 import "../colors.js" as Colors
 import "../sidebarheight.js" as SidebarHeight
@@ -399,6 +398,14 @@ Item {
         return true
     }
 
+    function projectDropHint(project) {
+        var drag = dragHost ? dragHost.draggingTask : null
+        if (drag && Number(drag.collectionId) === Number(project.collectionId)) {
+            return i18n("Already in project “%1”", project.name)
+        }
+        return i18n("Move to project “%1”", project.name)
+    }
+
     function dropTaskOnLabel(label) {
         if (!dragHost || !dragHost.draggingTask || !label) {
             return false
@@ -435,6 +442,17 @@ Item {
 
     property string pendingRemoveLabel: ""
     property var pendingRemoveItemId: -1
+
+    function priorityDropHint(priority) {
+        var drag = dragHost ? dragHost.draggingTask : null
+        var already = !!(drag && Colors.normalizePriority(drag.priority) === priority.value)
+        if (priority.value === 0) {
+            return already ? i18n("Already has no priority") : i18n("Clear priority")
+        }
+        return already
+            ? i18n("Already priority “%1”", priority.label)
+            : i18n("Set priority “%1”", priority.label)
+    }
 
     function dropTaskOnPriority(priority) {
         if (!dragHost || !dragHost.draggingTask) {
@@ -720,13 +738,6 @@ Item {
             root.currentSidebarFolder = root.folderForView(controller.currentView)
             viewsList.syncCurrentIndex()
         }
-        function onSelectedCollectionIdChanged() { projectsList.syncIndex() }
-        function onSelectedLabelChanged() { labelsList.syncIndex() }
-        function onSelectedPriorityChanged() { prioritiesList.syncIndex() }
-        function onSelectedProgressBandChanged() { progressList.syncIndex() }
-        function onSelectedStatusChanged() { statusList.syncIndex() }
-        function onSelectedSecrecyChanged() { secrecyList.syncIndex() }
-        function onSelectedLocationChanged() { locationList.syncIndex() }
     }
 
     // Whole-section slide animation for folder entry/exit,
@@ -764,80 +775,6 @@ Item {
         controller.selectedStatus = -1
         controller.selectedSecrecy = -1
         controller.selectedLocation = ""
-    }
-
-    component SidebarHoverBackground: Item {
-        id: hoverBg
-        required property Item control
-        anchors.fill: parent
-        visible: !Kirigami.Settings.isMobile
-        opacity: root.rowHoverEnabled && control.hovered && !control.down ? 1 : 0
-        Behavior on opacity {
-            NumberAnimation {
-                duration: Kirigami.Units.veryShortDuration
-                easing.type: Easing.OutQuad
-            }
-        }
-
-        KSvg.FrameSvgItem {
-            anchors.fill: parent
-            visible: !KanteStyle.themed
-            imagePath: "widgets/listitem"
-            prefix: "hover"
-        }
-
-        // Kante: sunken tint instead of Plasma's rounded hover frame. Never over the selected
-        // row: the dark tint on the accent fill turned it muddy brown.
-        Rectangle {
-            anchors.fill: parent
-            visible: KanteStyle.themed && !hoverBg.control.highlighted
-            color: KanteStyle.sunkenColor
-        }
-    }
-
-    component SelectionBackground: Item {
-        id: selectionBg
-        required property Item control
-        required property bool selected
-
-        anchors.fill: parent
-
-        StyledHighlight {
-            anchors.fill: parent
-            visible: selectionBg.selected
-            hovered: true
-            pressed: selectionBg.control.down
-        }
-
-        SidebarHoverBackground {
-            control: selectionBg.control
-        }
-    }
-
-    // Kante / Kante Light: a KanteListRow over the row draws it (selection, hover, drop target,
-    // count); the ItemDelegate below keeps click, drop and tooltip. System's content, hover
-    // and ListView highlight are hidden then.
-    component KanteSidebarRow: KanteListRow {
-        required property Item control
-        anchors.fill: parent
-        z: 1
-        visible: KanteStyle.active
-        selected: control.highlighted
-        rule: false
-        focusOnClick: false
-        activeFocusOnTab: false
-        density: root.comfortableRows ? KanteListRow.Density.Comfortable
-               : (root.denseRows ? KanteListRow.Density.Dense : KanteListRow.Density.Compact)
-    }
-
-    component SidebarScrollBar: ThinScrollBar {
-        required property Flickable view
-        parent: view
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        // Fit inside the fixed rightMargin (Design.spaceSmall); do not widen the gutter.
-        extent: Design.spaceSmall
     }
 
     Column {
@@ -921,6 +858,7 @@ Item {
 
             background: SidebarHoverBackground {
                 visible: !Kirigami.Settings.isMobile && !KanteStyle.active
+                sidebar: root
                 control: viewDelegate
             }
 
@@ -942,8 +880,9 @@ Item {
                 root.clearFilterSelections()
             }
 
-            KanteSidebarRow {
+            SidebarKanteRow {
                 id: viewDelegateKante
+                sidebar: root
                 control: viewDelegate
                 text: modelData.label
                 count: root.showSidebarCounts ? viewDelegateCount.text : ""
@@ -1021,1656 +960,144 @@ Item {
     }
     }
 
-    // ── Projects section ──
-    Item {
+    // ── Filter sections ──
+    SidebarSection {
         id: projectsBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: projectsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: projectsList
-        width: parent ? parent.width : 0
-        height: root.allocFor("projects")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(projectsList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        model: root.visibleProjects
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(projectsList)
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            if (controller.selectedCollectionId < 0) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (Number(m[i].collectionId) === controller.selectedCollectionId) {
-                    currentIndex = i; return
-                }
-            }
-            currentIndex = -1
+        sidebar: root
+        sectionId: "projects"
+        title: i18n("Projects")
+        filterKind: "project"
+        items: root.visibleProjects
+        keyRole: "collectionId"
+        textRole: "name"
+        selection: controller.selectedCollectionId
+        allValue: -1
+        counts: controller.sidebarProjectCounts
+        iconOf: function(project) {
+            return { source: "folder", color: Design.colorForKey(String(project.collectionId)) }
         }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: projectsList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-            headerPositioning: ListView.InlineHeader
-            header: RowLayout {
-                width: root.listContentWidth(projectsList)
-                height: root.sectionHeaderHeight
-                Layout.leftMargin: Design.spaceSmall
-                Layout.rightMargin: Design.spaceSmall
-                spacing: 0
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: i18n("Projects")
-                    // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                    font: KanteStyle.active ? KanteStyle.labelFont()
-                                             : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                    opacity: 0.65
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                PlasmaComponents3.ItemDelegate {
-                    id: allProjectsDelegate
-                    Layout.fillWidth: false
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: root.sectionHeaderHeight
-                    hoverEnabled: root.rowHoverEnabled
-                    highlighted: controller.selectedCollectionId < 0
-                    readonly property bool filterUsable: root.filterEnabled("project")
-                    enabled: filterUsable
-                    opacity: filterUsable ? 1.0 : 0.45
-
-                    onClicked: {
-                        if (filterUsable) {
-                            controller.selectedCollectionId = -1
-                        }
-                    }
-
-                    QQC2.ToolTip {
-                        visible: !allProjectsDelegate.filterUsable && allProjectsDelegate.hovered
-                        text: root.filterDisabledReason("project")
-                    }
-
-                    background: SelectionBackground {
-                        control: allProjectsDelegate
-                        selected: allProjectsDelegate.highlighted
-                    }
-
-                    contentItem: QQC2.Label {
-                        text: i18n("All")
-                        color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: allProjectsDelegate.highlighted || allProjectsDelegate.down ? 1.0 : 0.75
-                        verticalAlignment: Text.AlignVCenter
-                        horizontalAlignment: Text.AlignHCenter
-                        leftPadding: Design.spaceSmall
-                        rightPadding: Design.spaceSmall
-                    }
-                }
-            }
-
-            delegate: PlasmaComponents3.ItemDelegate {
-                id: projectDelegate
-                width: root.listContentWidth(projectsList)
-                hoverEnabled: root.rowHoverEnabled
-                readonly property bool filterUsable: root.filterEnabled("project")
-                highlighted: ListView.isCurrentItem
-                height: KanteStyle.active ? projectDelegateKante.implicitHeight : implicitHeight
-                enabled: filterUsable
-                opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-                leftPadding: 0
-                rightPadding: Design.spaceSmall
-                topPadding: root.rowVPad
-                bottomPadding: root.rowVPad
-
-                background: Item {
-                    visible: !KanteStyle.active
-                    anchors.fill: parent
-
-                    SidebarHoverBackground {
-                        control: projectDelegate
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Design.inputRadius
-                        color: Kirigami.Theme.highlightColor
-                        opacity: projectDrop.containsDrag ? 0.28 : 0
-                        visible: opacity > 0
-                    }
-                }
-
-                DropArea {
-                    id: projectDrop
-                    anchors.fill: parent
-                    keys: ["application/x-kurrent-task"]
-                    enabled: root.isDragging && filterUsable
-                            && controller.collectionModel.writableForId(modelData.collectionId)
-
-                    readonly property bool alreadyInProject: {
-                        var drag = root.dragHost ? root.dragHost.draggingTask : null
-                        return !!(drag && Number(drag.collectionId) === Number(modelData.collectionId))
-                    }
-                    readonly property string hintText: alreadyInProject
-                        ? i18n("Already in project “%1”", modelData.name)
-                        : i18n("Move to project “%1”", modelData.name)
-
-                    onEntered: function(drag) {
-                        drag.acceptProposedAction()
-                        if (root.dragHost) {
-                            root.dragHost.setDropHint(hintText)
-                        }
-                    }
-                    onExited: {
-                        if (root.dragHost) {
-                            root.dragHost.clearDropHint(hintText)
-                        }
-                    }
-                    onDropped: function(drop) {
-                        if (root.dropTaskOnProject(modelData.collectionId)) {
-                            drop.acceptProposedAction()
-                        }
-                    }
-                }
-
-                onClicked: {
-                    if (!filterUsable) {
-                        return
-                    }
-                    if (controller.selectedCollectionId === modelData.collectionId) {
-                        controller.selectedCollectionId = -1
-                    } else {
-                        controller.selectedCollectionId = modelData.collectionId
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !projectDelegate.filterUsable && projectDelegate.hovered
-                    text: root.filterDisabledReason("project")
-                }
-
-                KanteSidebarRow {
-                    id: projectDelegateKante
-                    control: projectDelegate
-                    text: modelData.name
-                    count: root.showSidebarCounts ? projectDelegateCount.text : ""
-                    dropTarget: projectDrop.containsDrag
-                    disabledReason: projectDelegate.filterUsable ? "" : root.filterDisabledReason("project")
-
-                    Kirigami.Icon {
-                        source: "folder"
-                        color: Design.colorForKey(String(modelData.collectionId))
-                        width: root.rowIconSize
-                        height: root.rowIconSize
-                    }
-                }
-
-                contentItem: RowLayout {
-                    visible: !KanteStyle.active
-                    spacing: Design.spaceSmall
-
-                    Item { width: root.rowLeftInset }
-
-                    Kirigami.Icon {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: root.rowIconSize
-                        Layout.preferredHeight: root.rowIconSize
-                        source: "folder"
-                        color: Design.colorForKey(String(modelData.collectionId))
-                        width: root.rowIconSize
-                        height: root.rowIconSize
-                    }
-
-                    KirigamiDelegates.TitleSubtitle {
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: root.listContentWidth(projectsList)
-                        Layout.alignment: Qt.AlignVCenter
-                        title: modelData.name
-                        selected: projectDelegate.highlighted || projectDelegate.down || projectDrop.containsDrag
-                    }
-
-                    CountBadge {
-                        id: projectDelegateCount
-                        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                        text: {
-                            var n = controller.sidebarProjectCounts[String(modelData.collectionId)]
-                            return n === undefined ? "" : String(n)
-                        }
-                        visible: root.showSidebarCounts && text.length > 0
-                        selected: projectDelegate.highlighted || projectDelegate.down
-                    }
-                }
-        }
+        hintFor: root.projectDropHint
+        canDropOn: function(project) { return controller.collectionModel.writableForId(project.collectionId) }
+        dropOn: function(project) { return root.dropTaskOnProject(project.collectionId) }
+        onChoose: function(value) { controller.selectedCollectionId = value }
     }
 
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !projectsBlock.isLastVisible
-    }
-    }
-
-    // ── Labels section ──
-    Item {
+    SidebarSection {
         id: labelsBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: labelsList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: labelsList
-        width: parent ? parent.width : 0
-        height: root.allocFor("labels")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(labelsList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        model: root.visibleLabelItems
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(labelsList)
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            var sel = controller.selectedLabel || ""
-            if (!sel.length) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (String(m[i]) === sel) { currentIndex = i; return }
-            }
-            currentIndex = -1
+        sidebar: root
+        sectionId: "labels"
+        title: i18n("Labels")
+        filterKind: "label"
+        items: root.visibleLabelItems
+        keyRole: ""
+        textRole: ""
+        selection: controller.selectedLabel
+        allValue: ""
+        counts: controller.sidebarLabelCounts
+        iconOf: function(label) {
+            return { source: "tag", color: Design.colorForKey(String(label), "label") }
         }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: labelsList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-            headerPositioning: ListView.InlineHeader
-            header: RowLayout {
-                width: root.listContentWidth(labelsList)
-                height: root.sectionHeaderHeight
-                Layout.leftMargin: Design.spaceSmall
-                Layout.rightMargin: Design.spaceSmall
-                spacing: 0
-
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: i18n("Labels")
-                    // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                    font: KanteStyle.active ? KanteStyle.labelFont()
-                                             : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                    opacity: 0.65
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                PlasmaComponents3.ItemDelegate {
-                    id: allLabelsDelegate
-                    Layout.fillWidth: false
-                    Layout.fillHeight: true
-                    Layout.preferredHeight: root.sectionHeaderHeight
-                    hoverEnabled: root.rowHoverEnabled
-                    highlighted: controller.selectedLabel === ""
-                    readonly property bool filterUsable: root.filterEnabled("label")
-                    enabled: filterUsable
-                    opacity: filterUsable ? 1.0 : 0.45
-
-                    onClicked: {
-                        if (filterUsable) {
-                            controller.selectedLabel = ""
-                        }
-                    }
-
-                    QQC2.ToolTip {
-                        visible: !allLabelsDelegate.filterUsable && allLabelsDelegate.hovered
-                        text: root.filterDisabledReason("label")
-                    }
-
-                    background: SelectionBackground {
-                        control: allLabelsDelegate
-                        selected: allLabelsDelegate.highlighted
-                    }
-
-                    contentItem: QQC2.Label {
-                        text: i18n("All")
-                        color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: allLabelsDelegate.highlighted || allLabelsDelegate.down ? 1.0 : 0.75
-                        verticalAlignment: Text.AlignVCenter
-                        horizontalAlignment: Text.AlignHCenter
-                        leftPadding: Design.spaceSmall
-                        rightPadding: Design.spaceSmall
-                    }
-                }
-            }
-
-            delegate: PlasmaComponents3.ItemDelegate {
-                id: labelDelegate
-                width: root.listContentWidth(labelsList)
-                hoverEnabled: root.rowHoverEnabled
-                readonly property bool filterUsable: root.filterEnabled("label")
-                highlighted: ListView.isCurrentItem
-                height: KanteStyle.active ? labelDelegateKante.implicitHeight : implicitHeight
-                enabled: filterUsable
-                opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-                leftPadding: 0
-                rightPadding: Design.spaceSmall
-                topPadding: root.rowVPad
-                bottomPadding: root.rowVPad
-
-                background: Item {
-                    visible: !KanteStyle.active
-                    anchors.fill: parent
-
-                    SidebarHoverBackground {
-                        control: labelDelegate
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Design.inputRadius
-                        color: Kirigami.Theme.highlightColor
-                        opacity: labelDrop.containsDrag ? 0.28 : 0
-                        visible: opacity > 0
-                    }
-                }
-
-                DropArea {
-                    id: labelDrop
-                    anchors.fill: parent
-                    keys: ["application/x-kurrent-task"]
-                    enabled: root.isDragging
-
-                    readonly property string hintText: root.labelDropHint(modelData)
-
-                    onEntered: function(drag) {
-                        drag.acceptProposedAction()
-                        if (root.dragHost) {
-                            root.dragHost.setDropHint(hintText)
-                        }
-                    }
-                    onExited: {
-                        if (root.dragHost) {
-                            root.dragHost.clearDropHint(hintText)
-                        }
-                    }
-                    onDropped: function(drop) {
-                        if (root.dropTaskOnLabel(modelData)) {
-                            drop.acceptProposedAction()
-                        }
-                    }
-                }
-
-                onClicked: {
-                    if (!filterUsable) {
-                        return
-                    }
-                    if (controller.selectedLabel === modelData) {
-                        controller.selectedLabel = ""
-                    } else {
-                        controller.selectedLabel = modelData
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !labelDelegate.filterUsable && labelDelegate.hovered
-                    text: root.filterDisabledReason("label")
-                }
-
-                KanteSidebarRow {
-                    id: labelDelegateKante
-                    control: labelDelegate
-                    text: modelData
-                    count: root.showSidebarCounts ? labelDelegateCount.text : ""
-                    dropTarget: labelDrop.containsDrag
-                    disabledReason: labelDelegate.filterUsable ? "" : root.filterDisabledReason("label")
-
-                    Kirigami.Icon {
-                        source: "tag"
-                        color: Design.colorForKey(String(modelData), "label")
-                        width: root.rowIconSize
-                        height: root.rowIconSize
-                    }
-                }
-
-                contentItem: RowLayout {
-                    visible: !KanteStyle.active
-                    spacing: Design.spaceSmall
-
-                    Item { width: root.rowLeftInset }
-
-                    Kirigami.Icon {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: root.rowIconSize
-                        Layout.preferredHeight: root.rowIconSize
-                        source: "tag"
-                        color: Design.colorForKey(String(modelData), "label")
-                        width: root.rowIconSize
-                        height: root.rowIconSize
-                    }
-
-                    KirigamiDelegates.TitleSubtitle {
-                        Layout.fillWidth: true
-                        Layout.maximumWidth: root.listContentWidth(labelsList)
-                        Layout.alignment: Qt.AlignVCenter
-                        title: modelData
-                        selected: labelDelegate.highlighted || labelDelegate.down || labelDrop.containsDrag
-                    }
-
-                    CountBadge {
-                        id: labelDelegateCount
-                        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                        text: {
-                            var n = controller.sidebarLabelCounts[modelData]
-                            return n === undefined ? "" : String(n)
-                        }
-                        visible: root.showSidebarCounts && text.length > 0
-                        selected: labelDelegate.highlighted || labelDelegate.down
-                    }
-                }
-        }
+        hintFor: root.labelDropHint
+        dropOn: root.dropTaskOnLabel
+        onChoose: function(value) { controller.selectedLabel = value }
     }
 
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !labelsBlock.isLastVisible
-    }
-    }
-
-    // ── Priorities section ──
-    Item {
+    SidebarSection {
         id: prioritiesBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: prioritiesList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: prioritiesList
-        width: parent ? parent.width : 0
-        height: root.allocFor("priorities")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(prioritiesList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(prioritiesList)
-        model: root.priorityItems
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            if (controller.selectedPriority < 0) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (m[i].value === controller.selectedPriority) { currentIndex = i; return }
-            }
-            currentIndex = -1
-        }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: prioritiesList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        headerPositioning: ListView.InlineHeader
-        header: RowLayout {
-            width: root.listContentWidth(prioritiesList)
-            height: root.sectionHeaderHeight
-            Layout.leftMargin: Design.spaceSmall
-            Layout.rightMargin: Design.spaceSmall
-            spacing: 0
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: i18n("Priorities")
-                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                font: KanteStyle.active ? KanteStyle.labelFont()
-                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                opacity: 0.65
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            PlasmaComponents3.ItemDelegate {
-                id: allPrioritiesDelegate
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.preferredHeight: root.sectionHeaderHeight
-                hoverEnabled: root.rowHoverEnabled
-                highlighted: controller.selectedPriority < 0
-                readonly property bool filterUsable: root.filterEnabled("priority")
-                enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
-
-                onClicked: {
-                    if (filterUsable) {
-                        controller.selectedPriority = -1
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !allPrioritiesDelegate.filterUsable && allPrioritiesDelegate.hovered
-                    text: root.filterDisabledReason("priority")
-                }
-
-                background: SelectionBackground {
-                    control: allPrioritiesDelegate
-                    selected: allPrioritiesDelegate.highlighted
-                }
-
-                contentItem: QQC2.Label {
-                    text: i18n("All")
-                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: allPrioritiesDelegate.highlighted || allPrioritiesDelegate.down ? 1.0 : 0.75
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    leftPadding: Design.spaceSmall
-                    rightPadding: Design.spaceSmall
-                }
+        sidebar: root
+        sectionId: "priorities"
+        title: i18n("Priorities")
+        filterKind: "priority"
+        items: root.priorityItems
+        keyRole: "value"
+        textRole: "label"
+        selection: controller.selectedPriority
+        allValue: -1
+        counts: controller.sidebarPriorityCounts
+        iconOf: function(priority) {
+            return {
+                source: "flag",
+                color: Design.priorityColor(priority.value),
+                opacity: priority.value > 0 ? 1 : 0.55
             }
         }
-
-            delegate: PlasmaComponents3.ItemDelegate {
-                id: priorityDelegate
-                width: root.listContentWidth(prioritiesList)
-            hoverEnabled: root.rowHoverEnabled
-            readonly property bool filterUsable: root.filterEnabled("priority")
-            highlighted: ListView.isCurrentItem
-                height: KanteStyle.active ? priorityDelegateKante.implicitHeight : implicitHeight
-            enabled: filterUsable
-            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-            leftPadding: 0
-            rightPadding: Design.spaceSmall
-            topPadding: root.rowVPad
-            bottomPadding: root.rowVPad
-
-            background: Item {
-                    visible: !KanteStyle.active
-                anchors.fill: parent
-
-                SidebarHoverBackground {
-                        control: priorityDelegate
-                    }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Design.inputRadius
-                    color: Kirigami.Theme.highlightColor
-                    opacity: priorityDrop.containsDrag ? 0.28 : 0
-                    visible: opacity > 0
-                }
-            }
-
-            DropArea {
-                id: priorityDrop
-                anchors.fill: parent
-                keys: ["application/x-kurrent-task"]
-                enabled: root.isDragging && filterUsable
-
-                readonly property bool alreadyPriority: {
-                    var drag = root.dragHost ? root.dragHost.draggingTask : null
-                    return !!(drag && Colors.normalizePriority(drag.priority) === modelData.value)
-                }
-                readonly property string hintText: {
-                    if (modelData.value === 0) {
-                        return alreadyPriority
-                            ? i18n("Already has no priority")
-                            : i18n("Clear priority")
-                    }
-                    return alreadyPriority
-                        ? i18n("Already priority “%1”", modelData.label)
-                        : i18n("Set priority “%1”", modelData.label)
-                }
-
-                onEntered: function(drag) {
-                    drag.acceptProposedAction()
-                    if (root.dragHost) {
-                        root.dragHost.setDropHint(hintText)
-                    }
-                }
-                onExited: {
-                    if (root.dragHost) {
-                        root.dragHost.clearDropHint(hintText)
-                    }
-                }
-                onDropped: function(drop) {
-                    if (root.dropTaskOnPriority(modelData.value)) {
-                        drop.acceptProposedAction()
-                    }
-                }
-            }
-
-            onClicked: {
-                if (!filterUsable) {
-                    return
-                }
-                if (controller.selectedPriority === modelData.value) {
-                    controller.selectedPriority = -1
-                } else {
-                    controller.selectedPriority = modelData.value
-                }
-            }
-
-            QQC2.ToolTip {
-                visible: !priorityDelegate.filterUsable && priorityDelegate.hovered
-                text: root.filterDisabledReason("priority")
-            }
-
-                KanteSidebarRow {
-                    id: priorityDelegateKante
-                    control: priorityDelegate
-                    text: modelData.label
-                    count: root.showSidebarCounts ? priorityDelegateCount.text : ""
-                    dropTarget: priorityDrop.containsDrag
-                    disabledReason: priorityDelegate.filterUsable ? "" : root.filterDisabledReason("priority")
-
-                    Kirigami.Icon {
-                    source: "flag"
-                    color: Design.priorityColor(modelData.value)
-                    opacity: modelData.value > 0 ? 1 : 0.55
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-                }
-
-            contentItem: RowLayout {
-                    visible: !KanteStyle.active
-                spacing: Design.spaceSmall
-
-                Item { width: root.rowLeftInset }
-
-                Kirigami.Icon {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: root.rowIconSize
-                    Layout.preferredHeight: root.rowIconSize
-                    source: "flag"
-                    color: Design.priorityColor(modelData.value)
-                    opacity: modelData.value > 0 ? 1 : 0.55
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-
-                KirigamiDelegates.TitleSubtitle {
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: root.listContentWidth(prioritiesList)
-                    Layout.alignment: Qt.AlignVCenter
-                    title: modelData.label
-                    selected: priorityDelegate.highlighted || priorityDelegate.down || priorityDrop.containsDrag
-                }
-
-                CountBadge {
-                        id: priorityDelegateCount
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                    text: {
-                        var n = controller.sidebarPriorityCounts[String(modelData.value)]
-                        return n === undefined ? "" : String(n)
-                    }
-                    visible: root.showSidebarCounts && text.length > 0
-                    selected: priorityDelegate.highlighted || priorityDelegate.down
-                }
-            }
-        }
+        hintFor: root.priorityDropHint
+        dropOn: function(priority) { return root.dropTaskOnPriority(priority.value) }
+        onChoose: function(value) { controller.selectedPriority = value }
     }
 
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !prioritiesBlock.isLastVisible
-    }
-    }
-
-    // ── Progress section ──
-    Item {
+    SidebarSection {
         id: progressBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: progressList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: progressList
-        width: parent ? parent.width : 0
-        height: root.allocFor("progress")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(progressList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(progressList)
-        model: root.progressItems
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            if (!controller.selectedProgressBand || !controller.selectedProgressBand.length) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (m[i].value === controller.selectedProgressBand) { currentIndex = i; return }
-            }
-            currentIndex = -1
-        }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: progressList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        headerPositioning: ListView.InlineHeader
-        header: RowLayout {
-            width: root.listContentWidth(progressList)
-            height: root.sectionHeaderHeight
-            Layout.leftMargin: Design.spaceSmall
-            Layout.rightMargin: Design.spaceSmall
-            spacing: 0
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: i18n("Progress")
-                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                font: KanteStyle.active ? KanteStyle.labelFont()
-                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                opacity: 0.65
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            PlasmaComponents3.ItemDelegate {
-                id: allProgressDelegate
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.preferredHeight: root.sectionHeaderHeight
-                hoverEnabled: root.rowHoverEnabled
-                highlighted: controller.selectedProgressBand === ""
-                readonly property bool filterUsable: root.filterEnabled("progress")
-                enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
-
-                onClicked: {
-                    if (filterUsable) {
-                        controller.selectedProgressBand = ""
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !allProgressDelegate.filterUsable && allProgressDelegate.hovered
-                    text: root.filterDisabledReason("progress")
-                }
-
-                background: SelectionBackground {
-                    control: allProgressDelegate
-                    selected: allProgressDelegate.highlighted
-                }
-
-                contentItem: QQC2.Label {
-                    text: i18n("All")
-                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: allProgressDelegate.highlighted || allProgressDelegate.down ? 1.0 : 0.75
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    leftPadding: Design.spaceSmall
-                    rightPadding: Design.spaceSmall
-                }
-            }
-        }
-
-        delegate: PlasmaComponents3.ItemDelegate {
-            id: progressDelegate
-            width: root.listContentWidth(progressList)
-            hoverEnabled: root.rowHoverEnabled
-            readonly property bool filterUsable: root.filterEnabled("progress")
-            highlighted: ListView.isCurrentItem
-            height: KanteStyle.active ? progressDelegateKante.implicitHeight : implicitHeight
-            enabled: filterUsable
-            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-            leftPadding: 0
-            rightPadding: Design.spaceSmall
-            topPadding: root.rowVPad
-            bottomPadding: root.rowVPad
-
-            background: Item {
-                visible: !KanteStyle.active
-                anchors.fill: parent
-
-                SidebarHoverBackground {
-                        control: progressDelegate
-                    }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Design.inputRadius
-                    color: Kirigami.Theme.highlightColor
-                    opacity: progressDrop.containsDrag ? 0.28 : 0
-                    visible: opacity > 0
-                }
-            }
-
-            DropArea {
-                id: progressDrop
-                anchors.fill: parent
-                keys: ["application/x-kurrent-task"]
-                enabled: root.isDragging && filterUsable
-
-                readonly property string hintText: i18n("Set progress to %1", modelData.label)
-
-                onEntered: function(drag) {
-                    drag.acceptProposedAction()
-                    if (root.dragHost) {
-                        root.dragHost.setDropHint(hintText)
-                    }
-                }
-                onExited: {
-                    if (root.dragHost) {
-                        root.dragHost.clearDropHint(hintText)
-                    }
-                }
-                onDropped: function(drop) {
-                    if (root.dropTaskOnProgress(modelData.value)) {
-                        drop.acceptProposedAction()
-                    }
-                }
-            }
-
-            onClicked: {
-                if (!filterUsable) {
-                    return
-                }
-                if (controller.selectedProgressBand === modelData.value) {
-                    controller.selectedProgressBand = ""
-                } else {
-                    controller.selectedProgressBand = modelData.value
-                }
-            }
-
-            QQC2.ToolTip {
-                visible: !progressDelegate.filterUsable && progressDelegate.hovered
-                text: root.filterDisabledReason("progress")
-            }
-
-            KanteSidebarRow {
-                id: progressDelegateKante
-                control: progressDelegate
-                text: modelData.label
-                count: root.showSidebarCounts ? progressDelegateCount.text : ""
-                dropTarget: progressDrop.containsDrag
-                disabledReason: progressDelegate.filterUsable ? "" : root.filterDisabledReason("progress")
-
-                Kirigami.Icon {
-                    source: root.progressIconForBand(modelData.value)
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-            }
-
-            contentItem: RowLayout {
-                visible: !KanteStyle.active
-                spacing: Design.spaceSmall
-
-                Item { width: root.rowLeftInset }
-
-                Kirigami.Icon {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: root.rowIconSize
-                    Layout.preferredHeight: root.rowIconSize
-                    source: root.progressIconForBand(modelData.value)
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-
-                KirigamiDelegates.TitleSubtitle {
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: root.listContentWidth(progressList)
-                    Layout.alignment: Qt.AlignVCenter
-                    title: modelData.label
-                    selected: progressDelegate.highlighted || progressDelegate.down || progressDrop.containsDrag
-                }
-
-                CountBadge {
-                    id: progressDelegateCount
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                    text: {
-                        var n = controller.sidebarProgressCounts[modelData.value]
-                        return n === undefined ? "" : String(n)
-                    }
-                    visible: root.showSidebarCounts && text.length > 0
-                    selected: progressDelegate.highlighted || progressDelegate.down
-                }
-            }
-        }
+        sidebar: root
+        sectionId: "progress"
+        title: i18n("Progress")
+        filterKind: "progress"
+        items: root.progressItems
+        keyRole: "value"
+        textRole: "label"
+        selection: controller.selectedProgressBand
+        allValue: ""
+        counts: controller.sidebarProgressCounts
+        iconOf: function(band) { return { source: root.progressIconForBand(band.value) } }
+        hintFor: function(band) { return i18n("Set progress to %1", band.label) }
+        dropOn: function(band) { return root.dropTaskOnProgress(band.value) }
+        onChoose: function(value) { controller.selectedProgressBand = value }
     }
 
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !progressBlock.isLastVisible
-    }
-    }
-
-    // ── Status section ──
-    Item {
+    SidebarSection {
         id: statusBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: statusList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: statusList
-        width: parent ? parent.width : 0
-        height: root.allocFor("status")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(statusList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(statusList)
-        model: root.statusItems
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            if (controller.selectedStatus < 0) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (m[i].value === controller.selectedStatus) { currentIndex = i; return }
-            }
-            currentIndex = -1
-        }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: statusList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        headerPositioning: ListView.InlineHeader
-        header: RowLayout {
-            width: root.listContentWidth(statusList)
-            height: root.sectionHeaderHeight
-            Layout.leftMargin: Design.spaceSmall
-            Layout.rightMargin: Design.spaceSmall
-            spacing: 0
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: i18n("Status")
-                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                font: KanteStyle.active ? KanteStyle.labelFont()
-                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                opacity: 0.65
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            PlasmaComponents3.ItemDelegate {
-                id: allStatusDelegate
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.preferredHeight: root.sectionHeaderHeight
-                hoverEnabled: root.rowHoverEnabled
-                highlighted: controller.selectedStatus < 0
-                readonly property bool filterUsable: root.filterEnabled("status")
-                enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
-
-                onClicked: {
-                    if (filterUsable) {
-                        controller.selectedStatus = -1
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !allStatusDelegate.filterUsable && allStatusDelegate.hovered
-                    text: root.filterDisabledReason("status")
-                }
-
-                background: SelectionBackground {
-                    control: allStatusDelegate
-                    selected: allStatusDelegate.highlighted
-                }
-
-                contentItem: QQC2.Label {
-                    text: i18n("All")
-                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: allStatusDelegate.highlighted || allStatusDelegate.down ? 1.0 : 0.75
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    leftPadding: Design.spaceSmall
-                    rightPadding: Design.spaceSmall
-                }
-            }
-        }
-
-        delegate: PlasmaComponents3.ItemDelegate {
-            id: statusDelegate
-            width: root.listContentWidth(statusList)
-            hoverEnabled: root.rowHoverEnabled
-            readonly property bool filterUsable: root.filterEnabled("status")
-            highlighted: ListView.isCurrentItem
-            height: KanteStyle.active ? statusDelegateKante.implicitHeight : implicitHeight
-            enabled: filterUsable
-            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-            leftPadding: 0
-            rightPadding: Design.spaceSmall
-            topPadding: root.rowVPad
-            bottomPadding: root.rowVPad
-
-            background: Item {
-                visible: !KanteStyle.active
-                anchors.fill: parent
-
-                SidebarHoverBackground {
-                        control: statusDelegate
-                    }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Design.inputRadius
-                    color: Kirigami.Theme.highlightColor
-                    opacity: statusDrop.containsDrag ? 0.28 : 0
-                    visible: opacity > 0
-                }
-            }
-
-            DropArea {
-                id: statusDrop
-                anchors.fill: parent
-                keys: ["application/x-kurrent-task"]
-                enabled: root.isDragging && filterUsable
-
-                readonly property string hintText: i18n("Set status “%1”", modelData.label)
-
-                onEntered: function(drag) {
-                    drag.acceptProposedAction()
-                    if (root.dragHost) {
-                        root.dragHost.setDropHint(hintText)
-                    }
-                }
-                onExited: {
-                    if (root.dragHost) {
-                        root.dragHost.clearDropHint(hintText)
-                    }
-                }
-                onDropped: function(drop) {
-                    if (root.dropTaskOnStatus(modelData.value)) {
-                        drop.acceptProposedAction()
-                    }
-                }
-            }
-
-            onClicked: {
-                if (!filterUsable) {
-                    return
-                }
-                if (controller.selectedStatus === modelData.value) {
-                    controller.selectedStatus = -1
-                } else {
-                    controller.selectedStatus = modelData.value
-                }
-            }
-
-            QQC2.ToolTip {
-                visible: !statusDelegate.filterUsable && statusDelegate.hovered
-                text: root.filterDisabledReason("status")
-            }
-
-            KanteSidebarRow {
-                id: statusDelegateKante
-                control: statusDelegate
-                text: modelData.label
-                count: root.showSidebarCounts ? statusDelegateCount.text : ""
-                dropTarget: statusDrop.containsDrag
-                disabledReason: statusDelegate.filterUsable ? "" : root.filterDisabledReason("status")
-
-                Kirigami.Icon {
-                    source: root.statusIconForValue(modelData.value)
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-            }
-
-            contentItem: RowLayout {
-                visible: !KanteStyle.active
-                spacing: Design.spaceSmall
-
-                Item { width: root.rowLeftInset }
-
-                Kirigami.Icon {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: root.rowIconSize
-                    Layout.preferredHeight: root.rowIconSize
-                    source: root.statusIconForValue(modelData.value)
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-
-                KirigamiDelegates.TitleSubtitle {
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: root.listContentWidth(statusList)
-                    Layout.alignment: Qt.AlignVCenter
-                    title: modelData.label
-                    selected: statusDelegate.highlighted || statusDelegate.down || statusDrop.containsDrag
-                }
-
-                CountBadge {
-                    id: statusDelegateCount
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                    text: {
-                        var n = controller.sidebarStatusCounts[String(modelData.value)]
-                        return n === undefined ? "" : String(n)
-                    }
-                    visible: root.showSidebarCounts && text.length > 0
-                    selected: statusDelegate.highlighted || statusDelegate.down
-                }
-            }
-        }
+        sidebar: root
+        sectionId: "status"
+        title: i18n("Status")
+        filterKind: "status"
+        items: root.statusItems
+        keyRole: "value"
+        textRole: "label"
+        selection: controller.selectedStatus
+        allValue: -1
+        counts: controller.sidebarStatusCounts
+        iconOf: function(status) { return { source: root.statusIconForValue(status.value) } }
+        hintFor: function(status) { return i18n("Set status “%1”", status.label) }
+        dropOn: function(status) { return root.dropTaskOnStatus(status.value) }
+        onChoose: function(value) { controller.selectedStatus = value }
     }
 
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !statusBlock.isLastVisible
-    }
-    }
-
-    // ── Secrecy section ──
-    Item {
+    SidebarSection {
         id: secrecyBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: secrecyList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: secrecyList
-        width: parent ? parent.width : 0
-        height: root.allocFor("secrecy")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(secrecyList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(secrecyList)
-        model: root.secrecyItems
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            if (controller.selectedSecrecy < 0) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (m[i].value === controller.selectedSecrecy) { currentIndex = i; return }
-            }
-            currentIndex = -1
-        }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: secrecyList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        headerPositioning: ListView.InlineHeader
-        header: RowLayout {
-            width: root.listContentWidth(secrecyList)
-            height: root.sectionHeaderHeight
-            Layout.leftMargin: Design.spaceSmall
-            Layout.rightMargin: Design.spaceSmall
-            spacing: 0
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: i18n("Secrecy")
-                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                font: KanteStyle.active ? KanteStyle.labelFont()
-                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                opacity: 0.65
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            PlasmaComponents3.ItemDelegate {
-                id: allSecrecyDelegate
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.preferredHeight: root.sectionHeaderHeight
-                hoverEnabled: root.rowHoverEnabled
-                highlighted: controller.selectedSecrecy < 0
-                readonly property bool filterUsable: root.filterEnabled("secrecy")
-                enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
-
-                onClicked: {
-                    if (filterUsable) {
-                        controller.selectedSecrecy = -1
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !allSecrecyDelegate.filterUsable && allSecrecyDelegate.hovered
-                    text: root.filterDisabledReason("secrecy")
-                }
-
-                background: SelectionBackground {
-                    control: allSecrecyDelegate
-                    selected: allSecrecyDelegate.highlighted
-                }
-
-                contentItem: QQC2.Label {
-                    text: i18n("All")
-                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: allSecrecyDelegate.highlighted || allSecrecyDelegate.down ? 1.0 : 0.75
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    leftPadding: Design.spaceSmall
-                    rightPadding: Design.spaceSmall
-                }
-            }
-        }
-
-        delegate: PlasmaComponents3.ItemDelegate {
-            id: secrecyDelegate
-            width: root.listContentWidth(secrecyList)
-            hoverEnabled: root.rowHoverEnabled
-            readonly property bool filterUsable: root.filterEnabled("secrecy")
-            highlighted: ListView.isCurrentItem
-            height: KanteStyle.active ? secrecyDelegateKante.implicitHeight : implicitHeight
-            enabled: filterUsable
-            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-            leftPadding: 0
-            rightPadding: Design.spaceSmall
-            topPadding: root.rowVPad
-            bottomPadding: root.rowVPad
-
-            background: Item {
-                visible: !KanteStyle.active
-                anchors.fill: parent
-
-                SidebarHoverBackground {
-                        control: secrecyDelegate
-                    }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Design.inputRadius
-                    color: Kirigami.Theme.highlightColor
-                    opacity: secrecyDrop.containsDrag ? 0.28 : 0
-                    visible: opacity > 0
-                }
-            }
-
-            DropArea {
-                id: secrecyDrop
-                anchors.fill: parent
-                keys: ["application/x-kurrent-task"]
-                enabled: root.isDragging && filterUsable
-
-                readonly property string hintText: i18n("Set secrecy “%1”", modelData.label)
-
-                onEntered: function(drag) {
-                    drag.acceptProposedAction()
-                    if (root.dragHost) {
-                        root.dragHost.setDropHint(hintText)
-                    }
-                }
-                onExited: {
-                    if (root.dragHost) {
-                        root.dragHost.clearDropHint(hintText)
-                    }
-                }
-                onDropped: function(drop) {
-                    if (root.dropTaskOnSecrecy(modelData.value)) {
-                        drop.acceptProposedAction()
-                    }
-                }
-            }
-
-            onClicked: {
-                if (!filterUsable) {
-                    return
-                }
-                if (controller.selectedSecrecy === modelData.value) {
-                    controller.selectedSecrecy = -1
-                } else {
-                    controller.selectedSecrecy = modelData.value
-                }
-            }
-
-            QQC2.ToolTip {
-                visible: !secrecyDelegate.filterUsable && secrecyDelegate.hovered
-                text: root.filterDisabledReason("secrecy")
-            }
-
-            KanteSidebarRow {
-                id: secrecyDelegateKante
-                control: secrecyDelegate
-                text: modelData.label
-                count: root.showSidebarCounts ? secrecyDelegateCount.text : ""
-                dropTarget: secrecyDrop.containsDrag
-                disabledReason: secrecyDelegate.filterUsable ? "" : root.filterDisabledReason("secrecy")
-
-                Kirigami.Icon {
-                    source: root.secrecyIconForValue(modelData.value)
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-            }
-
-            contentItem: RowLayout {
-                visible: !KanteStyle.active
-                spacing: Design.spaceSmall
-
-                Item { width: root.rowLeftInset }
-
-                Kirigami.Icon {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: root.rowIconSize
-                    Layout.preferredHeight: root.rowIconSize
-                    source: root.secrecyIconForValue(modelData.value)
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-
-                KirigamiDelegates.TitleSubtitle {
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: root.listContentWidth(secrecyList)
-                    Layout.alignment: Qt.AlignVCenter
-                    title: modelData.label
-                    selected: secrecyDelegate.highlighted || secrecyDelegate.down || secrecyDrop.containsDrag
-                }
-
-                CountBadge {
-                    id: secrecyDelegateCount
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                    text: {
-                        var n = controller.sidebarSecrecyCounts[String(modelData.value)]
-                        return n === undefined ? "" : String(n)
-                    }
-                    visible: root.showSidebarCounts && text.length > 0
-                    selected: secrecyDelegate.highlighted || secrecyDelegate.down
-                }
-            }
-        }
+        sidebar: root
+        sectionId: "secrecy"
+        title: i18n("Secrecy")
+        filterKind: "secrecy"
+        items: root.secrecyItems
+        keyRole: "value"
+        textRole: "label"
+        selection: controller.selectedSecrecy
+        allValue: -1
+        counts: controller.sidebarSecrecyCounts
+        iconOf: function(secrecy) { return { source: root.secrecyIconForValue(secrecy.value) } }
+        hintFor: function(secrecy) { return i18n("Set secrecy “%1”", secrecy.label) }
+        dropOn: function(secrecy) { return root.dropTaskOnSecrecy(secrecy.value) }
+        onChoose: function(value) { controller.selectedSecrecy = value }
     }
 
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !secrecyBlock.isLastVisible
-    }
-    }
-
-    // ── Location section ──
-    Item {
+    SidebarSection {
         id: locationBlock
-        width: parent ? parent.width : 0
-        property bool isLastVisible: false
-        height: locationList.height + (visible && !isLastVisible ? root.separatorStrip : 0)
-
-    ListView {
-        id: locationList
-        width: parent ? parent.width : 0
-        height: root.allocFor("location")
-        clip: true
-        implicitHeight: 0
-        implicitWidth: width
-        interactive: root.listNeedsScroll(locationList) || root.comfortableRows
-        boundsBehavior: Flickable.StopAtBounds
-        spacing: 1
-        model: root.visibleLocationItems
-        currentIndex: -1
-        highlight: StyledHighlight { visible: !KanteStyle.active }
-        highlightMoveDuration: Kirigami.Units.longDuration
-
-        function syncIndex() {
-            if (!controller) { currentIndex = -1; return }
-            var sel = controller.selectedLocation || ""
-            if (!sel.length) { currentIndex = -1; return }
-            var m = model || []
-            for (var i = 0; i < m.length; ++i) {
-                if (String(m[i]) === sel) { currentIndex = i; return }
-            }
-            currentIndex = -1
+        sidebar: root
+        sectionId: "location"
+        title: i18n("Location")
+        filterKind: "location"
+        items: root.visibleLocationItems
+        keyRole: ""
+        textRole: ""
+        selection: controller.selectedLocation
+        allValue: ""
+        counts: controller.sidebarLocationCounts
+        iconOf: function(location) {
+            return { source: "mark-location", color: Design.colorForKey(String(location), "location") }
         }
-        Component.onCompleted: syncIndex()
-        onModelChanged: Qt.callLater(syncIndex)
-
-        leftMargin: 0
-        rightMargin: root.scrollMarginFor(locationList)
-
-        QQC2.ScrollBar.vertical: SidebarScrollBar { view: locationList }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        onContentHeightChanged: Qt.callLater(root.redistributeSections)
-
-        headerPositioning: ListView.InlineHeader
-        header: RowLayout {
-            width: root.listContentWidth(locationList)
-            height: root.sectionHeaderHeight
-            Layout.leftMargin: Design.spaceSmall
-            Layout.rightMargin: Design.spaceSmall
-            spacing: 0
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                text: i18n("Location")
-                // Section label: small uppercase JetBrains Mono in Kante and Kante Light.
-                font: KanteStyle.active ? KanteStyle.labelFont()
-                                         : Qt.font({ family: Kirigami.Theme.defaultFont.family, pointSize: Kirigami.Theme.smallFont.pointSize, bold: true })
-                opacity: 0.65
-                verticalAlignment: Text.AlignVCenter
-            }
-
-            PlasmaComponents3.ItemDelegate {
-                id: allLocationsDelegate
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                Layout.preferredHeight: root.sectionHeaderHeight
-                hoverEnabled: root.rowHoverEnabled
-                highlighted: controller.selectedLocation === ""
-                readonly property bool filterUsable: root.filterEnabled("location")
-                enabled: filterUsable
-                opacity: filterUsable ? 1.0 : 0.45
-
-                onClicked: {
-                    if (filterUsable) {
-                        controller.selectedLocation = ""
-                    }
-                }
-
-                QQC2.ToolTip {
-                    visible: !allLocationsDelegate.filterUsable && allLocationsDelegate.hovered
-                    text: root.filterDisabledReason("location")
-                }
-
-                background: SelectionBackground {
-                    control: allLocationsDelegate
-                    selected: allLocationsDelegate.highlighted
-                }
-
-                contentItem: QQC2.Label {
-                    text: i18n("All")
-                    color: KanteStyle.themed && parent && parent.highlighted ? KanteStyle.accentForegroundColor : Kirigami.Theme.textColor
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: allLocationsDelegate.highlighted || allLocationsDelegate.down ? 1.0 : 0.75
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    leftPadding: Design.spaceSmall
-                    rightPadding: Design.spaceSmall
-                }
-            }
-        }
-
-        delegate: PlasmaComponents3.ItemDelegate {
-            id: locationDelegate
-            width: root.listContentWidth(locationList)
-            hoverEnabled: root.rowHoverEnabled
-            readonly property bool filterUsable: root.filterEnabled("location")
-            highlighted: ListView.isCurrentItem
-            height: KanteStyle.active ? locationDelegateKante.implicitHeight : implicitHeight
-            enabled: filterUsable
-            opacity: filterUsable || KanteStyle.active ? 1.0 : 0.45
-            leftPadding: 0
-            rightPadding: Design.spaceSmall
-            topPadding: root.rowVPad
-            bottomPadding: root.rowVPad
-
-            background: Item {
-                visible: !KanteStyle.active
-                anchors.fill: parent
-
-                SidebarHoverBackground {
-                        control: locationDelegate
-                    }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: Design.inputRadius
-                    color: Kirigami.Theme.highlightColor
-                    opacity: locationDrop.containsDrag ? 0.28 : 0
-                    visible: opacity > 0
-                }
-            }
-
-            DropArea {
-                id: locationDrop
-                anchors.fill: parent
-                keys: ["application/x-kurrent-task"]
-                enabled: root.isDragging && filterUsable
-
-                readonly property string hintText: root.locationDropHint(modelData)
-
-                onEntered: function(drag) {
-                    drag.acceptProposedAction()
-                    if (root.dragHost) {
-                        root.dragHost.setDropHint(hintText)
-                    }
-                }
-                onExited: {
-                    if (root.dragHost) {
-                        root.dragHost.clearDropHint(hintText)
-                    }
-                }
-                onDropped: function(drop) {
-                    if (root.dropTaskOnLocation(modelData)) {
-                        drop.acceptProposedAction()
-                    }
-                }
-            }
-
-            onClicked: {
-                if (!filterUsable) {
-                    return
-                }
-                if (controller.selectedLocation === modelData) {
-                    controller.selectedLocation = ""
-                } else {
-                    controller.selectedLocation = modelData
-                }
-            }
-
-            QQC2.ToolTip {
-                visible: !locationDelegate.filterUsable && locationDelegate.hovered
-                text: root.filterDisabledReason("location")
-            }
-
-            KanteSidebarRow {
-                id: locationDelegateKante
-                control: locationDelegate
-                text: modelData
-                count: root.showSidebarCounts ? locationDelegateCount.text : ""
-                dropTarget: locationDrop.containsDrag
-                disabledReason: locationDelegate.filterUsable ? "" : root.filterDisabledReason("location")
-
-                Kirigami.Icon {
-                    source: "mark-location"
-                    color: Design.colorForKey(String(modelData), "location")
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-            }
-
-            contentItem: RowLayout {
-                visible: !KanteStyle.active
-                spacing: Design.spaceSmall
-
-                Item { width: root.rowLeftInset }
-
-                Kirigami.Icon {
-                    Layout.alignment: Qt.AlignVCenter
-                    Layout.preferredWidth: root.rowIconSize
-                    Layout.preferredHeight: root.rowIconSize
-                    source: "mark-location"
-                    color: Design.colorForKey(String(modelData), "location")
-                    width: root.rowIconSize
-                    height: root.rowIconSize
-                }
-
-                KirigamiDelegates.TitleSubtitle {
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: root.listContentWidth(locationList)
-                    Layout.alignment: Qt.AlignVCenter
-                    title: modelData
-                    selected: locationDelegate.highlighted || locationDelegate.down || locationDrop.containsDrag
-                }
-
-                CountBadge {
-                    id: locationDelegateCount
-                    Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-                    text: {
-                        var n = controller.sidebarLocationCounts[modelData]
-                        return n === undefined ? "" : String(n)
-                    }
-                    visible: root.showSidebarCounts && text.length > 0
-                    selected: locationDelegate.highlighted || locationDelegate.down
-                }
-            }
-        }
-    }
-
-    Kirigami.Separator {
-        width: parent ? parent.width : 0
-        anchors.bottom: parent.bottom
-        visible: !locationBlock.isLastVisible
-    }
+        hintFor: root.locationDropHint
+        dropOn: root.dropTaskOnLocation
+        onChoose: function(value) { controller.selectedLocation = value }
     }
 
     }
