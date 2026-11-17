@@ -117,8 +117,7 @@ set_tests_properties(kurrent-taskstore PROPERTIES
 # TaskController + MemoryTaskStore: compile sources into the test binary because
 # kurrentplugin hides symbols (-fvisibility=hidden).
 find_package(KF6 REQUIRED COMPONENTS I18n)
-add_executable(kurrent-taskcontroller-store-test
-    taskcontroller_store_test.cpp
+set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
     ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
@@ -134,6 +133,10 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
     ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
+)
+add_executable(kurrent-taskcontroller-store-test
+    taskcontroller_store_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
 )
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
     # Same catalog as kurrentcore (plugin/CMakeLists.txt).
@@ -170,6 +173,31 @@ add_test(NAME kurrent-devbuild-marker
 set_tests_properties(kurrent-taskcontroller-store PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
+
+# The full editor's create through the memory store; its own file keeps the store test short.
+add_executable(kurrent-taskcontroller-editor-test
+    taskcontroller_editor_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-taskcontroller-editor-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-editor-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-editor-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-editor COMMAND kurrent-taskcontroller-editor-test)
+set_tests_properties(kurrent-taskcontroller-editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 # kurrentcore as built: catches a library that loses TRANSLATION_DOMAIN.
 add_executable(kurrent-core-i18n-test core_i18n_test.cpp)

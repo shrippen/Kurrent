@@ -77,9 +77,8 @@ private Q_SLOTS:
 
     void hiddenTokensAndEnabledCsv();
     void sidebarVisibilityAndLayout();
-    void viewIconsStatusRecurrencePriority();
-    void cursorAndDragLimits();
-    void dateTimeTokensAndIsoParse();
+    void normalizeStatusValues();
+    void isoDateAndTimeParse();
 
     void todayViewExcludesOverdueTasks();
     void dayPartsAndListBuckets();
@@ -1120,71 +1119,16 @@ void TaskLogicTest::sidebarVisibilityAndLayout()
     QCOMPARE(TaskLogic::visibleProjectCount(projects, {}), 2);
     QCOMPARE(TaskLogic::visibleProjectCount(projects, QSet<qint64>{20}), 1);
     QCOMPARE(TaskLogic::visibleLabelCount({QStringLiteral("a"), QStringLiteral("b")}, {QStringLiteral("a")}), 1);
-
-    QCOMPARE(TaskLogic::naturalListHeight(3, TaskLogic::ListHeader::Yes, 10, 20, 1), 10 + 60 + 3);
-    QCOMPARE(TaskLogic::naturalListHeight(0, TaskLogic::ListHeader::No, 10, 20, 1), 0);
-
-    const QList<int> alloc = TaskLogic::redistributeSections(400, {80, 80, 80, 80});
-    QCOMPARE(alloc.size(), 4);
-    QCOMPARE(alloc.at(0), 80);
-    QCOMPARE(alloc.at(0) + alloc.at(1) + alloc.at(2) + alloc.at(3), 320);
-
-    const QList<int> squeezed = TaskLogic::redistributeSections(100, {80, 80, 80, 80});
-    QCOMPARE(squeezed.size(), 4);
-    QCOMPARE(squeezed.at(0) + squeezed.at(1) + squeezed.at(2) + squeezed.at(3), 100);
-    QCOMPARE(TaskLogic::redistributeSections(2, {10, 10}).size(), 2);
 }
 
-void TaskLogicTest::viewIconsStatusRecurrencePriority()
+void TaskLogicTest::normalizeStatusValues()
 {
-    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("today")), QStringLiteral("view-calendar-day"));
-    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("overdue")), QStringLiteral("chronometer"));
-    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("inbox")), QStringLiteral("mail-folder-inbox"));
-    QCOMPARE(TaskLogic::viewIconSource(QStringLiteral("completed")), QStringLiteral("checkmark"));
-    QCOMPARE(TaskLogic::indexForValue({1, 5, 9, 0}, 9), 2);
-    QCOMPARE(TaskLogic::indexForString({QStringLiteral("a"), QStringLiteral("b")}, QStringLiteral("b")), 1);
-    QCOMPARE(TaskLogic::indexForString({QStringLiteral("a")}, QString()), -1);
     QCOMPARE(TaskLogic::normalizeStatus(4), 4);
     QCOMPARE(TaskLogic::normalizeStatus(99), 0);
-    QCOMPARE(TaskLogic::recurrenceIndexFor(QStringLiteral("monthly")), 3);
-    QCOMPARE(TaskLogic::recurrenceValueFor(2), QStringLiteral("weekly"));
-    QCOMPARE(TaskLogic::recurrenceValueFor(0), QStringLiteral("none"));
-    QCOMPARE(TaskLogic::priorityLabel(2), QStringLiteral("high"));
-    QCOMPARE(TaskLogic::priorityLabel(0), QString());
-    QCOMPARE(TaskLogic::priorityToIndex(8), 3);
-    QCOMPARE(TaskLogic::indexToPriority(2), 5);
 }
 
-void TaskLogicTest::cursorAndDragLimits()
+void TaskLogicTest::isoDateAndTimeParse()
 {
-    QCOMPARE(TaskLogic::resolveCursorSize(48, TaskLogic::EnvCursor::Valid, 24), 48);
-    QCOMPARE(TaskLogic::resolveCursorSize(0, TaskLogic::EnvCursor::Valid, 32), 32);
-    QCOMPARE(TaskLogic::resolveCursorSize(48, TaskLogic::EnvCursor::Invalid, 0), 24);
-    QCOMPARE(TaskLogic::pickLimitRight(1920, 1800, 4), 1796);
-    QCOMPARE(TaskLogic::pickLimitRight(1920, 0, 4), 1916);
-    QCOMPARE(TaskLogic::pickLimitBottom({1080, 1040, 2000}, 4), 1036);
-}
-
-void TaskLogicTest::dateTimeTokensAndIsoParse()
-{
-    QCOMPARE(TaskLogic::pad2(3), QStringLiteral("03"));
-    QCOMPARE(TaskLogic::pad2(12), QStringLiteral("12"));
-    QCOMPARE(TaskLogic::digitsOnly(QStringLiteral("12-03-2026")), QStringLiteral("12032026"));
-
-    const auto dateTokens = TaskLogic::parseFormatTokens(QStringLiteral("dd.MM.yyyy"));
-    QCOMPARE(TaskLogic::maxDigitsFor(dateTokens), 8);
-    QCOMPARE(TaskLogic::formatDigitsWithTokens(QStringLiteral("13082026"), dateTokens), QStringLiteral("13.08.2026"));
-    QCOMPARE(TaskLogic::formatDigitsWithTokens(QStringLiteral("13"), dateTokens), QStringLiteral("13"));
-
-    const auto timeTokens = TaskLogic::parseFormatTokens(QStringLiteral("HH:mm"));
-    QCOMPARE(TaskLogic::formatDigitsWithTokens(QStringLiteral("0930"), timeTokens), QStringLiteral("09:30"));
-
-    const auto segs = TaskLogic::computeSegments(QStringLiteral("13.08.2026"), dateTokens);
-    QCOMPARE(segs.size(), 3);
-    QCOMPARE(segs.at(0).kind, QStringLiteral("day"));
-    QCOMPARE(TaskLogic::segmentAtPosition(QStringLiteral("13.08.2026"), dateTokens, 0).kind, QStringLiteral("day"));
-    QCOMPARE(TaskLogic::segmentAtPosition(QStringLiteral("13.08.2026"), dateTokens, 4).kind, QStringLiteral("month"));
-
     QCOMPARE(TaskLogic::parseIsoDate(QStringLiteral("2026-08-13")), QDate(2026, 8, 13));
     QVERIFY(!TaskLogic::parseIsoDate(QStringLiteral("13.08.2026")).isValid());
 

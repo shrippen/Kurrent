@@ -21,10 +21,10 @@ plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	-	lines=831
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	_dropField	ccn=28 nesting=5
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	_parseFormatTokens	ccn=31 nesting=7
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	formatDigitsWithTokens	ccn=19
+plasmoid/io.github.shrippen.Kurrent/contents/ui/sidebarheight.js	distribute	ccn=42 length=133 nesting=5
 plasmoid/io.github.shrippen.Kurrent/contents/ui/taskmeta.js	listSectionIcon	ccn=17
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/AgendaDayView.qml	reasonsOf	nesting=6
-plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=2847
-plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	redistributeSections	ccn=44 length=160 nesting=5
+plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=2718
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/TaskListView.qml	-	lines=858
 plugin/agendalogic.cpp	AgendaLogic::rankSuggestions	ccn=22
 plugin/quickadd.cpp	-	lines=969
@@ -35,13 +35,12 @@ plugin/quickadd.cpp	TaskLogic::suggestQuickAdd	ccn=19 length=106
 plugin/sharedsettings.cpp	SharedSettings::specs	length=100
 plugin/taskcalendar.cpp	TaskCalendar::appendBusyIntervals	ccn=19
 plugin/taskcalendar.cpp	TaskCalendar::completeTodo	ccn=28 length=83
-plugin/taskcontroller.cpp	-	lines=7105
+plugin/taskcontroller.cpp	-	lines=6943
 plugin/taskcontroller.cpp	TaskController::agendaDays	ccn=20 length=127
 plugin/taskcontroller.cpp	TaskController::agendaTasksForRange	ccn=18
 plugin/taskcontroller.cpp	TaskController::applyUndoRecord	ccn=20 length=90
 plugin/taskcontroller.cpp	TaskController::autoResolveConflict	length=90
 plugin/taskcontroller.cpp	TaskController::createQuickTask	ccn=26 length=87 nesting=6
-plugin/taskcontroller.cpp	TaskController::createTaskFull	ccn=29 length=102
 plugin/taskcontroller.cpp	TaskController::finishSync	ccn=19 length=103
 plugin/taskcontroller.cpp	TaskController::kanbanColumnKeysForVisibleTasks	ccn=19
 plugin/taskcontroller.cpp	TaskController::listGroupLabelForKey	ccn=29
@@ -54,30 +53,27 @@ plugin/taskcontroller.cpp	TaskController::reorderKanbanCard	ccn=17
 plugin/taskcontroller.cpp	TaskController::resolveMergeConflict	ccn=21 length=85 nesting=12
 plugin/taskcontroller.cpp	TaskController::selectKanbanSource	nesting=5
 plugin/taskcontroller.cpp	TaskController::swimlaneMatrixForVisibleTasks	ccn=21 nesting=6
-plugin/taskcontroller.cpp	TaskController::updateTaskFull	ccn=49 length=127
 plugin/taskcontroller.cpp	TaskController::upsertTask	ccn=30 length=81
-plugin/taskcontroller.h	-	lines=948
+plugin/taskcontroller.h	-	lines=947
 plugin/tasklistmodel.cpp	TaskListModel::chunkStep	ccn=17
 plugin/tasklistmodel.cpp	TaskListModel::data	ccn=43 length=83
 plugin/tasklistmodel.cpp	TaskListModel::setTasks	ccn=20 length=102
 plugin/tasklistmodel.cpp	TaskListModel::taskDataDiffers	ccn=33
-plugin/tasklogic.cpp	-	lines=3783
+plugin/tasklogic.cpp	-	lines=3330
 plugin/tasklogic.cpp	TaskLogic::buildMatrix	ccn=36 length=175 nesting=5
 plugin/tasklogic.cpp	TaskLogic::compareTasks	ccn=73 length=160 nesting=17
 plugin/tasklogic.cpp	TaskLogic::computeCounts	ccn=85 length=210 nesting=5
 plugin/tasklogic.cpp	TaskLogic::filterVisibleTasks	ccn=56 length=186 nesting=7
 plugin/tasklogic.cpp	TaskLogic::flattenTreeImpl	ccn=23 length=107
-plugin/tasklogic.cpp	TaskLogic::formatDigitsWithTokens	ccn=18
 plugin/tasklogic.cpp	TaskLogic::kanbanColumnKey	ccn=26
 plugin/tasklogic.cpp	TaskLogic::matchesSmartView	ccn=45 nesting=7
 plugin/tasklogic.cpp	TaskLogic::matchesView	ccn=19
-plugin/tasklogic.cpp	TaskLogic::parseFormatTokens	ccn=21 nesting=6
 plugin/tasklogic.cpp	TaskLogic::rescheduleDue	ccn=21
 plugin/tasklogic.cpp	TaskLogic::sortFlatForListGroup	ccn=27 length=94
 po/generate_po.py	main	ccn=18
 tests/taskcontroller_store_test.cpp	-	lines=1368
 tests/taskcontroller_store_test.cpp	TaskControllerStoreTest::seriesBlockAtOtherTimeDetaches	length=83
-tests/tasklogic_test.cpp	-	lines=2012
+tests/tasklogic_test.cpp	-	lines=1956
 tests/tasklogic_test.cpp	TaskLogicTest::planMatrixGridOverdueConsolidationAndHorizon	length=84
 tui/terminal.cpp	Terminal::readInput	ccn=23 nesting=9
 tui/tuiapp.cpp	TuiApp::onFocusKey	ccn=20 nesting=11
