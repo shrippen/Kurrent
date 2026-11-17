@@ -100,8 +100,6 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   running versions in QML are untested or compute differently
   (`AUDIT.md`, finding 1). `ui/taskmeta.js` computes the progress bands a second time,
   without a test (not in `AUDIT.md`).
-- Tasks from the editor are created by the controller straight in Akonadi, past the
-  storage boundary, with a copied block that sets the fields (`AUDIT.md`, finding 2).
 - The sidebar consists of seven nearly equal sections of about 230 lines each
   (`AUDIT.md`, finding 3).
 - The controller does nearly everything in one class of 7031 lines, including
