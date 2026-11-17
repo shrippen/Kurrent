@@ -26,7 +26,7 @@ public:
 
 }
 
-// Widgets A and B and a config page C in one process, sharing the statics of TaskController.
+// Widgets A and B and a config page C in one process, sharing SharedTasks.
 class TaskControllerMultiTest : public QObject
 {
     Q_OBJECT
@@ -147,15 +147,15 @@ void TaskControllerMultiTest::collectionsReachOthers()
     const QHash<qint64, QString> names = {{kInbox, QStringLiteral("Inbox")}, {30, QStringLiteral("Events")}};
 
     QSignalSpy changed(m_c, &TaskController::eventBusySettingsChanged);
-    m_a->applyCollections(tasks, {events}, names);
+    SharedTasks::instance().setCollections(tasks, {events}, names);
 
     for (TaskController *controller : {m_a, m_b, m_c}) {
         QCOMPARE(controller->collectionModel()->rowCount(), 1);
         QCOMPARE(controller->collectionModel()->nameAt(0), QStringLiteral("Inbox"));
         QCOMPARE(controller->eventCalendarModel()->rowCount(), 1);
         QCOMPARE(controller->eventCalendarModel()->nameAt(0), QStringLiteral("Events"));
-        QCOMPARE(controller->m_collectionNames, names);
     }
+    QCOMPARE(SharedTasks::instance().collectionNames(), names);
     QCOMPARE(changed.size(), 1);
 }
 
@@ -197,8 +197,9 @@ void TaskControllerMultiTest::writesReachOtherModels()
     const qint64 newId = result.item.id();
     QTRY_VERIFY_WITH_TIMEOUT(rowOf(m_b, newId) >= 0, kTimeoutMs);
     QCOMPARE(m_b->testTaskSummary(newId), QStringLiteral("fresh"));
-    QCOMPARE(m_c->testTaskSummary(newId), QStringLiteral("fresh"));
+    QTRY_VERIFY_WITH_TIMEOUT(rowOf(m_c, newId) >= 0, kTimeoutMs);
     QTRY_COMPARE_WITH_TIMEOUT(m_b->taskModel()->rowCount(), 2, kTimeoutMs);
+    QTRY_COMPARE_WITH_TIMEOUT(m_c->taskModel()->rowCount(), 2, kTimeoutMs);
 
     // Delete
     QSignalSpy deleted(m_storeA, &AbstractTaskStore::finished);
@@ -211,8 +212,7 @@ void TaskControllerMultiTest::writesReachOtherModels()
 
 void TaskControllerMultiTest::busyIntervalsReachOthers()
 {
-    QCOMPARE(m_b->m_busyIntervals.size(), 0);
-    QCOMPARE(m_c->m_busyIntervals.size(), 0);
+    QCOMPARE(SharedTasks::instance().busyIntervals().size(), 0);
 
     TaskCalendar::BusyInterval interval;
     interval.start = QDateTime::currentDateTime();
@@ -223,9 +223,8 @@ void TaskControllerMultiTest::busyIntervalsReachOthers()
     m_a->m_busyFetchIntervals = {interval, interval};
     m_a->onBusyEventsFetched(&job, QDateTime(), QDateTime());
 
-    QCOMPARE(m_a->m_busyIntervals.size(), 2);
-    QCOMPARE(m_b->m_busyIntervals.size(), 2);
-    QCOMPARE(m_c->m_busyIntervals.size(), 2);
+    QCOMPARE(SharedTasks::instance().busyIntervals().size(), 2);
+    QVERIFY(!m_c->agendaEventsForDay(interval.start.date()).isEmpty());
 }
 
 void TaskControllerMultiTest::destroyedWriterLeavesOthersWorking()
@@ -246,8 +245,9 @@ void TaskControllerMultiTest::destroyedWriterLeavesOthersWorking()
     const auto result = created.takeFirst().at(0).value<AbstractTaskStore::Result>();
     QVERIFY(result.ok);
     QTRY_VERIFY_WITH_TIMEOUT(rowOf(m_b, result.item.id()) >= 0, kTimeoutMs);
-    QVERIFY(m_c->testTaskExists(result.item.id()));
-    QVERIFY(m_b->testTaskExists(1));
+    QTRY_VERIFY_WITH_TIMEOUT(rowOf(m_c, result.item.id()) >= 0, kTimeoutMs);
+    QVERIFY(rowOf(m_b, 1) >= 0);
+    QVERIFY(rowOf(m_c, 1) >= 0);
 }
 
 QTEST_MAIN(TaskControllerMultiTest)

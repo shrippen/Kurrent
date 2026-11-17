@@ -2,6 +2,7 @@
 
 #include "agendalogic.h"
 #include "collectionlistmodel.h"
+#include "sharedtasks.h"
 #include "taskcalendar.h"
 #include "tasklistmodel.h"
 #include "tasklogic.h"
@@ -632,7 +633,7 @@ signals:
     /** kurrentrc changed (any key); the bound configuration is already up to date. */
     void settingsChanged();
 
-    friend class TaskControllerMultiTest; // tests/taskcontroller_multi_test.cpp reads the busy intervals
+    friend class TaskControllerMultiTest; // tests/taskcontroller_multi_test.cpp feeds a busy fetch result (onBusyEventsFetched, its job counter and buffer)
     friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
@@ -641,19 +642,6 @@ private Q_SLOTS:
 
 private:
 enum class SyncResult { Error, Ok };
-
-    struct CachedTask {
-        Akonadi::Item item;
-        KCalendarCore::Todo::Ptr todo;
-        bool syncing = false;
-        bool pendingDelete = false;
-        int inflight = 0;
-        bool persistQueued = false;
-        qint64 persistQueuedMoveId = -1;
-        KCalendarCore::Todo::Ptr revertTodo;
-        KCalendarCore::Todo::Ptr submittedTodo;
-        qint64 revertCollectionId = -1;
-    };
 
     void bindConfiguration(QObject *configuration);
     void loadSettings();
@@ -672,7 +660,7 @@ enum class SyncResult { Error, Ok };
     void setLoading(bool loading);
     void setErrorMessage(const QString &message);
     void updateEmptyKind();
-    TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
+    TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const SharedTasks::Entry &cache) const;
     void pushUndo(TaskLogic::UndoRecord record);
     void applyUndoRecord(const TaskLogic::UndoRecord &record);
     void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
@@ -695,7 +683,6 @@ enum class SyncResult { Error, Ok };
     bool isInBusyEvent(const QDateTime &when) const;
     QList<Akonadi::Collection> busyEventCollections() const;
     void onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd);
-    void applyBusyIntervals(const QVector<TaskCalendar::BusyInterval> &intervals);
     void registerSessionInterface();
     void registerGlobalShortcuts();
     void ensureServerWatch();
@@ -704,8 +691,8 @@ enum class SyncResult { Error, Ok };
     void scheduleAkonadiRetry();
     void loadCollections();
     void scheduleLoadCollections();
-    void applyCollections(const QList<Akonadi::Collection> &collections, const QList<Akonadi::Collection> &eventCollections, const QHash<qint64, QString> &names);
     void loadTasks();
+    void connectShared();
     void scheduleRebuild();
     void rebuildTaskList();
     void onRebuildFinished();
@@ -724,7 +711,7 @@ enum class SyncResult { Error, Ok };
     QList<TaskEntry> snapshotAllTasks() const;
     bool wouldCreateParentCycle(qint64 itemId, const QString &parentUid) const;
     /** Validate and apply RELATED-TO; returns false if rejected (error already emitted). */
-    bool applyParentUid(CachedTask *cache, const QString &parentUid, qint64 collectionId);
+    bool applyParentUid(SharedTasks::Entry *cache, const QString &parentUid, qint64 collectionId);
     bool taskMatchesView(const TaskEntry &task) const;
     TaskLogic::FilterState filterState() const;
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
@@ -737,17 +724,17 @@ enum class SyncResult { Error, Ok };
     Akonadi::Item itemById(qint64 itemId) const;
     KCalendarCore::Todo::Ptr todoFromItem(const Akonadi::Item &item) const;
     QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
-    TaskEntry makeTaskEntry(const CachedTask &cached, int indentLevel, bool hasChildren) const;
+    TaskEntry makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const;
     /** Every task the Agenda knows (all projects, not only the filtered list). */
     QList<TaskEntry> agendaEntries() const;
     /** Busy minutes on `day`: timed events and open task blocks, without `skipItemId`. */
     QList<AgendaLogic::Span> agendaBusy(const QDate &day, const QList<TaskEntry> &tasks, qint64 skipItemId) const;
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
-    CachedTask *prepareEdit(qint64 itemId);
+    SharedTasks::Entry *prepareEdit(qint64 itemId);
     void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {}, const Akonadi::Item &ackedItem = {});
     void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
-    void submitModify(CachedTask &cached, qint64 moveToCollectionId);
+    void submitModify(SharedTasks::Entry &cached, qint64 moveToCollectionId);
     void autoResolveConflict(qint64 itemId);
     QVariantList computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
                                    const KCalendarCore::Todo::Ptr &user,
@@ -763,8 +750,6 @@ enum class SyncResult { Error, Ok };
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
     void updateAvailableLocations(const QList<TaskEntry> &tasks);
     void updateCounts(const TaskLogic::SidebarCounts &counts);
-    void publishSharedCache();
-    void scheduleRebuildAll();
     void fetchTodos(const Akonadi::Collection &collection);
     void onItemsFetched(const Akonadi::Item::List &items, const QString &error, qint64 collectionId);
     void logDebug(const QString &message);
@@ -916,8 +901,6 @@ enum class SyncResult { Error, Ok };
     TaskListModel m_taskModel;
     CollectionListModel m_collectionModel;
     CollectionListModel m_eventCalendarModel;
-    QVector<TaskCalendar::BusyInterval> m_busyIntervals;
-    QHash<qint64, QString> m_collectionNames;
     AbstractTaskStore *m_store = nullptr;
     QTimer m_rebuildTimer;
     QTimer m_collectionsTimer;
@@ -931,18 +914,9 @@ enum class SyncResult { Error, Ok };
     bool m_agendaWeekend = true;
     int m_agendaWorkMinutes = AgendaLogic::kDefaultWorkMinutes;
 
-    static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
-    static QList<Akonadi::Collection> s_collections;
-    static QList<Akonadi::Collection> s_eventCollections;
-    // Busy events: changed since the last fetch, and the day of that fetch (shared by all widgets).
-    static TaskLogic::BusyEvents s_busyEvents;
-    static QDate s_busyFetchedOn;
-    static QHash<qint64, QString> s_collectionNames;
-    static QStringList s_extraLabels;
-    static QStringList s_extraLocations;
+    SharedTasks &m_shared = SharedTasks::instance();
     static QList<TaskController *> s_instances;
     static SessionServices s_sessionServices;
-    static qint64 s_nextTempId;
     static int s_smokeStep;
     static bool s_smokeFinished;
     static TaskController *s_smokeLeader;

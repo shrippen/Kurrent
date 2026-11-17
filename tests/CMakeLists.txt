@@ -94,6 +94,22 @@ target_include_directories(kurrent-tui-screens-test PRIVATE ${CMAKE_SOURCE_DIR}/
 target_link_libraries(kurrent-tui-screens-test PRIVATE Qt6::Core Qt6::Test)
 add_test(NAME kurrent-tui-screens COMMAND kurrent-tui-screens-test)
 
+add_executable(kurrent-sharedtasks-test
+    sharedtasks_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+)
+target_include_directories(kurrent-sharedtasks-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-sharedtasks-test PRIVATE
+    Qt6::Core
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-sharedtasks COMMAND kurrent-sharedtasks-test)
+
 add_executable(kurrent-akonadiitems-test
     akonadiitems_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
@@ -130,6 +146,7 @@ set_tests_properties(kurrent-taskstore PROPERTIES
 find_package(KF6 REQUIRED COMPONENTS I18n)
 set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
     ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
@@ -253,6 +270,7 @@ if(KURRENT_BUILD_BENCH)
     add_executable(kurrent-perf-bench
         perf_bench.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
         ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
@@ -283,6 +301,7 @@ set(_kurrent_test_targets
     kurrent-models-test
     kurrent-calendar-test
     kurrent-taskstore-test
+    kurrent-sharedtasks-test
     kurrent-taskcontroller-store-test
     kurrent-taskcontroller-editor-test
     kurrent-taskcontroller-multi-test

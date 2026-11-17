@@ -250,17 +250,8 @@ QVariantList kanbanManualOrderForColumn(const QVariantMap &comboMap, const QStri
 
 } // namespace
 
-QHash<Akonadi::Item::Id, TaskController::CachedTask> TaskController::s_tasks;
-QList<Akonadi::Collection> TaskController::s_collections;
-QList<Akonadi::Collection> TaskController::s_eventCollections;
-TaskLogic::BusyEvents TaskController::s_busyEvents = TaskLogic::BusyEvents::Changed;
-QDate TaskController::s_busyFetchedOn;
-QHash<qint64, QString> TaskController::s_collectionNames;
-QStringList TaskController::s_extraLabels;
-QStringList TaskController::s_extraLocations;
 QList<TaskController *> TaskController::s_instances;
 TaskController::SessionServices TaskController::s_sessionServices = TaskController::SessionServices::On;
-qint64 TaskController::s_nextTempId = -2;
 int TaskController::s_smokeStep = 0;
 bool TaskController::s_smokeFinished = false;
 TaskController *TaskController::s_smokeLeader = nullptr;
@@ -277,6 +268,7 @@ TaskController::TaskController(QObject *parent)
     m_rebuildTimer.setInterval(kRebuildDelayMs);
     m_rebuildTimer.setSingleShot(true);
     connect(&m_rebuildTimer, &QTimer::timeout, this, &TaskController::rebuildTaskList);
+    connectShared();
 
     connect(&m_rebuildWatcher, &QFutureWatcher<TaskLogic::TaskRebuildOutput>::finished, this,
             &TaskController::onRebuildFinished);
@@ -345,6 +337,17 @@ TaskController::TaskController(QObject *parent)
     });
 }
 
+// The shared data changed (this controller's or another's): show it.
+void TaskController::connectShared()
+{
+    connect(&m_shared, &SharedTasks::tasksChanged, this, &TaskController::scheduleRebuild);
+    connect(&m_shared, &SharedTasks::collectionsChanged, this, [this]() {
+        m_collectionModel.setCollections(m_shared.collections());
+        m_eventCalendarModel.setCollections(m_shared.eventCollections());
+        Q_EMIT eventBusySettingsChanged();
+    });
+}
+
 TaskController::~TaskController()
 {
     if (m_rebuildWatcher.isRunning()) {
@@ -392,7 +395,7 @@ void TaskController::loadDemoData()
     m_demo = true;
     setTaskStore(new MemoryTaskStore);
     const DemoData::Data data = DemoData::load();
-    s_tasks.clear();
+    m_shared.tasks().clear();
     installTestCollections(data.collections);
     for (const DemoData::Task &task : data.tasks) {
         Akonadi::Item item;
@@ -400,19 +403,19 @@ void TaskController::loadDemoData()
         item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
         item.setPayload(task.todo);
         item.setParentCollection(Akonadi::Collection(task.collectionId));
-        CachedTask cached;
+        SharedTasks::Entry cached;
         cached.item = item;
         cached.todo = task.todo;
-        s_tasks.insert(task.id, cached);
+        m_shared.tasks().insert(task.id, cached);
         if (auto *memory = qobject_cast<MemoryTaskStore *>(m_store)) {
             memory->seedItem(item);
         }
     }
-    m_busyIntervals = data.events;
+    m_shared.setBusyIntervals(data.events);
     m_agendaSelectedDate = data.today;
     m_akonadiAvailable = true;
     Q_EMIT akonadiAvailableChanged();
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 #else
 void TaskController::loadDemoData()
@@ -422,14 +425,7 @@ void TaskController::loadDemoData()
 
 void TaskController::resetSharedStateForTest()
 {
-    s_busyEvents = TaskLogic::BusyEvents::Changed;
-    s_busyFetchedOn = QDate();
-    s_tasks.clear();
-    s_collections.clear();
-    s_eventCollections.clear();
-    s_collectionNames.clear();
-    s_extraLabels.clear();
-    s_extraLocations.clear();
+    m_shared.reset();
     m_undo.clear();
     m_recreateAfterDelete.clear();
     m_collapsedUids.clear();
@@ -437,7 +433,6 @@ void TaskController::resetSharedStateForTest()
     m_errorMessage.clear();
     m_collectionModel.setCollections({});
     m_eventCalendarModel.setCollections({});
-    m_busyIntervals.clear();
     m_taskModel.setTasks({});
     m_akonadiAvailable = false;
     Q_EMIT undoChanged();
@@ -461,7 +456,7 @@ void TaskController::installTestCollections(const QList<Akonadi::Collection> &co
     for (const Akonadi::Collection &collection : collections) {
         names.insert(collection.id(), collection.displayName());
     }
-    applyCollections(collections, {}, names);
+    m_shared.setCollections(collections, {}, names);
 }
 
 qint64 TaskController::installTestTask(qint64 id, const QString &summary, qint64 collectionId)
@@ -481,45 +476,45 @@ void TaskController::installTestTodo(qint64 id, const KCalendarCore::Todo::Ptr &
     item.setPayload(todo);
     item.setParentCollection(Akonadi::Collection(collectionId));
 
-    CachedTask cached;
+    SharedTasks::Entry cached;
     cached.item = item;
     cached.todo = todo;
-    s_tasks.insert(id, cached);
+    m_shared.tasks().insert(id, cached);
 
     if (auto *memory = qobject_cast<MemoryTaskStore *>(m_store)) {
         memory->seedItem(item);
     }
 
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 
 bool TaskController::testTaskExists(qint64 id) const
 {
-    return s_tasks.contains(id);
+    return m_shared.tasks().contains(id);
 }
 
 bool TaskController::testTaskSyncing(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    return it != s_tasks.cend() && it->syncing;
+    const auto it = m_shared.tasks().constFind(id);
+    return it != m_shared.tasks().cend() && it->syncing;
 }
 
 bool TaskController::testTaskPendingDelete(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    return it != s_tasks.cend() && it->pendingDelete;
+    const auto it = m_shared.tasks().constFind(id);
+    return it != m_shared.tasks().cend() && it->pendingDelete;
 }
 
 bool TaskController::testTaskCompleted(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    return it != s_tasks.cend() && it->todo && it->todo->isCompleted();
+    const auto it = m_shared.tasks().constFind(id);
+    return it != m_shared.tasks().cend() && it->todo && it->todo->isCompleted();
 }
 
 QString TaskController::testTaskSummary(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return {};
     }
     return it->todo->summary();
@@ -527,8 +522,8 @@ QString TaskController::testTaskSummary(qint64 id) const
 
 qint64 TaskController::testTaskCollectionId(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend()) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend()) {
         return -1;
     }
     return it->item.parentCollection().id();
@@ -536,14 +531,14 @@ qint64 TaskController::testTaskCollectionId(qint64 id) const
 
 int TaskController::testInflight(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    return it == s_tasks.cend() ? 0 : it->inflight;
+    const auto it = m_shared.tasks().constFind(id);
+    return it == m_shared.tasks().cend() ? 0 : it->inflight;
 }
 
 QStringList TaskController::testTaskCategories(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return {};
     }
     return it->todo->categories();
@@ -551,8 +546,8 @@ QStringList TaskController::testTaskCategories(qint64 id) const
 
 int TaskController::testTaskPriority(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return 0;
     }
     return it->todo->priority();
@@ -560,8 +555,8 @@ int TaskController::testTaskPriority(qint64 id) const
 
 int TaskController::testTaskStatus(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return 0;
     }
     return static_cast<int>(it->todo->status());
@@ -569,8 +564,8 @@ int TaskController::testTaskStatus(qint64 id) const
 
 int TaskController::testTaskSecrecy(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return 0;
     }
     return static_cast<int>(it->todo->secrecy());
@@ -578,8 +573,8 @@ int TaskController::testTaskSecrecy(qint64 id) const
 
 QDateTime TaskController::testTaskDue(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo || !it->todo->hasDueDate()) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo || !it->todo->hasDueDate()) {
         return {};
     }
     return it->todo->dtDue();
@@ -587,8 +582,8 @@ QDateTime TaskController::testTaskDue(qint64 id) const
 
 QString TaskController::testTaskLocation(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return {};
     }
     return it->todo->location();
@@ -596,8 +591,8 @@ QString TaskController::testTaskLocation(qint64 id) const
 
 QString TaskController::testKanbanColumnKey(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    if (it == s_tasks.cend()) {
+    const auto it = m_shared.tasks().constFind(id);
+    if (it == m_shared.tasks().cend()) {
         return {};
     }
     const TaskEntry entry = makeTaskEntry(*it, 0, false);
@@ -606,8 +601,8 @@ QString TaskController::testKanbanColumnKey(qint64 id) const
 
 int TaskController::testTaskRevision(qint64 id) const
 {
-    const auto it = s_tasks.constFind(id);
-    return it == s_tasks.cend() ? -1 : it->item.revision();
+    const auto it = m_shared.tasks().constFind(id);
+    return it == m_shared.tasks().cend() ? -1 : it->item.revision();
 }
 
 void TaskController::testApplyExternalItem(const Akonadi::Item &item)
@@ -720,7 +715,7 @@ void TaskController::smokeTrace(const QString &message) const
 
 QString TaskController::collectionNameForId(qint64 collectionId) const
 {
-    return m_collectionNames.value(collectionId, QString());
+    return m_shared.collectionNames().value(collectionId, QString());
 }
 
 int TaskController::systemCursorSize() const
@@ -1168,7 +1163,7 @@ QString TaskController::kanbanColumnLabelForKey(const QString &key) const
     if (m_kanbanColumnSource == TaskLogic::KanbanSource::Project) {
         const qint64 id = key.toLongLong();
         if (id > 0) {
-            return m_collectionNames.value(id, key);
+            return m_shared.collectionNames().value(id, key);
         }
         return i18n("Inbox");
     }
@@ -1205,7 +1200,7 @@ QString TaskController::listGroupLabelForKey(const QString &key) const
     if (mode == TaskLogic::ListGroupSource::Project) {
         const qint64 id = key.toLongLong();
         if (id > 0) {
-            return m_collectionNames.value(id, key);
+            return m_shared.collectionNames().value(id, key);
         }
         return i18n("Inbox");
     }
@@ -1337,7 +1332,7 @@ QStringList TaskController::kanbanColumnKeysForVisibleTasks() const
 
 void TaskController::moveTaskToKanbanColumn(qint64 itemId, const QString &columnKey)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache || !cache->todo) {
         return;
     }
@@ -1620,8 +1615,8 @@ QVariantMap TaskController::taskRowSnapshot(int row) const
 
 QVariantMap TaskController::taskSnapshotById(qint64 itemId) const
 {
-    const auto it = s_tasks.constFind(itemId);
-    if (it == s_tasks.cend() || !it->todo || it->pendingDelete) {
+    const auto it = m_shared.tasks().constFind(itemId);
+    if (it == m_shared.tasks().cend() || !it->todo || it->pendingDelete) {
         return {};
     }
     return taskEntryToVariantMap(makeTaskEntry(*it, 0, false));
@@ -1634,7 +1629,7 @@ QVariantList TaskController::childTasks(const QString &uid) const
     }
 
     QList<TaskEntry> children;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (!it->todo || it->pendingDelete || it->todo->relatedTo() != uid) {
             continue;
         }
@@ -1753,7 +1748,7 @@ void TaskController::finishKanbanDrop(qint64 itemId, const QString &columnKey, i
         return;
     }
 
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache || !cache->todo) {
         return;
     }
@@ -1815,7 +1810,7 @@ QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
     QStringList lanes = result.value(QStringLiteral("lanes")).toStringList();
     if (m_swimlaneLaneAxis == QLatin1String("project")) {
         for (const QString &lane : std::as_const(lanes)) {
-            labels.insert(lane, lane == QLatin1String("inbox") ? i18n("Inbox") : m_collectionNames.value(lane.toLongLong(), lane));
+            labels.insert(lane, lane == QLatin1String("inbox") ? i18n("Inbox") : m_shared.collectionNames().value(lane.toLongLong(), lane));
         }
     } else if (m_swimlaneLaneAxis == QLatin1String("parent")) {
         QHash<QString, QString> summaries;
@@ -1825,7 +1820,7 @@ QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
         for (const QString &lane : std::as_const(lanes)) {
             QString name = summaries.value(lane);
             if (name.isEmpty() && lane != QLatin1String("none")) {
-                for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+                for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
                     if (it->todo && it->todo->uid() == lane) {
                         name = it->todo->summary();
                         break;
@@ -1850,7 +1845,7 @@ QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
 QStringList TaskController::projectLaneOrder() const
 {
     QList<QPair<QString, QString>> named;
-    for (auto it = m_collectionNames.cbegin(); it != m_collectionNames.cend(); ++it) {
+    for (auto it = m_shared.collectionNames().cbegin(); it != m_shared.collectionNames().cend(); ++it) {
         if (it.key() > 0 && CollectionListModel::isTaskWritable(collectionById(it.key()))) {
             named.append({QString::number(it.key()), it.value()});
         }
@@ -1879,7 +1874,7 @@ QVariantMap TaskController::planMatrixGridForVisibleTasks() const
     QVariantMap labels;
     const QStringList rows = result.value(QStringLiteral("projects")).toStringList();
     for (const QString &row : rows) {
-        labels.insert(row, row == QLatin1String("inbox") ? i18n("Inbox") : m_collectionNames.value(row.toLongLong(), row));
+        labels.insert(row, row == QLatin1String("inbox") ? i18n("Inbox") : m_shared.collectionNames().value(row.toLongLong(), row));
     }
     result.insert(QStringLiteral("laneLabels"), labels);
     return result;
@@ -1890,7 +1885,7 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
     if (itemId < 0 || laneKey.isEmpty() || timeKey.isEmpty()) {
         return;
     }
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache || !cache->todo) {
         return;
     }
@@ -2051,7 +2046,7 @@ QVariantList TaskController::agendaEventsForDay(const QDate &day) const
     }
     const QDateTime dayStart(day, QTime(0, 0));
     const QDateTime dayEnd(day.addDays(1), QTime(0, 0));
-    for (const TaskCalendar::BusyInterval &interval : m_busyIntervals) {
+    for (const TaskCalendar::BusyInterval &interval : m_shared.busyIntervals()) {
         if (interval.end <= dayStart || interval.start >= dayEnd) {
             continue;
         }
@@ -2060,7 +2055,7 @@ QVariantList TaskController::agendaEventsForDay(const QDate &day) const
         row.insert(QStringLiteral("end"), interval.end);
         row.insert(QStringLiteral("summary"), interval.summary);
         row.insert(QStringLiteral("calendarId"), interval.collectionId);
-        const QString calName = s_collectionNames.value(interval.collectionId);
+        const QString calName = m_shared.collectionNames().value(interval.collectionId);
         row.insert(QStringLiteral("calendarName"), calName);
         const bool allDay = interval.start.time() == QTime(0, 0) && interval.end.time() == QTime(0, 0);
         row.insert(QStringLiteral("allDay"), allDay);
@@ -2076,8 +2071,8 @@ QVariantList TaskController::agendaEventsForDay(const QDate &day) const
 QVariantMap TaskController::heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const
 {
     QVariantMap counts;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
-        const CachedTask &cached = it.value();
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
+        const SharedTasks::Entry &cached = it.value();
         if (!cached.todo) continue;
         TaskEntry entry;
         entry.itemId = it.key();
@@ -2103,7 +2098,7 @@ QVariantList TaskController::heatmapTasksForDay(const QDate &day, const QString 
     QList<TaskEntry> matches;
     if (mode == QLatin1String("completed")) {
         // Completions count across all tasks (heatmapCountsAll), not only the visible ones.
-        for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
             if (!it->todo || it->pendingDelete || !it->todo->isCompleted()) {
                 continue;
             }
@@ -2137,12 +2132,12 @@ QVariantList TaskController::agendaTasksForRange(const QDate &from, const QDate 
     if (!from.isValid() || !to.isValid() || from > to) {
         return result;
     }
-    // Iterate ALL Akonadi tasks (s_tasks) so completed tasks are always included,
+    // Iterate ALL Akonadi tasks (m_shared.tasks()) so completed tasks are always included,
     // regardless of the current sidebar filter state.
     const QDateTime rangeStart(from, QTime(0, 0));
     const QDateTime rangeEnd(to.addDays(1), QTime(0, 0));
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
-        const CachedTask &cached = it.value();
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
+        const SharedTasks::Entry &cached = it.value();
         if (!cached.todo) continue;
         const bool isCompleted = cached.todo->isCompleted();
         const QDateTime dueDt = TaskCalendar::dueDateFromTodo(cached.todo);
@@ -2201,8 +2196,8 @@ QVariantMap TaskController::agendaTasksByDay(const QDate &from, const QDate &to)
 QList<TaskEntry> TaskController::agendaEntries() const
 {
     QList<TaskEntry> tasks;
-    tasks.reserve(s_tasks.size());
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    tasks.reserve(m_shared.tasks().size());
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (!it->todo || it->pendingDelete) {
             continue;
         }
@@ -2436,8 +2431,8 @@ void TaskController::agendaPlaceTask(qint64 itemId, const QDate &day, int minute
 
 QVariantMap TaskController::agendaPlacement(qint64 itemId, const QDate &day, int minute) const
 {
-    const auto it = s_tasks.constFind(itemId);
-    if (it == s_tasks.cend() || !it->todo || !day.isValid()) {
+    const auto it = m_shared.tasks().constFind(itemId);
+    if (it == m_shared.tasks().cend() || !it->todo || !day.isValid()) {
         return {};
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
@@ -2460,7 +2455,7 @@ bool TaskController::agendaWouldDetach(qint64 itemId, int start, int end) const
     if (!isSeries(itemId)) {
         return false;
     }
-    const TaskEntry task = makeTaskEntry(*s_tasks.constFind(itemId), 0, false);
+    const TaskEntry task = makeTaskEntry(*m_shared.tasks().constFind(itemId), 0, false);
     return !(AgendaLogic::taskBlock(task) == AgendaLogic::Span{start, end});
 }
 
@@ -2504,8 +2499,8 @@ void TaskController::agendaMoveToDay(qint64 itemId, const QDate &day)
         {QStringLiteral("dueDate"), QDateTime(day, QTime(0, 0))},
     };
     // Only a time block loses its start; an earlier start day (a long run, a recurrence) stays.
-    const auto it = s_tasks.constFind(itemId);
-    const TaskEntry task = it != s_tasks.cend() && it->todo ? makeTaskEntry(*it, 0, false) : TaskEntry{};
+    const auto it = m_shared.tasks().constFind(itemId);
+    const TaskEntry task = it != m_shared.tasks().cend() && it->todo ? makeTaskEntry(*it, 0, false) : TaskEntry{};
     const QDate startDay = task.startDate.isValid()
                                ? (task.allDay ? task.startDate.date() : task.startDate.toLocalTime().date())
                                : QDate();
@@ -2540,11 +2535,11 @@ void TaskController::agendaShiftAllToDay(const QVariantList &itemIds, const QDat
 
 bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
 {
-    const auto it = s_tasks.constFind(itemId);
-    if (days == 0 || it == s_tasks.cend() || !it->todo || !it->todo->recurs()) {
+    const auto it = m_shared.tasks().constFind(itemId);
+    if (days == 0 || it == m_shared.tasks().cend() || !it->todo || !it->todo->recurs()) {
         return false;
     }
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache || !cache->todo) {
         return false;
     }
@@ -2559,7 +2554,7 @@ bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
 
 void TaskController::detachSeriesOccurrence(qint64 itemId, const QDateTime &start, const QDateTime &due)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache || !cache->todo || !cache->todo->recurs()) {
         return;
     }
@@ -2578,16 +2573,16 @@ void TaskController::detachSeriesOccurrence(qint64 itemId, const QDateTime &star
     Akonadi::Item jobItem;
     jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
     jobItem.setPayload<KCalendarCore::Todo::Ptr>(detached);
-    const qint64 tempId = s_nextTempId--;
-    CachedTask cached;
+    const qint64 tempId = m_shared.nextTempId();
+    SharedTasks::Entry cached;
     cached.item = jobItem;
     cached.item.setId(tempId);
     cached.item.setParentCollection(collection);
     cached.todo = detached;
     cached.syncing = true;
     cached.inflight = 1;
-    s_tasks.insert(tempId, cached);
-    scheduleRebuildAll();
+    m_shared.tasks().insert(tempId, cached);
+    m_shared.notifyTasksChanged();
     submitCreate(jobItem, collection, tempId);
 
     pushUndo(record);
@@ -2600,7 +2595,7 @@ void TaskController::deleteDetached(const QString &uid)
     if (uid.isEmpty()) {
         return;
     }
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (!it->todo || it->todo->uid() != uid) {
             continue;
         }
@@ -2615,14 +2610,14 @@ void TaskController::deleteDetached(const QString &uid)
 
 bool TaskController::isSeries(qint64 itemId) const
 {
-    const auto it = s_tasks.constFind(itemId);
-    return it != s_tasks.cend() && it->todo && it->todo->recurs();
+    const auto it = m_shared.tasks().constFind(itemId);
+    return it != m_shared.tasks().cend() && it->todo && it->todo->recurs();
 }
 
 QDate TaskController::seriesOccurrenceDay(qint64 itemId) const
 {
-    const auto it = s_tasks.constFind(itemId);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(itemId);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return {};
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
@@ -2631,8 +2626,8 @@ QDate TaskController::seriesOccurrenceDay(qint64 itemId) const
 
 void TaskController::agendaShiftToDay(qint64 itemId, const QDate &day)
 {
-    const auto it = s_tasks.constFind(itemId);
-    if (it == s_tasks.cend() || !it->todo || !day.isValid()) {
+    const auto it = m_shared.tasks().constFind(itemId);
+    if (it == m_shared.tasks().cend() || !it->todo || !day.isValid()) {
         return;
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
@@ -2780,8 +2775,8 @@ QVariantMap TaskController::heatmapCountsForYear(int year, const QString &mode) 
 QVariantList TaskController::eventCalendars() const
 {
     QVariantList result;
-    result.reserve(s_eventCollections.size());
-    for (const Akonadi::Collection &collection : s_eventCollections) {
+    result.reserve(m_shared.eventCollections().size());
+    for (const Akonadi::Collection &collection : m_shared.eventCollections()) {
         QVariantMap row;
         row.insert(QStringLiteral("id"), collection.id());
         row.insert(QStringLiteral("name"), collection.displayName());
@@ -2794,8 +2789,8 @@ QVariantList TaskController::eventCalendars() const
 void TaskController::toggleBusyCalendar(qint64 calendarId)
 {
     QList<qint64> allIds;
-    allIds.reserve(s_eventCollections.size());
-    for (const Akonadi::Collection &collection : s_eventCollections) {
+    allIds.reserve(m_shared.eventCollections().size());
+    for (const Akonadi::Collection &collection : m_shared.eventCollections()) {
         allIds.append(collection.id());
     }
     const QString csv = TaskLogic::toggleEnabledCsv(m_busyCalendarIds, calendarId, allIds);
@@ -2885,7 +2880,7 @@ void TaskController::bulkAddLabel(const QVariantList &itemIds, const QString &la
 void TaskController::bulkRemoveLabel(const QVariantList &itemIds, const QString &label)
 {
     for (const QVariant &id : itemIds) {
-        CachedTask *cache = prepareEdit(id.toLongLong());
+        SharedTasks::Entry *cache = prepareEdit(id.toLongLong());
         if (!cache || !cache->todo) {
             continue;
         }
@@ -2951,7 +2946,7 @@ void TaskController::reloadTask(qint64 itemId)
             return;
         }
         upsertTask(itemJob->items().constFirst());
-        scheduleRebuildAll();
+        m_shared.notifyTasksChanged();
         if (m_conflictItemId == itemId) {
             m_conflictItemId = -1;
             Q_EMIT conflictItemIdChanged();
@@ -3789,18 +3784,18 @@ void TaskController::createQuickTask(const QString &summary, qint64 collectionId
     jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
     jobItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
 
-    const qint64 tempId = s_nextTempId--;
+    const qint64 tempId = m_shared.nextTempId();
     Akonadi::Item cacheItem = jobItem;
     cacheItem.setId(tempId);
     cacheItem.setParentCollection(collection);
 
-    CachedTask cached;
+    SharedTasks::Entry cached;
     cached.item = cacheItem;
     cached.todo = todo;
     cached.syncing = true;
     cached.inflight = 1;
-    s_tasks.insert(tempId, cached);
-    scheduleRebuildAll();
+    m_shared.tasks().insert(tempId, cached);
+    m_shared.notifyTasksChanged();
 
     submitCreate(jobItem, collection, tempId);
 }
@@ -3897,7 +3892,7 @@ QVariantMap TaskController::quickAddToVariant(const TaskLogic::QuickAdd &parsed)
 
 void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -3932,8 +3927,8 @@ QString TaskController::joinUrlFor(const QString &description, const QString &lo
 
 QString TaskController::taskLink(qint64 itemId, TaskLink link) const
 {
-    const auto it = s_tasks.constFind(itemId);
-    if (it == s_tasks.cend() || !it->todo) {
+    const auto it = m_shared.tasks().constFind(itemId);
+    if (it == m_shared.tasks().cend() || !it->todo) {
         return {};
     }
     const TaskEntry task = makeTaskEntry(*it, 0, false);
@@ -3952,17 +3947,17 @@ bool TaskController::openMapLink(qint64 itemId) const
     return !url.isEmpty() && QDesktopServices::openUrl(QUrl(url));
 }
 
-TaskController::CachedTask *TaskController::prepareEdit(qint64 itemId)
+SharedTasks::Entry *TaskController::prepareEdit(qint64 itemId)
 {
     if (itemId < 0) {
         return nullptr;
     }
-    auto it = s_tasks.find(itemId);
-    if (it == s_tasks.end() || !it->todo) {
+    auto it = m_shared.tasks().find(itemId);
+    if (it == m_shared.tasks().end() || !it->todo) {
         logAkonadi(QStringLiteral("prepareEdit: no cache for itemId=%1 cacheHit=%2 hasTodo=%3")
                        .arg(itemId)
-                       .arg(it != s_tasks.end())
-                       .arg(it != s_tasks.end() && bool(it->todo)));
+                       .arg(it != m_shared.tasks().end())
+                       .arg(it != m_shared.tasks().end() && bool(it->todo)));
         return nullptr;
     }
     if (!it->revertTodo) {
@@ -3974,8 +3969,8 @@ TaskController::CachedTask *TaskController::prepareEdit(qint64 itemId)
 
 void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &errorString, const Akonadi::Item &ackedItem)
 {
-    auto it = s_tasks.find(itemId);
-    if (it == s_tasks.end()) {
+    auto it = m_shared.tasks().find(itemId);
+    if (it == m_shared.tasks().end()) {
         if (ok == SyncResult::Error && !errorString.isEmpty()) {
             logAkonadi(QStringLiteral("finishSync: missing cache itemId=%1 error=%2").arg(itemId).arg(errorString));
             Q_EMIT error(errorString);
@@ -4039,7 +4034,7 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
         it->revertCollectionId = -1;
         it->syncing = false;
         it->inflight = 0;
-        scheduleRebuildAll();
+        m_shared.notifyTasksChanged();
         return;
     }
 
@@ -4070,7 +4065,7 @@ void TaskController::finishSync(qint64 itemId, SyncResult ok, const QString &err
     it->revertCollectionId = -1;
     it->syncing = false;
     it->inflight = 0;
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
@@ -4084,14 +4079,14 @@ void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
                    .arg(result.errorString));
     switch (result.kind) {
     case AbstractTaskStore::Kind::Create:
-        s_tasks.remove(result.clientId);
+        m_shared.tasks().remove(result.clientId);
         if (!result.ok) {
-            scheduleRebuildAll();
+            m_shared.notifyTasksChanged();
             Q_EMIT error(result.errorString);
             return;
         }
         upsertTask(result.item, result.collectionId);
-        scheduleRebuildAll();
+        m_shared.notifyTasksChanged();
         if (result.item.hasPayload<KCalendarCore::Todo::Ptr>()
             && m_deleteAfterCreate.remove(result.item.payload<KCalendarCore::Todo::Ptr>()->uid())) {
             m_applyingUndo = true;
@@ -4106,13 +4101,13 @@ void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
             finishSync(result.clientId, SyncResult::Error, result.errorString);
             return;
         }
-        s_tasks.remove(result.clientId);
+        m_shared.tasks().remove(result.clientId);
         if (m_recreateAfterDelete.contains(result.clientId)) {
             const TaskLogic::UndoRecord record = m_recreateAfterDelete.take(result.clientId);
             recreateTask(record);
             return;
         }
-        scheduleRebuildAll();
+        m_shared.notifyTasksChanged();
         return;
 
     case AbstractTaskStore::Kind::Modify:
@@ -4133,8 +4128,8 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
         return;
     }
 
-    auto it = s_tasks.find(itemId);
-    if (it == s_tasks.end()) {
+    auto it = m_shared.tasks().find(itemId);
+    if (it == m_shared.tasks().end()) {
         logAkonadi(QStringLiteral("persistTodo: skip, not in cache itemId=%1 summary=%2")
                        .arg(itemId)
                        .arg(todo->summary()));
@@ -4144,7 +4139,7 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
     it->todo = todo;
     it->item.setPayload<KCalendarCore::Todo::Ptr>(todo);
     it->syncing = true;
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 
     if (it->inflight > 0) {
         it->persistQueued = true;
@@ -4179,11 +4174,11 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
         connect(job, &Akonadi::ItemFetchJob::result, this,
                 [this, itemId, desiredTodo, moveId](KJob *kjob) {
             auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(kjob);
-            auto it2 = s_tasks.find(itemId);
-            if (!fetchJob || fetchJob->error() || fetchJob->items().isEmpty() || it2 == s_tasks.end()) {
+            auto it2 = m_shared.tasks().find(itemId);
+            if (!fetchJob || fetchJob->error() || fetchJob->items().isEmpty() || it2 == m_shared.tasks().end()) {
                 // Refetch failed: submit anyway, let autoResolveConflict handle it
-                auto it3 = s_tasks.find(itemId);
-                if (it3 != s_tasks.end()) {
+                auto it3 = m_shared.tasks().find(itemId);
+                if (it3 != m_shared.tasks().end()) {
                     submitModify(*it3, moveId);
                 }
                 return;
@@ -4202,7 +4197,7 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
     submitModify(*it, moveToCollectionId);
 }
 
-void TaskController::submitModify(CachedTask &cached, qint64 moveToCollectionId)
+void TaskController::submitModify(SharedTasks::Entry &cached, qint64 moveToCollectionId)
 {
     KCalendarCore::Todo::Ptr snapshot = cloneTodo(cached.todo);
     cached.submittedTodo = snapshot;
@@ -4231,8 +4226,8 @@ void TaskController::submitModify(CachedTask &cached, qint64 moveToCollectionId)
 
 void TaskController::autoResolveConflict(qint64 itemId)
 {
-    auto it = s_tasks.find(itemId);
-    if (it == s_tasks.end()) {
+    auto it = m_shared.tasks().find(itemId);
+    if (it == m_shared.tasks().end()) {
         return;
     }
 
@@ -4242,7 +4237,7 @@ void TaskController::autoResolveConflict(qint64 itemId)
         it->inflight = 0;
         m_conflictItemId = itemId;
         Q_EMIT conflictItemIdChanged();
-        scheduleRebuildAll();
+        m_shared.notifyTasksChanged();
         return;
     }
 
@@ -4260,8 +4255,8 @@ void TaskController::autoResolveConflict(qint64 itemId)
         auto *itemJob = qobject_cast<Akonadi::ItemFetchJob *>(kjob);
         if (!itemJob || itemJob->error() || itemJob->items().isEmpty()) {
             logAkonadi(QStringLiteral("autoResolveConflict: refetch failed for itemId=%1, surfacing error").arg(itemId));
-            auto it2 = s_tasks.find(itemId);
-            if (it2 != s_tasks.end()) {
+            auto it2 = m_shared.tasks().find(itemId);
+            if (it2 != m_shared.tasks().end()) {
                 it2->submittedTodo.clear();
                 it2->syncing = false;
                 it2->inflight = 0;
@@ -4270,13 +4265,13 @@ void TaskController::autoResolveConflict(qint64 itemId)
             }
             m_conflictItemId = itemId;
             Q_EMIT conflictItemIdChanged();
-            scheduleRebuildAll();
+            m_shared.notifyTasksChanged();
             return;
         }
 
         auto freshItem = itemJob->items().constFirst();
-        auto it3 = s_tasks.find(itemId);
-        if (it3 == s_tasks.end()) {
+        auto it3 = m_shared.tasks().find(itemId);
+        if (it3 == m_shared.tasks().end()) {
             return;
         }
 
@@ -4371,8 +4366,8 @@ void TaskController::resolveMergeConflict(const QVariantMap &resolution)
         return;
     }
 
-    auto it = s_tasks.find(itemId);
-    if (it == s_tasks.end()) {
+    auto it = m_shared.tasks().find(itemId);
+    if (it == m_shared.tasks().end()) {
         m_pendingMergeItemId = -1;
         m_pendingMergeFields.clear();
         m_pendingMergeFreshTodo.clear();
@@ -4430,7 +4425,7 @@ void TaskController::resolveMergeConflict(const QVariantMap &resolution)
         m_pendingMergeFreshTodo.clear();
         m_conflictItemId = -1;
         Q_EMIT conflictItemIdChanged();
-        scheduleRebuildAll();
+        m_shared.notifyTasksChanged();
         return;
     }
 
@@ -4452,11 +4447,11 @@ void TaskController::resolveMergeConflict(const QVariantMap &resolution)
 
 void TaskController::testMergeConflict()
 {
-    if (s_tasks.isEmpty()) {
+    if (m_shared.tasks().isEmpty()) {
         logAkonadi(QStringLiteral("testMergeConflict: no tasks in cache"));
         return;
     }
-    auto it = s_tasks.constBegin();
+    auto it = m_shared.tasks().constBegin();
     const qint64 itemId = it.key();
     const auto &cached = it.value();
     if (!cached.todo) return;
@@ -4485,7 +4480,7 @@ Akonadi::Collection TaskController::collectionById(qint64 collectionId) const
     if (collectionId <= 0) {
         return {};
     }
-    for (const Akonadi::Collection &collection : s_collections) {
+    for (const Akonadi::Collection &collection : m_shared.collections()) {
         if (collection.id() == collectionId) {
             return collection;
         }
@@ -4496,7 +4491,7 @@ Akonadi::Collection TaskController::collectionById(qint64 collectionId) const
 Akonadi::Collection TaskController::firstWritableCollection() const
 {
     const QList<qint64> enabledIds = m_collectionModel.enabledIds();
-    for (const Akonadi::Collection &collection : s_collections) {
+    for (const Akonadi::Collection &collection : m_shared.collections()) {
         if (!enabledIds.contains(collection.id())) {
             continue;
         }
@@ -4512,7 +4507,7 @@ QString TaskController::recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr 
     return TaskCalendar::recurrencePresetFromTodo(todo);
 }
 
-TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLevel, bool hasChildren) const
+TaskEntry TaskController::makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const
 {
     const KCalendarCore::Todo::Ptr &todo = cached.todo;
     TaskEntry entry;
@@ -4536,7 +4531,7 @@ TaskEntry TaskController::makeTaskEntry(const CachedTask &cached, int indentLeve
     entry.joinUrl = TaskLogic::joinUrl(entry.description, entry.location);
     entry.categories = todo->categories();
     entry.collectionId = cached.item.parentCollection().id();
-    entry.collectionName = m_collectionNames.value(entry.collectionId, cached.item.parentCollection().displayName());
+    entry.collectionName = m_shared.collectionNames().value(entry.collectionId, cached.item.parentCollection().displayName());
     entry.indentLevel = indentLevel;
     entry.hasChildren = hasChildren;
     entry.treeCollapsed = false;
@@ -4560,7 +4555,7 @@ void TaskController::updateTask(qint64 itemId,
                                 int priority,
                                 const QStringList &categories)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4587,7 +4582,7 @@ void TaskController::updateTask(qint64 itemId,
 
 void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4655,25 +4650,25 @@ void TaskController::createTaskFull(const QVariantMap &fields)
     jobItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
 
     // Same optimistic path as the quick entry: a temporary row until the store answers.
-    const qint64 tempId = s_nextTempId--;
+    const qint64 tempId = m_shared.nextTempId();
     Akonadi::Item cacheItem = jobItem;
     cacheItem.setId(tempId);
     cacheItem.setParentCollection(collection);
 
-    CachedTask cached;
+    SharedTasks::Entry cached;
     cached.item = cacheItem;
     cached.todo = todo;
     cached.syncing = true;
     cached.inflight = 1;
-    s_tasks.insert(tempId, cached);
-    scheduleRebuildAll();
+    m_shared.tasks().insert(tempId, cached);
+    m_shared.notifyTasksChanged();
 
     submitCreate(jobItem, collection, tempId);
 }
 
 void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4698,13 +4693,13 @@ QVariantList TaskController::parentCandidates(qint64 itemId, qint64 collectionId
     }
 
     QString selfUid;
-    const auto selfIt = s_tasks.constFind(itemId);
-    if (selfIt != s_tasks.cend() && selfIt->todo) {
+    const auto selfIt = m_shared.tasks().constFind(itemId);
+    if (selfIt != m_shared.tasks().cend() && selfIt->todo) {
         selfUid = selfIt->todo->uid();
     }
 
     QHash<QString, QString> parentByUid;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo) {
             parentByUid.insert(it->todo->uid(), it->todo->relatedTo());
         }
@@ -4726,7 +4721,7 @@ QVariantList TaskController::parentCandidates(qint64 itemId, qint64 collectionId
         QStringList categories;
     };
     QList<ParentRow> rows;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (!it->todo || it->pendingDelete) {
             continue;
         }
@@ -4763,7 +4758,7 @@ QVariantList TaskController::parentCandidates(qint64 itemId, qint64 collectionId
     return out;
 }
 
-bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid, qint64 collectionId)
+bool TaskController::applyParentUid(SharedTasks::Entry *cache, const QString &parentUid, qint64 collectionId)
 {
     if (!cache || !cache->todo) {
         return false;
@@ -4788,8 +4783,8 @@ bool TaskController::applyParentUid(CachedTask *cache, const QString &parentUid,
         return false;
     }
 
-    const CachedTask *parentCache = nullptr;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    const SharedTasks::Entry *parentCache = nullptr;
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo && it->todo->uid() == trimmedParent) {
             parentCache = &(*it);
             break;
@@ -4818,7 +4813,7 @@ void TaskController::addTaskCategory(qint64 itemId, const QString &category)
         return;
     }
 
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4843,7 +4838,7 @@ void TaskController::removeTaskCategory(qint64 itemId, const QString &category)
         return;
     }
 
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4864,7 +4859,7 @@ void TaskController::removeTaskCategory(qint64 itemId, const QString &category)
 void TaskController::setTaskPriority(qint64 itemId, int priority)
 {
     const int normalized = TaskLogic::priorityBand(priority);
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4887,7 +4882,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
         return;
     }
 
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         Q_EMIT error(i18n("Task not found."));
         return;
@@ -4909,7 +4904,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
     cache->item.setParentCollection(destination);
     cache->syncing = true;
     cache->inflight += 1;
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 
     AbstractTaskStore::Request req;
     req.kind = AbstractTaskStore::Kind::Move;
@@ -4921,7 +4916,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
 
 void TaskController::setTaskCompleted(qint64 itemId, bool completed)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         return;
     }
@@ -4934,7 +4929,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
     if (completed && m_completeChildren && todo) {
         QHash<QString, QString> parentByUid;
         QHash<QString, qint64> idByUid;
-        for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+        for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
             if (!it->todo) {
                 continue;
             }
@@ -4949,7 +4944,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
             if (childId < 0) {
                 continue;
             }
-            CachedTask *child = prepareEdit(childId);
+            SharedTasks::Entry *child = prepareEdit(childId);
             if (!child || !child->todo || child->todo->isCompleted()) {
                 continue;
             }
@@ -4963,12 +4958,12 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
 void TaskController::deleteTask(qint64 itemId)
 {
     if (itemId < 0) {
-        s_tasks.remove(itemId);
-        scheduleRebuildAll();
+        m_shared.tasks().remove(itemId);
+        m_shared.notifyTasksChanged();
         return;
     }
 
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache) {
         return;
     }
@@ -4979,7 +4974,7 @@ void TaskController::deleteTask(qint64 itemId)
     cache->pendingDelete = true;
     cache->syncing = true;
     cache->inflight += 1;
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 
     AbstractTaskStore::Request req;
     req.kind = AbstractTaskStore::Kind::Delete;
@@ -5029,12 +5024,12 @@ void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
     }
 
     if (record.kind == TaskLogic::UndoRecord::Kind::Delete) {
-        auto it = s_tasks.find(record.itemId);
-        if (it != s_tasks.end() && it->pendingDelete) {
+        auto it = m_shared.tasks().find(record.itemId);
+        if (it != m_shared.tasks().end() && it->pendingDelete) {
             m_recreateAfterDelete.insert(record.itemId, record);
             it->pendingDelete = false;
             it->syncing = it->inflight > 1;
-            scheduleRebuildAll();
+            m_shared.notifyTasksChanged();
             m_applyingUndo = false;
             return;
         }
@@ -5051,7 +5046,7 @@ void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
         return;
     }
 
-    CachedTask *cache = prepareEdit(record.itemId);
+    SharedTasks::Entry *cache = prepareEdit(record.itemId);
     if (!cache || !cache->todo) {
         m_applyingUndo = false;
         return;
@@ -5059,7 +5054,7 @@ void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
 
     if (record.kind == TaskLogic::UndoRecord::Kind::Edit) {
         if (record.collectionId > 0) {
-            CachedTask *existing = prepareEdit(record.itemId);
+            SharedTasks::Entry *existing = prepareEdit(record.itemId);
             if (existing && existing->item.parentCollection().id() != record.collectionId) {
                 moveTaskToCollection(record.itemId, record.collectionId);
             }
@@ -5098,7 +5093,7 @@ void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
 
 void TaskController::applyTaskUndo(const TaskLogic::UndoRecord &record)
 {
-    CachedTask *cache = prepareEdit(record.itemId);
+    SharedTasks::Entry *cache = prepareEdit(record.itemId);
     if (!cache || !cache->todo) {
         return;
     }
@@ -5142,7 +5137,7 @@ void TaskController::toggleTreeCollapsed(const QString &uid)
     scheduleRebuild();
 }
 
-TaskLogic::UndoRecord TaskController::snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const
+TaskLogic::UndoRecord TaskController::snapshotUndo(TaskLogic::UndoRecord::Kind kind, const SharedTasks::Entry &cache) const
 {
     TaskLogic::UndoRecord record;
     record.kind = kind;
@@ -5284,18 +5279,18 @@ void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
     jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
     jobItem.setPayload<KCalendarCore::Todo::Ptr>(todo);
 
-    const qint64 tempId = s_nextTempId--;
+    const qint64 tempId = m_shared.nextTempId();
     Akonadi::Item cacheItem = jobItem;
     cacheItem.setId(tempId);
     cacheItem.setParentCollection(collection);
 
-    CachedTask cached;
+    SharedTasks::Entry cached;
     cached.item = cacheItem;
     cached.todo = todo;
     cached.syncing = true;
     cached.inflight = 1;
-    s_tasks.insert(tempId, cached);
-    scheduleRebuildAll();
+    m_shared.tasks().insert(tempId, cached);
+    m_shared.notifyTasksChanged();
 
     submitCreate(jobItem, collection, tempId);
 }
@@ -5311,7 +5306,7 @@ void TaskController::updateDebugInfo(int builtTasks, int filteredTasks, int filt
     QStringList collectionLines;
     for (int row = 0; row < m_collectionModel.rowCount() && row < 8; ++row) {
         const qint64 id = m_collectionModel.collectionIdAt(row);
-        collectionLines.append(QStringLiteral("%1:%2").arg(id).arg(m_collectionNames.value(id)));
+        collectionLines.append(QStringLiteral("%1:%2").arg(id).arg(m_shared.collectionNames().value(id)));
     }
     if (m_collectionModel.rowCount() > 8) {
         collectionLines.append(QStringLiteral("… +%1 more").arg(m_collectionModel.rowCount() - 8));
@@ -5340,7 +5335,7 @@ void TaskController::updateDebugInfo(int builtTasks, int filteredTasks, int filt
                              .arg(m_lastFetchRejectedNoPayload)
                              .arg(m_lastFetchRejectedDisabled)
                              .arg(m_lastFetchRejectedNoCollection)
-                             .arg(s_tasks.size())
+                             .arg(m_shared.tasks().size())
                              .arg(builtTasks)
                              .arg(filteredTasks)
                              .arg(m_currentView)
@@ -5596,7 +5591,7 @@ void TaskController::loadCollections()
             return;
         }
 
-        m_collectionNames.clear();
+        QHash<qint64, QString> names;
         const QList<Akonadi::Collection> fetched = fetchJob->collections();
         QList<Akonadi::Collection> collections;
         QList<Akonadi::Collection> eventCollections;
@@ -5611,12 +5606,12 @@ void TaskController::loadCollections()
                          .arg(static_cast<int>(collection.rights())));
             if (CollectionListModel::isTaskCollection(collection)) {
                 collections.append(collection);
-                m_collectionNames.insert(collection.id(), collection.displayName());
+                names.insert(collection.id(), collection.displayName());
             }
             if (CollectionListModel::isEventCollection(collection)) {
                 eventCollections.append(collection);
-                if (!m_collectionNames.contains(collection.id())) {
-                    m_collectionNames.insert(collection.id(), collection.displayName());
+                if (!names.contains(collection.id())) {
+                    names.insert(collection.id(), collection.displayName());
                 }
             }
         }
@@ -5624,7 +5619,7 @@ void TaskController::loadCollections()
                      .arg(collections.size())
                      .arg(eventCollections.size()));
 
-        applyCollections(collections, eventCollections, m_collectionNames);
+        m_shared.setCollections(collections, eventCollections, names);
 
         if (collections.isEmpty()) {
             setErrorMessage(i18n("No task lists found in Akonadi. Configure CalDAV in KOrganizer or Kalendar."));
@@ -5638,32 +5633,9 @@ void TaskController::loadCollections()
             return;
         }
 
-        s_busyEvents = TaskLogic::BusyEvents::Changed; // fetched after the tasks, not beside them
+        m_shared.markBusyChanged(); // fetched after the tasks, not beside them
         loadTasks();
     });
-}
-
-// Stores the fetched collections for all widgets and hands them to every instance.
-void TaskController::applyCollections(const QList<Akonadi::Collection> &collections,
-                                      const QList<Akonadi::Collection> &eventCollections,
-                                      const QHash<qint64, QString> &names)
-{
-    s_collections = collections;
-    s_eventCollections = eventCollections;
-    s_collectionNames = names;
-    m_collectionNames = names;
-    m_collectionModel.setCollections(collections);
-    m_eventCalendarModel.setCollections(eventCollections);
-    for (TaskController *other : s_instances) {
-        if (other != this) {
-            other->m_collectionNames = s_collectionNames;
-            other->m_collectionModel.setCollections(s_collections);
-            other->m_eventCalendarModel.setCollections(s_eventCollections);
-        }
-    }
-    for (TaskController *inst : s_instances) {
-        Q_EMIT inst->eventBusySettingsChanged();
-    }
 }
 
 void TaskController::loadTasks()
@@ -5687,17 +5659,17 @@ void TaskController::loadTasks()
 
     logDebug(QStringLiteral("loadTasks: fetching from %1 enabled collections").arg(collections.size()));
     for (const Akonadi::Collection &collection : collections) {
-        logDebug(QStringLiteral("  fetch collection id=%1 name=\"%2\"").arg(collection.id()).arg(m_collectionNames.value(collection.id())));
+        logDebug(QStringLiteral("  fetch collection id=%1 name=\"%2\"").arg(collection.id()).arg(m_shared.collectionNames().value(collection.id())));
     }
 
     if (collections.isEmpty()) {
         // Nothing enabled: drop settled tasks, keep optimistic/temp rows.
-        for (auto it = s_tasks.begin(); it != s_tasks.end();) {
+        for (auto it = m_shared.tasks().begin(); it != m_shared.tasks().end();) {
             if (it.key() < 0 || it->syncing || it->pendingDelete || it->inflight > 0) {
                 ++it;
                 continue;
             }
-            it = s_tasks.erase(it);
+            it = m_shared.tasks().erase(it);
         }
         setLoading(false);
         logDebug(QStringLiteral("loadTasks: no enabled collections"));
@@ -5777,7 +5749,7 @@ void TaskController::onItemsFetched(const Akonadi::Item::List &items, const QStr
         for (const Akonadi::Collection &collection : enabledCollections()) {
             enabledIds.insert(collection.id());
         }
-        for (auto it = s_tasks.begin(); it != s_tasks.end();) {
+        for (auto it = m_shared.tasks().begin(); it != m_shared.tasks().end();) {
             if (it.key() < 0 || it->syncing || it->pendingDelete || it->inflight > 0) {
                 ++it;
                 continue;
@@ -5786,7 +5758,7 @@ void TaskController::onItemsFetched(const Akonadi::Item::List &items, const QStr
             const bool goneFromOkFetch = m_fetchOkCollections.contains(col) && !m_fetchSeenIds.contains(it.key());
             const bool collectionDisabled = !enabledIds.contains(col);
             if (goneFromOkFetch || collectionDisabled) {
-                it = s_tasks.erase(it);
+                it = m_shared.tasks().erase(it);
             } else {
                 ++it;
             }
@@ -5796,7 +5768,7 @@ void TaskController::onItemsFetched(const Akonadi::Item::List &items, const QStr
 
         setLoading(false);
         logDebug(QStringLiteral("loadTasks complete: cache=%1 accepted=%2 rejected(payload=%3,todo=%4,disabled=%5,noCol=%6)")
-                     .arg(s_tasks.size())
+                     .arg(m_shared.tasks().size())
                      .arg(m_lastFetchAccepted)
                      .arg(m_lastFetchRejectedNoPayload)
                      .arg(m_lastFetchRejectedNotTodo)
@@ -5841,8 +5813,8 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
         storedItem.setParentCollection(parent);
     }
 
-    const auto existing = s_tasks.find(storedItem.id());
-    if (existing != s_tasks.end()) {
+    const auto existing = m_shared.tasks().find(storedItem.id());
+    if (existing != m_shared.tasks().end()) {
         if (existing->syncing || existing->inflight > 0 || existing->pendingDelete || existing->persistQueued) {
             return;
         }
@@ -5870,9 +5842,9 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
 
     if (!todo->uid().isEmpty()) {
         const QString uid = todo->uid();
-        for (auto it = s_tasks.begin(); it != s_tasks.end();) {
+        for (auto it = m_shared.tasks().begin(); it != m_shared.tasks().end();) {
             if (it.key() < 0 && it->todo && it->todo->uid() == uid) {
-                it = s_tasks.erase(it);
+                it = m_shared.tasks().erase(it);
             } else {
                 ++it;
             }
@@ -5880,10 +5852,10 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
     }
 
     ++m_lastFetchAccepted;
-    CachedTask cached;
+    SharedTasks::Entry cached;
     cached.item = storedItem;
     cached.todo = cloneTodo(todo);
-    s_tasks.insert(storedItem.id(), cached);
+    m_shared.tasks().insert(storedItem.id(), cached);
     if (m_pendingFetchJobs == 0) {
         scheduleRebuild();
     }
@@ -5891,7 +5863,7 @@ void TaskController::upsertTask(const Akonadi::Item &item, qint64 fallbackCollec
 
 void TaskController::removeTask(Akonadi::Item::Id itemId)
 {
-    if (s_tasks.remove(itemId) && m_pendingFetchJobs == 0) {
+    if (m_shared.tasks().remove(itemId) && m_pendingFetchJobs == 0) {
         scheduleRebuild();
     }
 }
@@ -6030,7 +6002,7 @@ void TaskController::recordRebuildTiming(qint64 elapsedMs, int taskCount)
 
 int TaskController::estimatedRebuildMs() const
 {
-    const int n = s_tasks.size();
+    const int n = m_shared.tasks().size();
     return m_rebuildBaseMs + qRound(n * m_rebuildMsPerTask);
 }
 
@@ -6043,8 +6015,8 @@ int TaskController::estimatedViewSwitchMs(bool coldLoader) const
 QList<TaskEntry> TaskController::snapshotAllTasks() const
 {
     QList<TaskEntry> allTasks;
-    allTasks.reserve(s_tasks.size());
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    allTasks.reserve(m_shared.tasks().size());
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (!it->todo) {
             continue;
         }
@@ -6121,7 +6093,7 @@ TaskLogic::TaskRebuildInput TaskController::buildRebuildInput(const QList<TaskEn
     input.matrixDrillTime = m_matrixDrillTime;
     input.matrixDrillIncludeCompleted = m_matrixDrillIncludeCompleted;
     input.countsExcludeCollapsed = m_countsExcludeCollapsed;
-    input.extraLabels = s_extraLabels;
+    input.extraLabels = m_shared.extraLabels();
     input.hierarchyAware = m_currentView == QLatin1String("completed")
             || !m_searchQuery.trimmed().isEmpty()
             || TaskLogic::hasSidebarFilters(input.filters);
@@ -6168,7 +6140,6 @@ void TaskController::applyDeferredRebuildTail()
     updateAvailableLabels(m_deferredAllTasks);
     updateAvailableLocations(m_deferredAllTasks);
     updateCounts(m_deferredCounts);
-    publishSharedCache();
     updateEmptyKind();
     updateDebugInfo(m_deferredFlatCount,
                     m_deferredVisibleCount,
@@ -6243,13 +6214,13 @@ void TaskController::updateKanbanLayout()
 
 bool TaskController::wouldCreateParentCycle(qint64 itemId, const QString &parentUid) const
 {
-    const auto draggedIt = s_tasks.constFind(itemId);
-    if (draggedIt == s_tasks.cend() || !draggedIt->todo) {
+    const auto draggedIt = m_shared.tasks().constFind(itemId);
+    if (draggedIt == m_shared.tasks().cend() || !draggedIt->todo) {
         return true;
     }
 
     QHash<QString, QString> parentByUid;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo) {
             parentByUid.insert(it->todo->uid(), it->todo->relatedTo());
         }
@@ -6290,7 +6261,7 @@ bool TaskController::taskMatchesSearch(const TaskEntry &task) const
 
 Akonadi::Item TaskController::itemById(qint64 itemId) const
 {
-    return s_tasks.value(itemId).item;
+    return m_shared.tasks().value(itemId).item;
 }
 
 KCalendarCore::Todo::Ptr TaskController::todoFromItem(const Akonadi::Item &item) const
@@ -6316,7 +6287,7 @@ void TaskController::updatePendingCount(const QList<TaskEntry> &tasks)
 void TaskController::updateSyncingCount()
 {
     int jobs = m_pendingFetchJobs;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->syncing || it->pendingDelete || it->inflight > 0) {
             jobs += qMax(1, it->inflight);
         }
@@ -6330,7 +6301,7 @@ void TaskController::updateSyncingCount()
 
 void TaskController::updateAvailableLabels(const QList<TaskEntry> &tasks)
 {
-    const QStringList sorted = TaskLogic::collectAvailableLabels(tasks, s_extraLabels);
+    const QStringList sorted = TaskLogic::collectAvailableLabels(tasks, m_shared.extraLabels());
     if (m_availableLabels == sorted) {
         return;
     }
@@ -6340,7 +6311,7 @@ void TaskController::updateAvailableLabels(const QList<TaskEntry> &tasks)
 
 void TaskController::updateAvailableLocations(const QList<TaskEntry> &tasks)
 {
-    const QStringList sorted = TaskLogic::collectAvailableLocations(tasks, s_extraLocations);
+    const QStringList sorted = TaskLogic::collectAvailableLocations(tasks, m_shared.extraLocations());
     if (m_availableLocations == sorted) {
         return;
     }
@@ -6370,31 +6341,16 @@ void TaskController::updateCounts(const TaskLogic::SidebarCounts &counts)
     }
 }
 
-void TaskController::publishSharedCache()
-{
-    s_collectionNames = m_collectionNames;
-}
-
-void TaskController::scheduleRebuildAll()
-{
-    for (TaskController *controller : s_instances) {
-        if (controller) {
-            controller->scheduleRebuild();
-        }
-    }
-}
-
 bool TaskController::hydrateFromCache()
 {
-    if (s_collections.isEmpty() && s_tasks.isEmpty() && s_extraLabels.isEmpty() && s_extraLocations.isEmpty()) {
+    if (m_shared.isEmpty()) {
         return false;
     }
-    m_collectionNames = s_collectionNames;
-    if (!s_collections.isEmpty()) {
-        m_collectionModel.setCollections(s_collections);
+    if (!m_shared.collections().isEmpty()) {
+        m_collectionModel.setCollections(m_shared.collections());
     }
-    if (!s_eventCollections.isEmpty()) {
-        m_eventCalendarModel.setCollections(s_eventCollections);
+    if (!m_shared.eventCollections().isEmpty()) {
+        m_eventCalendarModel.setCollections(m_shared.eventCollections());
     }
     scheduleRebuild();
     return true;
@@ -6402,11 +6358,11 @@ bool TaskController::hydrateFromCache()
 
 void TaskController::createLabel(const QString &name)
 {
-    if (!TaskLogic::canCreateLabel(name, m_availableLabels, s_extraLabels)) {
+    if (!TaskLogic::canCreateLabel(name, m_availableLabels, m_shared.extraLabels())) {
         return;
     }
-    s_extraLabels.append(name.trimmed());
-    scheduleRebuildAll();
+    m_shared.extraLabels().append(name.trimmed());
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::deleteLabel(const QString &name)
@@ -6416,20 +6372,20 @@ void TaskController::deleteLabel(const QString &name)
         return;
     }
 
-    s_extraLabels.removeAll(trimmed);
+    m_shared.extraLabels().removeAll(trimmed);
 
     if (!m_akonadiAvailable) {
         initializeAkonadi();
     }
 
     QList<qint64> toUpdate;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo && it->todo->categories().contains(trimmed)) {
             toUpdate.append(it.key());
         }
     }
     for (qint64 itemId : toUpdate) {
-        CachedTask *cache = prepareEdit(itemId);
+        SharedTasks::Entry *cache = prepareEdit(itemId);
         if (!cache) {
             continue;
         }
@@ -6439,51 +6395,51 @@ void TaskController::deleteLabel(const QString &name)
         persistTodo(cache->item, cache->todo);
     }
 
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::renameLabel(const QString &from, const QString &to)
 {
     const QString source = from.trimmed();
     const QString dest = to.trimmed();
-    if (!TaskLogic::canRenameLabel(source, dest, m_availableLabels, s_extraLabels)) {
+    if (!TaskLogic::canRenameLabel(source, dest, m_availableLabels, m_shared.extraLabels())) {
         return;
     }
 
-    for (int i = 0; i < s_extraLabels.size(); ++i) {
-        if (s_extraLabels.at(i) == source) {
-            s_extraLabels[i] = dest;
+    for (int i = 0; i < m_shared.extraLabels().size(); ++i) {
+        if (m_shared.extraLabels().at(i) == source) {
+            m_shared.extraLabels()[i] = dest;
         }
     }
-    s_extraLabels.removeAll(source);
-    if (!s_extraLabels.contains(dest)) {
-        s_extraLabels.append(dest);
+    m_shared.extraLabels().removeAll(source);
+    if (!m_shared.extraLabels().contains(dest)) {
+        m_shared.extraLabels().append(dest);
     }
 
     QList<qint64> toUpdate;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo && it->todo->categories().contains(source)) {
             toUpdate.append(it.key());
         }
     }
     for (qint64 itemId : toUpdate) {
-        CachedTask *cache = prepareEdit(itemId);
+        SharedTasks::Entry *cache = prepareEdit(itemId);
         if (!cache) {
             continue;
         }
         cache->todo->setCategories(TaskLogic::renameLabel(cache->todo->categories(), source, dest));
         persistTodo(cache->item, cache->todo);
     }
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::createLocation(const QString &name)
 {
-    if (!TaskLogic::canCreateLabel(name, m_availableLocations, s_extraLocations)) {
+    if (!TaskLogic::canCreateLabel(name, m_availableLocations, m_shared.extraLocations())) {
         return;
     }
-    s_extraLocations.append(name.trimmed());
-    scheduleRebuildAll();
+    m_shared.extraLocations().append(name.trimmed());
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::deleteLocation(const QString &name)
@@ -6493,20 +6449,20 @@ void TaskController::deleteLocation(const QString &name)
         return;
     }
 
-    s_extraLocations.removeAll(trimmed);
+    m_shared.extraLocations().removeAll(trimmed);
 
     if (!m_akonadiAvailable) {
         initializeAkonadi();
     }
 
     QList<qint64> toUpdate;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo && it->todo->location().trimmed() == trimmed) {
             toUpdate.append(it.key());
         }
     }
     for (qint64 itemId : toUpdate) {
-        CachedTask *cache = prepareEdit(itemId);
+        SharedTasks::Entry *cache = prepareEdit(itemId);
         if (!cache || !cache->todo) {
             continue;
         }
@@ -6514,47 +6470,47 @@ void TaskController::deleteLocation(const QString &name)
         persistTodo(cache->item, cache->todo);
     }
 
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::renameLocation(const QString &from, const QString &to)
 {
     const QString source = from.trimmed();
     const QString dest = to.trimmed();
-    if (!TaskLogic::canRenameLabel(source, dest, m_availableLocations, s_extraLocations)) {
+    if (!TaskLogic::canRenameLabel(source, dest, m_availableLocations, m_shared.extraLocations())) {
         return;
     }
 
-    for (int i = 0; i < s_extraLocations.size(); ++i) {
-        if (s_extraLocations.at(i) == source) {
-            s_extraLocations[i] = dest;
+    for (int i = 0; i < m_shared.extraLocations().size(); ++i) {
+        if (m_shared.extraLocations().at(i) == source) {
+            m_shared.extraLocations()[i] = dest;
         }
     }
-    s_extraLocations.removeAll(source);
-    if (!s_extraLocations.contains(dest)) {
-        s_extraLocations.append(dest);
+    m_shared.extraLocations().removeAll(source);
+    if (!m_shared.extraLocations().contains(dest)) {
+        m_shared.extraLocations().append(dest);
     }
 
     QList<qint64> toUpdate;
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (it->todo && it->todo->location().trimmed() == source) {
             toUpdate.append(it.key());
         }
     }
     for (qint64 itemId : toUpdate) {
-        CachedTask *cache = prepareEdit(itemId);
+        SharedTasks::Entry *cache = prepareEdit(itemId);
         if (!cache || !cache->todo) {
             continue;
         }
         cache->todo->setLocation(dest);
         persistTodo(cache->item, cache->todo);
     }
-    scheduleRebuildAll();
+    m_shared.notifyTasksChanged();
 }
 
 void TaskController::snoozeTask(qint64 itemId, const QString &preset)
 {
-    CachedTask *cache = prepareEdit(itemId);
+    SharedTasks::Entry *cache = prepareEdit(itemId);
     if (!cache || !cache->todo) {
         return;
     }
@@ -6693,8 +6649,8 @@ void TaskController::registerGlobalShortcuts()
 QList<Akonadi::Collection> TaskController::busyEventCollections() const
 {
     QList<Akonadi::Collection> result;
-    result.reserve(s_eventCollections.size());
-    for (const Akonadi::Collection &collection : s_eventCollections) {
+    result.reserve(m_shared.eventCollections().size());
+    for (const Akonadi::Collection &collection : m_shared.eventCollections()) {
         if (TaskLogic::isEnabledCsv(m_busyCalendarIds, collection.id())) {
             result.append(collection);
         }
@@ -6704,10 +6660,10 @@ QList<Akonadi::Collection> TaskController::busyEventCollections() const
 
 bool TaskController::isInBusyEvent(const QDateTime &when) const
 {
-    if (!m_suppressRemindersDuringEvents || m_busyIntervals.isEmpty()) {
+    if (!m_suppressRemindersDuringEvents || m_shared.busyIntervals().isEmpty()) {
         return false;
     }
-    return TaskCalendar::isBusyAt(when, m_busyIntervals);
+    return TaskCalendar::isBusyAt(when, m_shared.busyIntervals());
 }
 
 void TaskController::scheduleRefreshBusyEvents()
@@ -6722,7 +6678,7 @@ void TaskController::scheduleRefreshBusyEvents()
 // Before, every tick fetched all events of the busy calendars (7500 events: ~1 s each 5 min).
 void TaskController::refreshBusyIfDue()
 {
-    if (!TaskLogic::busyRefreshDue(s_busyEvents, s_busyFetchedOn, QDate::currentDate())) {
+    if (!m_shared.busyRefreshDue(QDate::currentDate())) {
         return;
     }
     refreshBusyEvents();
@@ -6737,7 +6693,7 @@ void TaskController::watchBusyEvents()
     m_eventMonitor->fetchCollectionStatistics(false);
 
     auto changed = [this] {
-        s_busyEvents = TaskLogic::BusyEvents::Changed;
+        m_shared.markBusyChanged();
         m_busyChangeTimer.start();
     };
     connect(m_eventMonitor, &Akonadi::Monitor::itemAdded, this, changed);
@@ -6751,13 +6707,13 @@ void TaskController::refreshBusyEvents()
     // Busy events feed both reminder suppression and the Agenda view,
     // so they are fetched whenever Akonadi is available.
     if (!m_akonadiAvailable || m_demo) {
-        m_busyIntervals.clear();
+        m_shared.setBusyIntervals({});
         return;
     }
 
     const QList<Akonadi::Collection> collections = busyEventCollections();
     if (collections.isEmpty()) {
-        m_busyIntervals.clear();
+        m_shared.setBusyIntervals({});
         return;
     }
 
@@ -6771,8 +6727,7 @@ void TaskController::refreshBusyEvents()
     const QDateTime rangeEnd = now.addDays(70);
 
     // Changes from now on make the next tick fetch again.
-    s_busyEvents = TaskLogic::BusyEvents::Current;
-    s_busyFetchedOn = now.date();
+    m_shared.markBusyFetched(now.date());
     m_busyFetchIntervals.clear();
     m_pendingBusyFetchJobs = collections.size();
 
@@ -6790,7 +6745,7 @@ void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart,
     --m_pendingBusyFetchJobs;
 
     if (job->error()) {
-        s_busyEvents = TaskLogic::BusyEvents::Changed;
+        m_shared.markBusyChanged();
     }
     if (auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(job)) {
         if (!job->error()) {
@@ -6817,19 +6772,8 @@ void TaskController::onBusyEventsFetched(KJob *job, const QDateTime &rangeStart,
     }
 
     m_pendingBusyFetchJobs = 0;
-    applyBusyIntervals(m_busyFetchIntervals);
+    m_shared.setBusyIntervals(m_busyFetchIntervals);
     m_busyFetchIntervals.clear();
-}
-
-// Takes the fetched busy intervals for this widget and every other instance.
-void TaskController::applyBusyIntervals(const QVector<TaskCalendar::BusyInterval> &intervals)
-{
-    m_busyIntervals = intervals;
-    for (TaskController *other : s_instances) {
-        if (other != this) {
-            other->m_busyIntervals = m_busyIntervals;
-        }
-    }
 }
 
 void TaskController::checkReminders()
@@ -6846,7 +6790,7 @@ void TaskController::checkReminders()
         return;
     }
     const QDateTime from = m_lastReminderScan.isValid() ? m_lastReminderScan : now.addSecs(-45);
-    for (auto it = s_tasks.cbegin(); it != s_tasks.cend(); ++it) {
+    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
         if (!it->todo || it->todo->isCompleted()) {
             continue;
         }
