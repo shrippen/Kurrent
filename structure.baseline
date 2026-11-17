@@ -23,8 +23,7 @@ plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	_parseFormatTokens	c
 plasmoid/io.github.shrippen.Kurrent/contents/ui/datetime.js	formatDigitsWithTokens	ccn=19
 plasmoid/io.github.shrippen.Kurrent/contents/ui/taskmeta.js	listSectionIcon	ccn=17
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/AgendaDayView.qml	reasonsOf	nesting=6
-plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=2847
-plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	redistributeSections	ccn=44 length=160 nesting=5
+plasmoid/io.github.shrippen.Kurrent/contents/ui/views/SidebarView.qml	-	lines=2718
 plasmoid/io.github.shrippen.Kurrent/contents/ui/views/TaskListView.qml	-	lines=858
 plugin/agendalogic.cpp	AgendaLogic::rankSuggestions	ccn=22
 plugin/quickadd.cpp	-	lines=969

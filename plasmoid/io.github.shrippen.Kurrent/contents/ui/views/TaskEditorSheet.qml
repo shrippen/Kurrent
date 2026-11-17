@@ -6,6 +6,7 @@ import org.kde.plasma.plasmoid 2.0
 import "../components"
 import "../colors.js" as Colors
 import "../datetime.js" as DateTime
+import "../recurrence.js" as Recurrence
 import ".."
 import "."
 import "../Kante"
@@ -76,7 +77,7 @@ FocusScope {
         percentSlider.value = task.percentComplete !== undefined ? task.percentComplete : (task.completed ? 100 : 0)
         statusValue = normalizeStatus(task.status || 0)
         secrecyValue = Math.max(0, Math.min(2, task.secrecy || 0))
-        recurrenceBox.currentIndex = recurrenceIndexFor(task.recurrencePreset || "none")
+        recurrenceBox.currentIndex = Recurrence.indexFor(task.recurrencePreset || "none")
         reminderBox.currentIndex = reminderIndexFor(task.reminderMinutes)
         projectPicker.collectionId = task.collectionId || -1
         projectPicker.controller = controller
@@ -91,36 +92,6 @@ FocusScope {
             }
         }
         return 0
-    }
-
-    function recurrenceIndexFor(preset) {
-        switch (String(preset)) {
-        case "daily":
-            return 1
-        case "weekly":
-            return 2
-        case "monthly":
-            return 3
-        case "yearly":
-            return 4
-        default:
-            return 0
-        }
-    }
-
-    function recurrenceValueFor(index) {
-        switch (index) {
-        case 1:
-            return "daily"
-        case 2:
-            return "weekly"
-        case 3:
-            return "monthly"
-        case 4:
-            return "yearly"
-        default:
-            return "none"
-        }
     }
 
     function reminderIndexFor(minutes) {
@@ -169,7 +140,7 @@ FocusScope {
             "percentComplete": Math.round(percentSlider.value),
             "status": statusValue,
             "secrecy": secrecyValue,
-            "recurrencePreset": recurrenceValueFor(recurrenceBox.currentIndex),
+            "recurrencePreset": Recurrence.valueFor(recurrenceBox.currentIndex),
             "reminderMinutes": reminderValueFor(reminderBox.currentIndex),
             "clearDue": dueResult.clear,
             "clearStart": startResult.clear,
