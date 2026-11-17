@@ -19,6 +19,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task. One store talks to Akonadi, one keeps tasks in memory for tests. |
 | `plugin/tasklogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
+| `plugin/sharedtasks.*` | The data all controllers of a process share: tasks with their sync state, task lists, event calendars, busy times, labels and places. Holds data and signals only. |
 | `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
 | `plugin/taskcontroller.*` | What QML and the terminal program call. In the target a thin front: it holds the state of the session and hands each call to the class for its topic (settings bridge, undo, merge conflicts, board and matrix moves, agenda). |
@@ -100,8 +101,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   without a test (not in `AUDIT.md`).
 - The sidebar consists of seven nearly equal sections of about 230 lines each
   (`AUDIT.md`, finding 3).
-- The controller does nearly everything in one class of 7031 lines, including
-  reading and watching Akonadi, smoke test, screenshot mode and demo mode
+- The controller does nearly everything in one class of 6874 lines, including
+  reading and watching Akonadi (the shared data is in `plugin/sharedtasks.*`; loading
+  is still here), smoke test, screenshot mode and demo mode
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for
   the screenshot runner (`MainPaneHost`, `SwimlaneView`, `main.qml`, three views; not
   in `AUDIT.md`).
