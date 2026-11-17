@@ -111,8 +111,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   in `AUDIT.md`).
 - `tui/tuiapp.cpp` has a filter and a sort order of its own for open tasks (not in
   `AUDIT.md`).
-- The defaults of the settings stand in three places, with no test comparing them
-  (`AUDIT.md`, finding 5).
+- The order of the sidebar's sections and views is still written out as a default in
+  `ui/configSidebar.qml` and `ui/views/SidebarView.qml`, besides `main.xml` (`AUDIT.md`,
+  finding 5).
 - Small date and selection helpers are copied into many views and settings pages
   (`AUDIT.md`, finding 6).
 - The controller is called `backend` in five files and `controller` in about thirty

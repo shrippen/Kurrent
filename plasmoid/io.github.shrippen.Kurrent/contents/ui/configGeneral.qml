@@ -259,17 +259,17 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                defaultView: "inbox",
-                rememberLastView: false,
-                showCompleted: false,
-                newTaskProjectMode: "ask",
-                newTaskDefaultCollectionId: "",
-                defaultDueMode: "none",
-                defaultReminderMinutes: -1,
-                confirmDelete: false,
-                completeNeedsModifier: false
-            })
+            keys: [
+                "defaultView",
+                "rememberLastView",
+                "showCompleted",
+                "newTaskProjectMode",
+                "newTaskDefaultCollectionId",
+                "defaultDueMode",
+                "defaultReminderMinutes",
+                "confirmDelete",
+                "completeNeedsModifier"
+            ]
         }
     }
 
