@@ -229,6 +229,31 @@ target_link_libraries(kurrent-taskcontroller-editor-test PRIVATE
 add_test(NAME kurrent-taskcontroller-editor COMMAND kurrent-taskcontroller-editor-test)
 set_tests_properties(kurrent-taskcontroller-editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+# The refetch paths of the write pipeline (conflict, revision 0, reload) through the memory store.
+add_executable(kurrent-taskcontroller-conflict-test
+    taskcontroller_conflict_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-taskcontroller-conflict-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-conflict-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-conflict-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-conflict COMMAND kurrent-taskcontroller-conflict-test)
+set_tests_properties(kurrent-taskcontroller-conflict PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 # Which version of a task wins when one arrives from Akonadi (applyItem), without Akonadi.
 add_executable(kurrent-akonadiloader-test
     akonadiloader_test.cpp
@@ -336,6 +361,7 @@ set(_kurrent_test_targets
     kurrent-sharedtasks-test
     kurrent-taskcontroller-store-test
     kurrent-taskcontroller-editor-test
+    kurrent-taskcontroller-conflict-test
     kurrent-taskcontroller-multi-test
     kurrent-akonadiloader-test
     kurrent-core-i18n-test
