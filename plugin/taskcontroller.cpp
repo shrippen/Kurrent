@@ -15,7 +15,6 @@
 #include "tasklogic.h"
 
 #include <Akonadi/Collection>
-#include <Akonadi/ItemFetchJob>
 
 #include <KCalendarCore/Event>
 #include <KCalendarCore/Todo>
@@ -2894,14 +2893,11 @@ void TaskController::reloadTask(qint64 itemId)
     if (!item.isValid()) {
         return;
     }
-    auto *job = new Akonadi::ItemFetchJob(item, this);
-    job->fetchScope().fetchFullPayload();
-    connect(job, &Akonadi::ItemFetchJob::result, this, [this, itemId](KJob *fetchJob) {
-        auto *itemJob = qobject_cast<Akonadi::ItemFetchJob *>(fetchJob);
-        if (!itemJob || itemJob->error() || itemJob->items().isEmpty()) {
+    m_store->fetch(item, this, [this, itemId](const Akonadi::Item &fresh, const QString &error) {
+        if (!error.isEmpty()) {
             return;
         }
-        AkonadiLoader::instance().applyItem(itemJob->items().constFirst());
+        AkonadiLoader::instance().applyItem(fresh);
         m_shared.notifyTasksChanged();
         if (m_conflictItemId == itemId) {
             m_conflictItemId = -1;
@@ -4099,13 +4095,10 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
         auto refetchItem = it->item;
         auto desiredTodo = todo;
         auto moveId = moveToCollectionId;
-        auto *job = new Akonadi::ItemFetchJob(refetchItem, this);
-        configureItemFetchJob(job);
-        connect(job, &Akonadi::ItemFetchJob::result, this,
-                [this, itemId, desiredTodo, moveId](KJob *kjob) {
-            auto *fetchJob = qobject_cast<Akonadi::ItemFetchJob *>(kjob);
+        m_store->fetch(refetchItem, this,
+                [this, itemId, desiredTodo, moveId](const Akonadi::Item &freshItem, const QString &error) {
             auto it2 = m_shared.tasks().find(itemId);
-            if (!fetchJob || fetchJob->error() || fetchJob->items().isEmpty() || it2 == m_shared.tasks().end()) {
+            if (!error.isEmpty() || it2 == m_shared.tasks().end()) {
                 // Refetch failed: submit anyway, let autoResolveConflict handle it
                 auto it3 = m_shared.tasks().find(itemId);
                 if (it3 != m_shared.tasks().end()) {
@@ -4114,7 +4107,6 @@ void TaskController::persistTodo(const Akonadi::Item &item, const KCalendarCore:
                 return;
             }
             // Update cache with fresh item (correct revision)
-            auto freshItem = fetchJob->items().constFirst();
             it2->item = freshItem;
             it2->item.setPayload<KCalendarCore::Todo::Ptr>(desiredTodo);
             logAkonadi(QStringLiteral("persistTodo: refetched itemId=%1, now rev=%2")
@@ -4178,12 +4170,9 @@ void TaskController::autoResolveConflict(qint64 itemId)
 
     // Fetch the item fresh from Akonadi to get the current revision
     Akonadi::Item fetchItem(itemId);
-    auto *job = new Akonadi::ItemFetchJob(fetchItem, this);
-    configureItemFetchJob(job);
-    connect(job, &Akonadi::ItemFetchJob::result, this,
-            [this, itemId, desiredTodo](KJob *kjob) {
-        auto *itemJob = qobject_cast<Akonadi::ItemFetchJob *>(kjob);
-        if (!itemJob || itemJob->error() || itemJob->items().isEmpty()) {
+    m_store->fetch(fetchItem, this,
+            [this, itemId, desiredTodo](const Akonadi::Item &freshItem, const QString &error) {
+        if (!error.isEmpty()) {
             logAkonadi(QStringLiteral("autoResolveConflict: refetch failed for itemId=%1, surfacing error").arg(itemId));
             auto it2 = m_shared.tasks().find(itemId);
             if (it2 != m_shared.tasks().end()) {
@@ -4199,7 +4188,6 @@ void TaskController::autoResolveConflict(qint64 itemId)
             return;
         }
 
-        auto freshItem = itemJob->items().constFirst();
         auto it3 = m_shared.tasks().find(itemId);
         if (it3 == m_shared.tasks().end()) {
             return;
