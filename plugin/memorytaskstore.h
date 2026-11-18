@@ -16,6 +16,7 @@ public:
     explicit MemoryTaskStore(QObject *parent = nullptr);
 
     void submit(const Request &request) override;
+    void fetch(const Akonadi::Item &item, QObject *context, FetchDone done) override;
 
     int itemCount() const { return m_items.size(); }
     bool contains(qint64 id) const { return m_items.contains(id); }
@@ -27,6 +28,9 @@ public:
     // Force the next submit to fail (tests rollback paths).
     void failNext(const QString &message = QStringLiteral("forced failure"));
 
+    // Force the next fetch to fail (tests the refetch paths).
+    void failNextFetch(const QString &message = QStringLiteral("forced fetch failure"));
+
 private:
     void deliver(const Result &result);
 
@@ -34,4 +38,6 @@ private:
     qint64 m_nextId = 1;
     bool m_failNext = false;
     QString m_failMessage;
+    bool m_failNextFetch = false;
+    QString m_failFetchMessage;
 };

@@ -13,6 +13,12 @@ void MemoryTaskStore::failNext(const QString &message)
     m_failMessage = message;
 }
 
+void MemoryTaskStore::failNextFetch(const QString &message)
+{
+    m_failNextFetch = true;
+    m_failFetchMessage = message;
+}
+
 void MemoryTaskStore::seedItem(const Akonadi::Item &item)
 {
     if (item.id() <= 0) {
@@ -29,6 +35,25 @@ void MemoryTaskStore::deliver(const Result &result)
     // Match Akonadi: reply after the current call stack (optimistic UI already updated).
     QMetaObject::invokeMethod(this, [this, result]() {
         Q_EMIT finished(result);
+    }, Qt::QueuedConnection);
+}
+
+void MemoryTaskStore::fetch(const Akonadi::Item &item, QObject *context, FetchDone done)
+{
+    QString error;
+    Akonadi::Item found;
+    if (m_failNextFetch) {
+        m_failNextFetch = false;
+        error = m_failFetchMessage;
+    } else if (m_items.contains(item.id())) {
+        found = m_items.value(item.id());
+    } else {
+        error = QStringLiteral("item not found");
+    }
+
+    // Queued, with `context` as receiver: like a job result.
+    QMetaObject::invokeMethod(context, [found, error, done]() {
+        done(found, error);
     }, Qt::QueuedConnection);
 }
 
