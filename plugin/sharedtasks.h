@@ -25,8 +25,8 @@
  *   controller B ──┼──> SharedTasks ──┤
  *   settings page ─┘                  └─ tasksChanged ───────> rebuild the lists
  *
- * It holds data only: no Akonadi jobs, no monitors (loading stays in the controller
- * for now), so it runs in tests without Akonadi.
+ * It holds data only: no Akonadi jobs, no monitors (AkonadiLoader loads into it), so it
+ * runs in tests without Akonadi.
  */
 class SharedTasks : public QObject
 {

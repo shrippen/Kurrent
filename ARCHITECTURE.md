@@ -20,6 +20,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/tasklogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
 | `plugin/sharedtasks.*` | The data all controllers of a process share: tasks with their sync state, task lists, event calendars, busy times, labels and places. Holds data and signals only. |
+| `plugin/akonadiloader.*`, `akonadibusy.cpp`, `akonadiutil.h` | Reads and watches Akonadi once per process, writing into `SharedTasks`: connects, loads task lists and tasks, monitors changes, fetches busy events, decides which version of a task wins when one arrives. Reports available, loading and error to the controllers. `akonadibusy.cpp` is its busy-event half (own file for the file limit). |
 | `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
 | `plugin/taskcontroller.*` | What QML and the terminal program call. In the target a thin front: it holds the state of the session and hands each call to the class for its topic (settings bridge, undo, merge conflicts, board and matrix moves, agenda). |
@@ -99,9 +100,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 6878 lines, including
-  reading and watching Akonadi (the shared data is in `plugin/sharedtasks.*`; loading
-  is still here), smoke test, screenshot mode and demo mode
+- The controller does nearly everything in one class of 6172 lines, including
+  smoke test, screenshot mode and demo mode (the shared data is in `plugin/sharedtasks.*`,
+  reading and watching Akonadi in `plugin/akonadiloader.*`)
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for
   the screenshot runner (`MainPaneHost`, `SwimlaneView`, `main.qml`, three views; not
   in `AUDIT.md`).
