@@ -14,3 +14,4 @@
 /RELEASE.md export-ignore
 /ReviewClaude.md export-ignore
 /.cursor export-ignore
+/.gitea/pr-agent export-ignore
