@@ -30,6 +30,7 @@ private Q_SLOTS:
     void nullTodoIsSafe();
     void reminderOffAtDueAndBefore();
     void snoozeSetsAbsoluteTime();
+    void reminderDueWindow();
     void dueAndStartFromTodo();
     void busyIntervalsAndIsBusyAt();
     void moveOccurrenceKeepsRule_data();
@@ -240,6 +241,21 @@ void CalendarTest::snoozeSetsAbsoluteTime()
     QCOMPARE(TaskCalendar::nextReminderTime(todo, now), now.addSecs(15 * 60));
     TaskCalendar::snoozeReminder(todo, QStringLiteral("tomorrow"), now);
     QCOMPARE(TaskCalendar::nextReminderTime(todo, now).date(), QDate(2026, 8, 18));
+}
+
+void CalendarTest::reminderDueWindow()
+{
+    const QDateTime from(QDate(2026, 8, 17), QTime(10, 0));
+    const QDateTime now = from.addSecs(30);
+    const QDateTime inside = from.addSecs(10);
+
+    QVERIFY(TaskCalendar::isReminderDue(inside, from, now, {}));
+    QVERIFY(TaskCalendar::isReminderDue(now, from, now, {}));
+    QVERIFY(!TaskCalendar::isReminderDue(from, from, now, {}));
+    QVERIFY(!TaskCalendar::isReminderDue(now.addSecs(1), from, now, {}));
+    QVERIFY(!TaskCalendar::isReminderDue({}, from, now, {}));
+    QVERIFY(!TaskCalendar::isReminderDue(inside, from, now, inside));
+    QVERIFY(TaskCalendar::isReminderDue(inside, from, now, inside.addSecs(-60)));
 }
 
 void CalendarTest::dueAndStartFromTodo()

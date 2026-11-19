@@ -7,6 +7,7 @@
 #include "taskagenda.h"
 #include "taskcalendar.h"
 #include "tasklistmodel.h"
+#include "taskreminders.h"
 #include "tasklogic.h"
 #include "taskstore.h"
 #include "taskundo.h"
@@ -225,12 +226,12 @@ public:
     bool searchCaseSensitive() const { return m_searchCaseSensitive; }
     bool completeChildren() const { return m_completeChildren; }
     bool countsExcludeCollapsed() const { return m_countsExcludeCollapsed; }
-    bool notificationsEnabled() const { return m_notificationsEnabled; }
-    int defaultReminderMinutes() const { return m_defaultReminderMinutes; }
-    bool quietHoursEnabled() const { return m_quietHoursEnabled; }
-    int quietHoursStart() const { return m_quietHoursStart; }
-    int quietHoursEnd() const { return m_quietHoursEnd; }
-    bool suppressRemindersDuringEvents() const { return m_suppressRemindersDuringEvents; }
+    bool notificationsEnabled() const { return m_reminders->enabled(); }
+    int defaultReminderMinutes() const { return m_reminders->defaultMinutes(); }
+    bool quietHoursEnabled() const { return m_reminders->quietEnabled(); }
+    int quietHoursStart() const { return m_reminders->quietStart(); }
+    int quietHoursEnd() const { return m_reminders->quietEnd(); }
+    bool suppressRemindersDuringEvents() const { return m_reminders->suppressDuringEvents(); }
     QString busyCalendarIds() const { return m_busyCalendarIds; }
     QVariantList eventCalendars() const;
     QDate agendaSelectedDate() const { return m_agenda->selectedDate(); }
@@ -404,7 +405,7 @@ public:
     Q_INVOKABLE QString taskAppName() const;
     Q_INVOKABLE bool launchTaskApp() const;
     /** Settings "Send test notification"; false without KNotifications support. */
-    Q_INVOKABLE bool sendTestNotification(const QString &title, const QString &text);
+    Q_INVOKABLE bool sendTestNotification(const QString &title, const QString &text) { return m_reminders->sendTest(title, text); }
     Q_INVOKABLE void bulkCompleteTasks(const QVariantList &itemIds, bool completed);
     Q_INVOKABLE void bulkDeleteTasks(const QVariantList &itemIds);
     Q_INVOKABLE void bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId);
@@ -441,12 +442,12 @@ public:
     void setSearchCaseSensitive(bool sensitive);
     void setCompleteChildren(bool complete);
     void setCountsExcludeCollapsed(bool exclude);
-    void setNotificationsEnabled(bool enabled);
-    void setDefaultReminderMinutes(int minutes);
-    void setQuietHoursEnabled(bool enabled);
-    void setQuietHoursStart(int hour);
-    void setQuietHoursEnd(int hour);
-    void setSuppressRemindersDuringEvents(bool enabled);
+    void setNotificationsEnabled(bool enabled) { m_reminders->setEnabled(enabled); }
+    void setDefaultReminderMinutes(int minutes) { m_reminders->setDefaultMinutes(minutes); }
+    void setQuietHoursEnabled(bool enabled) { m_reminders->setQuietEnabled(enabled); }
+    void setQuietHoursStart(int hour) { m_reminders->setQuietStart(hour); }
+    void setQuietHoursEnd(int hour) { m_reminders->setQuietEnd(hour); }
+    void setSuppressRemindersDuringEvents(bool enabled) { m_reminders->setSuppressDuringEvents(enabled); }
     void setBusyCalendarIds(const QString &ids);
     /** Agenda menu: show / hide one calendar's events as busy time; persists. */
     Q_INVOKABLE void toggleBusyCalendar(qint64 calendarId);
@@ -671,12 +672,10 @@ private:
     void recreateTask(const TaskLogic::UndoRecord &record);
     /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */
     void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
-    void checkReminders();
-    void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
-    bool isInBusyEvent(const QDateTime &when) const;
     void registerSessionInterface();
     void registerGlobalShortcuts();
     void createHooks();
+    void createReminders();
     void connectShared();
     void connectLoader();
     void mirrorLoader();
@@ -810,15 +809,7 @@ private:
     bool m_searchCaseSensitive = false;
     bool m_completeChildren = false;
     bool m_countsExcludeCollapsed = false;
-    bool m_notificationsEnabled = true;
-    int m_defaultReminderMinutes = -1;
-    bool m_quietHoursEnabled = false;
-    int m_quietHoursStart = 22;
-    int m_quietHoursEnd = 7;
-    bool m_suppressRemindersDuringEvents = false;
     QString m_busyCalendarIds;
-    QDateTime m_lastReminderScan;
-    QHash<qint64, QDateTime> m_lastNotifiedReminder;
     QString m_emptyKind;
     TaskUndo *m_undo = nullptr;
     QSet<QString> m_collapsedUids;
@@ -841,7 +832,7 @@ private:
     CollectionListModel m_eventCalendarModel;
     TaskWriter *m_writer = nullptr;
     QTimer m_rebuildTimer;
-    QTimer m_reminderTimer;
+    TaskReminders *m_reminders = nullptr;
     TaskAgenda *m_agenda = nullptr;
     SessionHooks *m_hooks = nullptr;
 

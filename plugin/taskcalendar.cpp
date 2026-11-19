@@ -464,6 +464,14 @@ QDateTime nextReminderTime(const KCalendarCore::Todo::Ptr &todo, const QDateTime
     return soonest;
 }
 
+bool isReminderDue(const QDateTime &when, const QDateTime &from, const QDateTime &now, const QDateTime &lastSent)
+{
+    if (!when.isValid() || when > now || when <= from) {
+        return false;
+    }
+    return !(lastSent.isValid() && lastSent == when);
+}
+
 void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDateTime &now)
 {
     if (!todo || !now.isValid()) {

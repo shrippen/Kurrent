@@ -51,6 +51,8 @@ add_library(kurrentcore STATIC
     taskagenda.h
     taskentry.cpp
     taskentry.h
+    taskreminders.cpp
+    taskreminders.h
     taskundo.cpp
     taskundo.h
     taskwriter.cpp
