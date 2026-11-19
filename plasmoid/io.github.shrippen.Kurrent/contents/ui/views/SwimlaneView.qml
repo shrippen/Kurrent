@@ -552,13 +552,13 @@ Item {
 
                                     // Cells and the task map arrive together, but bindings settle one
                                     // by one: only build a card while its task is actually known.
-                                    Loader {
+                                    // Build cards incrementally so a cell full of tasks does not
+                                    // block the frame.
+                                    ViewLoader {
                                         id: cardLoader
                                         width: slot.width
                                         active: !!slot.taskObj
-                                        // Build cards incrementally so a cell full of tasks does not
-                                        // block the frame.
-                                        asynchronous: !root.controller.smokeTest
+                                        controller: root.controller
                                         sourceComponent: KanbanCard {
                                             width: slot.width
                                             controller: root.controller
