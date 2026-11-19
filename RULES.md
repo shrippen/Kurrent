@@ -36,6 +36,8 @@ is in `agent.md`.
 
 - Build the simplest thing that solves the task. No abstraction, option or error handling for a case that does not exist.
 
+- Write the files a project reads and writes itself (settings, records, state, fixtures, data) as YAML. Keep another format only where a tool prescribes it (`pyproject.toml`, `Cargo.toml`, `package.json`), another program reads or writes the file (a job for Blender, a trainer's config, COLMAP's files), or a web page loads it in the browser (JSON).
+
 - Keep the structure limits that `tools/structure-check.py` checks in CI: a function has at most 80 lines, complexity 15 and nesting 4; a file has at most 800 lines. Over a limit, split the code. A new or raised entry in `structure.baseline` needs its reason in the PR.
 
 ## Commit messages
