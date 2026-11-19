@@ -61,7 +61,7 @@ public:
     QString label() const;
     /// Takes the newest record off the stack.
     TaskLogic::UndoRecord take();
-    /// Empties the stack and the pending recreate / delete bookkeeping.
+    /// Empties the stack and the pending recreates; pending deletes after create stay.
     void reset();
 
     /// True while an edit would be recorded (not applying, not in a batch).
