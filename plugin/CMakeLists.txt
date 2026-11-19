@@ -43,6 +43,8 @@ add_library(kurrentcore STATIC
     akonadiitems.h
     akonaditaskstore.cpp
     akonaditaskstore.h
+    boardlogic.cpp
+    boardlogic.h
     taskundo.cpp
     taskundo.h
     taskwriter.cpp

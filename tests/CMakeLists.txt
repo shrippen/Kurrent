@@ -16,6 +16,18 @@ target_include_directories(kurrent-tasklogic-test PRIVATE ${CMAKE_SOURCE_DIR}/pl
 target_link_libraries(kurrent-tasklogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
 add_test(NAME kurrent-tasklogic COMMAND kurrent-tasklogic-test)
 
+add_executable(kurrent-boardlogic-test
+    boardlogic_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/boardlogic.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+)
+target_include_directories(kurrent-boardlogic-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-boardlogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test KF6::CalendarCore KF6::I18n)
+add_test(NAME kurrent-boardlogic COMMAND kurrent-boardlogic-test)
+
 add_executable(kurrent-agendalogic-test
     agendalogic_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
@@ -146,6 +158,7 @@ set_tests_properties(kurrent-taskstore PROPERTIES
 find_package(KF6 REQUIRED COMPONENTS I18n)
 set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
@@ -327,6 +340,7 @@ if(KURRENT_BUILD_BENCH)
     add_executable(kurrent-perf-bench
         perf_bench.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
         ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
@@ -357,6 +371,7 @@ set(_kurrent_test_targets
     kurrent-akonadiitems-test
     kurrent-tasklogic-test
     kurrent-agendalogic-test
+    kurrent-boardlogic-test
     kurrent-focusorder-test
     kurrent-sharedsettings-test
     kurrent-models-test
