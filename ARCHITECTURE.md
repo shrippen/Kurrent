@@ -23,6 +23,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/akonadiloader.*`, `akonadibusy.cpp`, `akonadiutil.h` | Reads and watches Akonadi once per process, writing into `SharedTasks`: connects, loads task lists and tasks, monitors changes, fetches busy events, decides which version of a task wins when one arrives. Reports available, loading and error to the controllers. `akonadibusy.cpp` is its busy-event half (own file for the file limit). |
 | `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
+| `plugin/settingsbridge.*` | Keeps the widget's `Plasmoid.configuration` and `kurrentrc` equal: seeds and writes back on start, copies every edit of a known key, follows when `kurrentrc` changes. |
 | `plugin/taskwriter.*` | The write path behind the controller: hands each write to the store, keeps the optimistic state of a task (syncing, queue, rollback) and settles conflicts (three-way merge, the merge dialog's choices). |
 | `plugin/taskundo.*` | The undo topic: the stack of records, what gets recorded (not while an undo is applied or a composite action runs), and the record logic: take a snapshot of a task, write it back, rebuild a deleted one. The controller dispatches a taken record. |
 | `plugin/sessionhooks.*` | The hooks of the smoke test and the screenshot mode: the `KURRENT_SMOKE*` and `KURRENT_SCREENSHOT_*` settings, and the smoke progress, finish and leader, which are process-wide across controllers. The controller creates one and forwards to it. |
@@ -108,8 +109,8 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 4400 lines (the shared data is in `plugin/sharedtasks.*`,
-  reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`, reminders in `plugin/taskreminders.*`, smoke and screenshot hooks in
+- The controller does nearly everything in one class of 4364 lines (the shared data is in `plugin/sharedtasks.*`,
+  reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`, reminders in `plugin/taskreminders.*`, the settings bridge in `plugin/settingsbridge.*`, smoke and screenshot hooks in
   `plugin/sessionhooks.*`, demo seeding in `plugin/demodata.*`). Six places still
   branch on demo mode (`m_demo`) to keep Akonadi calls away (`AUDIT.md`, finding 4). Views carry helpers for the screenshot runner
   (`CalendarAgendaView`, `AgendaDayView`, `TaskListView`, and `calendarView` in

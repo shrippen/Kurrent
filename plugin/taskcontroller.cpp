@@ -44,8 +44,6 @@
 #include <QLoggingCategory>
 #include <QScopedValueRollback>
 #include <QScreen>
-#include <QMetaMethod>
-#include <QMetaProperty>
 #include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
@@ -187,6 +185,7 @@ TaskController::TaskController(QObject *parent)
 
 
     // Every write goes through the writer and its store; MemoryTaskStore swaps in for unit tests.
+    m_bridge = new SettingsBridge(this);
     m_writer = new TaskWriter(m_shared, [this] { return m_akonadiAvailable; }, this);
     connect(m_writer, &TaskWriter::finished, this, &TaskController::onStoreFinished);
     connect(m_writer, &TaskWriter::error, this, &TaskController::error);
@@ -2286,7 +2285,7 @@ void TaskController::startSession(QObject *configuration)
     if (m_session) {
         return;
     }
-    bindConfiguration(configuration);
+    m_bridge->bind(configuration);
     loadSettings();
 
     // Start view: the default view, or the last one when "remember last view" is on.
@@ -2321,44 +2320,9 @@ void TaskController::loadEnabledCollections()
     setEnabledCollectionIds(list);
 }
 
-void TaskController::bindConfiguration(QObject *configuration)
-{
-    if (!configuration) {
-        return;
-    }
-    m_configuration = configuration;
-    SharedSettings *store = SharedSettings::instance();
-    store->seedFromIfEmpty(configuration);
-    store->seedMissingFrom(configuration);
-    store->applyTo(configuration);
-
-    // One generic bridge: any known key's change signal pushes the whole configuration.
-    // QML writes (KCM Apply) and C++ inserts both emit these, unlike valueChanged().
-    const QStringList keys = store->keys();
-    const QMetaMethod slot = staticMetaObject.method(staticMetaObject.indexOfSlot("onConfigEdited()"));
-    const QMetaObject *meta = configuration->metaObject();
-    for (int i = 0; i < meta->propertyCount(); ++i) {
-        const QMetaProperty property = meta->property(i);
-        if (!property.hasNotifySignal() || !keys.contains(QLatin1String(property.name()))) {
-            continue;
-        }
-        connect(configuration, property.notifySignal(), this, slot);
-    }
-}
-
-void TaskController::onConfigEdited()
-{
-    if (!m_configuration) {
-        return;
-    }
-    SharedSettings::instance()->copyFrom(m_configuration);
-}
-
 void TaskController::onSettingsStored()
 {
-    if (m_configuration) {
-        SharedSettings::instance()->applyTo(m_configuration);
-    }
+    m_bridge->applyStored();
     loadSettings();
     Q_EMIT settingsChanged();
 }

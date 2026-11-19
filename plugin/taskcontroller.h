@@ -11,6 +11,7 @@
 #include "tasklogic.h"
 #include "taskstore.h"
 #include "taskundo.h"
+#include "settingsbridge.h"
 #include "taskwriter.h"
 
 #include <Akonadi/Item>
@@ -642,11 +643,9 @@ signals:
     friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
-    void onConfigEdited();
     void onSettingsStored();
 
 private:
-    void bindConfiguration(QObject *configuration);
     void loadSettings();
     void followView();
     void persist(const QString &key, const QVariant &value);
@@ -726,7 +725,7 @@ private:
     bool m_akonadiAvailable = false;
     bool m_demo = false;
     // Settings: bound Plasmoid.configuration, last loaded kurrentrc values.
-    QPointer<QObject> m_configuration;
+    SettingsBridge *m_bridge = nullptr;
     QVariantMap m_settings;
     bool m_session = false;
     bool m_loadingSettings = false;

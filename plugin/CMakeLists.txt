@@ -56,6 +56,8 @@ add_library(kurrentcore STATIC
     taskundo.cpp
     taskundo.h
     taskwriter.cpp
+    settingsbridge.cpp
+    settingsbridge.h
     taskwriter.h
     memorytaskstore.cpp
     memorytaskstore.h
