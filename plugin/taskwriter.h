@@ -70,7 +70,8 @@ private:
     void submitModify(SharedTasks::Entry &cached, qint64 moveToCollectionId);
     void autoResolveConflict(qint64 itemId);
     void applyFresh(qint64 itemId, const Akonadi::Item &freshItem, const KCalendarCore::Todo::Ptr &desiredTodo);
-    void rollBack(SharedTasks::Entry &cached, qint64 itemId, const QString &errorString, bool isConflict);
+    enum class Failure { Error, Conflict };
+    void rollBack(SharedTasks::Entry &cached, qint64 itemId, const QString &errorString, Failure failure);
     void setConflict(qint64 itemId);
     void clearPendingMerge();
 

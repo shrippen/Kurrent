@@ -6,6 +6,8 @@
 
 #include <KLocalizedString>
 
+#include <QHash>
+
 namespace
 {
 const QString kChoiceUser = QStringLiteral("user");
@@ -81,25 +83,24 @@ QVariantList computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
     return conflicts;
 }
 
-// Writes the user's value of one merge field into `merged`.
+// Writes the user's value of one merge field into `merged`, by key.
 void applyUserValue(const KCalendarCore::Todo::Ptr &merged, const QString &key, const QVariant &uv)
 {
-    if (key == QLatin1String("summary")) {
-        merged->setSummary(uv.toString());
-    } else if (key == QLatin1String("description")) {
-        merged->setDescription(uv.toString());
-    } else if (key == QLatin1String("priority")) {
-        merged->setPriority(uv.toInt());
-    } else if (key == QLatin1String("percentComplete")) {
-        merged->setPercentComplete(uv.toInt());
-    } else if (key == QLatin1String("categories")) {
-        merged->setCategories(uv.toString().split(QLatin1Char(','), Qt::SkipEmptyParts));
-    } else if (key == QLatin1String("location")) {
-        merged->setLocation(uv.toString());
-    } else if (key == QLatin1String("dueDate")) {
-        merged->setDtDue(uv.toDateTime().isValid() ? uv.toDateTime() : QDateTime());
-    } else if (key == QLatin1String("startDate")) {
-        merged->setDtStart(uv.toDateTime().isValid() ? uv.toDateTime() : QDateTime());
+    using Setter = std::function<void(const KCalendarCore::Todo::Ptr &, const QVariant &)>;
+    static const QHash<QString, Setter> setters = {
+        {QStringLiteral("summary"), [](const auto &t, const QVariant &v) { t->setSummary(v.toString()); }},
+        {QStringLiteral("description"), [](const auto &t, const QVariant &v) { t->setDescription(v.toString()); }},
+        {QStringLiteral("priority"), [](const auto &t, const QVariant &v) { t->setPriority(v.toInt()); }},
+        {QStringLiteral("percentComplete"), [](const auto &t, const QVariant &v) { t->setPercentComplete(v.toInt()); }},
+        {QStringLiteral("categories"),
+         [](const auto &t, const QVariant &v) { t->setCategories(v.toString().split(QLatin1Char(','), Qt::SkipEmptyParts)); }},
+        {QStringLiteral("location"), [](const auto &t, const QVariant &v) { t->setLocation(v.toString()); }},
+        {QStringLiteral("dueDate"), [](const auto &t, const QVariant &v) { t->setDtDue(v.toDateTime()); }},
+        {QStringLiteral("startDate"), [](const auto &t, const QVariant &v) { t->setDtStart(v.toDateTime()); }},
+    };
+    const auto setter = setters.constFind(key);
+    if (setter != setters.cend()) {
+        (*setter)(merged, uv);
     }
 }
 
@@ -205,7 +206,7 @@ void TaskWriter::finishSync(qint64 itemId, SyncResult ok, const QString &errorSt
             autoResolveConflict(itemId);
             return;
         }
-        rollBack(*it, itemId, errorString, isConflict);
+        rollBack(*it, itemId, errorString, isConflict ? Failure::Conflict : Failure::Error);
         return;
     }
 
@@ -238,7 +239,7 @@ void TaskWriter::finishSync(qint64 itemId, SyncResult ok, const QString &errorSt
 }
 
 // Roll back the optimistic edit to the last acknowledged snapshot.
-void TaskWriter::rollBack(SharedTasks::Entry &cached, qint64 itemId, const QString &errorString, bool isConflict)
+void TaskWriter::rollBack(SharedTasks::Entry &cached, qint64 itemId, const QString &errorString, Failure failure)
 {
     if (cached.revertTodo) {
         cached.todo = cached.revertTodo;
@@ -254,7 +255,7 @@ void TaskWriter::rollBack(SharedTasks::Entry &cached, qint64 itemId, const QStri
     if (!errorString.isEmpty()) {
         Q_EMIT error(errorString);
     }
-    if (isConflict) {
+    if (failure == Failure::Conflict) {
         setConflict(itemId);
     }
     cached.revertTodo.clear();

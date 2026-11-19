@@ -5178,16 +5178,6 @@ bool TaskController::taskMatchesSearch(const TaskEntry &task) const
         m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive);
 }
 
-Akonadi::Item TaskController::itemById(qint64 itemId) const
-{
-    return m_shared.tasks().value(itemId).item;
-}
-
-KCalendarCore::Todo::Ptr TaskController::todoFromItem(const Akonadi::Item &item) const
-{
-    return todoFromPayload(item);
-}
-
 QString TaskController::sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const
 {
     return TaskCalendar::sectionFromTodo(todo);

@@ -700,8 +700,6 @@ private:
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
     bool taskMatchesSearch(const TaskEntry &task) const;
-    Akonadi::Item itemById(qint64 itemId) const;
-    KCalendarCore::Todo::Ptr todoFromItem(const Akonadi::Item &item) const;
     QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
     TaskEntry makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const;
     /** Every task the Agenda knows (all projects, not only the filtered list). */
