@@ -61,6 +61,7 @@ private Q_SLOTS:
     void dayLoadCountsEventsAndTaskLengths();
     void workMinutesDefaultAndBounds();
     void ghostSlotStaysBetweenNeighbours();
+    void atMinuteClampsToTheDay();
     void boardOrderTimedThenPriority();
     void monthGridSixWeeksFromMonday();
     void loadLevelUsesThreeSteps();
@@ -415,6 +416,13 @@ void AgendaLogicTest::suggestionsCountABlockUntilMidnightOnItsDay()
     QVERIFY(late);
     QCOMPARE(late->reasons.first().kind, ReasonKind::Overdue);
     QCOMPARE(late->reasons.first().days, 1);
+}
+
+void AgendaLogicTest::atMinuteClampsToTheDay()
+{
+    QCOMPARE(atMinute(kToday, hm(9, 30)), QDateTime(kToday, QTime(9, 30)));
+    QCOMPARE(atMinute(kToday, hm(24)), QDateTime(kToday, QTime(23, 59)));
+    QCOMPARE(atMinute(kToday, -5), QDateTime(kToday, QTime(0, 0)));
 }
 
 QTEST_GUILESS_MAIN(AgendaLogicTest)
