@@ -289,11 +289,11 @@ Item {
             x: host.xForModeIdx(1)
             visible: host.modePaneVisible(1)
 
-            Loader {
+            ViewLoader {
                 id: kanbanLoader
+                controller: host.controller
                 anchors.fill: parent
                 active: host._visitedKanban || host._toModeIdx === 1 || host._fromModeIdx === 1
-                asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: KanbanView {
                     controller: host.controller
                     dragHost: host.dragHost
@@ -318,11 +318,11 @@ Item {
             x: host.xForModeIdx(2)
             visible: host.modePaneVisible(2)
 
-            Loader {
+            ViewLoader {
                 id: swimlaneLoader
+                controller: host.controller
                 anchors.fill: parent
                 active: host._visitedSwimlane || host._toModeIdx === 2 || host._fromModeIdx === 2
-                asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: SwimlaneView {
                     controller: host.controller
                     dragHost: host.dragHost
@@ -346,11 +346,11 @@ Item {
             x: host.xForModeIdx(3)
             visible: host.modePaneVisible(3)
 
-            Loader {
+            ViewLoader {
                 id: planLoader
+                controller: host.controller
                 anchors.fill: parent
                 active: host._visitedPlan || host._toModeIdx === 3 || host._fromModeIdx === 3
-                asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: PlanView {
                     controller: host.controller
                     interactionsSuspended: host.interactionsSuspended
@@ -368,11 +368,11 @@ Item {
             x: host.xForModeIdx(4)
             visible: host.modePaneVisible(4)
 
-            Loader {
+            ViewLoader {
                 id: heatmapLoader
+                controller: host.controller
                 anchors.fill: parent
                 active: host._visitedHeatmap || host._toModeIdx === 4 || host._fromModeIdx === 4
-                asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: HeatmapView {
                     controller: host.controller
                     dragHost: host.dragHost
@@ -395,11 +395,11 @@ Item {
             x: host.xForModeIdx(5)
             visible: host.modePaneVisible(5)
 
-            Loader {
+            ViewLoader {
                 id: calendarLoader
+                controller: host.controller
                 anchors.fill: parent
                 active: host._visitedCalendar || host._toModeIdx === 5 || host._fromModeIdx === 5
-                asynchronous: !host.controller || !host.controller.smokeTest
                 sourceComponent: CalendarAgendaView {
                     controller: host.controller
                     dragHost: host.dragHost

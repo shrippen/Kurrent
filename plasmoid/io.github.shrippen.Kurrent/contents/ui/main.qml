@@ -91,6 +91,8 @@ PlasmoidItem {
     readonly property bool pluginReady: pluginLoader.status === Loader.Ready && !!pluginLoader.item
     readonly property bool pluginMissing: pluginLoader.status === Loader.Error
     readonly property var controller: pluginReady ? pluginLoader.item.controller : null
+    // The smoke test's one hook in the widget: open the popup, build its tree at once.
+    readonly property bool smokeRun: !!(controller && controller.smokeTest)
 
     function normalizeReleaseVersion(v) {
         if (!v) {
@@ -378,7 +380,7 @@ PlasmoidItem {
     function initPluginSettings() {
         applyDesignFromConfig()
         applyColorsFromConfig()
-        if (controller && controller.smokeTest) {
+        if (root.smokeRun) {
             root.expanded = true
         }
         applyPopupBackground()
@@ -433,7 +435,7 @@ PlasmoidItem {
     }
 
     Timer {
-        running: !!(controller && controller.smokeTest)
+        running: root.smokeRun
         interval: 200
         repeat: false
         onTriggered: root.expanded = true
@@ -521,7 +523,6 @@ PlasmoidItem {
         clip: false
 
         readonly property Item uiItem: fullLoader.item
-        readonly property bool forceSyncUi: !!(root.controller && root.controller.smokeTest)
         readonly property bool showBootLoading: !root.pluginMissing
                 && (fullLoader.status === Loader.Null
                     || fullLoader.status === Loader.Loading
@@ -600,7 +601,7 @@ PlasmoidItem {
             anchors.fill: parent
             // Async so the flyout paints the boot loader immediately. Smoke tests
             // keep sync so the tree exists for sizing assertions.
-            asynchronous: !fullShell.forceSyncUi
+            asynchronous: !root.smokeRun
             opacity: status === Loader.Ready && item ? 1 : 0
             Behavior on opacity {
                 enabled: !KurrentUi.Design.reducedMotion
