@@ -16,6 +16,15 @@ ColumnLayout {
     /** Widget/overlay item used to clamp the upward popup to available height. */
     property Item boundsItem: null
 
+    PopupAbove {
+        id: placer
+        owner: root
+        field: searchField
+        boundsItem: root.boundsItem
+        popup: parentPopup
+        list: listView
+    }
+
     property var candidates: []
     property bool _ignoreMenuOpen: false
     property int selectedIndex: 0
@@ -90,44 +99,11 @@ ColumnLayout {
         }
     }
 
-    function availableAbove() {
-        var host = boundsItem
-        if (!host) {
-            var p = root.parent
-            while (p) {
-                if (p.width > 0 && p.height > 0 && p !== root) {
-                    host = p
-                }
-                p = p.parent
-            }
-        }
-        if (!host) {
-            return Kirigami.Units.gridUnit * 12
-        }
-        var top = searchField.mapToItem(host, 0, 0).y
-        return Math.max(Kirigami.Units.gridUnit * 3, top - Design.spaceSmall)
-    }
-
-    function placePopup() {
-        var maxH = availableAbove()
-        var contentH = Math.max(Kirigami.Units.gridUnit * 3,
-                                listView.contentHeight + Design.spaceMedium)
-        parentPopup.height = Math.min(maxH, contentH)
-        parentPopup.width = root.width
-        parentPopup.x = 0
-        parentPopup.y = -parentPopup.height - Design.spaceSmall
-    }
-
     function openMenu() {
         if (_ignoreMenuOpen) {
             return
         }
-        placePopup()
-        if (!parentPopup.visible) {
-            parentPopup.open()
-        } else {
-            placePopup()
-        }
+        placer.open()
         selectedIndex = 0
     }
 
@@ -160,7 +136,7 @@ ColumnLayout {
             selectedIndex = Math.max(0, menuEntries.length - 1)
         }
         if (parentPopup.visible) {
-            placePopup()
+            placer.place()
         }
     }
     Component.onCompleted: rebuild()
@@ -319,7 +295,7 @@ ColumnLayout {
             }
         }
 
-        onAboutToShow: placePopup()
+        onAboutToShow: placer.place()
     }
 
     Connections {
@@ -329,7 +305,7 @@ ColumnLayout {
             if (searchField.activeFocus && !parentPopup.visible) {
                 root.openMenu()
             } else if (parentPopup.visible) {
-                root.placePopup()
+                placer.place()
             }
         }
         function onActiveFocusChanged() {

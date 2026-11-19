@@ -88,12 +88,14 @@ jobs:
       QT_QPA_PLATFORM: offscreen
       # kurrent-core-i18n fails instead of skipping without catalog or locale (step Locale).
       KURRENT_REQUIRE_TRANSLATION: "1"
+      # tst_datetimeinput fails instead of skipping without kirigami-addons.
+      KURRENT_REQUIRE_KIRIGAMI_ADDONS: "1"
     steps:
       - name: Tools
         run: |
           pacman -Syu --noconfirm --needed git nodejs base-devel cmake extra-cmake-modules tzdata \
             gettext qt6-base qt6-declarative qt6-svg kcalendarcore ki18n kconfig knotifications \
-            kglobalaccel krunner akonadi kirigami libplasma
+            kglobalaccel krunner akonadi kirigami kirigami-addons libplasma
       # gettext übersetzt unter C/POSIX nicht; der Übersetzungstest (kurrent-core-i18n) braucht
       # eine echte Locale. Das Image bringt nur die englischen Quellen mit.
       - name: Locale

@@ -1,9 +1,14 @@
 import QtQuick 2.15
 import org.kde.kcmutils as KCM
+import "../combo.js" as Combo
 
 // Plasma injects every main.xml key (+ Default) into each config page root.
 KCM.SimpleKCM {
     id: root
+
+    function selectCombo(combo, value) {
+        Combo.selectByValue(combo, value)
+    }
 
     property string cfg_defaultView
     property string cfg_defaultViewDefault

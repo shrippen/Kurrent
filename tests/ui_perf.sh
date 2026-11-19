@@ -73,7 +73,7 @@ def patch(name, old, new):
         sys.exit(f"ui_perf: hook not found in {name}")
     path.write_text(text.replace(old, new, 1))
 patch("FullView.qml", "    SmokeTest {\n",
-      "    PerfRunner { plasmoidRoot: fullRoot.plasmoidRoot; backend: fullRoot.backend; fullRoot: fullRoot }\n\n    SmokeTest {\n")
+      "    PerfRunner { plasmoidRoot: fullRoot.plasmoidRoot; controller: fullRoot.controller; fullRoot: fullRoot }\n\n    SmokeTest {\n")
 patch("views/TaskListView.qml", "    property var pendingDeleteId: -1\n",
       "    property var pendingDeleteId: -1\n    property alias perfSearchField: searchField\n")
 PY

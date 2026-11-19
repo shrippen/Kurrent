@@ -330,15 +330,15 @@ ConfigPageBase {
             Layout.fillWidth: true
             ConfigResetButton {
                 page: root
-                defaults: ({
-                    enabledCollections: "",
-                    hiddenProjects: "",
-                    hiddenLabels: "",
-                    hiddenLocations: "",
-                    projectColors: "",
-                    labelColors: "",
-                    locationColors: ""
-                })
+                keys: [
+                    "enabledCollections",
+                    "hiddenProjects",
+                    "hiddenLabels",
+                    "hiddenLocations",
+                    "projectColors",
+                    "labelColors",
+                    "locationColors"
+                ]
             }
             Item { Layout.fillWidth: true }
             QQC2.Button {

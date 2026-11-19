@@ -16,6 +16,18 @@ target_include_directories(kurrent-tasklogic-test PRIVATE ${CMAKE_SOURCE_DIR}/pl
 target_link_libraries(kurrent-tasklogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
 add_test(NAME kurrent-tasklogic COMMAND kurrent-tasklogic-test)
 
+add_executable(kurrent-boardlogic-test
+    boardlogic_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/boardlogic.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+)
+target_include_directories(kurrent-boardlogic-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-boardlogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test KF6::CalendarCore KF6::I18n)
+add_test(NAME kurrent-boardlogic COMMAND kurrent-boardlogic-test)
+
 add_executable(kurrent-agendalogic-test
     agendalogic_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
@@ -27,12 +39,25 @@ target_include_directories(kurrent-agendalogic-test PRIVATE ${CMAKE_SOURCE_DIR}/
 target_link_libraries(kurrent-agendalogic-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
 add_test(NAME kurrent-agendalogic COMMAND kurrent-agendalogic-test)
 
+add_executable(kurrent-focusorder-test
+    focusorder_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/focusorder.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/focusorder.h
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
+)
+target_include_directories(kurrent-focusorder-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-focusorder-test PRIVATE Qt6::Core Qt6::Gui Qt6::Test)
+add_test(NAME kurrent-focusorder COMMAND kurrent-focusorder-test)
+
 add_executable(kurrent-sharedsettings-test
     sharedsettings_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.h
 )
 target_include_directories(kurrent-sharedsettings-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_compile_definitions(kurrent-sharedsettings-test PRIVATE
+    KURRENT_MAIN_XML="${CMAKE_SOURCE_DIR}/plasmoid/io.github.shrippen.Kurrent/contents/config/main.xml")
 target_link_libraries(kurrent-sharedsettings-test PRIVATE
     Qt6::Core
     Qt6::Qml
@@ -81,6 +106,22 @@ target_include_directories(kurrent-tui-screens-test PRIVATE ${CMAKE_SOURCE_DIR}/
 target_link_libraries(kurrent-tui-screens-test PRIVATE Qt6::Core Qt6::Test)
 add_test(NAME kurrent-tui-screens COMMAND kurrent-tui-screens-test)
 
+add_executable(kurrent-sharedtasks-test
+    sharedtasks_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+)
+target_include_directories(kurrent-sharedtasks-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-sharedtasks-test PRIVATE
+    Qt6::Core
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-sharedtasks COMMAND kurrent-sharedtasks-test)
+
 add_executable(kurrent-akonadiitems-test
     akonadiitems_test.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
@@ -115,9 +156,19 @@ set_tests_properties(kurrent-taskstore PROPERTIES
 # TaskController + MemoryTaskStore: compile sources into the test binary because
 # kurrentplugin hides symbols (-fvisibility=hidden).
 find_package(KF6 REQUIRED COMPONENTS I18n)
-add_executable(kurrent-taskcontroller-store-test
-    taskcontroller_store_test.cpp
+set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sessionhooks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskagenda.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskentry.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskreminders.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/settingsbridge.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
     ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
     ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
@@ -132,6 +183,10 @@ add_executable(kurrent-taskcontroller-store-test
     ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
     ${CMAKE_SOURCE_DIR}/plugin/demodata.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskstore.h
+)
+add_executable(kurrent-taskcontroller-store-test
+    taskcontroller_store_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
 )
 target_compile_definitions(kurrent-taskcontroller-store-test PRIVATE
     # Same catalog as kurrentcore (plugin/CMakeLists.txt).
@@ -169,6 +224,109 @@ set_tests_properties(kurrent-taskcontroller-store PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )
 
+# The full editor's create through the memory store; its own file keeps the store test short.
+add_executable(kurrent-taskcontroller-editor-test
+    taskcontroller_editor_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-taskcontroller-editor-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-editor-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-editor-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-editor COMMAND kurrent-taskcontroller-editor-test)
+set_tests_properties(kurrent-taskcontroller-editor PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# The refetch paths of the write pipeline (conflict, revision 0, reload) through the memory store.
+add_executable(kurrent-taskcontroller-conflict-test
+    taskcontroller_conflict_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-taskcontroller-conflict-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-conflict-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-conflict-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-conflict COMMAND kurrent-taskcontroller-conflict-test)
+set_tests_properties(kurrent-taskcontroller-conflict PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Which version of a task wins when one arrives from Akonadi (applyItem), without Akonadi.
+add_executable(kurrent-akonadiloader-test
+    akonadiloader_test.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/akonadiitems.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/collectionlistmodel.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/kurrentlogging.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sharedsettings.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskcalendar.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
+)
+target_compile_definitions(kurrent-akonadiloader-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}")
+target_include_directories(kurrent-akonadiloader-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-akonadiloader-test PRIVATE
+    Qt6::Core
+    Qt6::Qml
+    Qt6::Test
+    KF6::ConfigCore
+    KF6::CalendarCore
+    KF6::I18n
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-akonadiloader COMMAND kurrent-akonadiloader-test)
+set_tests_properties(kurrent-akonadiloader PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+# Several controllers in one process (widgets, config pages) and what they share.
+add_executable(kurrent-taskcontroller-multi-test
+    taskcontroller_multi_test.cpp
+    ${KURRENT_CONTROLLER_TEST_SOURCES}
+)
+target_compile_definitions(kurrent-taskcontroller-multi-test PRIVATE
+    TRANSLATION_DOMAIN="${KURRENT_TRANSLATION_DOMAIN}"
+    KURRENT_WITH_DEMO
+    KURRENT_TEST_DEMO_WORLD="${CMAKE_SOURCE_DIR}/demo/world.json")
+target_include_directories(kurrent-taskcontroller-multi-test PRIVATE ${CMAKE_SOURCE_DIR}/plugin)
+target_link_libraries(kurrent-taskcontroller-multi-test PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::DBus
+    Qt6::Concurrent
+    Qt6::Test
+    KF6::CalendarCore
+    KF6::I18n
+    KF6::ConfigCore
+    KPim6::AkonadiCore
+)
+add_test(NAME kurrent-taskcontroller-multi COMMAND kurrent-taskcontroller-multi-test)
+set_tests_properties(kurrent-taskcontroller-multi PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 # kurrentcore as built: catches a library that loses TRANSLATION_DOMAIN.
 add_executable(kurrent-core-i18n-test core_i18n_test.cpp)
 target_compile_definitions(kurrent-core-i18n-test PRIVATE
@@ -187,6 +345,17 @@ if(KURRENT_BUILD_BENCH)
     add_executable(kurrent-perf-bench
         perf_bench.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/sessionhooks.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskagenda.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskentry.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskreminders.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/settingsbridge.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
         ${CMAKE_SOURCE_DIR}/plugin/agendalogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/tasklogic.cpp
         ${CMAKE_SOURCE_DIR}/plugin/quickadd.cpp
@@ -212,11 +381,18 @@ set(_kurrent_test_targets
     kurrent-akonadiitems-test
     kurrent-tasklogic-test
     kurrent-agendalogic-test
+    kurrent-boardlogic-test
+    kurrent-focusorder-test
     kurrent-sharedsettings-test
     kurrent-models-test
     kurrent-calendar-test
     kurrent-taskstore-test
+    kurrent-sharedtasks-test
     kurrent-taskcontroller-store-test
+    kurrent-taskcontroller-editor-test
+    kurrent-taskcontroller-conflict-test
+    kurrent-taskcontroller-multi-test
+    kurrent-akonadiloader-test
     kurrent-core-i18n-test
     kurrent-tui-screens-test
 )
@@ -235,6 +411,10 @@ if(TARGET Qt6::QuickTest AND TARGET Qt6::Qml AND TARGET Qt6::Quick)
     )
     list(APPEND _kurrent_test_targets kurrent-qml-test)
 endif()
+
+add_test(NAME kurrent-check-targets
+    COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/check_targets_test.sh"
+)
 
 add_test(NAME kurrent-id-move
     COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/id_move_test.sh"

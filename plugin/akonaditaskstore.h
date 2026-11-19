@@ -10,6 +10,7 @@ public:
     explicit AkonadiTaskStore(QObject *parent = nullptr);
 
     void submit(const Request &request) override;
+    void fetch(const Akonadi::Item &item, QObject *context, FetchDone done) override;
 
 private:
     void runModify(const Request &request);

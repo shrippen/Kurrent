@@ -583,7 +583,7 @@ Item {
 
                     Kirigami.Icon {
                         visible: Plasmoid.configuration.showProgressChip !== false && task.percentComplete > 0
-                        source: TaskMeta.progressIconForPercent(task.percentComplete)
+                        source: TaskMeta.progressIconForBand(task.progressBand)
                         Layout.alignment: Qt.AlignVCenter
                         Layout.preferredWidth: root.labelIconSize
                         Layout.preferredHeight: root.labelIconSize

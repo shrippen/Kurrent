@@ -7,6 +7,7 @@ import ".."
 import "../Kante"
 import "../taps.js" as Taps
 import "../datetime.js" as DateTime
+import "../daymath.js" as DayMath
 
 // A task as a dense card for narrow week columns: project as colour edge, the title up to
 // three lines (with its time when it has a block), then labels and priority. With `showDate`
@@ -35,9 +36,6 @@ Rectangle {
     QQC2.ToolTip.visible: hover.hovered && titleLabel.cut
     QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
 
-    function hm(minute) {
-        return DateTime.pad2(Math.floor(minute / 60)) + ":" + DateTime.pad2(minute % 60)
-    }
 
     Rectangle {
         width: KanteStyle.edgeWidth
@@ -73,7 +71,7 @@ Rectangle {
 
             AgendaTitleLabel {
                 id: titleLabel
-                fullText: (card.task.start !== undefined ? card.hm(card.task.start) + "  " : "") + (card.task.summary || i18n("(Untitled)"))
+                fullText: (card.task.start !== undefined ? DayMath.clockOfMinute(card.task.start) + "  " : "") + (card.task.summary || i18n("(Untitled)"))
                 Layout.fillWidth: true
                 maximumLineCount: 3
                 elide: Text.ElideRight

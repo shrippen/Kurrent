@@ -9,15 +9,6 @@ ConfigPageBase {
     id: root
 
 
-    function selectCombo(combo, value) {
-        for (var i = 0; i < combo.model.length; ++i) {
-            if (combo.model[i].value === value) {
-                combo.currentIndex = i
-                return
-            }
-        }
-    }
-
     function syncControls() {
         selectCombo(densityCombo, cfg_density || "auto")
         selectCombo(overlayDimCombo, String(cfg_overlayDimStep))
@@ -350,18 +341,18 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                uiStyle: "plasma",
-                accentProjectColors: true,
-                accentPriorityColors: true,
-                showOverdueBanner: true,
-                showViewTiles: true,
-                showInspector: true,
-                blurBackground: true,
-                density: "auto",
-                overlayDimStep: 1,
-                reducedMotion: false
-            })
+            keys: [
+                "uiStyle",
+                "accentProjectColors",
+                "accentPriorityColors",
+                "showOverdueBanner",
+                "showViewTiles",
+                "showInspector",
+                "blurBackground",
+                "density",
+                "overlayDimStep",
+                "reducedMotion"
+            ]
         }
     }
 }

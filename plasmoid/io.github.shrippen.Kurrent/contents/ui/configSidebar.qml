@@ -42,15 +42,6 @@ ConfigPageBase {
         }
     }
 
-    function selectCombo(combo, value) {
-        for (var i = 0; i < combo.model.length; ++i) {
-            if (combo.model[i].value === value) {
-                combo.currentIndex = i
-                return
-            }
-        }
-    }
-
     function syncControls() {
         selectCombo(sidebarRowSizeCombo, cfg_sidebarRowSize || "auto")
         widthBox.value = cfg_sidebarWidthUnits
@@ -241,17 +232,17 @@ ConfigPageBase {
 
         ConfigResetButton {
                 page: root
-                defaults: ({
-                    sidebarWidthUnits: 10,
-                    sidebarRowSize: "auto",
-                    showEmptyProjects: false,
-                    showSidebarCounts: true,
-                    countsExcludeCollapsed: false,
-                    sidebarSectionOrder: "views,projects,labels,priorities,progress,status,secrecy,location",
-                    hiddenSidebarSections: "progress||status||secrecy||location",
-                    sidebarViewOrder: "",
-                    hiddenViews: ""
-                })
+                keys: [
+                    "sidebarWidthUnits",
+                    "sidebarRowSize",
+                    "showEmptyProjects",
+                    "showSidebarCounts",
+                    "countsExcludeCollapsed",
+                    "sidebarSectionOrder",
+                    "hiddenSidebarSections",
+                    "sidebarViewOrder",
+                    "hiddenViews"
+                ]
         }
     }
 }

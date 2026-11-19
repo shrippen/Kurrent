@@ -17,7 +17,7 @@ RowLayout {
 
     readonly property alias compactViewModeButton: compactViewModeButton
     // QML cannot track deep property changes through two layers of
-    // `var`-typed references (fullRoot.backend.mainPaneMode).  We use
+    // `var`-typed references (fullRoot.controller.mainPaneMode).  We use
     // optimistic updates + a polling fallback to stay in sync.
     property string currentMode: Design.viewModeList
     readonly property bool listMode: currentMode === Design.viewModeList
@@ -28,8 +28,8 @@ RowLayout {
     //    (keyboard shortcuts, programmatic).
     Connections {
         target: fullRoot
-        function onBackendChanged() {
-            root._syncModeFromBackend()
+        function onControllerChanged() {
+            root._syncModeFromController()
         }
     }
 
@@ -39,16 +39,16 @@ RowLayout {
         id: syncTimer
         interval: 500
         repeat: true
-        running: !!fullRoot.backend
-        onTriggered: root._syncModeFromBackend()
-        Component.onCompleted: root._syncModeFromBackend()
+        running: !!fullRoot.controller
+        onTriggered: root._syncModeFromController()
+        Component.onCompleted: root._syncModeFromController()
     }
 
-    function _syncModeFromBackend() {
-        if (!fullRoot.backend) {
+    function _syncModeFromController() {
+        if (!fullRoot.controller) {
             return
         }
-        var raw = fullRoot.backend.mainPaneMode
+        var raw = fullRoot.controller.mainPaneMode
         if (raw && raw !== root.currentMode) {
             root.currentMode = raw
         }
@@ -60,7 +60,7 @@ RowLayout {
             viewModeCount * toolSize + Design.viewModeToolbarChromePadH * 2
 
     readonly property var viewModeMap: {
-        if (!fullRoot || !fullRoot.backend) {
+        if (!fullRoot || !fullRoot.controller) {
             return {}
         }
         var map = {}
@@ -76,8 +76,8 @@ RowLayout {
     }
 
     Component.onCompleted: {
-        if (fullRoot.backend) {
-            root.currentMode = fullRoot.backend.mainPaneMode || Design.viewModeList
+        if (fullRoot.controller) {
+            root.currentMode = fullRoot.controller.mainPaneMode || Design.viewModeList
         }
     }
 
@@ -90,16 +90,16 @@ RowLayout {
     Layout.preferredHeight: implicitHeight
     Layout.minimumWidth: implicitWidth
     Layout.minimumHeight: implicitHeight
-    visible: !!fullRoot.backend
+    visible: !!fullRoot.controller
     clip: false
 
     function activeViewModeIcon() {
-        if (!fullRoot || !fullRoot.backend) {
+        if (!fullRoot || !fullRoot.controller) {
             return "view-list-details"
         }
         var options = fullRoot.viewModeOptions
         for (var i = 0; i < options.length; ++i) {
-            if (options[i].id === fullRoot.backend.mainPaneMode) {
+            if (options[i].id === fullRoot.controller.mainPaneMode) {
                 return options[i].icon
             }
         }
@@ -110,8 +110,8 @@ RowLayout {
         // Optimistic update: immediate visual feedback.
         root.currentMode = modeId
         mainPaneHost.beginViewTransition(modeId)
-        if (fullRoot && fullRoot.backend) {
-            fullRoot.backend.selectMainPaneMode(modeId)
+        if (fullRoot && fullRoot.controller) {
+            fullRoot.controller.selectMainPaneMode(modeId)
         }
     }
 
@@ -124,13 +124,13 @@ RowLayout {
         icon.name: root.activeViewModeIcon()
         display: QQC2.AbstractButton.IconOnly
         onClicked: fullRoot.openViewModeMenu()
-        QQC2.ToolTip.text: fullRoot.backend ? i18n("View mode: %1", fullRoot.viewModeLabel(fullRoot.backend.mainPaneMode)) : ""
+        QQC2.ToolTip.text: fullRoot.controller ? i18n("View mode: %1", fullRoot.viewModeLabel(fullRoot.controller.mainPaneMode)) : ""
         QQC2.ToolTip.visible: hovered
     }
 
     Rectangle {
         id: expandedStrip
-        visible: root.expanded && !!fullRoot.backend
+        visible: root.expanded && !!fullRoot.controller
         Layout.preferredWidth: root.expandedChromeWidth
         Layout.preferredHeight: root.toolSize + Design.viewModeToolbarChromePadV * 2
         Layout.minimumWidth: Layout.preferredWidth

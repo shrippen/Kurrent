@@ -8,15 +8,6 @@ import "components"
 ConfigPageBase {
     id: root
 
-    function selectCombo(combo, value) {
-        for (var i = 0; i < combo.model.length; ++i) {
-            if (combo.model[i].value === value) {
-                combo.currentIndex = i
-                return
-            }
-        }
-    }
-
     function syncControls() {
         selectCombo(clickCombo, cfg_clickAction || "inline")
         selectCombo(previewLinesCombo, String(cfg_descriptionPreviewLines))
@@ -192,28 +183,28 @@ ConfigPageBase {
 
         ConfigResetButton {
             page: root
-            defaults: ({
-                clickAction: "inline",
-                showDateChip: true,
-                showLabelChips: true,
-                showPriorityChip: true,
-                showRecurringIcon: true,
-                showProgressChip: true,
-                showStatusChip: true,
-                showSecrecyChip: true,
-                showLocationChip: true,
-                relativeDates: true,
-                showTimeOnRow: true,
-                descriptionPreviewLines: 0,
-                showJoinButton: true,
-                multiSelectEnabled: false,
-                completeChildren: false,
-                searchTitleOnly: false,
-                searchCaseSensitive: false,
-                sortScope: "global",
-                sortMode: "",
-                sortModeByView: "{}"
-            })
+            keys: [
+                "clickAction",
+                "showDateChip",
+                "showLabelChips",
+                "showPriorityChip",
+                "showRecurringIcon",
+                "showProgressChip",
+                "showStatusChip",
+                "showSecrecyChip",
+                "showLocationChip",
+                "relativeDates",
+                "showTimeOnRow",
+                "descriptionPreviewLines",
+                "showJoinButton",
+                "multiSelectEnabled",
+                "completeChildren",
+                "searchTitleOnly",
+                "searchCaseSensitive",
+                "sortScope",
+                "sortMode",
+                "sortModeByView"
+            ]
         }
     }
 }

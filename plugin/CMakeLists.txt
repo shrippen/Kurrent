@@ -17,6 +17,8 @@ add_library(kurrentcore STATIC
     tasklogic.h
     agendalogic.cpp
     agendalogic.h
+    focusorder.cpp
+    focusorder.h
     quickadd.cpp
     taskcalendar.cpp
     taskcalendar.h
@@ -24,6 +26,12 @@ add_library(kurrentcore STATIC
     tasklistmodel.h
     collectionlistmodel.cpp
     collectionlistmodel.h
+    sharedtasks.cpp
+    sharedtasks.h
+    akonadiloader.cpp
+    akonadibusy.cpp
+    akonadiloader.h
+    akonadiutil.h
     sharedsettings.cpp
     sharedsettings.h
     kurrentdbus.cpp
@@ -35,6 +43,22 @@ add_library(kurrentcore STATIC
     akonadiitems.h
     akonaditaskstore.cpp
     akonaditaskstore.h
+    boardlogic.cpp
+    boardlogic.h
+    sessionhooks.cpp
+    sessionhooks.h
+    taskagenda.cpp
+    taskagenda.h
+    taskentry.cpp
+    taskentry.h
+    taskreminders.cpp
+    taskreminders.h
+    taskundo.cpp
+    taskundo.h
+    taskwriter.cpp
+    settingsbridge.cpp
+    settingsbridge.h
+    taskwriter.h
     memorytaskstore.cpp
     memorytaskstore.h
 )

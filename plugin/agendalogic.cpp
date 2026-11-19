@@ -414,4 +414,10 @@ int loadLevel(int count)
     return qMin(3, (count + 1) / 2);
 }
 
+QDateTime atMinute(const QDate &day, int minute)
+{
+    const int clamped = qBound(0, minute, 24 * 60 - 1);
+    return QDateTime(day, QTime(clamped / 60, clamped % 60));
+}
+
 } // namespace AgendaLogic

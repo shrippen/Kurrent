@@ -12,11 +12,11 @@ Item {
     id: runner
 
     property var plasmoidRoot: null
-    property var backend: null
+    property var controller: null
     property var fullRoot: null
     property var taskFullEditor: null
 
-    readonly property string outDir: backend ? backend.screenshotDir : ""
+    readonly property string outDir: controller ? controller.screenshotDir : ""
     readonly property bool active: outDir.length > 0
 
     width: 0
@@ -31,7 +31,7 @@ Item {
     readonly property var allWidths: [30, 60, 80]
 
     function planValue(key, fallback) {
-        var plan = backend ? (backend.screenshotPlan || "") : ""
+        var plan = controller ? (controller.screenshotPlan || "") : ""
         var parts = plan.split(";")
         for (var i = 0; i < parts.length; ++i) {
             var kv = parts[i].split("=")
@@ -46,8 +46,8 @@ Item {
     property int shotCount: 0
 
     function trace(msg) {
-        if (backend) {
-            backend.smokeTrace(msg)
+        if (controller) {
+            controller.smokeTrace(msg)
         }
     }
 
@@ -152,26 +152,26 @@ Item {
             break
         }
         case "modeMid":
-            backend.selectMainPaneMode(item.value)
+            controller.selectMainPaneMode(item.value)
             wait = 110
             break
         case "setting": {
             var v = item.value
-            backend.storeSetting(item.key, v === "true" ? true : v === "false" ? false : (isNaN(Number(v)) ? v : Number(v)))
+            controller.storeSetting(item.key, v === "true" ? true : v === "false" ? false : (isNaN(Number(v)) ? v : Number(v)))
             wait = 300
             break
         }
         case "style":
             // Through the settings: main.qml re-applies Design from them on every settings
             // change (e.g. the next view-mode switch), so an in-memory value would not stick.
-            backend.storeSetting("uiStyle", item.value)
+            controller.storeSetting("uiStyle", item.value)
             wait = 800
             break
         case "mode": {
             var parts = item.value.split("-")
-            backend.selectMainPaneMode(parts[0])
+            controller.selectMainPaneMode(parts[0])
             if (parts[0] === "calendar") {
-                backend.selectAgendaMode(parts.length > 1 ? parts[1] : "day")
+                controller.selectAgendaMode(parts.length > 1 ? parts[1] : "day")
             }
             wait = 1400
             break
@@ -239,7 +239,7 @@ Item {
             var name = item.name
             var target = fullRoot.overlayHost || fullRoot
             trace("KURRENT_SCREENSHOT " + name + " " + Math.round(target.width) + "x" + Math.round(target.height)
-                  + " style=" + KurrentUi.Design.uiStyle + " mode=" + (backend ? backend.mainPaneMode : "?"))
+                  + " style=" + KurrentUi.Design.uiStyle + " mode=" + (controller ? controller.mainPaneMode : "?"))
             var ok = target.grabToImage(function(result) {
                 result.saveToFile(runner.outDir + "/" + name + ".png")
                 runner.shotCount += 1

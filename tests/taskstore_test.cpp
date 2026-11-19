@@ -15,6 +15,8 @@ private Q_SLOTS:
     void failNextRollsError();
     void modifyWithMoveAfter();
     void unknownIdErrors();
+    void fetchReturnsStoredItemOrError();
+    void fetchSkippedAfterContextDies();
     void createIdsMonotonic();
     void customVendorPropertyPreservedOnModify();
 };
@@ -247,6 +249,64 @@ void TaskStoreTest::customVendorPropertyPreservedOnModify()
     const auto roundTrip = store.item(created.item.id()).payload<KCalendarCore::Todo::Ptr>();
     QCOMPARE(roundTrip->summary(), QStringLiteral("vendor-updated"));
     QCOMPARE(roundTrip->nonKDECustomProperty(QByteArray("X-OC-HIDESUBTASKS")), QStringLiteral("1"));
+}
+
+void TaskStoreTest::fetchReturnsStoredItemOrError()
+{
+    MemoryTaskStore store;
+    Akonadi::Item stored = makeTodoItem(QStringLiteral("alpha"));
+    stored.setId(5);
+    stored.setRevision(3);
+    store.seedItem(stored);
+
+    QObject context;
+    int calls = 0;
+    Akonadi::Item got;
+    QString error;
+    auto done = [&](const Akonadi::Item &item, const QString &err) {
+        ++calls;
+        got = item;
+        error = err;
+    };
+
+    store.fetch(Akonadi::Item(5), &context, done);
+    QCOMPARE(calls, 0);
+    QTRY_COMPARE(calls, 1);
+    QVERIFY(error.isEmpty());
+    QCOMPARE(got.revision(), 3);
+    QCOMPARE(got.payload<KCalendarCore::Todo::Ptr>()->summary(), QStringLiteral("alpha"));
+
+    store.fetch(Akonadi::Item(99), &context, done);
+    QTRY_COMPARE(calls, 2);
+    QVERIFY(!error.isEmpty());
+
+    store.failNextFetch(QStringLiteral("boom"));
+    store.fetch(Akonadi::Item(5), &context, done);
+    QTRY_COMPARE(calls, 3);
+    QCOMPARE(error, QStringLiteral("boom"));
+
+    // Only the next fetch fails.
+    store.fetch(Akonadi::Item(5), &context, done);
+    QTRY_COMPARE(calls, 4);
+    QVERIFY(error.isEmpty());
+}
+
+void TaskStoreTest::fetchSkippedAfterContextDies()
+{
+    MemoryTaskStore store;
+    Akonadi::Item stored = makeTodoItem(QStringLiteral("alpha"));
+    stored.setId(5);
+    store.seedItem(stored);
+
+    int calls = 0;
+    auto *context = new QObject;
+    store.fetch(Akonadi::Item(5), context, [&calls](const Akonadi::Item &, const QString &) {
+        ++calls;
+    });
+    delete context;
+
+    QTest::qWait(50);
+    QCOMPARE(calls, 0);
 }
 
 QTEST_MAIN(TaskStoreTest)

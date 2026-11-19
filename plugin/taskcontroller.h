@@ -2,13 +2,19 @@
 
 #include "agendalogic.h"
 #include "collectionlistmodel.h"
+#include "sessionhooks.h"
+#include "sharedtasks.h"
+#include "taskagenda.h"
 #include "taskcalendar.h"
 #include "tasklistmodel.h"
+#include "taskreminders.h"
 #include "tasklogic.h"
 #include "taskstore.h"
+#include "taskundo.h"
+#include "settingsbridge.h"
+#include "taskwriter.h"
 
 #include <Akonadi/Item>
-#include <Akonadi/Monitor>
 
 #include <KCalendarCore/Todo>
 
@@ -17,7 +23,6 @@
 #include <QHash>
 #include <QObject>
 #include <QPointF>
-#include <QPointer>
 #include <QSet>
 #include <QStringList>
 #include <QTimer>
@@ -27,7 +32,6 @@
 
 namespace Akonadi
 {
-class CollectionFetchJob;
 class ItemFetchJob;
 }
 
@@ -211,7 +215,7 @@ public:
     QVariantMap blockedFilters() const;
     int badgeCount() const;
     bool badgeAlert() const;
-    qint64 conflictItemId() const { return m_conflictItemId; }
+    qint64 conflictItemId() const { return m_writer->conflictItemId(); }
     bool catchUpEnabled() const { return m_catchUpEnabled; }
     int catchUpDays() const { return m_catchUpDays; }
     int morningHour() const { return m_morningHour; }
@@ -222,25 +226,25 @@ public:
     bool searchCaseSensitive() const { return m_searchCaseSensitive; }
     bool completeChildren() const { return m_completeChildren; }
     bool countsExcludeCollapsed() const { return m_countsExcludeCollapsed; }
-    bool notificationsEnabled() const { return m_notificationsEnabled; }
-    int defaultReminderMinutes() const { return m_defaultReminderMinutes; }
-    bool quietHoursEnabled() const { return m_quietHoursEnabled; }
-    int quietHoursStart() const { return m_quietHoursStart; }
-    int quietHoursEnd() const { return m_quietHoursEnd; }
-    bool suppressRemindersDuringEvents() const { return m_suppressRemindersDuringEvents; }
+    bool notificationsEnabled() const { return m_reminders->enabled(); }
+    int defaultReminderMinutes() const { return m_reminders->defaultMinutes(); }
+    bool quietHoursEnabled() const { return m_reminders->quietEnabled(); }
+    int quietHoursStart() const { return m_reminders->quietStart(); }
+    int quietHoursEnd() const { return m_reminders->quietEnd(); }
+    bool suppressRemindersDuringEvents() const { return m_reminders->suppressDuringEvents(); }
     QString busyCalendarIds() const { return m_busyCalendarIds; }
     QVariantList eventCalendars() const;
-    QDate agendaSelectedDate() const { return m_agendaSelectedDate; }
-    void setAgendaSelectedDate(const QDate &date);
-    QString agendaMode() const { return m_agendaMode; }
-    void setAgendaMode(const QString &mode);
-    bool agendaWeekend() const { return m_agendaWeekend; }
-    int agendaWorkMinutes() const { return m_agendaWorkMinutes; }
-    void setAgendaWorkMinutes(int minutes);
-    void setAgendaWeekend(bool show);
-    bool canUndo() const { return m_undo.canUndo(); }
-    QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
-    QString undoLabel() const;
+    QDate agendaSelectedDate() const { return m_agenda->selectedDate(); }
+    void setAgendaSelectedDate(const QDate &date) { m_agenda->setSelectedDate(date); }
+    QString agendaMode() const { return m_agenda->mode(); }
+    void setAgendaMode(const QString &mode) { m_agenda->setMode(mode); }
+    bool agendaWeekend() const { return m_agenda->weekend(); }
+    int agendaWorkMinutes() const { return m_agenda->workMinutes(); }
+    void setAgendaWorkMinutes(int minutes) { m_agenda->setWorkMinutes(minutes); }
+    void setAgendaWeekend(bool show) { m_agenda->setWeekend(show); }
+    bool canUndo() const { return m_undo->canUndo(); }
+    QString undoKind() const { return m_undo->kindName(); }
+    QString undoLabel() const { return m_undo->label(); }
     int pendingCount() const { return m_pendingCount; }
     int syncingCount() const { return m_syncingCount; }
     QStringList availableLabels() const { return m_availableLabels; }
@@ -329,50 +333,50 @@ public:
     /** Switch the main-pane mode from a view (cell drill-down, heatmap day); persists. */
     Q_INVOKABLE void requestMainPaneMode(const QString &mode);
     /** The date one step (`n` days, weeks or months by agendaMode) from `date`. */
-    Q_INVOKABLE QDate agendaStep(const QDate &date, int n) const { return AgendaLogic::stepDate(date, m_agendaMode, n); }
+    Q_INVOKABLE QDate agendaStep(const QDate &date, int n) const { return AgendaLogic::stepDate(date, m_agenda->mode(), n); }
     /** ISO 8601 week number of `date` (1–53). */
     Q_INVOKABLE int isoWeek(const QDate &date) const { return date.weekNumber(); }
     /** Switch the Agenda between day, week and month; persists. */
     Q_INVOKABLE void selectAgendaMode(const QString &mode);
     /** Show or hide the weekend on the week and month boards; persists. */
     Q_INVOKABLE void selectAgendaWeekend(bool show);
-    Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
+    Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const { return m_agenda->heatmapCountsForMonth(visibleTasks(), monthStart, mode); }
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
-    Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
-    Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
+    Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const { return m_agenda->agendaEventsForDay(day); }
+    Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const { return m_agenda->agendaTasksForRange(from, to); }
     /** The same tasks by ISO day ("2026-10-12"): done ones on their completion day; open
      *  tasks before done ones. */
-    Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const;
+    Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const { return m_agenda->agendaTasksByDay(from, to); }
     /** Day view of the Agenda, `count` days from `from` (AgendaLogic): per day {date, planFrom,
      *  allDayEvents, items (timed events and task blocks with start, end, lane, lanes; blocks
      *  also lo/hi for resizing), loose (tasks without a block, open first), free [{start, end}]}.
      *  Times are minutes since midnight. */
-    Q_INVOKABLE QVariantList agendaDays(const QDate &from, int count) const;
+    Q_INVOKABLE QVariantList agendaDays(const QDate &from, int count) const { return m_agenda->agendaDays(from, count); }
     /** Ranked suggestions for `target`: [{task, score, tier, reasons [{kind, days, start, end}]}]. */
-    Q_INVOKABLE QVariantList agendaSuggestions(const QDate &target) const;
+    Q_INVOKABLE QVariantList agendaSuggestions(const QDate &target) const { return m_agenda->agendaSuggestions(target); }
     /** Give a task a time on `day`: the first free stretch from `minute` that fits its length
      *  (its block, else AgendaLogic::defaultMinutes). Undoable. */
-    Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute);
+    Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute) { m_agenda->agendaPlaceTask(itemId, day, minute); }
     /** Where agendaPlaceTask would put the task: { start, end, detach }; detach when a series'
      *  occurrence would get a time of its own (the view warns and asks first). */
-    Q_INVOKABLE QVariantMap agendaPlacement(qint64 itemId, const QDate &day, int minute) const;
+    Q_INVOKABLE QVariantMap agendaPlacement(qint64 itemId, const QDate &day, int minute) const { return m_agenda->agendaPlacement(itemId, day, minute); }
     /** True when agendaSetBlock with these times detaches a series' occurrence. */
-    Q_INVOKABLE bool agendaWouldDetach(qint64 itemId, int start, int end) const;
+    Q_INVOKABLE bool agendaWouldDetach(qint64 itemId, int start, int end) const { return m_agenda->agendaWouldDetach(itemId, start, end); }
     /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
-    Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
+    Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end) { m_agenda->agendaSetBlock(itemId, day, start, end); }
     /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier
      *  start day stays. A recurring task moves only its current occurrence and keeps its times.
      *  Undoable. */
-    Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
+    Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day) { m_agenda->agendaMoveToDay(itemId, day); }
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
      *  the same number of days (a recurring task moves only its current occurrence, #29);
      *  a task without a date becomes all-day on `day`. Undoable. */
-    Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
+    Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day) { m_agenda->agendaShiftToDay(itemId, day); }
     /** agendaShiftToDay for several tasks ("All to today") as one undo step. */
-    Q_INVOKABLE void agendaShiftAllToDay(const QVariantList &itemIds, const QDate &day);
+    Q_INVOKABLE void agendaShiftAllToDay(const QVariantList &itemIds, const QDate &day) { m_agenda->agendaShiftAllToDay(itemIds, day); }
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's
      *  `items` (agendaDays), -1/-1 on busy time or outside 07-22 (AgendaLogic::ghostSlot). */
-    Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const;
+    Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const { return m_agenda->agendaGhostSlot(items, minute, length); }
     /** Quick Add in the Agenda: the text is read like the list's Quick Add (date, priority,
      *  labels, project); without a date in it the task lands on `day`, as a block from
      *  `start` to `end` (minutes) when given, else all-day. */
@@ -380,25 +384,28 @@ public:
                                    int start = -1, int end = -1);
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
      *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
-    Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
+    Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const { return m_agenda->agendaMonth(anyDay, weekend); }
     /** Open tasks on a past day (local time, as the week's columns) for the week board's tray,
      *  oldest day first, within a day in triage order (TaskLogic::triageQueue). */
-    Q_INVOKABLE QVariantList agendaOverdue() const;
+    Q_INVOKABLE QVariantList agendaOverdue() const { return m_agenda->agendaOverdue(); }
     /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
     Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }
-    Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
-    Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
+    Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const { return m_agenda->heatmapCountsForYear(visibleTasks(), year, mode); }
+    Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const { return m_agenda->heatmapCountsAll(start, end, mode); }
     /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest
      *  first). {counts, total, perDay, bestCount, bestKey} (TaskLogic::summarizeHeatmap). */
     Q_INVOKABLE QVariantMap heatmapPeriod(const QDate &monthStart, const QVariantList &years,
-                                          const QString &mode) const;
+                                          const QString &mode) const
+    {
+        return m_agenda->heatmapPeriod(visibleTasks(), monthStart, years, mode);
+    }
     /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
-    Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
+    Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const { return m_agenda->heatmapTasksForDay(visibleTasks(), day, mode); }
     /** Installed task app for the settings ("KOrganizer" / "Merkuro"); empty if none. */
     Q_INVOKABLE QString taskAppName() const;
     Q_INVOKABLE bool launchTaskApp() const;
     /** Settings "Send test notification"; false without KNotifications support. */
-    Q_INVOKABLE bool sendTestNotification(const QString &title, const QString &text);
+    Q_INVOKABLE bool sendTestNotification(const QString &title, const QString &text) { return m_reminders->sendTest(title, text); }
     Q_INVOKABLE void bulkCompleteTasks(const QVariantList &itemIds, bool completed);
     Q_INVOKABLE void bulkDeleteTasks(const QVariantList &itemIds);
     Q_INVOKABLE void bulkMoveTasks(const QVariantList &itemIds, qint64 collectionId);
@@ -435,12 +442,12 @@ public:
     void setSearchCaseSensitive(bool sensitive);
     void setCompleteChildren(bool complete);
     void setCountsExcludeCollapsed(bool exclude);
-    void setNotificationsEnabled(bool enabled);
-    void setDefaultReminderMinutes(int minutes);
-    void setQuietHoursEnabled(bool enabled);
-    void setQuietHoursStart(int hour);
-    void setQuietHoursEnd(int hour);
-    void setSuppressRemindersDuringEvents(bool enabled);
+    void setNotificationsEnabled(bool enabled) { m_reminders->setEnabled(enabled); }
+    void setDefaultReminderMinutes(int minutes) { m_reminders->setDefaultMinutes(minutes); }
+    void setQuietHoursEnabled(bool enabled) { m_reminders->setQuietEnabled(enabled); }
+    void setQuietHoursStart(int hour) { m_reminders->setQuietStart(hour); }
+    void setQuietHoursEnd(int hour) { m_reminders->setQuietEnd(hour); }
+    void setSuppressRemindersDuringEvents(bool enabled) { m_reminders->setSuppressDuringEvents(enabled); }
     void setBusyCalendarIds(const QString &ids);
     /** Agenda menu: show / hide one calendar's events as busy time; persists. */
     Q_INVOKABLE void toggleBusyCalendar(qint64 calendarId);
@@ -528,7 +535,7 @@ public:
 
     // Merge conflict resolution
     Q_PROPERTY(QVariantList mergeFields READ mergeFields NOTIFY mergeConflictAvailable)
-    QVariantList mergeFields() const { return m_pendingMergeFields; }
+    QVariantList mergeFields() const { return m_writer->mergeFields(); }
     Q_INVOKABLE void resolveMergeConflict(const QVariantMap &resolution);
     Q_INVOKABLE void testMergeConflict(); // Debug: simulate a conflict
 
@@ -635,26 +642,9 @@ signals:
     friend class TaskControllerBench; // tests/perf_bench.cpp measures the private rebuild phases
 
 private Q_SLOTS:
-    void onConfigEdited();
     void onSettingsStored();
 
 private:
-enum class SyncResult { Error, Ok };
-
-    struct CachedTask {
-        Akonadi::Item item;
-        KCalendarCore::Todo::Ptr todo;
-        bool syncing = false;
-        bool pendingDelete = false;
-        int inflight = 0;
-        bool persistQueued = false;
-        qint64 persistQueuedMoveId = -1;
-        KCalendarCore::Todo::Ptr revertTodo;
-        KCalendarCore::Todo::Ptr submittedTodo;
-        qint64 revertCollectionId = -1;
-    };
-
-    void bindConfiguration(QObject *configuration);
     void loadSettings();
     void followView();
     void persist(const QString &key, const QVariant &value);
@@ -668,41 +658,25 @@ enum class SyncResult { Error, Ok };
     const TaskLogic::SmartViewDef *smartViewFor(const QString &viewId) const;
     TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
     QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
-    void setLoading(bool loading);
-    void setErrorMessage(const QString &message);
     void updateEmptyKind();
-    TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const CachedTask &cache) const;
-    void pushUndo(TaskLogic::UndoRecord record);
     void applyUndoRecord(const TaskLogic::UndoRecord &record);
-    void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
+    bool undoNonEdit(const TaskLogic::UndoRecord &record);
+    void undoDelete(const TaskLogic::UndoRecord &record);
+    void undoFields(const TaskLogic::UndoRecord &record);
     /** Moves a series' current occurrence by `days` with an undo step (#29); false if nothing moved. */
     bool moveSeriesOccurrence(qint64 itemId, qint64 days);
     void detachSeriesOccurrence(qint64 itemId, const QDateTime &start, const QDateTime &due);
     void deleteDetached(const QString &uid);
-    bool isSeries(qint64 itemId) const;
-    QDate seriesOccurrenceDay(qint64 itemId) const;
-    void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
     /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */
     void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
-    void checkReminders();
-    void notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when);
-    void refreshBusyEvents();
-    void refreshBusyIfDue();
-    void watchBusyEvents();
-    void scheduleRefreshBusyEvents();
-    bool isInBusyEvent(const QDateTime &when) const;
-    QList<Akonadi::Collection> busyEventCollections() const;
-    void onBusyEventsFetched(KJob *job, const QDateTime &rangeStart, const QDateTime &rangeEnd);
     void registerSessionInterface();
     void registerGlobalShortcuts();
-    void ensureServerWatch();
-    bool initializeAkonadi();
-    bool attachAkonadiMonitor();
-    void scheduleAkonadiRetry();
-    void loadCollections();
-    void scheduleLoadCollections();
-    void loadTasks();
+    void createHooks();
+    void createReminders();
+    void connectShared();
+    void connectLoader();
+    void mirrorLoader();
     void scheduleRebuild();
     void rebuildTaskList();
     void onRebuildFinished();
@@ -721,35 +695,18 @@ enum class SyncResult { Error, Ok };
     QList<TaskEntry> snapshotAllTasks() const;
     bool wouldCreateParentCycle(qint64 itemId, const QString &parentUid) const;
     /** Validate and apply RELATED-TO; returns false if rejected (error already emitted). */
-    bool applyParentUid(CachedTask *cache, const QString &parentUid, qint64 collectionId);
+    bool applyParentUid(SharedTasks::Entry *cache, const QString &parentUid, qint64 collectionId);
     bool taskMatchesView(const TaskEntry &task) const;
     TaskLogic::FilterState filterState() const;
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
     bool taskMatchesSearch(const TaskEntry &task) const;
-    bool isCollectionEnabled(qint64 collectionId) const;
-    QList<Akonadi::Collection> enabledCollections() const;
-    void upsertTask(const Akonadi::Item &item, qint64 fallbackCollectionId = -1);
-    void removeTask(Akonadi::Item::Id itemId);
-    Akonadi::Item itemById(qint64 itemId) const;
-    KCalendarCore::Todo::Ptr todoFromItem(const Akonadi::Item &item) const;
-    QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
-    TaskEntry makeTaskEntry(const CachedTask &cached, int indentLevel, bool hasChildren) const;
-    /** Every task the Agenda knows (all projects, not only the filtered list). */
-    QList<TaskEntry> agendaEntries() const;
-    /** Busy minutes on `day`: timed events and open task blocks, without `skipItemId`. */
-    QList<AgendaLogic::Span> agendaBusy(const QDate &day, const QList<TaskEntry> &tasks, qint64 skipItemId) const;
-    static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
-    static void applyRecurrencePreset(const KCalendarCore::Todo::Ptr &todo, const QString &preset);
-    CachedTask *prepareEdit(qint64 itemId);
-    void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {}, const Akonadi::Item &ackedItem = {});
+    TaskEntry makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const;
+    /** The tasks of the filtered list, in its order. */
+    QList<TaskEntry> visibleTasks() const;
+    SharedTasks::Entry *prepareEdit(qint64 itemId);
     void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
-    void submitModify(CachedTask &cached, qint64 moveToCollectionId);
-    void autoResolveConflict(qint64 itemId);
-    QVariantList computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
-                                   const KCalendarCore::Todo::Ptr &user,
-                                   const KCalendarCore::Todo::Ptr &server) const;
     void submitCreate(const Akonadi::Item &jobItem, const Akonadi::Collection &collection, qint64 tempId);
     Akonadi::Collection collectionById(qint64 collectionId) const;
     Akonadi::Collection firstWritableCollection() const;
@@ -761,17 +718,13 @@ enum class SyncResult { Error, Ok };
     void updateAvailableLabels(const QList<TaskEntry> &tasks);
     void updateAvailableLocations(const QList<TaskEntry> &tasks);
     void updateCounts(const TaskLogic::SidebarCounts &counts);
-    void publishSharedCache();
-    void scheduleRebuildAll();
-    void fetchTodos(const Akonadi::Collection &collection);
-    void onItemsFetched(const Akonadi::Item::List &items, const QString &error, qint64 collectionId);
     void logDebug(const QString &message);
     void updateDebugInfo(int builtTasks, int filteredTasks, int filteredOutCompleted, int filteredOutView, int filteredOutSearch);
 
     bool m_akonadiAvailable = false;
     bool m_demo = false;
     // Settings: bound Plasmoid.configuration, last loaded kurrentrc values.
-    QPointer<QObject> m_configuration;
+    SettingsBridge *m_bridge = nullptr;
     QVariantMap m_settings;
     bool m_session = false;
     bool m_loadingSettings = false;
@@ -835,7 +788,6 @@ enum class SyncResult { Error, Ok };
     QStringList m_selectedTaskIds;
     QString m_smartViewsJson = QStringLiteral("[]");
     QList<TaskLogic::SmartViewDef> m_smartViews;
-    qint64 m_conflictItemId = -1;
     bool m_matrixDrillActive = false;
     QString m_matrixDrillSource;
     QString m_matrixDrillLane;
@@ -855,26 +807,10 @@ enum class SyncResult { Error, Ok };
     bool m_searchCaseSensitive = false;
     bool m_completeChildren = false;
     bool m_countsExcludeCollapsed = false;
-    bool m_notificationsEnabled = true;
-    int m_defaultReminderMinutes = -1;
-    bool m_quietHoursEnabled = false;
-    int m_quietHoursStart = 22;
-    int m_quietHoursEnd = 7;
-    bool m_suppressRemindersDuringEvents = false;
     QString m_busyCalendarIds;
-    QDateTime m_lastReminderScan;
-    QHash<qint64, QDateTime> m_lastNotifiedReminder;
     QString m_emptyKind;
-    TaskLogic::UndoStack m_undo;
-    bool m_applyingUndo = false;
-    bool m_batchUndo = false;
-    // agendaShiftAllToDay: pushUndo collects here instead of replacing the single record.
-    bool m_collectingUndo = false;
-    std::vector<TaskLogic::UndoRecord> m_collectedUndo;
+    TaskUndo *m_undo = nullptr;
     QSet<QString> m_collapsedUids;
-    QHash<qint64, TaskLogic::UndoRecord> m_recreateAfterDelete;
-    /** Detached tasks undone while their create was still in flight: deleted once it lands. */
-    QSet<QString> m_deleteAfterCreate;
     int m_pendingCount = 0;
     int m_syncingCount = 0;
     QStringList m_availableLabels;
@@ -889,60 +825,16 @@ enum class SyncResult { Error, Ok };
     QVariantMap m_sidebarSecrecyCounts;
     QVariantMap m_sidebarLocationCounts;
 
-    Akonadi::Monitor *m_monitor = nullptr;
-    Akonadi::Monitor *m_eventMonitor = nullptr;
-    QTimer m_busyChangeTimer;
-    // Merge conflict state
-    qint64 m_pendingMergeItemId = -1;
-    QVariantList m_pendingMergeFields;
-    KCalendarCore::Todo::Ptr m_pendingMergeFreshTodo;
-    bool m_serverWatchConnected = false;
-    Akonadi::CollectionFetchJob *m_collectionFetchJob = nullptr;
-    bool m_collectionsReloadPending = false;
-    int m_pendingFetchJobs = 0;
-    // IDs / collections seen during the in-flight loadTasks wave (cache-preserving fetch).
-    QSet<Akonadi::Item::Id> m_fetchSeenIds;
-    QSet<qint64> m_fetchOkCollections;
-
-    int m_lastFetchItemCount = 0;
-    int m_lastFetchAccepted = 0;
-    int m_lastFetchRejectedNotTodo = 0;
-    int m_lastFetchRejectedNoPayload = 0;
-    int m_lastFetchRejectedDisabled = 0;
-    int m_lastFetchRejectedNoCollection = 0;
-
     TaskListModel m_taskModel;
     CollectionListModel m_collectionModel;
     CollectionListModel m_eventCalendarModel;
-    QVector<TaskCalendar::BusyInterval> m_busyIntervals;
-    QHash<qint64, QString> m_collectionNames;
-    QHash<Akonadi::Item::Id, CachedTask> m_tasks;
-    AbstractTaskStore *m_store = nullptr;
+    TaskWriter *m_writer = nullptr;
     QTimer m_rebuildTimer;
-    QTimer m_collectionsTimer;
-    QTimer m_akonadiRetryTimer;
-    QTimer m_reminderTimer;
-    QTimer m_busyEventTimer;
-    int m_pendingBusyFetchJobs = 0;
-    QVector<TaskCalendar::BusyInterval> m_busyFetchIntervals;
-    QDate m_agendaSelectedDate = QDate::currentDate();
-    QString m_agendaMode = AgendaLogic::Mode::Day;
-    bool m_agendaWeekend = true;
-    int m_agendaWorkMinutes = AgendaLogic::kDefaultWorkMinutes;
+    TaskReminders *m_reminders = nullptr;
+    TaskAgenda *m_agenda = nullptr;
+    SessionHooks *m_hooks = nullptr;
 
-    static QHash<Akonadi::Item::Id, CachedTask> s_tasks;
-    static QList<Akonadi::Collection> s_collections;
-    static QList<Akonadi::Collection> s_eventCollections;
-    // Busy events: changed since the last fetch, and the day of that fetch (shared by all widgets).
-    static TaskLogic::BusyEvents s_busyEvents;
-    static QDate s_busyFetchedOn;
-    static QHash<qint64, QString> s_collectionNames;
-    static QStringList s_extraLabels;
-    static QStringList s_extraLocations;
+    SharedTasks &m_shared = SharedTasks::instance();
     static QList<TaskController *> s_instances;
     static SessionServices s_sessionServices;
-    static qint64 s_nextTempId;
-    static int s_smokeStep;
-    static bool s_smokeFinished;
-    static TaskController *s_smokeLeader;
 };

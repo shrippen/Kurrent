@@ -144,4 +144,8 @@ QList<QDate> monthGrid(const QDate &anyDay, Weekend weekend);
  *  fill levels for 1 to 3. */
 int loadLevel(int count);
 
+/** `day` at `minute` of the day. 24:00 is no QTime: a block until midnight ends at 23:59
+ *  and stays on its day. */
+QDateTime atMinute(const QDate &day, int minute);
+
 } // namespace AgendaLogic

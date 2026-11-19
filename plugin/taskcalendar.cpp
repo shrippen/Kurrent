@@ -9,6 +9,7 @@
 #include <KCalendarCore/Recurrence>
 
 #include <QDateTime>
+#include <QVariant>
 #include <QTime>
 #include <QTimeZone>
 
@@ -463,6 +464,14 @@ QDateTime nextReminderTime(const KCalendarCore::Todo::Ptr &todo, const QDateTime
     return soonest;
 }
 
+bool isReminderDue(const QDateTime &when, const QDateTime &from, const QDateTime &now, const QDateTime &lastSent)
+{
+    if (!when.isValid() || when > now || when <= from) {
+        return false;
+    }
+    return !(lastSent.isValid() && lastSent == when);
+}
+
 void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDateTime &now)
 {
     if (!todo || !now.isValid()) {
@@ -556,6 +565,131 @@ bool isBusyAt(const QDateTime &when, const QVector<BusyInterval> &intervals)
         }
     }
     return false;
+}
+
+namespace
+{
+
+QDateTime dateTimeFromVariant(const QVariant &value)
+{
+    if (!value.isValid() || value.isNull()) {
+        return {};
+    }
+    if (value.userType() == QMetaType::QDate) {
+        return QDateTime(value.toDate(), QTime(0, 0));
+    }
+    return value.toDateTime();
+}
+
+void applyTextFields(const KCalendarCore::Todo::Ptr &todo, const QVariantMap &fields)
+{
+    if (fields.contains(QStringLiteral("summary"))) {
+        todo->setSummary(fields.value(QStringLiteral("summary")).toString().trimmed());
+    }
+    if (fields.contains(QStringLiteral("description"))) {
+        todo->setDescription(fields.value(QStringLiteral("description")).toString());
+    }
+    if (fields.contains(QStringLiteral("priority"))) {
+        todo->setPriority(fields.value(QStringLiteral("priority")).toInt());
+    }
+    if (fields.contains(QStringLiteral("categories"))) {
+        todo->setCategories(fields.value(QStringLiteral("categories")).toStringList());
+    }
+    if (fields.contains(QStringLiteral("location"))) {
+        todo->setLocation(fields.value(QStringLiteral("location")).toString());
+    }
+    if (fields.contains(QStringLiteral("allDay"))) {
+        todo->setAllDay(fields.value(QStringLiteral("allDay")).toBool());
+    }
+    if (fields.contains(QStringLiteral("status"))) {
+        todo->setStatus(static_cast<KCalendarCore::Incidence::Status>(fields.value(QStringLiteral("status")).toInt()));
+    }
+    if (fields.contains(QStringLiteral("secrecy"))) {
+        todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(fields.value(QStringLiteral("secrecy")).toInt()));
+    }
+}
+
+bool endsSeries(const QVariantMap &fields)
+{
+    return fields.value(QStringLiteral("recurrencePreset")).toString() == QLatin1String("none");
+}
+
+// A series edited here changes the series itself (#29): the shown occurrence's dates
+// become DTSTART and DUE, and a moved occurrence goes back to the rule. Both are written
+// together (one alone would stretch every occurrence); dates the editor sends back
+// unchanged, to the minute, write nothing, so saving a title keeps a move.
+void applySeriesDates(const KCalendarCore::Todo::Ptr &todo, const QVariantMap &fields)
+{
+    const QDateTime shownDue = todo->hasDueDate() ? todo->dtDue() : QDateTime();
+    const QDateTime shownStart = todo->hasStartDate() ? todo->dtStart() : QDateTime();
+    const bool clearDue = fields.value(QStringLiteral("clearDue")).toBool();
+    const bool clearStart = fields.value(QStringLiteral("clearStart")).toBool();
+    const QDateTime wantDue = dateTimeFromVariant(fields.value(QStringLiteral("dueDate")));
+    const QDateTime wantStart = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
+    const auto moved = [](const QDateTime &want, const QDateTime &shown) {
+        return want.isValid() && !(shown.isValid() && qAbs(want.secsTo(shown)) < 60);
+    };
+    const bool dueChanged = moved(wantDue, shownDue);
+    const bool startChanged = moved(wantStart, shownStart);
+    if (!dueChanged && !startChanged && !clearDue && !clearStart && !endsSeries(fields)) {
+        return;
+    }
+
+    const QDateTime newStart = clearStart ? QDateTime() : (startChanged ? wantStart : shownStart);
+    const QDateTime newDue = clearDue ? QDateTime() : (dueChanged ? wantDue : shownDue);
+    forgetOccurrenceMove(todo);
+    todo->setDtStart(newStart);
+    todo->setDtDue(newDue, true);
+}
+
+void applyPlainDates(const KCalendarCore::Todo::Ptr &todo, const QVariantMap &fields)
+{
+    const QDateTime wantDue = dateTimeFromVariant(fields.value(QStringLiteral("dueDate")));
+    const QDateTime wantStart = dateTimeFromVariant(fields.value(QStringLiteral("startDate")));
+    if (fields.value(QStringLiteral("clearDue")).toBool()) {
+        todo->setDtDue(QDateTime());
+    } else if (wantDue.isValid()) {
+        todo->setDtDue(wantDue);
+    }
+    if (fields.value(QStringLiteral("clearStart")).toBool()) {
+        todo->setDtStart(QDateTime());
+    } else if (wantStart.isValid()) {
+        todo->setDtStart(wantStart);
+    }
+}
+
+} // namespace
+
+void applyEditorFields(const KCalendarCore::Todo::Ptr &todo, const QVariantMap &fields)
+{
+    applyTextFields(todo, fields);
+
+    if (todo->recurs()) {
+        applySeriesDates(todo, fields);
+    } else {
+        applyPlainDates(todo, fields);
+    }
+
+    if (fields.contains(QStringLiteral("completed"))) {
+        const bool completed = fields.value(QStringLiteral("completed")).toBool();
+        completeTodo(todo, completed ? CompleteAction::Mark : CompleteAction::Unmark, QDateTime::currentDateTime());
+        if (!fields.contains(QStringLiteral("percentComplete")) && !todo->recurs()) {
+            todo->setPercentComplete(completed ? 100 : 0);
+        }
+    }
+    if (fields.contains(QStringLiteral("percentComplete"))) {
+        todo->setPercentComplete(fields.value(QStringLiteral("percentComplete")).toInt());
+    }
+
+    if (fields.contains(QStringLiteral("recurrencePreset"))) {
+        applyRecurrencePreset(todo, fields.value(QStringLiteral("recurrencePreset")).toString(), QDate::currentDate());
+    }
+    if (fields.contains(QStringLiteral("section"))) {
+        setSection(todo, fields.value(QStringLiteral("section")).toString());
+    }
+    if (fields.contains(QStringLiteral("reminderMinutes"))) {
+        setReminderMinutes(todo, fields.value(QStringLiteral("reminderMinutes")).toInt());
+    }
 }
 
 } // namespace TaskCalendar

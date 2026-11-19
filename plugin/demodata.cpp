@@ -1,5 +1,7 @@
 #include "demodata.h"
 
+#include <Akonadi/Item>
+
 #include <QDate>
 #include <QFile>
 #include <QJsonArray>
@@ -139,5 +141,34 @@ Data load()
         data.events.append(interval);
     }
     return data;
+}
+
+QDate seed(SharedTasks &shared, MemoryTaskStore &store)
+{
+    const Data data = load();
+    shared.tasks().clear();
+
+    QHash<qint64, QString> names;
+    for (const Akonadi::Collection &collection : data.collections) {
+        names.insert(collection.id(), collection.displayName());
+    }
+    shared.setCollections(data.collections, {}, names);
+
+    for (const Task &task : data.tasks) {
+        Akonadi::Item item;
+        item.setId(task.id);
+        item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
+        item.setPayload(task.todo);
+        item.setParentCollection(Akonadi::Collection(task.collectionId));
+
+        SharedTasks::Entry cached;
+        cached.item = item;
+        cached.todo = task.todo;
+        shared.tasks().insert(task.id, cached);
+        store.seedItem(item);
+    }
+
+    shared.setBusyIntervals(data.events);
+    return data.today;
 }
 }
