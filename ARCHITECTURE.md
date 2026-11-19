@@ -17,7 +17,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | Path | Its one task |
 |---|---|
 | `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task, and fetch the one task a write needs fresh (conflict, revision 0, reload). One store talks to Akonadi, one keeps tasks in memory for tests. |
-| `plugin/tasklogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; recurrence and dates of a task. |
+| `plugin/tasklogic.*`, `boardlogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; what a drop on a board column or matrix cell changes in a task (`boardlogic.*`); recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
 | `plugin/sharedtasks.*` | The data all controllers of a process share: tasks with their sync state, task lists, event calendars, busy times, labels and places. Holds data and signals only. |
 | `plugin/akonadiloader.*`, `akonadibusy.cpp`, `akonadiutil.h` | Reads and watches Akonadi once per process, writing into `SharedTasks`: connects, loads task lists and tasks, monitors changes, fetches busy events, decides which version of a task wins when one arrives. Reports available, loading and error to the controllers. `akonadibusy.cpp` is its busy-event half (own file for the file limit). |
@@ -91,6 +91,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | A new filter, sort order or count | `plugin/tasklogic.*`, a test in `tests/tasklogic_test.cpp`; the sidebar or toolbar that offers it |
 | A new field of a task | `plugin/tasklistmodel.*`, the function that sets a task's fields, `plugin/taskcalendar.*` if it concerns dates; editor, inspector and row in `ui/`; quick entry in `plugin/quickadd.cpp` if it can be typed |
 | A new view | A file in `ui/views/`, its loader in `ui/components/MainPaneHost.qml`, its id in `plugin/tasklogic.h` and `ui/Design.qml`, the list of views in `ui/FullView.qml` and `ui/configViews.qml`; steps in `ui/SmokeTest.qml` and the screenshot plan |
+| A new drop rule of a board column or matrix cell | `plugin/boardlogic.*`, a test in `tests/boardlogic_test.cpp`; the controller acts on its outcome |
 | A new action on tasks | The class for its topic behind the controller, through the storage boundary; a test with the memory store |
 | A new setting | `contents/config/main.xml` (name and default), `plugin/sharedsettings.*` if the terminal program needs it, its page in `ui/config*.qml` |
 | Logic only the interface needs | A function in `ui/*.js` with a test in `tests/qml/` |
@@ -103,7 +104,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 5485 lines, including
+- The controller does nearly everything in one class of 5334 lines, including
   smoke test, screenshot mode and demo mode (the shared data is in `plugin/sharedtasks.*`,
   reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`)
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for

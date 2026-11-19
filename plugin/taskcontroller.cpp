@@ -4,6 +4,7 @@
 #include "akonadiitems.h"
 #include "akonadiloader.h"
 #include "akonadiutil.h"
+#include "boardlogic.h"
 #include "kurrentlogging.h"
 #ifdef KURRENT_WITH_DEMO
 #include "demodata.h"
@@ -1276,148 +1277,23 @@ void TaskController::moveTaskToKanbanColumn(qint64 itemId, const QString &column
         m_undo->push(record);
     }
 
-    if (m_kanbanWriteMode == QLatin1String("custom")) {
-        TaskCalendar::setColumn(cache->todo, columnKey);
+    const BoardLogic::Outcome outcome = BoardLogic::applyKanbanColumn(cache->todo, m_kanbanColumnSource,
+                                                                      m_kanbanWriteMode, columnKey,
+                                                                      QDateTime::currentDateTime());
+    switch (outcome.effect) {
+    case BoardLogic::Effect::Persist:
         persistTodo(cache->item, cache->todo);
-        return;
-    }
-
-    const TaskEntry before = makeTaskEntry(*cache, 0, false);
-    const QString source = m_kanbanColumnSource;
-    KCalendarCore::Todo::Ptr todo = cache->todo;
-
-    if (source == TaskLogic::KanbanSource::Completion) {
-        // Mutate directly so nested helpers cannot push a second undo or return early
-        // while the model still has a stale band.
-        const bool wantDone = columnKey == QLatin1String("done");
-        if (todo->isCompleted() != wantDone) {
-            TaskCalendar::completeTodo(todo,
-                                       wantDone ? TaskCalendar::CompleteAction::Mark
-                                                : TaskCalendar::CompleteAction::Unmark,
-                                       QDateTime::currentDateTime());
-            if (!todo->recurs()) {
-                todo->setPercentComplete(wantDone ? 100 : 0);
-            }
-            persistTodo(cache->item, todo);
-        }
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Status) {
-        const QString nk = TaskLogic::normalizeStatusColumnKey(columnKey);
-        bool ok = false;
-        const int status = nk.toInt(&ok);
-        if (!ok) {
-            return;
-        }
-        const auto kStatus = static_cast<KCalendarCore::Incidence::Status>(status);
-        bool changed = false;
-        if (todo->status() != kStatus) {
-            todo->setStatus(kStatus);
-            changed = true;
-        }
-        if (status == 3) {
-            if (!todo->isCompleted()) {
-                TaskCalendar::completeTodo(todo, TaskCalendar::CompleteAction::Mark, QDateTime::currentDateTime());
-                changed = true;
-            }
-            if (!todo->recurs() && todo->percentComplete() != 100) {
-                todo->setPercentComplete(100);
-                changed = true;
-            }
-        } else if (todo->isCompleted()) {
-            todo->setCompleted(false);
-            changed = true;
-        }
-        if (changed) {
-            persistTodo(cache->item, todo);
-        }
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Secrecy) {
-        int secrecy = 0;
-        if (columnKey == QLatin1String("private")) {
-            secrecy = 1;
-        } else if (columnKey == QLatin1String("confidential")) {
-            secrecy = 2;
-        }
-        if (static_cast<int>(todo->secrecy()) != secrecy) {
-            todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(secrecy));
-            persistTodo(cache->item, todo);
-        }
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Project) {
-        qint64 collectionId = -1;
-        if (columnKey != QLatin1String("inbox")) {
-            collectionId = columnKey.toLongLong();
-        }
-        if (collectionId >= 0) {
-            moveTaskToCollection(itemId, collectionId);
-        }
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Due) {
-        QString preset;
-        if (columnKey == QLatin1String("today")) {
-            preset = QStringLiteral("today");
-        } else if (columnKey == QLatin1String("tomorrow")) {
-            preset = TaskLogic::ReschedulePreset::Tomorrow;
-        } else if (columnKey == QLatin1String("this-week")) {
-            preset = TaskLogic::ReschedulePreset::NextWeek;
-        } else if (columnKey == QLatin1String("no-date")) {
-            todo->setDtDue(QDateTime());
-            persistTodo(cache->item, todo);
-            return;
-        } else if (columnKey == QLatin1String("overdue") || columnKey == QLatin1String("later")) {
-            preset = columnKey == QLatin1String("overdue") ? QStringLiteral("today") : TaskLogic::ReschedulePreset::NextWeek;
-        }
-        if (!preset.isEmpty()) {
-            // Nested reschedule pushes its own undo — suppress via batch flag (already set from finishKanbanDrop).
-            rescheduleTask(itemId, preset);
-        }
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Priority) {
-        int priority = TaskLogic::PriorityBand::None;
-        if (columnKey == QLatin1String("high")) {
-            priority = TaskLogic::PriorityBand::High;
-        } else if (columnKey == QLatin1String("medium")) {
-            priority = TaskLogic::PriorityBand::Medium;
-        } else if (columnKey == QLatin1String("low")) {
-            priority = TaskLogic::PriorityBand::Low;
-        }
-        if (TaskLogic::priorityBand(todo->priority()) != priority) {
-            todo->setPriority(priority);
-            persistTodo(cache->item, todo);
-        }
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Label) {
-        if (columnKey == QLatin1String("none")) {
-            todo->setCategories(QStringList());
-        } else {
-            // Column membership is first category: move/ensure this label to the front.
-            QStringList cats = before.categories;
-            cats.removeAll(columnKey);
-            cats.prepend(columnKey);
-            todo->setCategories(cats);
-        }
-        persistTodo(cache->item, todo);
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::DaySection) {
-        TaskCalendar::setSection(todo, columnKey == QLatin1String("unscheduled") ? QString() : columnKey);
-        persistTodo(cache->item, todo);
-        return;
-    }
-    if (source == TaskLogic::KanbanSource::Column) {
-        TaskCalendar::setColumn(todo, columnKey);
-        persistTodo(cache->item, todo);
-        return;
-    }
-    if (m_kanbanWriteMode == QLatin1String("both")) {
-        TaskCalendar::setColumn(todo, columnKey);
-        persistTodo(cache->item, todo);
+        break;
+    case BoardLogic::Effect::MoveCollection:
+        moveTaskToCollection(itemId, outcome.collectionId);
+        break;
+    case BoardLogic::Effect::Reschedule:
+        // Nested reschedule pushes its own undo — suppress via batch flag (already set from finishKanbanDrop).
+        rescheduleTask(itemId, outcome.preset);
+        break;
+    case BoardLogic::Effect::Nothing:
+    case BoardLogic::Effect::SetParent:
+        break;
     }
 }
 
@@ -1850,45 +1726,18 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
 
     std::optional<TaskUndo::Batching> batching(std::in_place, *m_undo);
     if (laneChanged) {
-        if (m_swimlaneLaneAxis == QLatin1String("label")) {
-            if (laneKey == QLatin1String("none")) {
-                todo->setCategories(QStringList());
-            } else {
-                QStringList cats = before.categories;
-                cats.removeAll(laneKey);
-                cats.prepend(laneKey);
-                todo->setCategories(cats);
-            }
-            changed = true;
-        } else if (m_swimlaneLaneAxis == QLatin1String("priority")) {
-            todo->setPriority(laneKey.toInt());
-            changed = true;
-        } else if (m_swimlaneLaneAxis == QLatin1String("parent")) {
-            if (!applyParentUid(cache, laneKey == QLatin1String("none") ? QString() : laneKey,
-                                cache->item.parentCollection().id())) {
-                return;
-            }
-            changed = true;
-        } else if (laneKey != QLatin1String("inbox")) {
-            moveToCollection = laneKey.toLongLong();
+        const BoardLogic::Outcome lane = BoardLogic::applyMatrixLane(todo, m_swimlaneLaneAxis, laneKey);
+        if (lane.effect == BoardLogic::Effect::SetParent
+            && !applyParentUid(cache, lane.parentUid, cache->item.parentCollection().id())) {
+            return;
+        }
+        changed = lane.effect == BoardLogic::Effect::Persist || lane.effect == BoardLogic::Effect::SetParent;
+        if (lane.effect == BoardLogic::Effect::MoveCollection) {
+            moveToCollection = lane.collectionId;
         }
     }
-    if (timeChanged) {
-        if (timeKey == QLatin1String("unscheduled")) {
-            if (todo->hasDueDate()) {
-                todo->setDtDue(QDateTime());
-                changed = true;
-            }
-        } else {
-            const QDateTime next = TaskLogic::dueForBucketDrop(before.dueDate, timeKey, m_swimlaneTimeBucket, today);
-            if (next.isValid()) {
-                todo->setDtDue(next);
-                if (!before.dueDate.isValid()) {
-                    todo->setAllDay(true);
-                }
-                changed = true;
-            }
-        }
+    if (timeChanged && BoardLogic::applyMatrixTime(todo, before.dueDate, timeKey, m_swimlaneTimeBucket, today)) {
+        changed = true;
     }
     if (changed) {
         persistTodo(cache->item, todo);
