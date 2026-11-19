@@ -97,6 +97,7 @@ void TaskControllerConflictTest::knowRevision(int revision)
     item.setRevision(revision);
     m_store->seedItem(item);
     m_controller->testApplyExternalItem(item);
+    detachServer();
 }
 
 void TaskControllerConflictTest::changeServer(int priority, int revision)

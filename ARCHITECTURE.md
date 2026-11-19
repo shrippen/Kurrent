@@ -16,7 +16,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 | Path | Its one task |
 |---|---|
-| `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task. One store talks to Akonadi, one keeps tasks in memory for tests. |
+| `plugin/taskstore.h`, `akonaditaskstore.*`, `memorytaskstore.*` | The storage boundary: create, change and delete a task, and fetch the one task a write needs fresh (conflict, revision 0, reload). One store talks to Akonadi, one keeps tasks in memory for tests. |
 | `plugin/tasklogic.*`, `agendalogic.*`, `focusorder.*`, `quickadd.cpp`, `taskcalendar.*` | The rules, as pure functions with tests: sorting, filtering, counting for the sidebar, board and matrix; the agenda's day; the open tasks and their order in the terminal program; parsing the quick entry; recurrence and dates of a task. |
 | `plugin/tasklistmodel.*`, `collectionlistmodel.*` | The lists the views show: tasks, and the task lists of Akonadi. |
 | `plugin/sharedtasks.*` | The data all controllers of a process share: tasks with their sync state, task lists, event calendars, busy times, labels and places. Holds data and signals only. |
@@ -65,7 +65,8 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
   and has a QML test. Nothing stands in both, and no code exists only for a test.
 - Every write of a task goes through the storage boundary, whichever way it starts:
   quick entry, editor, drag, D-Bus. So every write runs in tests against the memory
-  store. Reading and watching Akonadi is the task of one class behind the controller.
+  store. Reading and watching Akonadi is the task of one class behind the controller;
+  the store only fetches the one task a write needs fresh.
   Nothing outside `plugin/` talks to Akonadi.
 - One class has one topic. The controller hands on; it does not grow by a function
   per feature.
