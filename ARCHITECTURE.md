@@ -106,7 +106,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 4598 lines, including
+- The controller does nearly everything in one class of 4583 lines, including
   smoke test, screenshot mode and demo mode (the shared data is in `plugin/sharedtasks.*`,
   reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`)
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for

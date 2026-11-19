@@ -1788,12 +1788,7 @@ QList<TaskEntry> TaskController::visibleTasks() const
 
 QVariantMap TaskController::planMatrixForVisibleTasks() const
 {
-    QList<TaskEntry> tasks;
-    tasks.reserve(m_taskModel.count());
-    for (int i = 0; i < m_taskModel.count(); ++i) {
-        tasks.append(m_taskModel.taskAt(i));
-    }
-    return TaskLogic::planMatrixCounts(tasks, QDate::currentDate());
+    return TaskLogic::planMatrixCounts(visibleTasks(), QDate::currentDate());
 }
 
 bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
@@ -3074,11 +3069,6 @@ Akonadi::Collection TaskController::firstWritableCollection() const
     return {};
 }
 
-QString TaskController::recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo)
-{
-    return TaskCalendar::recurrencePresetFromTodo(todo);
-}
-
 TaskEntry TaskController::makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const
 {
     return TaskEntries::fromShared(m_shared, cached, indentLevel, hasChildren);
@@ -4109,11 +4099,6 @@ bool TaskController::taskMatchesSearch(const TaskEntry &task) const
     return TaskLogic::matchesSearch(task, m_searchQuery,
         m_searchTitleOnly ? TaskLogic::SearchScope::TitleOnly : TaskLogic::SearchScope::All,
         m_searchCaseSensitive ? TaskLogic::SearchCase::Sensitive : TaskLogic::SearchCase::Insensitive);
-}
-
-QString TaskController::sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const
-{
-    return TaskCalendar::sectionFromTodo(todo);
 }
 
 void TaskController::updatePendingCount(const QList<TaskEntry> &tasks)

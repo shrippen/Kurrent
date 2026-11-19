@@ -702,11 +702,9 @@ private:
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
     bool taskMatchesSearch(const TaskEntry &task) const;
-    QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
     TaskEntry makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const;
     /** The tasks of the filtered list, in its order. */
     QList<TaskEntry> visibleTasks() const;
-    static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
     SharedTasks::Entry *prepareEdit(qint64 itemId);
     void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
