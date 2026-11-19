@@ -165,6 +165,7 @@ set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskreminders.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/settingsbridge.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
@@ -351,6 +352,7 @@ if(KURRENT_BUILD_BENCH)
         ${CMAKE_SOURCE_DIR}/plugin/taskreminders.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/settingsbridge.cpp
         ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
         ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
         ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
