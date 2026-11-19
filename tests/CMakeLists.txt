@@ -159,6 +159,7 @@ find_package(KF6 REQUIRED COMPONENTS I18n)
 set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
     ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/sessionhooks.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskagenda.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskentry.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
@@ -343,6 +344,7 @@ if(KURRENT_BUILD_BENCH)
         perf_bench.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
         ${CMAKE_SOURCE_DIR}/plugin/boardlogic.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/sessionhooks.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskagenda.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskentry.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
