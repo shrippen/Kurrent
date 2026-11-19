@@ -12,17 +12,17 @@
 /**
  * Persistence boundary for task CRUD.
  *
- * Optimistic UI + rollback live in TaskController (cache, inflight, revertTodo).
+ * Optimistic UI + rollback live in TaskWriter (cache, inflight, revertTodo).
  * This layer only talks to a backend (Akonadi or in-memory for tests).
  *
- *   UI / TaskController                  AbstractTaskStore
- *   -------------------                  ------------------
+ *   TaskWriter                           AbstractTaskStore
+ *   ----------                           -----------------
  *   update cache, syncing=true    --->   submit(Request)
  *   finishSync / upsert / remove  <---   finished(Result)
  *   conflict, revision 0          --->   fetch(item, context, done)
  *   re-apply or surface           <---   done(item, error)
  *
- * The controller coalesces further edits while a job for that clientId is in
+ * The writer coalesces further edits while a job for that clientId is in
  * flight, then submits the latest payload after the job finishes.
  */
 class AbstractTaskStore : public QObject
