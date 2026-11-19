@@ -12,3 +12,6 @@
 /RULES.md export-ignore
 /REVIEW.md export-ignore
 /RELEASE.md export-ignore
+/ReviewClaude.md export-ignore
+/.cursor export-ignore
+/.gitea/pr-agent export-ignore

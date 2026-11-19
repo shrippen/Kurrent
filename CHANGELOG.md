@@ -2,25 +2,39 @@
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-11-19
+
 ### English
 
-The widget opens and searches up to ten times faster, and starts with less work.
+With a few hundred tasks the widget opens in about half a second instead of up to ten, and a search no longer holds it up. A task that cannot be saved now says so.
 
 #### Improved
-- Opening the widget the first time and searching froze it for seconds with a few hundred tasks: each task row looked up its icons in the icon theme, also the hidden ones, uncached. Measured with 249 tasks in the list: opening took 8–10 s of work, now about 0.5 s; a search that changes the list took up to 11 s, now 0.1–0.3 s. It looks the same.
+- Opening the widget the first time and searching froze it for seconds with a few hundred tasks: each task row looked up its icons in the icon theme, also the hidden ones, uncached. Measured with 249 tasks in the list: opening took 8–10 s of work, now about 0.5 s; a search took 6–11 s, now 0.1–0.3 s. It looks the same.
 - Task lists that are whole calendars (tasks and events) load faster: Kurrent now fetches only the tasks instead of every event with them. With 529 tasks among 7,506 entries: about 1 s of work at start, now about 0.2 s.
-- The calendar events for the Agenda and for quiet reminders are fetched again only when an event changed or the day did, no longer all of them every 5 minutes (about 1 s of work each time with 7,500 events), and after the tasks rather than beside them.
-- Task rows build their "Reschedule" menu, date fields their calendar, when it opens; the view tiles update their figures in place.
+- The calendar events for the Agenda and for holding back reminders during events are fetched again only when an event changed or the day did, no longer all of them every 5 minutes (about 1 s of work each time with 7,500 events).
+- Lists and the editor build with less work: a task row creates its "Reschedule" menu, a date field its calendar, only when you open it, and the view tiles change their figures without being rebuilt.
+- A task created in the editor shows in the list at once, marked as syncing, as one from the quick entry does, instead of only after Akonadi reports it.
+
+#### Fixed
+- When saving, deleting or moving a task failed, nothing told you; the change just went back. The error now shows as a message at the bottom right of every view.
+- When the sidebar had less room than its sections wanted, it could end a few pixels above its footer. It now fills the column.
+
+All changes: https://github.com/shrippen/Kurrent/compare/v0.8.1...v0.9.0
 
 ### Deutsch
 
-Das Widget öffnet und sucht bis zu zehnmal schneller und hat beim Start weniger zu tun.
+Mit einigen hundert Aufgaben öffnet das Widget in etwa einer halben Sekunde statt in bis zu zehn, und eine Suche hält es nicht mehr auf. Lässt sich eine Aufgabe nicht speichern, sagt es das jetzt.
 
 #### Verbessert
-- Das erste Öffnen und die Suche ließen das Widget bei einigen hundert Aufgaben sekundenlang stehen: Jede Aufgabenzeile suchte ihre Symbole im Symbolthema, auch die versteckten, ohne Cache. Gemessen mit 249 Aufgaben in der Liste: Öffnen kostete 8–10 s Arbeit, jetzt etwa 0,5 s; eine Suche, die die Liste ändert, bis zu 11 s, jetzt 0,1–0,3 s. Es sieht gleich aus.
+- Das erste Öffnen und die Suche ließen das Widget bei einigen hundert Aufgaben sekundenlang stehen: Jede Aufgabenzeile suchte ihre Symbole im Symbolthema, auch die versteckten, ohne Cache. Gemessen mit 249 Aufgaben in der Liste: Öffnen kostete 8–10 s Arbeit, jetzt etwa 0,5 s; eine Suche 6–11 s, jetzt 0,1–0,3 s. Es sieht gleich aus.
 - Aufgabenlisten, die ganze Kalender sind (Aufgaben und Termine), laden schneller: Kurrent holt jetzt nur die Aufgaben statt jedes Termins mit. Bei 529 Aufgaben unter 7.506 Einträgen: etwa 1 s Arbeit beim Start, jetzt etwa 0,2 s.
-- Die Termine für die Agenda und die stillen Erinnerungen werden nur noch neu geholt, wenn sich ein Termin oder der Tag geändert hat, nicht mehr alle 5 Minuten alle (bei 7.500 Terminen jedes Mal etwa 1 s Arbeit), und nach den Aufgaben statt gleichzeitig.
-- Aufgabenzeilen bauen ihr Menü „Verschieben“, Datumsfelder ihren Kalender erst beim Öffnen; die Ansichtskacheln ändern ihre Zahlen an Ort und Stelle.
+- Die Termine für die Agenda und für das Zurückhalten von Erinnerungen während eines Termins werden nur noch neu geholt, wenn sich ein Termin oder der Tag geändert hat, nicht mehr alle 5 Minuten alle (bei 7.500 Terminen jedes Mal etwa 1 s Arbeit).
+- Listen und Editor bauen sich mit weniger Arbeit auf: Eine Aufgabenzeile legt ihr Menü „Verschieben“, ein Datumsfeld seinen Kalender erst an, wenn man es öffnet, und die Ansichtskacheln ändern ihre Zahlen, ohne neu gebaut zu werden.
+- Eine im Editor angelegte Aufgabe steht sofort in der Liste, als „wird synchronisiert“ markiert, wie eine aus der Schnelleingabe, statt erst, wenn Akonadi sie meldet.
+
+#### Behoben
+- Schlug das Speichern, Löschen oder Verschieben einer Aufgabe fehl, sagte nichts etwas; die Änderung ging nur zurück. Der Fehler erscheint jetzt als Meldung unten rechts in jeder Ansicht.
+- Hatte die Seitenleiste weniger Platz, als ihre Abschnitte wollten, endete sie einige Pixel über ihrer Fußzeile. Jetzt füllt sie die Spalte.
 
 ## [0.8.1] — 2026-11-10
 
