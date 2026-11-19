@@ -58,7 +58,6 @@
 #include <QDBusConnection>
 #include <algorithm>
 
-
 #ifdef KURRENT_HAS_GLOBALACCEL
 #include <KGlobalAccel>
 #include <QAction>
@@ -245,7 +244,7 @@ TaskController::TaskController(QObject *parent)
     });
 }
 
-// The smoke test and screenshot hooks; their signals are this controller's.
+// Reminders; they ask whether Akonadi is up and snooze through this controller's write path.
 void TaskController::createReminders()
 {
     m_reminders = new TaskReminders(
@@ -259,6 +258,7 @@ void TaskController::createReminders()
     connect(m_reminders, &TaskReminders::suppressDuringEventsChanged, this, &TaskController::eventBusySettingsChanged);
 }
 
+// The smoke test and screenshot hooks; their signals are this controller's.
 void TaskController::createHooks()
 {
     m_hooks = new SessionHooks(this);
