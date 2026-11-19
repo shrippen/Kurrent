@@ -3,6 +3,7 @@
 #include "agendalogic.h"
 #include "collectionlistmodel.h"
 #include "sharedtasks.h"
+#include "taskagenda.h"
 #include "taskcalendar.h"
 #include "tasklistmodel.h"
 #include "tasklogic.h"
@@ -231,14 +232,14 @@ public:
     bool suppressRemindersDuringEvents() const { return m_suppressRemindersDuringEvents; }
     QString busyCalendarIds() const { return m_busyCalendarIds; }
     QVariantList eventCalendars() const;
-    QDate agendaSelectedDate() const { return m_agendaSelectedDate; }
-    void setAgendaSelectedDate(const QDate &date);
-    QString agendaMode() const { return m_agendaMode; }
-    void setAgendaMode(const QString &mode);
-    bool agendaWeekend() const { return m_agendaWeekend; }
-    int agendaWorkMinutes() const { return m_agendaWorkMinutes; }
-    void setAgendaWorkMinutes(int minutes);
-    void setAgendaWeekend(bool show);
+    QDate agendaSelectedDate() const { return m_agenda->selectedDate(); }
+    void setAgendaSelectedDate(const QDate &date) { m_agenda->setSelectedDate(date); }
+    QString agendaMode() const { return m_agenda->mode(); }
+    void setAgendaMode(const QString &mode) { m_agenda->setMode(mode); }
+    bool agendaWeekend() const { return m_agenda->weekend(); }
+    int agendaWorkMinutes() const { return m_agenda->workMinutes(); }
+    void setAgendaWorkMinutes(int minutes) { m_agenda->setWorkMinutes(minutes); }
+    void setAgendaWeekend(bool show) { m_agenda->setWeekend(show); }
     bool canUndo() const { return m_undo->canUndo(); }
     QString undoKind() const { return m_undo->kindName(); }
     QString undoLabel() const { return m_undo->label(); }
@@ -330,50 +331,50 @@ public:
     /** Switch the main-pane mode from a view (cell drill-down, heatmap day); persists. */
     Q_INVOKABLE void requestMainPaneMode(const QString &mode);
     /** The date one step (`n` days, weeks or months by agendaMode) from `date`. */
-    Q_INVOKABLE QDate agendaStep(const QDate &date, int n) const { return AgendaLogic::stepDate(date, m_agendaMode, n); }
+    Q_INVOKABLE QDate agendaStep(const QDate &date, int n) const { return AgendaLogic::stepDate(date, m_agenda->mode(), n); }
     /** ISO 8601 week number of `date` (1–53). */
     Q_INVOKABLE int isoWeek(const QDate &date) const { return date.weekNumber(); }
     /** Switch the Agenda between day, week and month; persists. */
     Q_INVOKABLE void selectAgendaMode(const QString &mode);
     /** Show or hide the weekend on the week and month boards; persists. */
     Q_INVOKABLE void selectAgendaWeekend(bool show);
-    Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const;
+    Q_INVOKABLE QVariantMap heatmapCountsForMonth(const QDate &monthStart, const QString &mode) const { return m_agenda->heatmapCountsForMonth(visibleTasks(), monthStart, mode); }
     Q_INVOKABLE QVariantMap planMatrixForVisibleTasks() const;
-    Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const;
-    Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const;
+    Q_INVOKABLE QVariantList agendaEventsForDay(const QDate &day) const { return m_agenda->agendaEventsForDay(day); }
+    Q_INVOKABLE QVariantList agendaTasksForRange(const QDate &from, const QDate &to) const { return m_agenda->agendaTasksForRange(from, to); }
     /** The same tasks by ISO day ("2026-10-12"): done ones on their completion day; open
      *  tasks before done ones. */
-    Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const;
+    Q_INVOKABLE QVariantMap agendaTasksByDay(const QDate &from, const QDate &to) const { return m_agenda->agendaTasksByDay(from, to); }
     /** Day view of the Agenda, `count` days from `from` (AgendaLogic): per day {date, planFrom,
      *  allDayEvents, items (timed events and task blocks with start, end, lane, lanes; blocks
      *  also lo/hi for resizing), loose (tasks without a block, open first), free [{start, end}]}.
      *  Times are minutes since midnight. */
-    Q_INVOKABLE QVariantList agendaDays(const QDate &from, int count) const;
+    Q_INVOKABLE QVariantList agendaDays(const QDate &from, int count) const { return m_agenda->agendaDays(from, count); }
     /** Ranked suggestions for `target`: [{task, score, tier, reasons [{kind, days, start, end}]}]. */
-    Q_INVOKABLE QVariantList agendaSuggestions(const QDate &target) const;
+    Q_INVOKABLE QVariantList agendaSuggestions(const QDate &target) const { return m_agenda->agendaSuggestions(target); }
     /** Give a task a time on `day`: the first free stretch from `minute` that fits its length
      *  (its block, else AgendaLogic::defaultMinutes). Undoable. */
-    Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute);
+    Q_INVOKABLE void agendaPlaceTask(qint64 itemId, const QDate &day, int minute) { m_agenda->agendaPlaceTask(itemId, day, minute); }
     /** Where agendaPlaceTask would put the task: { start, end, detach }; detach when a series'
      *  occurrence would get a time of its own (the view warns and asks first). */
-    Q_INVOKABLE QVariantMap agendaPlacement(qint64 itemId, const QDate &day, int minute) const;
+    Q_INVOKABLE QVariantMap agendaPlacement(qint64 itemId, const QDate &day, int minute) const { return m_agenda->agendaPlacement(itemId, day, minute); }
     /** True when agendaSetBlock with these times detaches a series' occurrence. */
-    Q_INVOKABLE bool agendaWouldDetach(qint64 itemId, int start, int end) const;
+    Q_INVOKABLE bool agendaWouldDetach(qint64 itemId, int start, int end) const { return m_agenda->agendaWouldDetach(itemId, start, end); }
     /** Set a task's block to start–end (minutes) on `day`; resizing. Undoable. */
-    Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end);
+    Q_INVOKABLE void agendaSetBlock(qint64 itemId, const QDate &day, int start, int end) { m_agenda->agendaSetBlock(itemId, day, start, end); }
     /** Put a task on `day` without a time (all-day). A time block loses its start; an earlier
      *  start day stays. A recurring task moves only its current occurrence and keeps its times.
      *  Undoable. */
-    Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day);
+    Q_INVOKABLE void agendaMoveToDay(qint64 itemId, const QDate &day) { m_agenda->agendaMoveToDay(itemId, day); }
     /** Move a task to `day` and keep its times (week and month boards): start and due move by
      *  the same number of days (a recurring task moves only its current occurrence, #29);
      *  a task without a date becomes all-day on `day`. Undoable. */
-    Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day);
+    Q_INVOKABLE void agendaShiftToDay(qint64 itemId, const QDate &day) { m_agenda->agendaShiftToDay(itemId, day); }
     /** agendaShiftToDay for several tasks ("All to today") as one undo step. */
-    Q_INVOKABLE void agendaShiftAllToDay(const QVariantList &itemIds, const QDate &day);
+    Q_INVOKABLE void agendaShiftAllToDay(const QVariantList &itemIds, const QDate &day) { m_agenda->agendaShiftAllToDay(itemIds, day); }
     /** The day view's task ghost for a click at `minute`: {start, end} between the day's
      *  `items` (agendaDays), -1/-1 on busy time or outside 07-22 (AgendaLogic::ghostSlot). */
-    Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const;
+    Q_INVOKABLE QVariantMap agendaGhostSlot(const QVariantList &items, int minute, int length) const { return m_agenda->agendaGhostSlot(items, minute, length); }
     /** Quick Add in the Agenda: the text is read like the list's Quick Add (date, priority,
      *  labels, project); without a date in it the task lands on `day`, as a block from
      *  `start` to `end` (minutes) when given, else all-day. */
@@ -381,20 +382,23 @@ public:
                                    int start = -1, int end = -1);
     /** Month board around `anyDay`: agendaDays entries for AgendaLogic::monthGrid, each with
      *  inMonth, count (appointments and open tasks) and level (AgendaLogic::loadLevel). */
-    Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const;
+    Q_INVOKABLE QVariantList agendaMonth(const QDate &anyDay, bool weekend) const { return m_agenda->agendaMonth(anyDay, weekend); }
     /** Open tasks on a past day (local time, as the week's columns) for the week board's tray,
      *  oldest day first, within a day in triage order (TaskLogic::triageQueue). */
-    Q_INVOKABLE QVariantList agendaOverdue() const;
+    Q_INVOKABLE QVariantList agendaOverdue() const { return m_agenda->agendaOverdue(); }
     /** Load step for `count` entries (AgendaLogic::loadLevel), for the month legend. */
     Q_INVOKABLE int agendaLoadLevel(int count) const { return AgendaLogic::loadLevel(count); }
-    Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const;
-    Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const;
+    Q_INVOKABLE QVariantMap heatmapCountsForYear(int year, const QString &mode) const { return m_agenda->heatmapCountsForYear(visibleTasks(), year, mode); }
+    Q_INVOKABLE QVariantMap heatmapCountsAll(const QDate &start, const QDate &end, const QString &mode) const { return m_agenda->heatmapCountsAll(start, end, mode); }
     /** Heatmap of the shown period: the month of `monthStart`, or the `years` listed (newest
      *  first). {counts, total, perDay, bestCount, bestKey} (TaskLogic::summarizeHeatmap). */
     Q_INVOKABLE QVariantMap heatmapPeriod(const QDate &monthStart, const QVariantList &years,
-                                          const QString &mode) const;
+                                          const QString &mode) const
+    {
+        return m_agenda->heatmapPeriod(visibleTasks(), monthStart, years, mode);
+    }
     /** Tasks behind one heatmap cell (same sources as the counts), sorted by summary. */
-    Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const;
+    Q_INVOKABLE QVariantList heatmapTasksForDay(const QDate &day, const QString &mode) const { return m_agenda->heatmapTasksForDay(visibleTasks(), day, mode); }
     /** Installed task app for the settings ("KOrganizer" / "Merkuro"); empty if none. */
     Q_INVOKABLE QString taskAppName() const;
     Q_INVOKABLE bool launchTaskApp() const;
@@ -663,8 +667,6 @@ private:
     bool moveSeriesOccurrence(qint64 itemId, qint64 days);
     void detachSeriesOccurrence(qint64 itemId, const QDateTime &start, const QDateTime &due);
     void deleteDetached(const QString &uid);
-    bool isSeries(qint64 itemId) const;
-    QDate seriesOccurrenceDay(qint64 itemId) const;
     void recreateTask(const TaskLogic::UndoRecord &record);
     /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */
     void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
@@ -702,10 +704,8 @@ private:
     bool taskMatchesSearch(const TaskEntry &task) const;
     QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
     TaskEntry makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const;
-    /** Every task the Agenda knows (all projects, not only the filtered list). */
-    QList<TaskEntry> agendaEntries() const;
-    /** Busy minutes on `day`: timed events and open task blocks, without `skipItemId`. */
-    QList<AgendaLogic::Span> agendaBusy(const QDate &day, const QList<TaskEntry> &tasks, qint64 skipItemId) const;
+    /** The tasks of the filtered list, in its order. */
+    QList<TaskEntry> visibleTasks() const;
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
     SharedTasks::Entry *prepareEdit(qint64 itemId);
     void onStoreFinished(const AbstractTaskStore::Result &result);
@@ -842,10 +842,7 @@ private:
     TaskWriter *m_writer = nullptr;
     QTimer m_rebuildTimer;
     QTimer m_reminderTimer;
-    QDate m_agendaSelectedDate = QDate::currentDate();
-    QString m_agendaMode = AgendaLogic::Mode::Day;
-    bool m_agendaWeekend = true;
-    int m_agendaWorkMinutes = AgendaLogic::kDefaultWorkMinutes;
+    TaskAgenda *m_agenda = nullptr;
 
     SharedTasks &m_shared = SharedTasks::instance();
     static QList<TaskController *> s_instances;

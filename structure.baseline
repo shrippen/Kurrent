@@ -33,11 +33,11 @@ plugin/quickadd.cpp	TaskLogic::parseQuickAdd	ccn=63 length=186
 plugin/quickadd.cpp	TaskLogic::parseTimeToken	ccn=17
 plugin/quickadd.cpp	TaskLogic::suggestQuickAdd	ccn=19 length=106
 plugin/sharedsettings.cpp	SharedSettings::specs	length=100
+plugin/taskagenda.cpp	TaskAgenda::agendaDays	ccn=20 length=127
+plugin/taskagenda.cpp	TaskAgenda::agendaTasksForRange	ccn=18
 plugin/taskcalendar.cpp	TaskCalendar::appendBusyIntervals	ccn=19
 plugin/taskcalendar.cpp	TaskCalendar::completeTodo	ccn=28 length=83
-plugin/taskcontroller.cpp	-	lines=5334
-plugin/taskcontroller.cpp	TaskController::agendaDays	ccn=20 length=127
-plugin/taskcontroller.cpp	TaskController::agendaTasksForRange	ccn=18
+plugin/taskcontroller.cpp	-	lines=4598
 plugin/taskcontroller.cpp	TaskController::createQuickTask	ccn=26 length=86 nesting=6
 plugin/taskcontroller.cpp	TaskController::kanbanColumnKeysForVisibleTasks	ccn=19
 plugin/taskcontroller.cpp	TaskController::listGroupLabelForKey	ccn=29
@@ -46,7 +46,7 @@ plugin/taskcontroller.cpp	TaskController::moveTaskToMatrixCell	ccn=23
 plugin/taskcontroller.cpp	TaskController::reorderKanbanCard	ccn=16
 plugin/taskcontroller.cpp	TaskController::selectKanbanSource	nesting=5
 plugin/taskcontroller.cpp	TaskController::swimlaneMatrixForVisibleTasks	ccn=21 nesting=6
-plugin/taskcontroller.h	-	lines=856
+plugin/taskcontroller.h	-	lines=853
 plugin/tasklistmodel.cpp	TaskListModel::chunkStep	ccn=17
 plugin/tasklistmodel.cpp	TaskListModel::data	ccn=42 length=81
 plugin/tasklistmodel.cpp	TaskListModel::setTasks	ccn=20 length=102
