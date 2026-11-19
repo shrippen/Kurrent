@@ -32,7 +32,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |
 | `ui/main.qml`, `FullView.qml`, `Plugin*.qml` | The widget: panel item and popup; loading the plug-in and the hint when it is missing. |
 | `ui/views/` | One file per view (list, board, swimlanes, plan, heatmap, agenda day, week, month), the sidebar, the editor, the inspector, the management of projects and labels. |
-| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages, `SidebarSection` (one filter section of the sidebar: header, "All", rows; used seven times); `ViewLoader`, which loads a view asynchronously except in the smoke test). |
+| `ui/components/` | Parts several views share: rows, cards, pickers (with `PopupAbove`, which places their list), bars, the parts of the settings pages, `SidebarSection` (one filter section of the sidebar: header, "All", rows; used seven times); `ViewLoader`, which loads a view asynchronously except in the smoke test. |
 | `ui/Design.qml` | The sizes and tokens of the interface at run time. |
 | `ui/*.js` | Logic of the user interface without QML, with tests in `tests/qml/`: dates and their input mask, clock and day helpers (`daymath.js`), the combo box selection of the settings pages, colours and priority names, the editor's recurrence choice, the sidebar's height distribution, agenda helpers, focus, taps. |
 | `ui/config*.qml`, `contents/config/` | The settings pages and the description of the widget's settings with their defaults (`main.xml`). |
@@ -110,8 +110,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 - The controller does nearly everything in one class of 4532 lines (the shared data is in `plugin/sharedtasks.*`,
   reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`, smoke and screenshot hooks in
   `plugin/sessionhooks.*`, demo seeding in `plugin/demodata.*`). Six places still
-  branch on demo mode (`m_demo`) to keep Akonadi calls away (`AUDIT.md`, finding 4). Three views carry helpers for the screenshot runner
-  (`CalendarAgendaView`, `AgendaDayView`, `TaskListView`; not in `AUDIT.md`).
+  branch on demo mode (`m_demo`) to keep Akonadi calls away (`AUDIT.md`, finding 4). Views carry helpers for the screenshot runner
+  (`CalendarAgendaView`, `AgendaDayView`, `TaskListView`, and `calendarView` in
+  `MainPaneHost`/`FullView`; not in `AUDIT.md`).
 - The order of the sidebar's sections and views is still written out as a default in
   `ui/configSidebar.qml` and `ui/views/SidebarView.qml`, besides `main.xml` (`AUDIT.md`,
   finding 5).
