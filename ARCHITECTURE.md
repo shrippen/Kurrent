@@ -109,7 +109,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 4364 lines (the shared data is in `plugin/sharedtasks.*`,
+- The controller does nearly everything in one class of 4366 lines (the shared data is in `plugin/sharedtasks.*`,
   reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`, reminders in `plugin/taskreminders.*`, the settings bridge in `plugin/settingsbridge.*`, smoke and screenshot hooks in
   `plugin/sessionhooks.*`, demo seeding in `plugin/demodata.*`). Six places still
   branch on demo mode (`m_demo`) to keep Akonadi calls away (`AUDIT.md`, finding 4). Views carry helpers for the screenshot runner

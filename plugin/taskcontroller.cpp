@@ -184,8 +184,10 @@ TaskController::TaskController(QObject *parent)
             &TaskController::onRebuildFinished);
 
 
-    // Every write goes through the writer and its store; MemoryTaskStore swaps in for unit tests.
+    // Keeps Plasmoid.configuration and kurrentrc equal once startSession binds it.
     m_bridge = new SettingsBridge(this);
+
+    // Every write goes through the writer and its store; MemoryTaskStore swaps in for unit tests.
     m_writer = new TaskWriter(m_shared, [this] { return m_akonadiAvailable; }, this);
     connect(m_writer, &TaskWriter::finished, this, &TaskController::onStoreFinished);
     connect(m_writer, &TaskWriter::error, this, &TaskController::error);

@@ -23,7 +23,6 @@
 #include <QHash>
 #include <QObject>
 #include <QPointF>
-#include <QPointer>
 #include <QSet>
 #include <QStringList>
 #include <QTimer>
