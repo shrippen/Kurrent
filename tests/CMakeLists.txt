@@ -162,6 +162,7 @@ set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/sessionhooks.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskagenda.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskentry.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskreminders.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
     ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
@@ -347,6 +348,7 @@ if(KURRENT_BUILD_BENCH)
         ${CMAKE_SOURCE_DIR}/plugin/sessionhooks.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskagenda.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskentry.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskreminders.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskundo.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
         ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp

@@ -27,6 +27,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/taskundo.*` | The undo topic: the stack of records, what gets recorded (not while an undo is applied or a composite action runs), and the record logic: take a snapshot of a task, write it back, rebuild a deleted one. The controller dispatches a taken record. |
 | `plugin/sessionhooks.*` | The hooks of the smoke test and the screenshot mode: the `KURRENT_SMOKE*` and `KURRENT_SCREENSHOT_*` settings, and the smoke progress, finish and leader, which are process-wide across controllers. The controller creates one and forwards to it. |
 | `plugin/taskagenda.*` | The agenda and heatmap topic: what the day, week and month planner and the heatmap show, where a drop puts a task (a time, a day, a series' occurrence), and the planner's mode, weekend and work-day settings. It reads the shared tasks; every write goes back through the controller. |
+| `plugin/taskreminders.*` | The reminder topic: the notification, quiet-hours and busy-time settings, the timer that scans the tasks for due reminders, and the notification with its snooze actions. It reads the shared tasks and the rules; a snooze goes back through the controller. |
 | `plugin/taskentry.*` | A shared task as a `TaskEntry` and as the map QML reads. |
 | `plugin/taskcontroller.*` | What QML and the terminal program call. In the target a thin front: it holds the state of the session and hands each call to the class for its topic (settings bridge, undo, merge conflicts, board and matrix moves, agenda). |
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |
@@ -107,8 +108,8 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 4532 lines (the shared data is in `plugin/sharedtasks.*`,
-  reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`, smoke and screenshot hooks in
+- The controller does nearly everything in one class of 4400 lines (the shared data is in `plugin/sharedtasks.*`,
+  reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`, agenda and heatmap in `plugin/taskagenda.*`, reminders in `plugin/taskreminders.*`, smoke and screenshot hooks in
   `plugin/sessionhooks.*`, demo seeding in `plugin/demodata.*`). Six places still
   branch on demo mode (`m_demo`) to keep Akonadi calls away (`AUDIT.md`, finding 4). Views carry helpers for the screenshot runner
   (`CalendarAgendaView`, `AgendaDayView`, `TaskListView`, and `calendarView` in

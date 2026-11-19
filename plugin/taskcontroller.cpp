@@ -58,10 +58,6 @@
 #include <QDBusConnection>
 #include <algorithm>
 
-#ifdef KURRENT_HAS_NOTIFICATIONS
-#include <KNotification>
-#endif
-
 #ifdef KURRENT_HAS_GLOBALACCEL
 #include <KGlobalAccel>
 #include <QAction>
@@ -189,11 +185,6 @@ TaskController::TaskController(QObject *parent)
     connect(&m_rebuildWatcher, &QFutureWatcher<TaskLogic::TaskRebuildOutput>::finished, this,
             &TaskController::onRebuildFinished);
 
-    m_reminderTimer.setInterval(30000);
-    m_reminderTimer.setSingleShot(false);
-    connect(&m_reminderTimer, &QTimer::timeout, this, &TaskController::checkReminders);
-    m_reminderTimer.start();
-
 
     // Every write goes through the writer and its store; MemoryTaskStore swaps in for unit tests.
     m_writer = new TaskWriter(m_shared, [this] { return m_akonadiAvailable; }, this);
@@ -204,6 +195,7 @@ TaskController::TaskController(QObject *parent)
     connect(m_writer, &TaskWriter::inflightChanged, this, &TaskController::updateSyncingCount);
     m_undo = new TaskUndo(this);
     connect(m_undo, &TaskUndo::changed, this, &TaskController::undoChanged);
+    createReminders();
     m_agenda = new TaskAgenda(
         m_shared, *m_undo,
         {[this](qint64 itemId, const QVariantMap &fields) { updateTaskFull(itemId, fields); },
@@ -250,6 +242,20 @@ TaskController::TaskController(QObject *parent)
         registerSessionInterface();
         registerGlobalShortcuts();
     });
+}
+
+// Reminders; they ask whether Akonadi is up and snooze through this controller's write path.
+void TaskController::createReminders()
+{
+    m_reminders = new TaskReminders(
+        m_shared,
+        {[this] { return m_akonadiAvailable; },
+         [this](qint64 itemId, const QString &preset) { snoozeTask(itemId, preset); }},
+        this);
+    connect(m_reminders, &TaskReminders::enabledChanged, this, &TaskController::notificationsEnabledChanged);
+    connect(m_reminders, &TaskReminders::defaultMinutesChanged, this, &TaskController::defaultReminderMinutesChanged);
+    connect(m_reminders, &TaskReminders::quietHoursChanged, this, &TaskController::quietHoursChanged);
+    connect(m_reminders, &TaskReminders::suppressDuringEventsChanged, this, &TaskController::eventBusySettingsChanged);
 }
 
 // The smoke test and screenshot hooks; their signals are this controller's.
@@ -2247,63 +2253,6 @@ void TaskController::setCountsExcludeCollapsed(bool exclude)
     scheduleRebuild();
 }
 
-void TaskController::setNotificationsEnabled(bool enabled)
-{
-    if (m_notificationsEnabled == enabled) {
-        return;
-    }
-    m_notificationsEnabled = enabled;
-    Q_EMIT notificationsEnabledChanged();
-}
-
-void TaskController::setDefaultReminderMinutes(int minutes)
-{
-    const int bounded = (minutes < 0) ? -1 : minutes;
-    if (m_defaultReminderMinutes == bounded) {
-        return;
-    }
-    m_defaultReminderMinutes = bounded;
-    Q_EMIT defaultReminderMinutesChanged();
-}
-
-void TaskController::setQuietHoursEnabled(bool enabled)
-{
-    if (m_quietHoursEnabled == enabled) {
-        return;
-    }
-    m_quietHoursEnabled = enabled;
-    Q_EMIT quietHoursChanged();
-}
-
-void TaskController::setQuietHoursStart(int hour)
-{
-    const int bounded = qBound(0, hour, 23);
-    if (m_quietHoursStart == bounded) {
-        return;
-    }
-    m_quietHoursStart = bounded;
-    Q_EMIT quietHoursChanged();
-}
-
-void TaskController::setQuietHoursEnd(int hour)
-{
-    const int bounded = qBound(0, hour, 23);
-    if (m_quietHoursEnd == bounded) {
-        return;
-    }
-    m_quietHoursEnd = bounded;
-    Q_EMIT quietHoursChanged();
-}
-
-void TaskController::setSuppressRemindersDuringEvents(bool enabled)
-{
-    if (m_suppressRemindersDuringEvents == enabled) {
-        return;
-    }
-    m_suppressRemindersDuringEvents = enabled;
-    Q_EMIT eventBusySettingsChanged();
-}
-
 void TaskController::setBusyCalendarIds(const QString &ids)
 {
     if (m_busyCalendarIds == ids) {
@@ -2736,8 +2685,8 @@ void TaskController::createQuickTask(const QString &summary, qint64 collectionId
             todo->setAllDay(true);
         }
     }
-    if (todo->hasDueDate() && m_defaultReminderMinutes >= 0) {
-        TaskCalendar::setReminderMinutes(todo, m_defaultReminderMinutes);
+    if (todo->hasDueDate() && m_reminders->defaultMinutes() >= 0) {
+        TaskCalendar::setReminderMinutes(todo, m_reminders->defaultMinutes());
     }
     if (parsed.priority > 0) {
         todo->setPriority(parsed.priority);
@@ -4422,46 +4371,6 @@ void TaskController::registerGlobalShortcuts()
 #endif
 }
 
-bool TaskController::isInBusyEvent(const QDateTime &when) const
-{
-    if (!m_suppressRemindersDuringEvents || m_shared.busyIntervals().isEmpty()) {
-        return false;
-    }
-    return TaskCalendar::isBusyAt(when, m_shared.busyIntervals());
-}
-
-void TaskController::checkReminders()
-{
-    if (!m_notificationsEnabled || !m_akonadiAvailable) {
-        return;
-    }
-    const QDateTime now = QDateTime::currentDateTime();
-    if (TaskLogic::inQuietHours(now.time(), m_quietHoursStart, m_quietHoursEnd,
-        m_quietHoursEnabled ? TaskLogic::QuietHoursMode::Enabled : TaskLogic::QuietHoursMode::Disabled)) {
-        return;
-    }
-    if (isInBusyEvent(now)) {
-        return;
-    }
-    const QDateTime from = m_lastReminderScan.isValid() ? m_lastReminderScan : now.addSecs(-45);
-    for (auto it = m_shared.tasks().cbegin(); it != m_shared.tasks().cend(); ++it) {
-        if (!it->todo || it->todo->isCompleted()) {
-            continue;
-        }
-        const QDateTime when = TaskCalendar::nextReminderTime(it->todo, from);
-        if (!when.isValid() || when > now || when <= from) {
-            continue;
-        }
-        const QDateTime last = m_lastNotifiedReminder.value(it.key());
-        if (last.isValid() && last == when) {
-            continue;
-        }
-        m_lastNotifiedReminder.insert(it.key(), when);
-        notifyReminder(it.key(), it->todo->summary(), when);
-    }
-    m_lastReminderScan = now;
-}
-
 namespace {
 // Task apps the settings can open, preferred first: {executable, display name}.
 QPair<QString, QString> findTaskApp()
@@ -4488,45 +4397,4 @@ bool TaskController::launchTaskApp() const
 {
     const auto app = findTaskApp();
     return !app.first.isEmpty() && QProcess::startDetached(app.first, {});
-}
-
-bool TaskController::sendTestNotification(const QString &title, const QString &text)
-{
-#ifdef KURRENT_HAS_NOTIFICATIONS
-    auto *notification = new KNotification(QStringLiteral("taskReminder"), KNotification::CloseOnTimeout, this);
-    notification->setTitle(title);
-    notification->setText(text);
-    notification->sendEvent();
-    return true;
-#else
-    Q_UNUSED(title);
-    Q_UNUSED(text);
-    return false;
-#endif
-}
-
-void TaskController::notifyReminder(qint64 itemId, const QString &summary, const QDateTime &when)
-{
-#ifdef KURRENT_HAS_NOTIFICATIONS
-    auto *notification = new KNotification(QStringLiteral("taskReminder"), KNotification::CloseOnTimeout, this);
-    notification->setTitle(summary.isEmpty() ? i18n("Task reminder") : summary);
-    notification->setText(when.isValid() ? i18n("Due %1", QLocale().toString(when, QLocale::ShortFormat)) : i18n("A task is due."));
-    KNotificationAction *snooze15 = notification->addAction(i18n("15 minutes"));
-    KNotificationAction *snoozeHour = notification->addAction(i18n("1 hour"));
-    KNotificationAction *snoozeTomorrow = notification->addAction(i18n("Tomorrow"));
-    connect(snooze15, &KNotificationAction::activated, this, [this, itemId]() {
-        snoozeTask(itemId, QStringLiteral("15m"));
-    });
-    connect(snoozeHour, &KNotificationAction::activated, this, [this, itemId]() {
-        snoozeTask(itemId, QStringLiteral("1h"));
-    });
-    connect(snoozeTomorrow, &KNotificationAction::activated, this, [this, itemId]() {
-        snoozeTask(itemId, QStringLiteral("tomorrow"));
-    });
-    notification->sendEvent();
-#else
-    Q_UNUSED(itemId);
-    Q_UNUSED(summary);
-    Q_UNUSED(when);
-#endif
 }

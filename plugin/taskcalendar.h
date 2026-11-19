@@ -56,6 +56,8 @@ KCalendarCore::Todo::Ptr detachOccurrence(const KCalendarCore::Todo::Ptr &series
 int reminderMinutesFromTodo(const KCalendarCore::Todo::Ptr &todo);
 void setReminderMinutes(const KCalendarCore::Todo::Ptr &todo, int minutes);
 QDateTime nextReminderTime(const KCalendarCore::Todo::Ptr &todo, const QDateTime &now);
+// A reminder at `when` fires in the scan window (from, now], unless it was the last one sent (`lastSent`).
+bool isReminderDue(const QDateTime &when, const QDateTime &from, const QDateTime &now, const QDateTime &lastSent);
 void snoozeReminder(const KCalendarCore::Todo::Ptr &todo, const QString &preset, const QDateTime &now);
 
 /** Due/start for list/editor: empty when unset; local midnight for date-only values. */
