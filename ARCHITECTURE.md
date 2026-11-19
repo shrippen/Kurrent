@@ -24,6 +24,7 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 | `plugin/akonadiitems.*` | What a fetched Akonadi item is, for loading: a task or not by its MIME type, and the tasks among fetched headers (no jobs, no parsing). |
 | `plugin/sharedsettings.*` | The settings shared by widget and terminal program (`kurrentrc`), with name and default. |
 | `plugin/taskwriter.*` | The write path behind the controller: hands each write to the store, keeps the optimistic state of a task (syncing, queue, rollback) and settles conflicts (three-way merge, the merge dialog's choices). |
+| `plugin/taskundo.*` | The undo topic: the stack of records, what gets recorded (not while an undo is applied or a composite action runs), and the record logic: take a snapshot of a task, write it back, rebuild a deleted one. The controller dispatches a taken record. |
 | `plugin/taskcontroller.*` | What QML and the terminal program call. In the target a thin front: it holds the state of the session and hands each call to the class for its topic (settings bridge, undo, merge conflicts, board and matrix moves, agenda). |
 | `plugin/kurrentdbus.*`, `kurrentlogging.*`, `demodata.*`, `kurrentplugin.cpp` | The D-Bus interface of the widget; logging; the demo world; the registration as QML module. |
 | `ui/main.qml`, `FullView.qml`, `Plugin*.qml` | The widget: panel item and popup; loading the plug-in and the hint when it is missing. |
@@ -102,9 +103,9 @@ program on the same core and a KRunner plug-in that reaches the widget over D-Bu
 
 - The drag limits of popups (`ui/FullView.qml`) are interface logic in a view,
   without a test (not in `AUDIT.md`).
-- The controller does nearly everything in one class of 5665 lines, including
+- The controller does nearly everything in one class of 5485 lines, including
   smoke test, screenshot mode and demo mode (the shared data is in `plugin/sharedtasks.*`,
-  reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`)
+  reading and watching Akonadi in `plugin/akonadiloader.*`, writing in `plugin/taskwriter.*`, undo in `plugin/taskundo.*`)
   (`AUDIT.md`, finding 4). Views branch on the smoke test too and carry helpers for
   the screenshot runner (`MainPaneHost`, `SwimlaneView`, `main.qml`, three views; not
   in `AUDIT.md`).

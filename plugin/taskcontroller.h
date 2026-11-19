@@ -7,6 +7,7 @@
 #include "tasklistmodel.h"
 #include "tasklogic.h"
 #include "taskstore.h"
+#include "taskundo.h"
 #include "taskwriter.h"
 
 #include <Akonadi/Item>
@@ -238,9 +239,9 @@ public:
     int agendaWorkMinutes() const { return m_agendaWorkMinutes; }
     void setAgendaWorkMinutes(int minutes);
     void setAgendaWeekend(bool show);
-    bool canUndo() const { return m_undo.canUndo(); }
-    QString undoKind() const { return TaskLogic::undoKindName(m_undo.peek().kind); }
-    QString undoLabel() const;
+    bool canUndo() const { return m_undo->canUndo(); }
+    QString undoKind() const { return m_undo->kindName(); }
+    QString undoLabel() const { return m_undo->label(); }
     int pendingCount() const { return m_pendingCount; }
     int syncingCount() const { return m_syncingCount; }
     QStringList availableLabels() const { return m_availableLabels; }
@@ -654,17 +655,16 @@ private:
     TaskLogic::QuickAddContext quickAddContext(const QString &uiLanguage, const QVariantList &projects) const;
     QVariantMap quickAddToVariant(const TaskLogic::QuickAdd &parsed) const;
     void updateEmptyKind();
-    TaskLogic::UndoRecord snapshotUndo(TaskLogic::UndoRecord::Kind kind, const SharedTasks::Entry &cache) const;
-    void pushUndo(TaskLogic::UndoRecord record);
     void applyUndoRecord(const TaskLogic::UndoRecord &record);
-    void restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record);
+    bool undoNonEdit(const TaskLogic::UndoRecord &record);
+    void undoDelete(const TaskLogic::UndoRecord &record);
+    void undoFields(const TaskLogic::UndoRecord &record);
     /** Moves a series' current occurrence by `days` with an undo step (#29); false if nothing moved. */
     bool moveSeriesOccurrence(qint64 itemId, qint64 days);
     void detachSeriesOccurrence(qint64 itemId, const QDateTime &start, const QDateTime &due);
     void deleteDetached(const QString &uid);
     bool isSeries(qint64 itemId) const;
     QDate seriesOccurrenceDay(qint64 itemId) const;
-    void applyTaskUndo(const TaskLogic::UndoRecord &record);
     void recreateTask(const TaskLogic::UndoRecord &record);
     /** createTask, with `day` (and a block `start`–`end`) for a text without a date. */
     void createQuickTask(const QString &summary, qint64 collectionId, const QDate &day, int start, int end);
@@ -820,16 +820,8 @@ private:
     QDateTime m_lastReminderScan;
     QHash<qint64, QDateTime> m_lastNotifiedReminder;
     QString m_emptyKind;
-    TaskLogic::UndoStack m_undo;
-    bool m_applyingUndo = false;
-    bool m_batchUndo = false;
-    // agendaShiftAllToDay: pushUndo collects here instead of replacing the single record.
-    bool m_collectingUndo = false;
-    std::vector<TaskLogic::UndoRecord> m_collectedUndo;
+    TaskUndo *m_undo = nullptr;
     QSet<QString> m_collapsedUids;
-    QHash<qint64, TaskLogic::UndoRecord> m_recreateAfterDelete;
-    /** Detached tasks undone while their create was still in flight: deleted once it lands. */
-    QSet<QString> m_deleteAfterCreate;
     int m_pendingCount = 0;
     int m_syncingCount = 0;
     QStringList m_availableLabels;

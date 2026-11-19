@@ -30,6 +30,7 @@
 #include <QJsonObject>
 #include <QLocale>
 #include <QProcess>
+#include <optional>
 #include <QTime>
 #include <QDebug>
 #include <QFile>
@@ -203,6 +204,8 @@ TaskController::TaskController(QObject *parent)
     connect(m_writer, &TaskWriter::conflictItemIdChanged, this, &TaskController::conflictItemIdChanged);
     connect(m_writer, &TaskWriter::mergeConflictAvailable, this, &TaskController::mergeConflictAvailable);
     connect(m_writer, &TaskWriter::inflightChanged, this, &TaskController::updateSyncingCount);
+    m_undo = new TaskUndo(this);
+    connect(m_undo, &TaskUndo::changed, this, &TaskController::undoChanged);
 
     // The sort menu's offer depends on the sort, the layout, the Kanban columns and the group.
     connect(this, &TaskController::sortModeChanged, this, &TaskController::sortOptionsChanged);
@@ -357,16 +360,13 @@ void TaskController::resetSharedStateForTest()
     if (!m_demo) {
         AkonadiLoader::instance().resetForTest(false);
     }
-    m_undo.clear();
-    m_recreateAfterDelete.clear();
+    m_undo->reset();
     m_collapsedUids.clear();
-    m_applyingUndo = false;
     m_errorMessage.clear();
     m_collectionModel.setCollections({});
     m_eventCalendarModel.setCollections({});
     m_taskModel.setTasks({});
     m_akonadiAvailable = false;
-    Q_EMIT undoChanged();
     Q_EMIT errorMessageChanged();
     updateEmptyKind();
 }
@@ -1268,12 +1268,12 @@ void TaskController::moveTaskToKanbanColumn(qint64 itemId, const QString &column
         return;
     }
 
-    if (!m_applyingUndo && !m_batchUndo) {
-        TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+    if (m_undo->recording()) {
+        TaskLogic::UndoRecord record = TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache);
         record.restoreLayout = true;
         record.kanbanManualOrderJson = m_kanbanManualOrderJson;
         record.sortMode = m_sortMode;
-        pushUndo(record);
+        m_undo->push(record);
     }
 
     if (m_kanbanWriteMode == QLatin1String("custom")) {
@@ -1614,13 +1614,13 @@ void TaskController::reorderKanbanCard(qint64 itemId, const QString &columnKey, 
         }
     }
 
-    if (!m_applyingUndo && !m_batchUndo) {
+    if (m_undo->recording()) {
         TaskLogic::UndoRecord record;
         record.kind = TaskLogic::UndoRecord::Kind::KanbanLayout;
         record.restoreLayout = true;
         record.kanbanManualOrderJson = m_kanbanManualOrderJson;
         record.sortMode = m_sortMode;
-        pushUndo(record);
+        m_undo->push(record);
     }
 
     const QString combo = m_currentView + QLatin1Char('|') + m_kanbanColumnSource;
@@ -1684,7 +1684,7 @@ void TaskController::finishKanbanDrop(qint64 itemId, const QString &columnKey, i
         return;
     }
 
-    TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+    TaskLogic::UndoRecord record = TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache);
     record.restoreLayout = true;
     record.kanbanManualOrderJson = m_kanbanManualOrderJson;
     record.sortMode = m_sortMode;
@@ -1696,12 +1696,13 @@ void TaskController::finishKanbanDrop(qint64 itemId, const QString &columnKey, i
     }
     insertAt = qMax(0, insertAt);
 
-    m_batchUndo = true;
-    moveTaskToKanbanColumn(itemId, columnKey);
-    reorderKanbanCard(itemId, columnKey, insertAt);
-    m_batchUndo = false;
+    {
+        TaskUndo::Batching batching(*m_undo);
+        moveTaskToKanbanColumn(itemId, columnKey);
+        reorderKanbanCard(itemId, columnKey, insertAt);
+    }
 
-    pushUndo(record);
+    m_undo->push(record);
 }
 
 QVariantMap TaskController::swimlaneMatrixForVisibleTasks() const
@@ -1842,12 +1843,12 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
         return;
     }
 
-    const TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+    const TaskLogic::UndoRecord record = TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache);
     KCalendarCore::Todo::Ptr todo = cache->todo;
     qint64 moveToCollection = -1;
     bool changed = false;
 
-    m_batchUndo = true;
+    std::optional<TaskUndo::Batching> batching(std::in_place, *m_undo);
     if (laneChanged) {
         if (m_swimlaneLaneAxis == QLatin1String("label")) {
             if (laneKey == QLatin1String("none")) {
@@ -1865,7 +1866,6 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
         } else if (m_swimlaneLaneAxis == QLatin1String("parent")) {
             if (!applyParentUid(cache, laneKey == QLatin1String("none") ? QString() : laneKey,
                                 cache->item.parentCollection().id())) {
-                m_batchUndo = false;
                 return;
             }
             changed = true;
@@ -1897,10 +1897,10 @@ void TaskController::moveTaskToMatrixCell(qint64 itemId, const QString &laneKey,
         moveTaskToCollection(itemId, moveToCollection);
         changed = true;
     }
-    m_batchUndo = false;
+    batching.reset();
 
     if (changed) {
-        pushUndo(record);
+        m_undo->push(record);
     }
 }
 
@@ -2447,21 +2447,11 @@ void TaskController::agendaShiftAllToDay(const QVariantList &itemIds, const QDat
 {
     // One undo step for the whole tray (#29): the single-record stack would keep only
     // the last task otherwise.
-    m_collectingUndo = true;
-    m_collectedUndo.clear();
+    m_undo->beginCollect();
     for (const QVariant &id : itemIds) {
         agendaShiftToDay(id.toLongLong(), day);
     }
-    m_collectingUndo = false;
-    if (m_collectedUndo.size() == 1) {
-        pushUndo(m_collectedUndo.front());
-    } else if (m_collectedUndo.size() > 1) {
-        TaskLogic::UndoRecord batch;
-        batch.kind = TaskLogic::UndoRecord::Kind::Batch;
-        batch.batch = std::move(m_collectedUndo);
-        pushUndo(batch);
-    }
-    m_collectedUndo.clear();
+    m_undo->endCollect();
 }
 
 bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
@@ -2474,11 +2464,11 @@ bool TaskController::moveSeriesOccurrence(qint64 itemId, qint64 days)
     if (!cache || !cache->todo) {
         return false;
     }
-    const TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache);
+    const TaskLogic::UndoRecord record = TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache);
     if (!TaskCalendar::moveOccurrence(cache->todo, days)) {
         return false;
     }
-    pushUndo(record);
+    m_undo->push(record);
     persistTodo(cache->item, cache->todo);
     return true;
 }
@@ -2493,7 +2483,7 @@ void TaskController::detachSeriesOccurrence(qint64 itemId, const QDateTime &star
     if (!detached) {
         return;
     }
-    TaskLogic::UndoRecord record = snapshotUndo(TaskLogic::UndoRecord::Kind::Detach, *cache);
+    TaskLogic::UndoRecord record = TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Detach, *cache);
     record.detachedUid = detached->uid();
     const Akonadi::Collection collection = cache->item.parentCollection();
 
@@ -2516,7 +2506,7 @@ void TaskController::detachSeriesOccurrence(qint64 itemId, const QDateTime &star
     m_shared.notifyTasksChanged();
     submitCreate(jobItem, collection, tempId);
 
-    pushUndo(record);
+    m_undo->push(record);
 }
 
 // Undo of a detach: the task made from the occurrence goes. Still being created, it goes as
@@ -2531,7 +2521,7 @@ void TaskController::deleteDetached(const QString &uid)
             continue;
         }
         if (it.key() < 0) {
-            m_deleteAfterCreate.insert(uid);
+            m_undo->deleteAfterCreate(uid);
             return;
         }
         deleteTask(it.key());
@@ -3796,7 +3786,7 @@ void TaskController::rescheduleTask(qint64 itemId, const QString &preset)
         moveSeriesOccurrence(itemId, currentDue.date().daysTo(next.date()));
         return;
     }
-    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
+    m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
     todo->setDtDue(next);
     if (preset == QLatin1String("15m") || preset == QLatin1String("1h") || preset == QLatin1String("4h")) {
         todo->setAllDay(false);
@@ -3865,24 +3855,25 @@ void TaskController::onStoreFinished(const AbstractTaskStore::Result &result)
         AkonadiLoader::instance().applyItem(result.item, result.collectionId);
         m_shared.notifyTasksChanged();
         if (result.item.hasPayload<KCalendarCore::Todo::Ptr>()
-            && m_deleteAfterCreate.remove(result.item.payload<KCalendarCore::Todo::Ptr>()->uid())) {
-            m_applyingUndo = true;
+            && m_undo->takeDeleteAfterCreate(result.item.payload<KCalendarCore::Todo::Ptr>()->uid())) {
+            TaskUndo::Applying applying(*m_undo);
             deleteTask(result.item.id());
-            m_applyingUndo = false;
         }
         return;
 
     case AbstractTaskStore::Kind::Delete:
         if (!result.ok) {
-            m_recreateAfterDelete.remove(result.clientId);
+            m_undo->dropRecreate(result.clientId);
             m_writer->finishSync(result.clientId, TaskWriter::SyncResult::Error, result.errorString);
             return;
         }
         m_shared.tasks().remove(result.clientId);
-        if (m_recreateAfterDelete.contains(result.clientId)) {
-            const TaskLogic::UndoRecord record = m_recreateAfterDelete.take(result.clientId);
-            recreateTask(record);
-            return;
+        {
+            TaskLogic::UndoRecord record;
+            if (m_undo->takeRecreate(result.clientId, record)) {
+                recreateTask(record);
+                return;
+            }
         }
         m_shared.notifyTasksChanged();
         return;
@@ -3994,8 +3985,8 @@ void TaskController::updateTask(qint64 itemId,
         return;
     }
 
-    if (!m_applyingUndo) {
-        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    if (!m_undo->applying()) {
+        m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
@@ -4024,8 +4015,8 @@ void TaskController::updateTaskFull(qint64 itemId, const QVariantMap &fields)
     KCalendarCore::Todo::Ptr todo = cache->todo;
     const Akonadi::Item originalItem = cache->item;
 
-    if (!m_applyingUndo) {
-        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    if (!m_undo->applying()) {
+        m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
 
     TaskCalendar::applyEditorFields(todo, fields);
@@ -4107,8 +4098,8 @@ void TaskController::setTaskParent(qint64 itemId, const QString &parentUid)
         return;
     }
 
-    if (!m_applyingUndo) {
-        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    if (!m_undo->applying()) {
+        m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
 
     if (!applyParentUid(cache, parentUid, cache->item.parentCollection().id())) {
@@ -4253,8 +4244,8 @@ void TaskController::addTaskCategory(qint64 itemId, const QString &category)
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
-    if (!m_applyingUndo) {
-        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    if (!m_undo->applying()) {
+        m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
     const QStringList categories = TaskLogic::addLabel(todo->categories(), trimmed);
     if (categories == todo->categories()) {
@@ -4282,8 +4273,8 @@ void TaskController::removeTaskCategory(qint64 itemId, const QString &category)
     if (categories == todo->categories()) {
         return;
     }
-    if (!m_applyingUndo) {
-        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    if (!m_undo->applying()) {
+        m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
     todo->setCategories(categories);
     persistTodo(cache->item, todo);
@@ -4302,8 +4293,8 @@ void TaskController::setTaskPriority(qint64 itemId, int priority)
     if (TaskLogic::priorityBand(todo->priority()) == normalized) {
         return;
     }
-    if (!m_applyingUndo) {
-        pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Edit, *cache));
+    if (!m_undo->applying()) {
+        m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Edit, *cache));
     }
     todo->setPriority(normalized);
     persistTodo(cache->item, todo);
@@ -4325,7 +4316,7 @@ void TaskController::moveTaskToCollection(qint64 itemId, qint64 collectionId)
         return;
     }
 
-    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Move, *cache));
+    m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Move, *cache));
 
     const Akonadi::Collection destination = collectionById(collectionId);
     if (!CollectionListModel::isTaskWritable(destination)) {
@@ -4355,7 +4346,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
     }
 
     KCalendarCore::Todo::Ptr todo = cache->todo;
-    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Complete, *cache));
+    m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Complete, *cache));
     TaskCalendar::completeTodo(todo, completed ? TaskCalendar::CompleteAction::Mark : TaskCalendar::CompleteAction::Unmark, QDateTime::currentDateTime());
     persistTodo(cache->item, todo);
 
@@ -4370,8 +4361,7 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
             idByUid.insert(it->todo->uid(), it.key());
         }
         const QStringList kids = TaskLogic::descendantUids(todo->uid(), parentByUid);
-        const bool wasApplying = m_applyingUndo;
-        m_applyingUndo = true;
+        TaskUndo::Applying applying(*m_undo);
         for (const QString &uid : kids) {
             const qint64 childId = idByUid.value(uid, -1);
             if (childId < 0) {
@@ -4384,7 +4374,6 @@ void TaskController::setTaskCompleted(qint64 itemId, bool completed)
             TaskCalendar::completeTodo(child->todo, TaskCalendar::CompleteAction::Mark, QDateTime::currentDateTime());
             persistTodo(child->item, child->todo);
         }
-        m_applyingUndo = wasApplying;
     }
 }
 
@@ -4401,7 +4390,7 @@ void TaskController::deleteTask(qint64 itemId)
         return;
     }
 
-    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Delete, *cache));
+    m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Delete, *cache));
 
     const Akonadi::Item jobItem = cache->item;
     cache->pendingDelete = true;
@@ -4418,12 +4407,11 @@ void TaskController::deleteTask(qint64 itemId)
 
 void TaskController::undo()
 {
-    if (!m_undo.canUndo()) {
+    if (!m_undo->canUndo()) {
         return;
     }
 
-    const TaskLogic::UndoRecord record = m_undo.take();
-    Q_EMIT undoChanged();
+    const TaskLogic::UndoRecord record = m_undo->take();
     if (record.kind == TaskLogic::UndoRecord::Kind::Batch) {
         for (auto it = record.batch.crbegin(); it != record.batch.crend(); ++it) {
             applyUndoRecord(*it);
@@ -4435,126 +4423,83 @@ void TaskController::undo()
 
 void TaskController::applyUndoRecord(const TaskLogic::UndoRecord &record)
 {
-    m_applyingUndo = true;
+    TaskUndo::Applying applying(*m_undo);
 
     if (record.restoreLayout) {
         setKanbanManualOrderJson(record.kanbanManualOrderJson);
         setSortMode(record.sortMode);
     }
 
-    if (record.kind == TaskLogic::UndoRecord::Kind::KanbanLayout) {
-        m_applyingUndo = false;
+    if (undoNonEdit(record)) {
         return;
     }
+    undoFields(record);
+}
 
-    if (record.kind == TaskLogic::UndoRecord::Kind::Detach) {
+// Records that do not write fields of an existing task; true when handled.
+bool TaskController::undoNonEdit(const TaskLogic::UndoRecord &record)
+{
+    switch (record.kind) {
+    case TaskLogic::UndoRecord::Kind::KanbanLayout:
+        return true;
+
+    case TaskLogic::UndoRecord::Kind::Detach: {
         deleteDetached(record.detachedUid);
         TaskLogic::UndoRecord series = record;
         series.kind = TaskLogic::UndoRecord::Kind::Edit;
-        m_applyingUndo = false;
         applyUndoRecord(series);
-        return;
+        return true;
     }
 
-    if (record.kind == TaskLogic::UndoRecord::Kind::Delete) {
-        auto it = m_shared.tasks().find(record.itemId);
-        if (it != m_shared.tasks().end() && it->pendingDelete) {
-            m_recreateAfterDelete.insert(record.itemId, record);
-            it->pendingDelete = false;
-            it->syncing = it->inflight > 1;
-            m_shared.notifyTasksChanged();
-            m_applyingUndo = false;
-            return;
-        }
-        recreateTask(record);
-        m_applyingUndo = false;
-        return;
-    }
+    case TaskLogic::UndoRecord::Kind::Delete:
+        undoDelete(record);
+        return true;
 
-    if (record.kind == TaskLogic::UndoRecord::Kind::Move) {
+    case TaskLogic::UndoRecord::Kind::Move:
         if (record.collectionId > 0) {
             moveTaskToCollection(record.itemId, record.collectionId);
         }
-        m_applyingUndo = false;
-        return;
-    }
+        return true;
 
-    SharedTasks::Entry *cache = prepareEdit(record.itemId);
-    if (!cache || !cache->todo) {
-        m_applyingUndo = false;
-        return;
+    default:
+        return false;
     }
-
-    if (record.kind == TaskLogic::UndoRecord::Kind::Edit) {
-        if (record.collectionId > 0) {
-            SharedTasks::Entry *existing = prepareEdit(record.itemId);
-            if (existing && existing->item.parentCollection().id() != record.collectionId) {
-                moveTaskToCollection(record.itemId, record.collectionId);
-            }
-        }
-        applyTaskUndo(record);
-        persistTodo(cache->item, cache->todo);
-        m_applyingUndo = false;
-        return;
-    }
-
-    KCalendarCore::Todo::Ptr todo = cache->todo;
-    if (record.kind == TaskLogic::UndoRecord::Kind::Complete) {
-        todo->setCompleted(record.completed);
-        todo->setPercentComplete(record.percentComplete);
-        if (record.start.isValid()) {
-            todo->setDtStart(record.start);
-        }
-        if (record.hadDue) {
-            todo->setDtDue(record.due, true);
-            todo->setAllDay(record.allDay);
-        }
-        restoreSeriesUndo(todo, record);
-        persistTodo(cache->item, todo);
-    } else if (record.kind == TaskLogic::UndoRecord::Kind::Reschedule) {
-        if (record.hadDue) {
-            todo->setDtDue(record.due, true);
-            todo->setAllDay(record.allDay);
-        } else {
-            todo->setDtDue(QDateTime());
-        }
-        restoreSeriesUndo(todo, record);
-        persistTodo(cache->item, todo);
-    }
-    m_applyingUndo = false;
 }
 
-void TaskController::applyTaskUndo(const TaskLogic::UndoRecord &record)
+void TaskController::undoDelete(const TaskLogic::UndoRecord &record)
+{
+    auto it = m_shared.tasks().find(record.itemId);
+    if (it == m_shared.tasks().end() || !it->pendingDelete) {
+        recreateTask(record);
+        return;
+    }
+
+    // The delete is still in flight: recreate once it has finished.
+    m_undo->recreateAfterDelete(record.itemId, record);
+    it->pendingDelete = false;
+    it->syncing = it->inflight > 1;
+    m_shared.notifyTasksChanged();
+}
+
+void TaskController::undoFields(const TaskLogic::UndoRecord &record)
 {
     SharedTasks::Entry *cache = prepareEdit(record.itemId);
     if (!cache || !cache->todo) {
         return;
     }
-    KCalendarCore::Todo::Ptr todo = cache->todo;
-    todo->setSummary(record.summary);
-    todo->setDescription(record.description);
-    todo->setLocation(record.location);
-    todo->setPriority(record.priority);
-    todo->setPercentComplete(record.percentComplete);
-    todo->setCategories(record.categories);
-    todo->setRelatedTo(record.parentUid);
-    todo->setCompleted(record.completed);
-    todo->setStatus(static_cast<KCalendarCore::Incidence::Status>(record.status));
-    todo->setSecrecy(static_cast<KCalendarCore::Incidence::Secrecy>(record.secrecy));
-    TaskCalendar::setSection(todo, record.section);
-    TaskCalendar::setColumn(todo, record.column);
-    if (record.hadDue) {
-        todo->setDtDue(record.due, true);
-        todo->setAllDay(record.allDay);
-    } else {
-        todo->setDtDue(QDateTime());
+
+    const bool isEdit = record.kind == TaskLogic::UndoRecord::Kind::Edit;
+    const bool isOther = record.kind == TaskLogic::UndoRecord::Kind::Complete
+                         || record.kind == TaskLogic::UndoRecord::Kind::Reschedule;
+    if (!isEdit && !isOther) {
+        return;
     }
-    if (record.start.isValid()) {
-        todo->setDtStart(record.start);
-    } else {
-        todo->setDtStart(QDateTime());
+
+    if (isEdit && record.collectionId > 0 && cache->item.parentCollection().id() != record.collectionId) {
+        moveTaskToCollection(record.itemId, record.collectionId);
     }
-    restoreSeriesUndo(todo, record);
+    TaskUndo::restoreFields(cache->todo, record);
+    persistTodo(cache->item, cache->todo);
 }
 
 void TaskController::toggleTreeCollapsed(const QString &uid)
@@ -4570,113 +4515,6 @@ void TaskController::toggleTreeCollapsed(const QString &uid)
     scheduleRebuild();
 }
 
-TaskLogic::UndoRecord TaskController::snapshotUndo(TaskLogic::UndoRecord::Kind kind, const SharedTasks::Entry &cache) const
-{
-    TaskLogic::UndoRecord record;
-    record.kind = kind;
-    record.itemId = cache.item.id();
-    if (!cache.todo) {
-        return record;
-    }
-    record.summary = cache.todo->summary();
-    record.description = cache.todo->description();
-    record.location = cache.todo->location();
-    record.hadDue = cache.todo->hasDueDate() && cache.todo->dtDue().isValid();
-    record.due = record.hadDue ? cache.todo->dtDue() : QDateTime();
-    record.start = (cache.todo->hasStartDate() && cache.todo->dtStart().isValid()) ? cache.todo->dtStart() : QDateTime();
-    record.allDay = cache.todo->allDay();
-    record.completed = cache.todo->isCompleted();
-    record.priority = cache.todo->priority();
-    record.percentComplete = cache.todo->percentComplete();
-    record.categories = cache.todo->categories();
-    record.parentUid = cache.todo->relatedTo();
-    record.collectionId = cache.item.parentCollection().id();
-    record.section = TaskCalendar::sectionFromTodo(cache.todo);
-    record.status = static_cast<int>(cache.todo->status());
-    record.secrecy = static_cast<int>(cache.todo->secrecy());
-    record.column = TaskCalendar::columnFromTodo(cache.todo);
-    if (cache.todo->recurs()) {
-        record.recurs = true;
-        record.seriesStart = cache.todo->dtStart(true);
-        record.seriesDue = cache.todo->hasDueDate() ? cache.todo->dtDue(true) : QDateTime();
-        record.occurrence = cache.todo->dtRecurrence();
-        record.occurrenceMark = cache.todo->customProperty(QByteArray("KURRENT"), QByteArray("OCCURRENCE-ORIGIN"));
-    }
-    return record;
-}
-
-void TaskController::restoreSeriesUndo(const KCalendarCore::Todo::Ptr &todo, const TaskLogic::UndoRecord &record)
-{
-    if (!record.recurs || !todo) {
-        return;
-    }
-    // Back to the series' own dates, then the occurrence: setDtDue(…, true) above would
-    // otherwise have written the occurrence as the series' first DUE.
-    if (record.seriesStart.isValid()) {
-        todo->setDtStart(record.seriesStart);
-    }
-    if (record.seriesDue.isValid()) {
-        todo->setDtDue(record.seriesDue, true);
-    }
-    todo->setDtRecurrence(record.occurrence == record.seriesStart ? QDateTime() : record.occurrence);
-    if (!record.occurrenceMark.isEmpty()) {
-        todo->setCustomProperty(QByteArray("KURRENT"), QByteArray("OCCURRENCE-ORIGIN"), record.occurrenceMark);
-    } else {
-        todo->removeCustomProperty(QByteArray("KURRENT"), QByteArray("OCCURRENCE-ORIGIN"));
-    }
-}
-
-void TaskController::pushUndo(TaskLogic::UndoRecord record)
-{
-    if (m_applyingUndo || record.kind == TaskLogic::UndoRecord::Kind::None) {
-        return;
-    }
-    if (m_batchUndo) {
-        return; // a composite action pushes its own record
-    }
-    if (m_collectingUndo) {
-        m_collectedUndo.push_back(record);
-        return;
-    }
-    m_undo.push(record);
-    Q_EMIT undoChanged();
-}
-
-QString TaskController::undoLabel() const
-{
-    if (!m_undo.canUndo()) {
-        return i18n("Undo");
-    }
-    const TaskLogic::UndoRecord rec = m_undo.peek();
-    const bool untitled = rec.summary.trimmed().isEmpty();
-    const QString title = untitled ? i18n("(Untitled)") : rec.summary.trimmed();
-    switch (rec.kind) {
-    case TaskLogic::UndoRecord::Kind::Complete:
-        return rec.completed ? i18n("Undo marking “%1” incomplete", title)
-                             : i18n("Undo complete of “%1”", title);
-    case TaskLogic::UndoRecord::Kind::Reschedule:
-        return i18n("Undo reschedule of “%1”", title);
-    case TaskLogic::UndoRecord::Kind::Move:
-        return i18n("Undo move of “%1”", title);
-    case TaskLogic::UndoRecord::Kind::Delete:
-        return i18n("Undo delete of “%1”", title);
-    case TaskLogic::UndoRecord::Kind::Edit:
-        if (rec.restoreLayout) {
-            return i18n("Undo Kanban change of “%1”", title);
-        }
-        return i18n("Undo edit of “%1”", title);
-    case TaskLogic::UndoRecord::Kind::KanbanLayout:
-        return untitled ? i18n("Undo Kanban order") : i18n("Undo Kanban order of “%1”", title);
-    case TaskLogic::UndoRecord::Kind::Batch:
-        return i18np("Undo moving %1 task", "Undo moving %1 tasks", int(rec.batch.size()));
-    case TaskLogic::UndoRecord::Kind::Detach:
-        return i18n("Undo detaching “%1”", title);
-    case TaskLogic::UndoRecord::Kind::None:
-        break;
-    }
-    return i18n("Undo");
-}
-
 void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
 {
     Akonadi::Collection collection = collectionById(record.collectionId);
@@ -4688,25 +4526,7 @@ void TaskController::recreateTask(const TaskLogic::UndoRecord &record)
         return;
     }
 
-    KCalendarCore::Todo::Ptr todo(new KCalendarCore::Todo);
-    todo->setSummary(record.summary);
-    todo->setDescription(record.description);
-    todo->setLocation(record.location);
-    if (record.hadDue) {
-        todo->setDtDue(record.due);
-        todo->setAllDay(record.allDay);
-    }
-    if (record.start.isValid()) {
-        todo->setDtStart(record.start);
-    }
-    todo->setPriority(record.priority);
-    todo->setPercentComplete(record.percentComplete);
-    todo->setCompleted(record.completed);
-    todo->setCategories(record.categories);
-    if (!record.parentUid.isEmpty()) {
-        todo->setRelatedTo(record.parentUid);
-    }
-    TaskCalendar::setSection(todo, record.section);
+    KCalendarCore::Todo::Ptr todo = TaskUndo::rebuild(record);
 
     Akonadi::Item jobItem;
     jobItem.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
@@ -5423,7 +5243,7 @@ void TaskController::snoozeTask(qint64 itemId, const QString &preset)
     if (!cache || !cache->todo) {
         return;
     }
-    pushUndo(snapshotUndo(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
+    m_undo->push(TaskUndo::snapshot(TaskLogic::UndoRecord::Kind::Reschedule, *cache));
     TaskCalendar::snoozeReminder(cache->todo, preset, QDateTime::currentDateTime());
     persistTodo(cache->item, cache->todo);
 }
