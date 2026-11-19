@@ -1,8 +1,10 @@
 #include "akonaditaskstore.h"
+#include "akonadiutil.h"
 #include "kurrentlogging.h"
 
 #include <Akonadi/ItemCreateJob>
 #include <Akonadi/ItemDeleteJob>
+#include <Akonadi/ItemFetchJob>
 #include <Akonadi/ItemModifyJob>
 #include <Akonadi/ItemMoveJob>
 
@@ -55,6 +57,24 @@ void AkonadiTaskStore::submit(const Request &request)
         runDelete(request);
         break;
     }
+}
+
+void AkonadiTaskStore::fetch(const Akonadi::Item &item, QObject *context, FetchDone done)
+{
+    auto *job = new Akonadi::ItemFetchJob(item, this);
+    configureItemFetchJob(job);
+    // The receiver is `context`: no call once the caller is gone.
+    connect(job, &Akonadi::ItemFetchJob::result, context, [job, done](KJob *kjob) {
+        if (kjob->error()) {
+            done({}, kjob->errorString());
+            return;
+        }
+        if (job->items().isEmpty()) {
+            done({}, QStringLiteral("item not found"));
+            return;
+        }
+        done(job->items().constFirst(), QString());
+    });
 }
 
 void AkonadiTaskStore::emitResult(Result result)

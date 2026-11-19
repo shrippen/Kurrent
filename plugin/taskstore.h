@@ -7,6 +7,8 @@
 #include <QObject>
 #include <QString>
 
+#include <functional>
+
 /**
  * Persistence boundary for task CRUD.
  *
@@ -17,6 +19,8 @@
  *   -------------------                  ------------------
  *   update cache, syncing=true    --->   submit(Request)
  *   finishSync / upsert / remove  <---   finished(Result)
+ *   conflict, revision 0          --->   fetch(item, context, done)
+ *   re-apply or surface           <---   done(item, error)
  *
  * The controller coalesces further edits while a job for that clientId is in
  * flight, then submits the latest payload after the job finishes.
@@ -51,6 +55,14 @@ public:
     }
 
     virtual void submit(const Request &request) = 0;
+
+    /// Called with the current version of an item, or an error. Not called once
+    /// `context` is destroyed.
+    using FetchDone = std::function<void(const Akonadi::Item &item, const QString &error)>;
+
+    /// Reads the current version of an item from the backend: after a conflict, or
+    /// when the cached revision is unknown (0). Payload and attributes included.
+    virtual void fetch(const Akonadi::Item &item, QObject *context, FetchDone done) = 0;
 
 Q_SIGNALS:
     void finished(const AbstractTaskStore::Result &result);
