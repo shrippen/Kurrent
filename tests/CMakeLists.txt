@@ -146,6 +146,7 @@ set_tests_properties(kurrent-taskstore PROPERTIES
 find_package(KF6 REQUIRED COMPONENTS I18n)
 set(KURRENT_CONTROLLER_TEST_SOURCES
     ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+    ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
     ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
     ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp
@@ -325,6 +326,7 @@ if(KURRENT_BUILD_BENCH)
     add_executable(kurrent-perf-bench
         perf_bench.cpp
         ${CMAKE_SOURCE_DIR}/plugin/taskcontroller.cpp
+        ${CMAKE_SOURCE_DIR}/plugin/taskwriter.cpp
         ${CMAKE_SOURCE_DIR}/plugin/sharedtasks.cpp
         ${CMAKE_SOURCE_DIR}/plugin/akonadiloader.cpp
         ${CMAKE_SOURCE_DIR}/plugin/akonadibusy.cpp

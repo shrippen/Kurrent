@@ -34,6 +34,7 @@ private Q_SLOTS:
     void resolveUserChoiceWritesUserValue();
     void resolveServerChoiceKeepsServerValue();
     void resolveEditChoiceDoesNotSubmit();
+    void resolveUserChoiceSetsEachField();
     void refetchFailureSurfacesConflict();
     void reloadAppliesFreshItem();
     void reloadClearsConflict();
@@ -203,6 +204,23 @@ void TaskControllerConflictTest::resolveEditChoiceDoesNotSubmit()
     QCOMPARE(finished.size(), 0);
     QCOMPARE(serverPriority(), kServerPriority);
     QCOMPARE(m_controller->conflictItemId(), -1);
+}
+
+// The debug conflict offers summary and priority; taking the user's side writes both.
+void TaskControllerConflictTest::resolveUserChoiceSetsEachField()
+{
+    QSignalSpy merge(m_controller, &TaskController::mergeConflictAvailable);
+    m_controller->testMergeConflict();
+    QCOMPARE(merge.size(), 1);
+    QSignalSpy finished(m_store, &AbstractTaskStore::finished);
+
+    m_controller->resolveMergeConflict({{QStringLiteral("summary"), QStringLiteral("user")},
+                                        {QStringLiteral("priority"), QStringLiteral("user")}});
+    waitFinished(finished, 1);
+
+    const KCalendarCore::Todo::Ptr stored = m_store->item(kTaskId).payload<KCalendarCore::Todo::Ptr>();
+    QCOMPARE(stored->summary(), QStringLiteral("alpha (edited)"));
+    QCOMPARE(stored->priority(), kUserPriority);
 }
 
 void TaskControllerConflictTest::refetchFailureSurfacesConflict()

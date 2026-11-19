@@ -7,6 +7,7 @@
 #include "tasklistmodel.h"
 #include "tasklogic.h"
 #include "taskstore.h"
+#include "taskwriter.h"
 
 #include <Akonadi/Item>
 
@@ -210,7 +211,7 @@ public:
     QVariantMap blockedFilters() const;
     int badgeCount() const;
     bool badgeAlert() const;
-    qint64 conflictItemId() const { return m_conflictItemId; }
+    qint64 conflictItemId() const { return m_writer->conflictItemId(); }
     bool catchUpEnabled() const { return m_catchUpEnabled; }
     int catchUpDays() const { return m_catchUpDays; }
     int morningHour() const { return m_morningHour; }
@@ -527,7 +528,7 @@ public:
 
     // Merge conflict resolution
     Q_PROPERTY(QVariantList mergeFields READ mergeFields NOTIFY mergeConflictAvailable)
-    QVariantList mergeFields() const { return m_pendingMergeFields; }
+    QVariantList mergeFields() const { return m_writer->mergeFields(); }
     Q_INVOKABLE void resolveMergeConflict(const QVariantMap &resolution);
     Q_INVOKABLE void testMergeConflict(); // Debug: simulate a conflict
 
@@ -638,8 +639,6 @@ private Q_SLOTS:
     void onSettingsStored();
 
 private:
-enum class SyncResult { Error, Ok };
-
     void bindConfiguration(QObject *configuration);
     void loadSettings();
     void followView();
@@ -701,8 +700,6 @@ enum class SyncResult { Error, Ok };
     bool taskMatchesViewId(const TaskEntry &task, const QString &viewId) const;
     bool taskMatchesFilters(const TaskEntry &task) const;
     bool taskMatchesSearch(const TaskEntry &task) const;
-    Akonadi::Item itemById(qint64 itemId) const;
-    KCalendarCore::Todo::Ptr todoFromItem(const Akonadi::Item &item) const;
     QString sectionFromTodo(const KCalendarCore::Todo::Ptr &todo) const;
     TaskEntry makeTaskEntry(const SharedTasks::Entry &cached, int indentLevel, bool hasChildren) const;
     /** Every task the Agenda knows (all projects, not only the filtered list). */
@@ -711,14 +708,8 @@ enum class SyncResult { Error, Ok };
     QList<AgendaLogic::Span> agendaBusy(const QDate &day, const QList<TaskEntry> &tasks, qint64 skipItemId) const;
     static QString recurrencePresetFromTodo(const KCalendarCore::Todo::Ptr &todo);
     SharedTasks::Entry *prepareEdit(qint64 itemId);
-    void finishSync(qint64 itemId, SyncResult ok, const QString &errorString = {}, const Akonadi::Item &ackedItem = {});
     void onStoreFinished(const AbstractTaskStore::Result &result);
     void persistTodo(const Akonadi::Item &item, const KCalendarCore::Todo::Ptr &todo, qint64 moveToCollectionId = -1);
-    void submitModify(SharedTasks::Entry &cached, qint64 moveToCollectionId);
-    void autoResolveConflict(qint64 itemId);
-    QVariantList computeMergeDiff(const KCalendarCore::Todo::Ptr &base,
-                                   const KCalendarCore::Todo::Ptr &user,
-                                   const KCalendarCore::Todo::Ptr &server) const;
     void submitCreate(const Akonadi::Item &jobItem, const Akonadi::Collection &collection, qint64 tempId);
     Akonadi::Collection collectionById(qint64 collectionId) const;
     Akonadi::Collection firstWritableCollection() const;
@@ -800,7 +791,6 @@ enum class SyncResult { Error, Ok };
     QStringList m_selectedTaskIds;
     QString m_smartViewsJson = QStringLiteral("[]");
     QList<TaskLogic::SmartViewDef> m_smartViews;
-    qint64 m_conflictItemId = -1;
     bool m_matrixDrillActive = false;
     QString m_matrixDrillSource;
     QString m_matrixDrillLane;
@@ -854,14 +844,10 @@ enum class SyncResult { Error, Ok };
     QVariantMap m_sidebarSecrecyCounts;
     QVariantMap m_sidebarLocationCounts;
 
-    // Merge conflict state
-    qint64 m_pendingMergeItemId = -1;
-    QVariantList m_pendingMergeFields;
-    KCalendarCore::Todo::Ptr m_pendingMergeFreshTodo;
     TaskListModel m_taskModel;
     CollectionListModel m_collectionModel;
     CollectionListModel m_eventCalendarModel;
-    AbstractTaskStore *m_store = nullptr;
+    TaskWriter *m_writer = nullptr;
     QTimer m_rebuildTimer;
     QTimer m_reminderTimer;
     QDate m_agendaSelectedDate = QDate::currentDate();
