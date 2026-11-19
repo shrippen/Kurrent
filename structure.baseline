@@ -37,7 +37,7 @@ plugin/taskagenda.cpp	TaskAgenda::agendaDays	ccn=20 length=127
 plugin/taskagenda.cpp	TaskAgenda::agendaTasksForRange	ccn=18
 plugin/taskcalendar.cpp	TaskCalendar::appendBusyIntervals	ccn=19
 plugin/taskcalendar.cpp	TaskCalendar::completeTodo	ccn=28 length=83
-plugin/taskcontroller.cpp	-	lines=4583
+plugin/taskcontroller.cpp	-	lines=4532
 plugin/taskcontroller.cpp	TaskController::createQuickTask	ccn=26 length=86 nesting=6
 plugin/taskcontroller.cpp	TaskController::kanbanColumnKeysForVisibleTasks	ccn=19
 plugin/taskcontroller.cpp	TaskController::listGroupLabelForKey	ccn=29

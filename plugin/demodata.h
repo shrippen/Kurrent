@@ -6,6 +6,8 @@
 // offsets from Monday of the current week; DEMO_TODAY=YYYY-MM-DD fixes "today".
 #pragma once
 
+#include "memorytaskstore.h"
+#include "sharedtasks.h"
 #include "taskcalendar.h"
 
 #include <Akonadi/Collection>
@@ -36,4 +38,8 @@ struct Data {
 QString language();
 bool enabled();
 Data load();
+
+// Fills the shared tasks, collections and busy times from load() and the store with the
+// tasks; returns the demo "today" for the agenda.
+QDate seed(SharedTasks &shared, MemoryTaskStore &store);
 }

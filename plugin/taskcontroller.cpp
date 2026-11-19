@@ -10,6 +10,7 @@
 #include "demodata.h"
 #endif
 #include "memorytaskstore.h"
+#include "sessionhooks.h"
 #include "sharedsettings.h"
 #include "taskcalendar.h"
 #include "taskentry.h"
@@ -171,18 +172,13 @@ QVariantList kanbanManualOrderForColumn(const QVariantMap &comboMap, const QStri
 
 QList<TaskController *> TaskController::s_instances;
 TaskController::SessionServices TaskController::s_sessionServices = TaskController::SessionServices::On;
-int TaskController::s_smokeStep = 0;
-bool TaskController::s_smokeFinished = false;
-TaskController *TaskController::s_smokeLeader = nullptr;
 
 TaskController::TaskController(QObject *parent)
     : QObject(parent)
 {
     s_instances.append(this);
 
-    if (smokeTest()) {
-        smokeTrace(QStringLiteral("KURRENT_SMOKE_CONTROLLER"));
-    }
+    createHooks();
 
     m_rebuildTimer.setInterval(kRebuildDelayMs);
     m_rebuildTimer.setSingleShot(true);
@@ -256,6 +252,18 @@ TaskController::TaskController(QObject *parent)
     });
 }
 
+// The smoke test and screenshot hooks; their signals are this controller's.
+void TaskController::createHooks()
+{
+    m_hooks = new SessionHooks(this);
+    connect(m_hooks, &SessionHooks::smokeStepChanged, this, &TaskController::smokeStepChanged);
+    connect(m_hooks, &SessionHooks::smokeFinishedChanged, this, &TaskController::smokeFinishedChanged);
+    connect(m_hooks, &SessionHooks::smokeLeaderChanged, this, &TaskController::smokeLeaderChanged);
+    if (smokeTest()) {
+        smokeTrace(QStringLiteral("KURRENT_SMOKE_CONTROLLER"));
+    }
+}
+
 // The shared data changed (this controller's or another's): show it.
 void TaskController::connectShared()
 {
@@ -307,12 +315,6 @@ TaskController::~TaskController()
         m_rebuildWatcher.waitForFinished();
     }
     s_instances.removeAll(this);
-    if (s_smokeLeader == this) {
-        s_smokeLeader = nullptr;
-        for (TaskController *instance : s_instances) {
-            Q_EMIT instance->smokeLeaderChanged();
-        }
-    }
 }
 
 void TaskController::setTaskStore(AbstractTaskStore *store)
@@ -334,26 +336,9 @@ bool TaskController::demoMode() const
 void TaskController::loadDemoData()
 {
     m_demo = true;
-    setTaskStore(new MemoryTaskStore);
-    const DemoData::Data data = DemoData::load();
-    m_shared.tasks().clear();
-    installTestCollections(data.collections);
-    for (const DemoData::Task &task : data.tasks) {
-        Akonadi::Item item;
-        item.setId(task.id);
-        item.setMimeType(QString::fromLatin1(KCalendarCore::Todo::todoMimeType()));
-        item.setPayload(task.todo);
-        item.setParentCollection(Akonadi::Collection(task.collectionId));
-        SharedTasks::Entry cached;
-        cached.item = item;
-        cached.todo = task.todo;
-        m_shared.tasks().insert(task.id, cached);
-        if (auto *memory = qobject_cast<MemoryTaskStore *>(m_writer->store())) {
-            memory->seedItem(item);
-        }
-    }
-    m_shared.setBusyIntervals(data.events);
-    m_agenda->setSelectedDate(data.today);
+    auto *store = new MemoryTaskStore;
+    setTaskStore(store);
+    m_agenda->setSelectedDate(DemoData::seed(m_shared, *store));
     m_akonadiAvailable = true;
     Q_EMIT akonadiAvailableChanged();
     m_shared.notifyTasksChanged();
@@ -580,78 +565,42 @@ bool TaskController::devBuild() const
 
 bool TaskController::smokeTest() const
 {
-    const QByteArray value = qgetenv("KURRENT_SMOKE");
-    return value == "1" || value.compare("true", Qt::CaseInsensitive) == 0;
+    return m_hooks->smokeTest();
 }
 
 QString TaskController::screenshotDir() const
 {
-    return QString::fromLocal8Bit(qgetenv("KURRENT_SCREENSHOT_DIR"));
+    return m_hooks->screenshotDir();
 }
 
 QString TaskController::screenshotPlan() const
 {
-    return QString::fromLocal8Bit(qgetenv("KURRENT_SCREENSHOT_PLAN"));
+    return m_hooks->screenshotPlan();
 }
 
 int TaskController::smokeStep() const
 {
-    return s_smokeStep;
+    return m_hooks->smokeStep();
 }
 
 void TaskController::setSmokeStep(int step)
 {
-    if (s_smokeStep == step) {
-        return;
-    }
-    s_smokeStep = step;
-    for (TaskController *instance : s_instances) {
-        Q_EMIT instance->smokeStepChanged();
-    }
+    m_hooks->setSmokeStep(step);
 }
 
 bool TaskController::smokeFinished() const
 {
-    return s_smokeFinished;
+    return m_hooks->smokeFinished();
 }
 
 bool TaskController::smokeLeader()
 {
-    if (!smokeTest() || s_smokeFinished) {
-        return false;
-    }
-    if (!s_smokeLeader) {
-        s_smokeLeader = this;
-        // Notify siblings so only one SmokeTest timer runs.
-        for (TaskController *instance : s_instances) {
-            if (instance != this) {
-                Q_EMIT instance->smokeLeaderChanged();
-            }
-        }
-    }
-    return s_smokeLeader == this;
+    return m_hooks->smokeLeader();
 }
 
 void TaskController::smokeTrace(const QString &message) const
 {
-    qWarning().noquote() << message;
-    if (message.contains(QLatin1String("KURRENT_SMOKE_DONE"))) {
-        if (!s_smokeFinished) {
-            s_smokeFinished = true;
-            for (TaskController *instance : s_instances) {
-                Q_EMIT instance->smokeFinishedChanged();
-            }
-        }
-    }
-    const QString path = QString::fromLocal8Bit(qgetenv("KURRENT_SMOKE_LOG"));
-    if (path.isEmpty()) {
-        return;
-    }
-    QFile file(path);
-    if (file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-        file.write(message.toUtf8());
-        file.write("\n");
-    }
+    m_hooks->smokeTrace(message);
 }
 
 QString TaskController::collectionNameForId(qint64 collectionId) const

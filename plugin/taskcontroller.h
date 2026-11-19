@@ -2,6 +2,7 @@
 
 #include "agendalogic.h"
 #include "collectionlistmodel.h"
+#include "sessionhooks.h"
 #include "sharedtasks.h"
 #include "taskagenda.h"
 #include "taskcalendar.h"
@@ -675,6 +676,7 @@ private:
     bool isInBusyEvent(const QDateTime &when) const;
     void registerSessionInterface();
     void registerGlobalShortcuts();
+    void createHooks();
     void connectShared();
     void connectLoader();
     void mirrorLoader();
@@ -841,11 +843,9 @@ private:
     QTimer m_rebuildTimer;
     QTimer m_reminderTimer;
     TaskAgenda *m_agenda = nullptr;
+    SessionHooks *m_hooks = nullptr;
 
     SharedTasks &m_shared = SharedTasks::instance();
     static QList<TaskController *> s_instances;
     static SessionServices s_sessionServices;
-    static int s_smokeStep;
-    static bool s_smokeFinished;
-    static TaskController *s_smokeLeader;
 };

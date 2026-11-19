@@ -45,6 +45,8 @@ add_library(kurrentcore STATIC
     akonaditaskstore.h
     boardlogic.cpp
     boardlogic.h
+    sessionhooks.cpp
+    sessionhooks.h
     taskagenda.cpp
     taskagenda.h
     taskentry.cpp
